@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Babys — The Fire-Safety Battle Game for Kids</title>
+<meta name="description" content="Fire Babys is a free kid-safe battle game that teaches children to prevent house fires and what to do when a fire is nearby. Play the 2D battler and the 3D open world.">
+<meta name="theme-color" content="#ff6a1a">
+<meta property="og:title" content="Fire Babys — The Fire-Safety Battle Game for Kids">
+<meta property="og:description" content="Build your crew. Battle fire-monsters. Learn real fire safety. Free, kid-safe, no ads.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fire Babys — The Fire-Safety Battle Game for Kids">
+<meta name="twitter:description" content="Build your crew. Battle fire-monsters. Learn real fire safety.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a0d06;color:#ffe9d6;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:50;background:rgba(26,13,6,.96);border-bottom:2px solid rgba(255,106,26,.35);backdrop-filter:blur(6px)}
+nav .wrap{display:flex;align-items:center;gap:18px;padding:12px 20px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:22px;letter-spacing:2px;color:#ffb347;text-decoration:none}
+.logo span{color:#ff6a1a}
+nav a.nl{color:#ffd9ae;text-decoration:none;font-weight:700;font-size:15px}
+nav a.nl:hover{color:#ff6a1a}
+.hero{text-align:center;padding:64px 20px 48px;background:radial-gradient(ellipse at 50% 0%,rgba(255,106,26,.22),transparent 65%)}
+.hero h1{font-size:min(16vw,84px);font-weight:900;letter-spacing:4px;line-height:1;
+background:linear-gradient(180deg,#ffd76a,#ff6a1a 60%,#e8352c);-webkit-background-clip:text;background-clip:text;color:transparent;
+text-shadow:0 4px 30px rgba(255,106,26,.25)}
+.hero .tag{font-size:min(6vw,26px);font-weight:800;color:#ffd9ae;margin-top:14px}
+.hero .sub{color:#d8b89a;margin-top:8px;font-size:17px}
+.btnrow{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.btn{display:inline-block;padding:16px 34px;border-radius:18px;font-weight:900;font-size:18px;letter-spacing:1px;
+text-decoration:none;color:#2a1206;background:linear-gradient(180deg,#ffd76a,#ff8c2e);border:3px solid #ff6a1a;
+box-shadow:0 6px 0 #a33c10,0 10px 24px rgba(255,106,26,.35);transition:transform .08s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #a33c10}
+.btn.alt{background:linear-gradient(180deg,#ff9d5c,#e8352c);color:#fff8f0}
+.mission{background:linear-gradient(90deg,rgba(255,106,26,.14),rgba(232,53,44,.14));border-top:2px solid rgba(255,106,26,.4);border-bottom:2px solid rgba(255,106,26,.4);padding:30px 20px;text-align:center}
+.mission p{max-width:720px;margin:0 auto;font-size:18px}
+.mission strong{color:#ffd76a}
+section{padding:48px 0}
+h2{font-size:min(9vw,34px);font-weight:900;letter-spacing:2px;color:#ffb347;text-align:center;margin-bottom:8px}
+.secsub{text-align:center;color:#d8b89a;margin-bottom:28px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.card{background:rgba(255,255,255,.045);border:2px solid rgba(255,106,26,.3);border-radius:20px;padding:24px}
+.card h3{color:#ffd76a;font-size:20px;margin-bottom:8px}
+.card p{color:#e8c9a8;font-size:15px}
+.card .go{display:inline-block;margin-top:14px;padding:12px 26px;border-radius:14px;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;font-weight:900;text-decoration:none;border:2px solid #ff6a1a}
+.chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.chip{background:rgba(255,255,255,.05);border:2px solid rgba(255,106,26,.35);border-radius:16px;padding:12px 18px;text-decoration:none;color:#ffe9d6;font-weight:700;text-align:center;min-width:140px}
+.chip .e{font-size:34px;display:block}
+.chip small{color:#d8b89a;font-weight:600}
+.chip:hover{border-color:#ff6a1a}
+.safety{background:rgba(255,106,26,.07);border-top:2px solid rgba(255,106,26,.3);border-bottom:2px solid rgba(255,106,26,.3)}
+.safety ul{list-style:none;max-width:640px;margin:0 auto;display:grid;gap:12px}
+.safety li{background:rgba(0,0,0,.3);border-radius:14px;padding:14px 18px;border:1px solid rgba(255,106,26,.25)}
+.safety li b{color:#ffd76a}
+#fanclub{text-align:center}
+.newsbox{max-width:520px;margin:0 auto;background:rgba(255,255,255,.045);border:2px solid rgba(255,106,26,.35);border-radius:20px;padding:28px}
+.newsbox input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid rgba(255,150,60,.5);background:rgba(10,4,2,.8);color:#ffe9d6;font-size:16px;margin:14px 0}
+.newsbox .btn{width:100%;cursor:pointer;font-family:inherit}
+#soonmsg{display:none;margin-top:14px;color:#ffd76a;font-weight:700}
+.discord{text-align:center}
+.discord .card{max-width:560px;margin:0 auto;text-align:center}
+footer{border-top:2px solid rgba(255,106,26,.3);padding:28px 0;text-align:center;color:#a87f5c;font-size:14px}
+footer a{color:#d8a05c;text-decoration:none;margin:0 8px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+<a class="logo" href="index.html">FIRE<span>BABYS</span></a>
+<a class="nl" href="play.html">Play</a>
+<a class="nl" href="characters.html">Characters</a>
+<a class="nl" href="parents.html">Parents</a>
+<a class="nl" href="#fanclub">Fan Club</a>
+<a class="nl" href="https://discord.gg/sfdsWKzhWh" target="_blank" rel="noopener">Discord</a>
+</div></nav>
+
+<div class="hero"><div class="wrap">
+<h1>FIRE<br>BABYS</h1>
+<div class="tag">The fire-safety battle game for kids</div>
+<div class="sub">Build your crew. Battle fire-monsters. Learn real fire safety.</div>
+<div class="btnrow">
+<a class="btn" href="play.html">🔥 PLAY 2D BATTLE</a>
+<a class="btn alt" href="3d.html">🌋 PLAY 3D WORLD</a>
+</div>
+</div></div>
+
+<div class="mission"><p><strong>Our purpose:</strong> teach children to prevent house fires — and what to do when a fire is nearby.<br>
+Real fire is never a toy — only grown-ups handle flame! 🔥🚒</p></div>
+
+<section><div class="wrap">
+<h2>🎮 TWO GAMES, ONE CREW</h2>
+<div class="secsub">Both free. Both kid-safe. Pick your adventure.</div>
+<div class="cards">
+<div class="card">
+<h3>🔥 2D Battle</h3>
+<p>The classic formation battler. Deploy your squad, merge troops, burn down the enemy castle across 6 towns — while learning which tool beats which class of fire.</p>
+<a class="go" href="play.html">PLAY NOW →</a>
+</div>
+<div class="card">
+<h3>🌋 3D Open World</h3>
+<p>Roam Ember Valley in full 3D with Blaze and the crew. 7 modes: Story, Rescue, Survival, Free Roam, Practice, Tournaments, and worldwide Leaderboards.</p>
+<a class="go" href="3d.html">ENTER THE WORLD →</a>
+</div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<h2>🔥 MEET THE CREW</h2>
+<div class="secsub">Round, chunky, and ready to roll. <a href="characters.html" style="color:#ffb347">See everyone →</a></div>
+<div class="chips">
+<a class="chip" href="characters.html"><span class="e">🔥</span>RUKO<br><small>Team leader</small></a>
+<a class="chip" href="characters.html"><span class="e">🪨</span>BOULDER<br><small>Gentle guardian</small></a>
+<a class="chip" href="characters.html"><span class="e">✨</span>SIZZLE<br><small>Sharpshooter</small></a>
+<a class="chip" href="characters.html"><span class="e">💥</span>CINDER<br><small>Pyro prankster</small></a>
+<a class="chip" href="characters.html"><span class="e">👑</span>BLAZE<br><small>Your hero</small></a>
+<a class="chip" href="characters.html"><span class="e">🌋</span>LORD INFERNO<br><small>The big boss</small></a>
+</div>
+</div></section>
+
+<section class="safety"><div class="wrap">
+<h2>🎓 FIRE SAFETY ACADEMY</h2>
+<div class="secsub">Real lessons hiding inside the game.</div>
+<ul>
+<li><b>🔥 Know your fire classes</b> — A (trash), B (grease), C (electrical), D (metal). Every fire needs the right tool — and water is NOT always the answer!</li>
+<li><b>🛑 Stop, Drop &amp; Roll</b> — if your clothes catch fire, smother the flames and roll until they're out.</li>
+<li><b>🚪 Get Out &amp; Stay Out</b> — two ways out of every room. Once you're out, never go back in.</li>
+<li><b>🔌 Charge safe</b> — devices charge on hard, flat surfaces. Pillows and beds are a no-go.</li>
+</ul>
+</div></section>
+
+<section id="fanclub"><div class="wrap">
+<h2>🔥 FIRE BABYS FAN CLUB</h2>
+<div class="secsub">Our newsletter: family fire-safety tips, game updates, character lore, and leaderboard highlights.</div>
+<div class="newsbox">
+<p style="color:#e8c9a8">Get the good stuff in your inbox. No spam, ever — unsubscribe anytime.</p>
+<input type="email" id="nl-email" placeholder="you@example.com" aria-label="Email address">
+<button class="btn" id="nl-btn" type="button">NOTIFY ME 🔥</button>
+<p id="soonmsg">🚧 Launching soon — join the Discord below and you'll hear it first!</p>
+</div>
+</div></section>
+
+<section class="discord"><div class="wrap">
+<h2>💬 JOIN THE COMMUNITY</h2>
+<div class="secsub">Hang out with the crew.</div>
+<div class="card">
+<h3>🔥 Fire Babys Official</h3>
+<p>Our Discord server: announcements, fan art, game nights, and leaderboard shout-outs.</p>
+<a class="go" href="https://discord.gg/sfdsWKzhWh" target="_blank" rel="noopener">JOIN THE DISCORD →</a>
+</div>
+</div></section>
+
+<footer><div class="wrap">
+<a href="index.html">Home</a><a href="play.html">Play</a><a href="characters.html">Characters</a><a href="parents.html">Parents</a><a href="https://discord.gg/sfdsWKzhWh" target="_blank" rel="noopener">Discord</a>
+<p style="margin-top:10px">Copyright (c) 2026 Jeffery Pruden. All rights reserved.</p>
+</div></footer>
+
+<script>
+// Honest coming-soon state: the newsletter backend isn't live yet.
+document.getElementById('nl-btn').addEventListener('click', function(){
+  var em = document.getElementById('nl-email').value.trim();
+  var msg = document.getElementById('soonmsg');
+  msg.style.display = 'block';
+  if(em && em.indexOf('@') > 0){
+    msg.textContent = '🚧 Launching soon — we saved your interest! Join the Discord below and you\'ll hear it first!';
+  } else {
+    msg.textContent = '🚧 Launching soon — join the Discord below and you\'ll hear it first!';
+  }
+});
+</script>
+</body>
+</html>
