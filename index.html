@@ -4,12 +4,20 @@
   The purpose of this game is to teach children how to prevent house fires
   and what to do when there is a fire around.
 -->
+<!--
+  FIRE BABYS — copyright notice (added 2026-10-01, at Jeff's direction):
+  Copyright (c) 2026 Jeffery Pruden. All rights reserved.
+  FIRE BABYS, the Fire Babys characters, artwork, story, text, and game
+  code are original works of authorship. No part of this game may be
+  reproduced, distributed, or used to create derivative works without
+  written permission.
+-->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#140806">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-FqSbWCT+8PX3RnCzTMTmSa1wAUQEKoc2j1kAtszHGi4=' 'sha256-WbOcg5dKGJC5Eh8LvWr8ZvP0+ZtT7ZJ7x5DVptMp2pE=' 'sha256-FAVOQ/UyJ8K1XEkHhaG3vCyKIXXakTwheDpb4NqXU/w=' 'sha256-XoWPbsNmlPRZ5yBvsbFQbbVqm91uVI3WOp2lTo/MNcE=' 'sha256-S6QiU/goF6SA0BBaRDi0IOvgw3L7p0V4i8kdFo3pX7k=' 'sha256-cgeM9h9yU1cDbwT93vduu5bIDPolo4rDx41jbGP3MjI=' 'sha256-bMau5uj5IovzaA18cbY9Di5adES+9PqlMQgSu+2+uOg=' 'sha256-nW5iVrmo0bXjqeTRf8CJMAUX3LVV+HtYqbSaZ4IzmU8='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-FqSbWCT+8PX3RnCzTMTmSa1wAUQEKoc2j1kAtszHGi4=' 'sha256-WbOcg5dKGJC5Eh8LvWr8ZvP0+ZtT7ZJ7x5DVptMp2pE=' 'sha256-FAVOQ/UyJ8K1XEkHhaG3vCyKIXXakTwheDpb4NqXU/w=' 'sha256-XoWPbsNmlPRZ5yBvsbFQbbVqm91uVI3WOp2lTo/MNcE=' 'sha256-S6QiU/goF6SA0BBaRDi0IOvgw3L7p0V4i8kdFo3pX7k=' 'sha256-cgeM9h9yU1cDbwT93vduu5bIDPolo4rDx41jbGP3MjI=' 'sha256-bMau5uj5IovzaA18cbY9Di5adES+9PqlMQgSu+2+uOg=' 'sha256-nW5iVrmo0bXjqeTRf8CJMAUX3LVV+HtYqbSaZ4IzmU8=' 'sha256-Hau2qwGixtP9jeA2hvwN2Qaz8hXelpsYWU+S/fozuwI=' 'sha256-AaBvNuA/CrBrcN6vcR4XaAJZNL7DSA80ECBHJY0mhkI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Fire Babys</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -4508,6 +4516,360 @@ if(typeof window !== 'undefined'){
     CLASSES: MX.CLASSES, TIPS: MX.TIPS,
     matchup: MX.matchup, toolFor: MX.toolFor, classesForStage: MX.classesForStage
   };
+}
+
+})();
+
+</script>
+<script>
+/* =================================================================
+   PATCH: 008-elemental-armor-lore.js  (assembled by build.py — do not hand-edit)
+   ================================================================= */
+/* =====================================================================
+   PATCH 008 — elemental-armor-lore
+   Date: 2026-10-01 | For: Jeff (Fire Babys)
+   Directive: "Rethink" — (1) ALL elements come from ARMOR: every fire
+     baby starts as a junior-school kid wearing Sprout training armor;
+     when they graduate to high school they test the ELEMENTAL ARMOR
+     GENERATOR, which forges their true armor. (2) The Generator is the
+     future store: thousands of procedural armor styles, from Holy
+     element armor all the way to Devil-Dark armor.
+   Design calls (Jeff said "update the game"; defaults disclosed):
+     - NEW CHAPTER, not a retcon: the current crew keeps everything they
+       have (incl. patch 007's signature tools). Their power is now
+       framed as channeled through armor — they've been wearing Sprout
+       training armor all along; the Generator unlocks at graduation.
+       Nothing in 007 or earlier is rewritten or rebalanced.
+     - COSMETIC-FIRST: armor styles change looks + rarity only, never
+       stats. Fair for kids, parent-friendly; stat armor can come later
+       if Jeff wants it. The store panel is a "coming soon" teaser —
+       real purchases need native app-store builds (web can't do IAP).
+   What it changes:
+     - AR.ELEMENTS: 10-element ladder — Sprout (training), Ember, Flame,
+       Aqua, Terra, Storm, Frost, Holy (mythic), Shadow (mythic),
+       Devil-Dark (abyssal). Each: rarity, color, 1-line lore.
+     - AR.forge(seed): deterministic procedural armor —
+       10 elements x 4 palettes x 6 accessories x 4 trims x 5 sigils =
+       4,800 styles ("thousands"). Named like
+       "Holy Dawn Crest Helm of the Crown Sigil".
+     - Hero bios (window.__FB_BIOS): +armor field and one armor sentence
+       appended to desc — renders automatically in the 002 codex.
+       Boss gets "wears no armor — he IS the wildfire."
+     - drawBabyExtras: player-side babies get subtle Sprout-Armor
+       shoulder plates (ember trim). Round bodies, expressive mouths,
+       ZERO bird traits. Boss untouched.
+     - Deploy screen: #arForge teaser panel — the Generator's lore +
+       3 rotating preview armors, "coming soon" store note. Hidden
+       during fights, like 007's briefing.
+     - Victory: one graduation-progress hint per stage via UI.hint.
+   Touches: window.__FB_BIOS (mutates desc/armor fields only),
+     drawBabyExtras (chained after 007), Game.toDeploy / Game.startFight /
+     Game.checkEnd (chained after 007). Originals kept as __ar_orig*.
+   How to disable: set "enabled": false in patches/manifest.json, rebuild.
+   Test: deploy screen shows the ARMOR GENERATOR panel; codex bios mention
+     Sprout Armor; player babies wear little ember shoulder plates.
+   ===================================================================== */
+(function(){
+'use strict';
+
+var AR = { forgeIdx: 0, gradHintFor: -1 };
+
+/* ---------------- 1. DATA: the element ladder ---------------- */
+AR.ELEMENTS = [
+  { name:'Sprout',     rarity:'Training', color:'#9be15d',
+    lore:'Worn by every junior-school baby. No powers of its own — it keeps you safe while you learn.' },
+  { name:'Ember',      rarity:'Common',   color:'#ff9d3c',
+    lore:'The first true element. Warm, loyal, a little reckless.' },
+  { name:'Flame',      rarity:'Common',   color:'#ff5d2e',
+    lore:'Ember\'s bigger sibling. Hits hot, burns bright.' },
+  { name:'Aqua',       rarity:'Rare',     color:'#3cb9ff',
+    lore:'Flows around trouble instead of through it.' },
+  { name:'Terra',      rarity:'Rare',     color:'#c98f4e',
+    lore:'Stands its ground. Literally. It is the ground.' },
+  { name:'Storm',      rarity:'Epic',     color:'#b06eff',
+    lore:'Fast, loud, and impossible to schedule.' },
+  { name:'Frost',      rarity:'Epic',     color:'#aef1ff',
+    lore:'Cool under pressure. The calmest element in the room.' },
+  { name:'Holy',       rarity:'Mythic',   color:'#fff3b0',
+    lore:'Radiant armor of the dawn guard. Legends are forged in it.' },
+  { name:'Shadow',     rarity:'Mythic',   color:'#8f7bd8',
+    lore:'Moves between heartbeats. You never see it coming.' },
+  { name:'Devil-Dark', rarity:'Abyssal',  color:'#ff4e9a',
+    lore:'The deepest forge. Spooky-cool, not spooky-mean — attitude is everything.' }
+];
+AR.PALETTES = ['Dawn', 'Dusk', 'Emberfall', 'Tidebound'];
+AR.ACCESSORIES = ['Crest Helm', 'Shoulder Plates', 'Battle Cape', 'Ember Boots', 'Sigil Belt', 'Star Diadem'];
+AR.TRIMS = ['Gold', 'Silver', 'Obsidian', 'Pearl'];
+AR.SIGILS = ['Spark', 'Wave', 'Leaf', 'Bolt', 'Crown'];
+AR.STYLE_COUNT = AR.ELEMENTS.length * AR.PALETTES.length *
+                 AR.ACCESSORIES.length * AR.TRIMS.length * AR.SIGILS.length; /* 4800 */
+
+/* deterministic PRNG so a seed always forges the same armor */
+AR.rng = function(seed){
+  var s = (seed >>> 0) || 1;
+  return function(){
+    s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0;
+    return s / 4294967296;
+  };
+};
+
+AR.forge = function(seed){
+  var r = AR.rng(seed), pick = function(a){ return a[Math.floor(r() * a.length)]; };
+  var el = pick(AR.ELEMENTS);
+  var pal = pick(AR.PALETTES), acc = pick(AR.ACCESSORIES),
+      trim = pick(AR.TRIMS), sig = pick(AR.SIGILS);
+  return {
+    element: el.name, rarity: el.rarity, color: el.color,
+    palette: pal, accessory: acc, trim: trim, sigil: sig,
+    name: el.name + ' ' + pal + ' ' + acc + ' of the ' + sigilName(sig) + ' Sigil',
+    trimName: trim
+  };
+  function sigilName(s){ return s; }
+};
+
+AR.elementByName = function(n){
+  for(var i = 0; i < AR.ELEMENTS.length; i++)
+    if(AR.ELEMENTS[i].name === n) return AR.ELEMENTS[i];
+  return AR.ELEMENTS[0];
+};
+
+/* ---------------- 2. hero bios: armor becomes canon ---------------- */
+AR.ARMOR_NOTES = {
+  brawler:  'His Fist Flurry burns through hand-me-down Sprout Armor — training gear every junior-school baby wears until high-school graduation unlocks the Elemental Armor Generator.',
+  guardian: 'Her plates are dented Sprout Armor from a hundred playground battles. She can\'t wait to test the Armor Generator at graduation — she has her eye on Terra.',
+  archer:   'Her trick shots are pure skill; her Sprout Armor just keeps her safe while she shows off. Graduation can\'t come fast enough — she wants the Armor Generator to forge her Storm armor.',
+  pyro:     'Sprout Armor, third-hand, slightly singed (her own fault). The Armor Generator attendants have been warned about her. She wants Devil-Dark.',
+  hero:     'Your avatar\'s star crown sits over classic Sprout Armor — the same training gear every baby starts in. What the Armor Generator forges for him at graduation is up to YOU.'
+};
+if(typeof window !== 'undefined' && window.__FB_BIOS){
+  var __ar_bios = window.__FB_BIOS, __ar_k;
+  for(__ar_k in AR.ARMOR_NOTES){
+    if(__ar_bios[__ar_k]){
+      __ar_bios[__ar_k].armor = 'Sprout Armor (Training)';
+      __ar_bios[__ar_k].desc += ' ' + AR.ARMOR_NOTES[__ar_k];
+    }
+  }
+  if(__ar_bios.boss){
+    __ar_bios.boss.armor = 'None — the Wildfire King wears no armor. He IS the wildfire.';
+  }
+}
+
+/* ---------------- 3. Sprout-Armor shoulder plates (player babies) ---------------- */
+var __ar_origExtras = (typeof drawBabyExtras !== 'undefined') ? drawBabyExtras : null;
+if(__ar_origExtras){
+drawBabyExtras = function(u, s, t){
+  __ar_origExtras(u, s, t);
+  /* player-side babies only, never the boss, never villains-with-class-art conflict */
+  if(!u || u.side !== 0 || u.key === 'boss' || u.isHero === undefined) return;
+  if(u.key !== 'brawler' && u.key !== 'guardian' && u.key !== 'archer' &&
+     u.key !== 'pyro' && u.key !== 'hero') return;
+  ctx.save();
+  /* little ember-trimmed Sprout Armor pauldrons */
+  ctx.fillStyle = '#7a5c3a';
+  ctx.strokeStyle = '#ff9d3c'; ctx.lineWidth = Math.max(1.5, s * 0.06);
+  ctx.beginPath(); ctx.arc(-s * 0.62, -s * 0.28, s * 0.30, Math.PI * 0.9, Math.PI * 1.9); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc( s * 0.62, -s * 0.28, s * 0.30, Math.PI * 1.1, Math.PI * 2.1); ctx.fill(); ctx.stroke();
+  /* tiny sprout-leaf badge: this is TRAINING armor */
+  ctx.fillStyle = '#9be15d';
+  ctx.beginPath(); ctx.ellipse(0, -s * 0.52, s * 0.10, s * 0.16, 0.5, 0, 6.2832); ctx.fill();
+  ctx.restore();
+};
+} /* end if(__ar_origExtras) */
+
+/* ---------------- 4. deploy-screen Generator teaser (DOM) ---------------- */
+AR.ensureDom = function(){
+  if(typeof document === 'undefined') return false;
+  var stage = document.getElementById('stage');
+  if(!stage) return false;
+  if(!document.getElementById('arForge')){
+    var p = document.createElement('div');
+    p.id = 'arForge';
+    p.style.cssText = 'position:absolute;top:104px;left:8px;right:8px;z-index:6;' +
+      'pointer-events:none;text-align:center;font:700 11px/1.55 system-ui,sans-serif;' +
+      'color:#ffe9d6;background:rgba(24,10,32,0.85);border:1px solid rgba(176,110,255,0.55);' +
+      'border-radius:10px;padding:7px 10px;display:none;letter-spacing:0.3px;';
+    stage.appendChild(p);
+  }
+  return true;
+};
+
+AR.showForge = function(){
+  if(!AR.ensureDom()) return;
+  var el = document.getElementById('arForge');
+  if(!el) return;
+  var a = AR.forge(1000 + AR.forgeIdx * 77 + 3),
+      b = AR.forge(1000 + AR.forgeIdx * 77 + 17),
+      c = AR.forge(1000 + AR.forgeIdx * 77 + 42);
+  AR.forgeIdx++;
+  var chip = function(x){
+    return '<span style="color:' + x.color + '">' + x.name +
+           ' <span style="opacity:0.7">[' + x.rarity + ']</span></span>';
+  };
+  el.innerHTML = '<div style="font-weight:900;letter-spacing:1.5px;color:#d9b8ff">' +
+    'ELEMENTAL ARMOR GENERATOR</div>' +
+    '<div style="opacity:0.85">Every baby starts in Sprout training armor. Graduate junior school, ' +
+    'test the Generator in high school — ALL elements come from armor.</div>' +
+    '<div style="margin-top:3px">' + chip(a) + ' · ' + chip(b) + ' · ' + chip(c) + '</div>' +
+    '<div style="opacity:0.65;font-size:10.5px;margin-top:2px">' + AR.STYLE_COUNT +
+    ' styles from Holy to Devil-Dark — armor store coming soon.</div>';
+  el.style.display = 'block';
+};
+
+AR.hideForge = function(){
+  if(typeof document === 'undefined') return;
+  var el = document.getElementById('arForge');
+  if(el) el.style.display = 'none';
+};
+
+if(typeof Game !== 'undefined'){
+  if(typeof Game.toDeploy === 'function'){
+    var __ar_origToDeploy = Game.toDeploy;
+    Game.toDeploy = function(){
+      __ar_origToDeploy.call(Game);
+      AR.showForge();
+    };
+  }
+  if(typeof Game.startFight === 'function'){
+    var __ar_origStartFight = Game.startFight;
+    Game.startFight = function(){
+      __ar_origStartFight.call(Game);
+      if(Game.phase === 'fight') AR.hideForge();
+    };
+  }
+  if(typeof Game.checkEnd === 'function'){
+    var __ar_origCheckEnd = Game.checkEnd;
+    Game.checkEnd = function(){
+      __ar_origCheckEnd.call(Game);
+      if(Game.phase === 'over' && Game.won && AR.gradHintFor !== Game.stage){
+        AR.gradHintFor = Game.stage;
+        if(typeof UI !== 'undefined' && UI.hint)
+          UI.hint('Victory! One battle closer to graduation — the Elemental Armor Generator awaits in high school!');
+      }
+    };
+  }
+}
+
+/* debug/test handle for the verifier harness */
+if(typeof window !== 'undefined'){
+  window.__AR_DEBUG = {
+    ELEMENTS: AR.ELEMENTS, STYLE_COUNT: AR.STYLE_COUNT,
+    forge: AR.forge, elementByName: AR.elementByName,
+    PALETTES: AR.PALETTES, ACCESSORIES: AR.ACCESSORIES,
+    TRIMS: AR.TRIMS, SIGILS: AR.SIGILS
+  };
+}
+
+})();
+
+</script>
+<script>
+/* =================================================================
+   PATCH: 009-trailer-button.js  (assembled by build.py — do not hand-edit)
+   ================================================================= */
+/* =====================================================================
+   PATCH 009 — trailer-button
+   Date: 2026-10-01 | For: Jeff (Fire Babys)
+   Directive: "start adding this video to a few areas.. on the website" —
+     Jeff's 30s Fire Babys cinematic trailer.
+   What it changes:
+     - HUD gets a trailer button (next to the codex button): tap it and
+       the cinematic plays in a fullscreen overlay, tap X to close.
+     - The video lives next to the game as trailer.mp4 (repo root on
+       firebabys.io; same folder as the demo file locally). The game
+       file itself stays light — the video streams, it is NOT bundled.
+     - DOM-only change. No canvas, combat, balance, or baseline changes.
+   Touches: DOM (#trailerBtn in #hud, #trailerOv overlay). No game-logic
+     function is wrapped or replaced.
+   How to disable: set "enabled": false in patches/manifest.json, rebuild.
+     (Also delete trailer.mp4 from the site root if you want it gone.)
+   Test: tap the trailer button on the deploy screen — video plays.
+   ===================================================================== */
+(function(){
+'use strict';
+
+var TR = {};
+
+TR.ensureDom = function(){
+  if(typeof document === 'undefined') return false;
+  var hud = document.getElementById('hud');
+  if(!hud) return false;
+  if(!TR.button && !document.getElementById('trailerBtn')){
+    var mute = document.getElementById('muteBtn');
+    var btn = document.createElement('button');
+    btn.id = 'trailerBtn';
+    btn.textContent = '🎬';
+    btn.setAttribute('aria-label', 'watch the Fire Babys trailer');
+    btn.style.cssText = 'pointer-events:auto;background:rgba(12,6,4,.72);' +
+      'border:1px solid rgba(255,150,60,.25);border-radius:10px;' +
+      'font-size:20px;padding:6px 9px;margin-right:6px;cursor:pointer;';
+    btn.addEventListener('click', function(){
+      TR.open();
+      try{ if(window.AudioSys) AudioSys.ui(); }catch(e){}
+    });
+    if(mute) hud.insertBefore(btn, mute);
+    else hud.appendChild(btn);
+    TR.button = btn;
+  }
+  if(!TR.overlay && !document.getElementById('trailerOv')){
+    var ov = document.createElement('div');
+    ov.id = 'trailerOv';
+    ov.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:30;' +
+      'display:none;justify-content:center;align-items:center;' +
+      'background:rgba(8,3,2,0.94);';
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:92%;max-width:560px;';
+    var vid = document.createElement('video');
+    vid.id = 'trailerVid';
+    vid.setAttribute('src', 'trailer.mp4');
+    vid.setAttribute('controls', 'controls');
+    vid.setAttribute('playsinline', 'playsinline');
+    vid.setAttribute('preload', 'none');
+    vid.style.cssText = 'width:100%;border-radius:12px;border:2px solid #ffb347;' +
+      'background:#000;';
+    var close = document.createElement('button');
+    close.id = 'trailerClose';
+    close.textContent = '✕ CLOSE';
+    close.style.cssText = 'position:absolute;top:-14px;right:-6px;z-index:2;' +
+      'background:#ff5d2e;color:#fff;border:none;border-radius:20px;' +
+      'font:800 13px system-ui,sans-serif;padding:8px 14px;cursor:pointer;';
+    close.addEventListener('click', function(){ TR.close(); });
+    ov.addEventListener('click', function(e){
+      if(e && e.target === ov) TR.close();
+    });
+    wrap.appendChild(vid);
+    wrap.appendChild(close);
+    ov.appendChild(wrap);
+    var stage = document.getElementById('stage') || document.body;
+    stage.appendChild(ov);
+    TR.overlay = ov;
+    TR.video = vid;
+  }
+  return true;
+};
+
+TR.open = function(){
+  if(!TR.ensureDom()) return;
+  var ov = TR.overlay || document.getElementById('trailerOv');
+  var vid = TR.video || document.getElementById('trailerVid');
+  if(ov) ov.style.display = 'flex';
+  if(vid && vid.play){ try{ vid.play(); }catch(e){} }
+};
+
+TR.close = function(){
+  if(typeof document === 'undefined') return;
+  var ov = TR.overlay || document.getElementById('trailerOv');
+  var vid = TR.video || document.getElementById('trailerVid');
+  if(vid && vid.pause){ try{ vid.pause(); }catch(e){} }
+  if(ov) ov.style.display = 'none';
+};
+
+TR.ensureDom();
+
+/* debug/test handle for the verifier harness */
+if(typeof window !== 'undefined'){
+  window.__TR_DEBUG = { open: TR.open, close: TR.close,
+    button: function(){ return TR.button || null; },
+    overlay: function(){ return TR.overlay || null; } };
 }
 
 })();
