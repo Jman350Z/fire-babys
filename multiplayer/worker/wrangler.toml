@@ -1,0 +1,17 @@
+name = "fire-babys-multiplayer"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# HTTP API + WebSocket lobbies. No static assets served from this worker.
+
+[[durable_objects.bindings]]
+name = "GAME_LOBBY"
+class_name = "GameLobby"
+
+[[durable_objects.bindings]]
+name = "LOBBY_DIR"
+class_name = "LobbyDirectory"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GameLobby", "LobbyDirectory"]
