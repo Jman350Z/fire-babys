@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Fire Babys Multiplayer — Test Client</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #140806; color: #ffe9d6; margin: 0; padding: 16px; }
+  h1 { font-size: 20px; margin: 0 0 12px; }
+  .card { background: #241009; border: 1px solid #5a2c14; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  label { display: block; font-size: 13px; margin: 8px 0 4px; opacity: .85; }
+  input, select, button { font-size: 15px; padding: 10px 12px; border-radius: 10px; border: 1px solid #5a2c14; }
+  input, select { background: #1a0c06; color: #ffe9d6; width: 100%; }
+  button { background: linear-gradient(180deg,#ff7a2e,#e8352c); color: #fff; border: none; font-weight: 800; cursor: pointer; margin: 6px 6px 0 0; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.ghost { background: #3a1c0d; }
+  #players { list-style: none; padding: 0; margin: 8px 0; }
+  #players li { padding: 8px 10px; border-radius: 8px; background: #1a0c06; margin-bottom: 6px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .team0 { border-left: 4px solid #ff9a3c; } .team1 { border-left: 4px solid #3ca9ff; }
+  .pill { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #3a1c0d; }
+  .pill.ready { background: #1f7a33; } .pill.host { background: #7a5a1f; }
+  #game { display: none; }
+  #cv { width: 100%; max-width: 640px; aspect-ratio: 4/3; background: #0d0503; border-radius: 12px; border: 1px solid #5a2c14; touch-action: none; }
+  #log { font-size: 12px; opacity: .75; max-height: 120px; overflow-y: auto; background: #100805; padding: 8px; border-radius: 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 140px; }
+  #lobbylist li { cursor: pointer; }
+  #lobbylist li:hover { background: #2a140a; }
+</style>
+</head>
+<body>
+<h1>🔥 Fire Babys Multiplayer — Test Client</h1>
+
+<div class="card" id="setup">
+  <label>Worker URL (wss)</label>
+  <input id="server" value="wss://fire-babys-multiplayer.<account>.workers.dev">
+  <label>Your name</label>
+  <input id="name" value="Player1" maxlength="16">
+  <div class="row">
+    <div>
+      <label>Mode (for new lobby)</label>
+      <select id="mode">
+        <option value="coop">Co-op (vs game)</option>
+        <option value="2v2">2v2</option>
+        <option value="4v4">4v4</option>
+        <option value="6v6">6v6</option>
+        <option value="7v7">7v7</option>
+        <option value="15v15">15v15</option>
+      </select>
+    </div>
+    <div>
+      <label>Join code</label>
+      <input id="code" placeholder="ABC123" maxlength="6" style="text-transform:uppercase">
+    </div>
+  </div>
+  <div>
+    <button id="btnCreate">Create lobby</button>
+    <button id="btnJoin" class="ghost">Join</button>
+    <button id="btnRefresh" class="ghost">↻ Lobbies</button>
+  </div>
+  <label>Open lobbies (tap to join)</label>
+  <ul id="lobbylist"></ul>
+</div>
+
+<div class="card" id="lobby" style="display:none">
+  <h1 style="font-size:17px">Lobby <span id="lobbyCode" style="color:#ff9a3c"></span>
+    <span class="pill" id="lobbyMode"></span> <span class="pill" id="lobbyPhase"></span></h1>
+  <ul id="players"></ul>
+  <div>
+    <button id="btnReady">Ready ✓</button>
+    <button id="btnMode" class="ghost">Change mode</button>
+    <button id="btnStart">Start game</button>
+    <button id="btnLeave" class="ghost">Leave</button>
+  </div>
+  <div id="log"></div>
+</div>
+
+<div class="card" id="game">
+  <h1 style="font-size:17px">Game on! <span class="pill" id="latency"></span></h1>
+  <canvas id="cv" width="640" height="480"></canvas>
+  <p style="font-size:13px;opacity:.8">Move: WASD / arrows (or drag on touch). Your dot is white. Open this page in another tab with the same code to see multiplayer sync.</p>
+  <button id="btnEnd" class="ghost">End game (host)</button>
+</div>
+
+<script src="../client/fire-babys-net.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var net = null, myId = null, myTeam = 0;
+  var remote = {}; // id -> {x,y,dir,name,team,ts}
+  var me = { x: 320, y: 240 };
+  var keys = {};
+
+  function log(m) {
+    var d = document.createElement("div");
+    d.textContent = new Date().toLocaleTimeString() + " " + m;
+    var l = $("log"); l.appendChild(d); l.scrollTop = l.scrollHeight;
+  }
+
+  function ensureNet() {
+    if (net) net.disconnect();
+    net = new FireBabysNet({ server: $("server").value.trim() });
+    wire(net);
+    return net;
+  }
+
+  function wire(n) {
+    n.on("welcome", function (w) { myId = w.playerId; log("connected as " + myId.slice(0, 8)); });
+    n.on("lobby", renderLobby);
+    n.on("presence", function (p) { log(p.t + ": " + (p.name || p.id.slice(0, 8))); });
+    n.on("host", function (h) { log("new host: " + h.name); });
+    n.on("pos", function (p) {
+      if (p.id === myId) return;
+      remote[p.id] = { x: p.x, y: p.y, dir: p.dir, ts: Date.now() };
+    });
+    n.on("start", function (s) {
+      log("GAME START (" + s.mode + ")");
+      $("lobby").style.display = "none";
+      $("game").style.display = "block";
+      remote = {};
+      requestAnimationFrame(tick);
+    });
+    n.on("end", function () {
+      log("game ended");
+      $("game").style.display = "none";
+      $("lobby").style.display = "block";
+    });
+    n.on("error", function (m) { log("ERR: " + m); alert(m); });
+    n.on("close", function () { log("disconnected"); });
+    n.on("reconnecting", function (r) { log("reconnecting in " + r.delayMs + "ms…"); });
+    n.on("pong", function (p) { $("latency").textContent = p.latencyMs + "ms"; });
+  }
+
+  function renderLobby(state) {
+    if (!state) return;
+    $("lobbyCode").textContent = state.code;
+    $("lobbyMode").textContent = state.mode;
+    $("lobbyPhase").textContent = state.phase;
+    var ul = $("players"); ul.innerHTML = "";
+    state.players.forEach(function (p) {
+      var li = document.createElement("li");
+      li.className = "team" + p.team;
+      var left = document.createElement("span");
+      left.textContent = (p.connected ? "● " : "○ ") + p.name + "  [team " + p.team + "]";
+      var right = document.createElement("span");
+      if (p.id === state.hostId) { var h = document.createElement("span"); h.className = "pill host"; h.textContent = "HOST"; right.appendChild(h); }
+      var r = document.createElement("span"); r.className = "pill" + (p.ready ? " ready" : "");
+      r.textContent = p.ready ? "READY" : "not ready"; r.style.marginLeft = "6px"; right.appendChild(r);
+      li.appendChild(left); li.appendChild(right); ul.appendChild(li);
+      if (p.id === myId) myTeam = p.team;
+    });
+    var me_ = state.players.filter(function (p) { return p.id === myId; })[0];
+    $("btnReady").textContent = (me_ && me_.ready) ? "Unready" : "Ready ✓";
+    $("btnStart").disabled = !(net && net.isHost);
+  }
+
+  $("btnCreate").onclick = function () {
+    var n = ensureNet();
+    n.createLobby({ mode: $("mode").value }).then(function (code) {
+      return n.connect(code, { name: $("name").value });
+    }).then(function () {
+      $("setup").style.display = "none"; $("lobby").style.display = "block";
+      log("lobby created");
+    }).catch(function (e) { alert("create failed: " + e.message); });
+  };
+
+  $("btnJoin").onclick = function () {
+    var code = $("code").value.trim().toUpperCase();
+    if (code.length !== 6) { alert("enter a 6-char code"); return; }
+    var n = ensureNet();
+    var token = null;
+    try { token = localStorage.getItem("fbmp:" + code); } catch (e) {}
+    n.connect(code, { name: $("name").value, token: token }).then(function () {
+      $("setup").style.display = "none"; $("lobby").style.display = "block";
+    }).catch(function (e) { alert("join failed: " + e.message); });
+  };
+
+  $("btnRefresh").onclick = function () {
+    var n = ensureNet();
+    FireBabysNet.listLobbies($("server").value.trim()).then(function (ls) {
+      var ul = $("lobbylist"); ul.innerHTML = "";
+      ls.forEach(function (l) {
+        var li = document.createElement("li");
+        li.textContent = l.code + " · " + l.mode + " · " + l.players + "/" + l.maxPlayers + " · " + l.phase;
+        li.onclick = function () { $("code").value = l.code; $("btnJoin").onclick(); };
+        ul.appendChild(li);
+      });
+      if (!ls.length) ul.innerHTML = "<li>No open lobbies</li>";
+    });
+  };
+
+  $("btnReady").onclick = function () {
+    var me_ = (net.state.players || []).filter(function (p) { return p.id === myId; })[0];
+    net.setReady(!(me_ && me_.ready));
+  };
+  $("btnMode").onclick = function () {
+    var m = prompt("Mode: coop, 2v2, 4v4, 6v6, 7v7, 15v15", "coop");
+    if (m) net.setMode(m.trim());
+  };
+  $("btnStart").onclick = function () { net.start(); };
+  $("btnEnd").onclick = function () { net.end({ reason: "host ended" }); };
+  $("btnLeave").onclick = function () {
+    net.disconnect(); net = null;
+    $("lobby").style.display = "none"; $("game").style.display = "none"; $("setup").style.display = "block";
+  };
+
+  // ---- movement + render
+  var cv = $("cv"), ctx = cv.getContext("2d");
+  window.addEventListener("keydown", function (e) { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+  var dragging = false;
+  function canvasPos(e) {
+    var r = cv.getBoundingClientRect();
+    var t = e.touches ? e.touches[0] : e;
+    return { x: (t.clientX - r.left) * (cv.width / r.width), y: (t.clientY - r.top) * (cv.height / r.height) };
+  }
+  cv.addEventListener("pointerdown", function (e) { dragging = true; var p = canvasPos(e); me.x = p.x; me.y = p.y; });
+  window.addEventListener("pointerup", function () { dragging = false; });
+  cv.addEventListener("pointermove", function (e) { if (dragging) { var p = canvasPos(e); me.x = p.x; me.y = p.y; } });
+
+  function tick() {
+    if ($("game").style.display === "none" || !net) return;
+    var sp = 4, dx = 0, dy = 0;
+    if (keys["a"] || keys["arrowleft"]) dx -= sp;
+    if (keys["d"] || keys["arrowright"]) dx += sp;
+    if (keys["w"] || keys["arrowup"]) dy -= sp;
+    if (keys["s"] || keys["arrowdown"]) dy += sp;
+    me.x = Math.max(10, Math.min(630, me.x + dx));
+    me.y = Math.max(10, Math.min(470, me.y + dy));
+    var dir = dx || dy ? Math.atan2(dy, dx) * 180 / Math.PI : 0;
+    net.sendMove({ x: Math.round(me.x), y: Math.round(me.y), dir: Math.round(dir), anim: "run" });
+
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    // remote players
+    var now = Date.now();
+    Object.keys(remote).forEach(function (id) {
+      var r = remote[id];
+      if (now - r.ts > 5000) return; // stale
+      ctx.fillStyle = "#ff9a3c";
+      ctx.beginPath(); ctx.arc(r.x, r.y, 12, 0, 7); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "10px sans-serif";
+      ctx.fillText(id.slice(0, 6), r.x - 18, r.y - 16);
+    });
+    // me
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(me.x, me.y, 14, 0, 7); ctx.fill();
+    ctx.fillStyle = "#e8352c"; ctx.font = "bold 11px sans-serif";
+    ctx.fillText("YOU", me.x - 12, me.y - 18);
+    requestAnimationFrame(tick);
+  }
+})();
+</script>
+</body>
+</html>
