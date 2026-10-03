@@ -1,0 +1,317 @@
+/* Fire Babys sign-in gate — drop-in auth for every firebabys.io page.
+ *
+ * Usage (put in <head>, synchronously — NOT async/defer — so the gate
+ * renders before page content flashes):
+ *
+ *   <script src="https://firebabys.io/auth-gate.js"></script>
+ *
+ * Optional config BEFORE the script, or as data- attributes on the script tag:
+ *   window.FB_AUTH_URL = "https://fire-babys-auth.<account>.workers.dev";
+ *   <script src="..." data-auth-url="https://..." data-badge="1"></script>
+ *
+ * API:
+ *   window.FireBabysAuth.getUser()      -> {email, name} | null
+ *   window.FireBabysAuth.getToken()     -> string | null
+ *   window.FireBabysAuth.signOut()      -> clears token, re-shows gate
+ *   window.FireBabysAuth.onAuthed(cb)   -> cb(user) now or when signed in
+ *   Event: document 'fb-authed' with detail {email, name}
+ *
+ * Test mode: add ?mock=1 to the page URL to use an in-memory fake backend
+ * (no network). ?auth=<url> overrides the worker URL.
+ */
+(function () {
+  "use strict";
+
+  var TOKEN_KEY = "fb_auth_token";
+  var USER_KEY = "fb_auth_user";
+
+  // ---- config ----
+  var scripts = document.getElementsByTagName("script");
+  var thisScript = scripts[scripts.length - 1];
+  var qs = new URLSearchParams(window.location.search || "");
+  var AUTH_URL =
+    window.FB_AUTH_URL ||
+    (thisScript && thisScript.getAttribute("data-auth-url")) ||
+    qs.get("auth") ||
+    "https://fire-babys-auth.jeffpruden288.workers.dev";
+  var SHOW_BADGE =
+    (thisScript && thisScript.getAttribute("data-badge") === "1") ||
+    qs.get("badge") === "1";
+  var MOCK = qs.get("mock") === "1";
+
+  // ---- mock backend (test only, no network) ----
+  var mockDB = { users: {}, tokens: {} };
+  function mockPost(path, body) {
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        if (path === "/auth/register") {
+          var email = String(body.email || "").trim().toLowerCase();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+            resolve({ ok: false, error: "invalid_email" });
+            return;
+          }
+          var t = "mock" + Math.random().toString(36).slice(2, 28);
+          mockDB.tokens[t] = { email: email };
+          resolve({ ok: true, token: t });
+        } else if (path === "/auth/session") {
+          var rec = mockDB.tokens[body.token];
+          resolve(rec ? { ok: true, email: rec.email, name: "" } : { ok: false });
+        } else {
+          resolve({ ok: false });
+        }
+      }, 300);
+    });
+  }
+
+  function post(path, body) {
+    if (MOCK) return mockPost(path, body);
+    return fetch(AUTH_URL + path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(function (r) {
+      return r.json().catch(function () {
+        return { ok: false, error: "bad_response" };
+      });
+    });
+  }
+
+  // ---- state ----
+  var authedUser = null;
+  var authedCbs = [];
+  var gateEl = null;
+
+  function getToken() {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch (e) {
+      return null;
+    }
+  }
+  function setToken(t) {
+    try {
+      if (t) localStorage.setItem(TOKEN_KEY, t);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch (e) {}
+  }
+  function setUser(u) {
+    authedUser = u;
+    try {
+      if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
+      else localStorage.removeItem(USER_KEY);
+    } catch (e) {}
+  }
+
+  // ---- page cloak: hide content until auth resolves (prevents flash) ----
+  var htmlEl = document.documentElement;
+  var prevVisibility = htmlEl.style.visibility;
+  htmlEl.style.visibility = "hidden";
+  function uncloak() {
+    htmlEl.style.visibility = prevVisibility;
+  }
+
+  // ---- gate UI ----
+  var CSS = [
+    ".fbgate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;",
+    "background:radial-gradient(ellipse at 50% 0%,rgba(255,106,26,.28),transparent 60%),rgba(12,5,2,.97);",
+    "visibility:visible;padding:20px;box-sizing:border-box;overflow-y:auto;-webkit-overflow-scrolling:touch;}",
+    ".fbgate-card{width:100%;max-width:420px;background:rgba(26,13,6,.92);border:2px solid rgba(255,140,46,.55);",
+    "border-radius:22px;padding:34px 30px;text-align:center;box-shadow:0 0 80px rgba(255,90,20,.3);}",
+    ".fbgate-logo{font-size:44px;font-weight:900;letter-spacing:3px;line-height:1.05;margin:0 0 6px;",
+    "background:linear-gradient(180deg,#fff7c0 5%,#ffd76a 30%,#ff8c2e 62%,#e8352c 100%);",
+    "-webkit-background-clip:text;background-clip:text;color:transparent;}",
+    ".fbgate-h{color:#ffd9ae;font-size:20px;font-weight:800;margin:10px 0 4px;letter-spacing:1px;}",
+    ".fbgate-sub{color:#d8b89a;font-size:14px;margin:0 0 22px;line-height:1.5;}",
+    ".fbgate label{display:block;text-align:left;color:#ffd9ae;font-size:13px;font-weight:700;margin:12px 0 6px;}",
+    ".fbgate input{width:100%;box-sizing:border-box;padding:14px 16px;font-size:16px;border-radius:14px;",
+    "border:2px solid rgba(255,140,46,.4);background:rgba(0,0,0,.45);color:#ffe9d6;outline:none;}",
+    ".fbgate input:focus{border-color:#ff8c2e;box-shadow:0 0 0 3px rgba(255,140,46,.25);}",
+    ".fbgate-btn{display:block;width:100%;margin-top:20px;padding:16px;border:none;border-radius:18px;cursor:pointer;",
+    "font-size:18px;font-weight:900;letter-spacing:2px;color:#2a1206;",
+    "background:linear-gradient(180deg,#ffd76a,#ff8c2e);box-shadow:0 6px 0 #a33c10,0 10px 24px rgba(255,106,26,.35);}",
+    ".fbgate-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #a33c10;}",
+    ".fbgate-btn[disabled]{opacity:.6;cursor:wait;}",
+    ".fbgate-err{display:none;margin-top:14px;padding:10px 14px;border-radius:12px;font-size:14px;font-weight:700;",
+    "color:#ffd2c2;background:rgba(232,53,44,.18);border:1px solid rgba(232,53,44,.5);}",
+    ".fbgate-fine{margin-top:18px;font-size:12px;color:#a8815e;line-height:1.6;}",
+    ".fbbadge{position:fixed;left:10px;bottom:10px;z-index:2147483646;display:flex;align-items:center;gap:8px;",
+    "background:rgba(26,13,6,.9);border:1px solid rgba(255,140,46,.5);border-radius:999px;padding:6px 12px;",
+    "color:#ffd9ae;font-size:12px;font-weight:700;cursor:pointer;visibility:visible;}",
+    ".fbbadge small{color:#a8815e;font-weight:400;}",
+  ].join("");
+
+  function showError(msg) {
+    var e = gateEl && gateEl.querySelector(".fbgate-err");
+    if (e) {
+      e.textContent = msg;
+      e.style.display = "block";
+    }
+  }
+
+  function buildGate() {
+    var style = document.createElement("style");
+    style.textContent = CSS;
+    document.head.appendChild(style);
+
+    var el = document.createElement("div");
+    el.className = "fbgate";
+    el.innerHTML =
+      '<div class="fbgate-card">' +
+      '<div class="fbgate-logo">FIRE<br>BABYS</div>' +
+      '<div class="fbgate-h">SIGN IN TO PLAY</div>' +
+      '<p class="fbgate-sub">One sign-in unlocks every game, every mode, everywhere on Fire Babys.</p>' +
+      '<form id="fbgate-form" autocomplete="on">' +
+      '<label for="fbgate-email">Email</label>' +
+      '<input id="fbgate-email" type="email" name="email" required placeholder="you@example.com" autocapitalize="off" />' +
+      '<label for="fbgate-name">Fire Tamer name <span style="color:#a8815e;font-weight:400">(optional)</span></label>' +
+      '<input id="fbgate-name" type="text" name="name" maxlength="40" placeholder="BlazeFan42" autocomplete="nickname" />' +
+      '<button class="fbgate-btn" type="submit">SIGN IN</button>' +
+      '<div class="fbgate-err" role="alert"></div>' +
+      "</form>" +
+      '<p class="fbgate-fine">We use your email to keep your account safe.<br>No spam, ever. Kids: ask a grown-up first.</p>' +
+      "</div>";
+
+    el.querySelector("#fbgate-form").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var email = el.querySelector("#fbgate-email").value;
+      var name = el.querySelector("#fbgate-name").value;
+      var btn = el.querySelector(".fbgate-btn");
+      btn.disabled = true;
+      btn.textContent = "SIGNING IN...";
+      var errBox = el.querySelector(".fbgate-err");
+      errBox.style.display = "none";
+      post("/auth/register", { email: email, name: name }).then(
+        function (res) {
+          if (res && res.ok && res.token) {
+            setToken(res.token);
+            finishAuth({
+              email: String(email).trim().toLowerCase(),
+              name: String(name || "").trim(),
+            });
+          } else {
+            btn.disabled = false;
+            btn.textContent = "SIGN IN";
+            showError(
+              res && res.error === "invalid_email"
+                ? "Hmm, that email doesn't look right. Try again?"
+                : res && res.error === "rate_limited"
+                ? "Too many tries — give it an hour and come back."
+                : "Couldn't reach the sign-in server. Check your connection and retry."
+            );
+          }
+        },
+        function () {
+          btn.disabled = false;
+          btn.textContent = "SIGN IN";
+          showError("Couldn't reach the sign-in server. Check your connection and retry.");
+        }
+      );
+    });
+
+    document.body.appendChild(el);
+    gateEl = el;
+    return el;
+  }
+
+  function removeGate() {
+    if (gateEl && gateEl.parentNode) gateEl.parentNode.removeChild(gateEl);
+    gateEl = null;
+  }
+
+  function showBadge(user) {
+    if (!SHOW_BADGE) return;
+    var b = document.createElement("div");
+    b.className = "fbbadge";
+    b.title = "Signed in — tap to sign out";
+    var label = document.createElement("span");
+    label.textContent = "🔥 " + (user.name || user.email);
+    var out = document.createElement("small");
+    out.textContent = "sign out";
+    b.appendChild(label);
+    b.appendChild(out);
+    b.addEventListener("click", function () {
+      window.FireBabysAuth.signOut();
+    });
+    document.body.appendChild(b);
+  }
+
+  function finishAuth(user) {
+    setUser(user);
+    removeGate();
+    uncloak();
+    showBadge(user);
+    authedCbs.splice(0).forEach(function (cb) {
+      try {
+        cb(user);
+      } catch (e) {}
+    });
+    try {
+      document.dispatchEvent(
+        new CustomEvent("fb-authed", { detail: user })
+      );
+    } catch (e) {}
+  }
+
+  // ---- boot ----
+  function boot() {
+    var token = getToken();
+    if (!token) {
+      buildGate();
+      uncloak(); // gate itself is visible; page behind stays cloaked by overlay
+      return;
+    }
+    post("/auth/session", { token: token }).then(
+      function (res) {
+        if (res && res.ok && res.email) {
+          finishAuth({ email: res.email, name: res.name || "" });
+        } else {
+          setToken(null);
+          setUser(null);
+          buildGate();
+          uncloak();
+        }
+      },
+      function () {
+        // Network failed: trust the cached user rather than locking players out.
+        var cached = null;
+        try {
+          cached = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+        } catch (e) {}
+        if (cached && cached.email) {
+          finishAuth(cached);
+        } else {
+          buildGate();
+          uncloak();
+        }
+      }
+    );
+  }
+
+  window.FireBabysAuth = {
+    getUser: function () {
+      return authedUser;
+    },
+    getToken: getToken,
+    isAuthed: function () {
+      return !!authedUser;
+    },
+    onAuthed: function (cb) {
+      if (authedUser) cb(authedUser);
+      else authedCbs.push(cb);
+    },
+    signOut: function () {
+      setToken(null);
+      setUser(null);
+      var b = document.querySelector(".fbbadge");
+      if (b && b.parentNode) b.parentNode.removeChild(b);
+      authedCbs = [];
+      buildGate();
+    },
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
