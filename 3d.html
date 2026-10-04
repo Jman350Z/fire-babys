@@ -132,6 +132,7 @@
   <button class="mpcbtn" id="mptaskbtn" aria-label="Tasks" style="font-size:22px;">📋</button>
   <button class="mpcbtn" id="mpvaultbtn" aria-label="Vault" style="font-size:22px;">🗝️</button>
   <button class="mpcbtn" id="mpseasonbtn" aria-label="Season" style="font-size:22px;">🎫</button>
+  <button class="mpcbtn" id="mparmorbtn" aria-label="Armory" style="font-size:22px;">⚔️</button>
 </div>
 <div id="expbar"><span id="explabel">BLAZE Lv1</span><div id="expfillwrap"><div id="expfill"></div></div></div>
 <div id="toast"></div>
@@ -3475,6 +3476,8 @@ function __fbApplyArmor(a){
         h: __FB_ARMOR.helmet ? 1 : 0, c: __FB_ARMOR.chestplate ? 1 : 0 } });
     }
   } catch(e){}
+  // full bronze set unlocks the Soot-Crusher Power Fists
+  try { if (typeof __fbCheckWeaponUnlocks === 'function') __fbCheckWeaponUnlocks(); } catch(e){}
 }
 function __fbFetchArmor(){
   var t = null;
@@ -5709,6 +5712,8 @@ function __fbCheckSilver() {
     } catch (e) {}
     // sync to server
     try { __fbSyncSilver(); } catch (e) {}
+    // silver unlocks the Magma Core Anvil
+    try { if (typeof __fbCheckWeaponUnlocks === 'function') __fbCheckWeaponUnlocks(); } catch (e) {}
   }
 }
 
@@ -6161,7 +6166,9 @@ function spHitFoe(){
     if(best){
       player.group.rotation.y = Math.atan2(
         best.group.position.x - bp.x, best.group.position.z - bp.z);
-      var dmg = player.atk * (0.85 + Math.random()*0.3);
+      var wmult = 1;
+      try { wmult = (typeof __fbWeaponMult === 'function') ? __fbWeaponMult() : 1; } catch(e){}
+      var dmg = player.atk * wmult * (0.85 + Math.random()*0.3);
       dealDamage(player, best, dmg);
     }
   } catch(e){}
@@ -6266,7 +6273,7 @@ function mpDoAttack(){
     try {
       var bp = player.group.position;
       net.sendAction({ kind: 'attack', x: Math.round(bp.x*100), y: Math.round(bp.z*100),
-        data: { dir: Math.round((player.group.rotation.y||0)*100), boost: (typeof __fbEffectiveBoost === 'function' ? __fbEffectiveBoost() : __FB_ARMOR_BOOST) } });
+        data: { dir: Math.round((player.group.rotation.y||0)*100), boost: (typeof __fbEffectiveBoost === 'function' ? __fbEffectiveBoost() : __FB_ARMOR_BOOST), wmult: (typeof __fbWeaponMult === 'function' ? __fbWeaponMult() : 1) } });
       // host: server doesn't echo own actions, so check bot hits locally
       if(net.isHost && mpBots.length) mpBotHits({ id: net.playerId }, bp.x, bp.z);
     } catch(e){}
@@ -6305,7 +6312,7 @@ function mpDoJump(){
   }
 }
 /* ----- local player takes a hit ----- */
-function mpTakeHit(attackerId, ax, az, friendly){
+function mpTakeHit(attackerId, ax, az, friendly, msg){
   if(!player || !player.group) return;
   var bp = player.group.position;
   // knockback away from attacker
@@ -6319,11 +6326,16 @@ function mpTakeHit(attackerId, ax, az, friendly){
   try { player.group.userData.flash = 1; } catch(e){}
   if(typeof beep === 'function') beep(150, 0.15, 'sawtooth', 0.09);
   if(friendly){ if(typeof toast === 'function') toast('💨 Friendly bump!'); return; }
-  // Bronze armor: attacker deals +boost%, defender takes -boost%.
-  var atkBoost = 0;
-  try { atkBoost = (msg.data && typeof msg.data.boost === 'number') ? Math.max(0, Math.min(0.5, msg.data.boost)) : 0; } catch(e){}
+  // Bronze armor: attacker deals +boost%, defender takes -boost%. Weapon multiplies damage.
+  var atkBoost = 0, wmult = 1;
+  try {
+    if (msg && msg.data) {
+      if (typeof msg.data.boost === 'number') atkBoost = Math.max(0, Math.min(0.5, msg.data.boost));
+      if (typeof msg.data.wmult === 'number') wmult = Math.max(1, Math.min(5, msg.data.wmult));
+    }
+  } catch(e){}
   var defBoost = (typeof __fbEffectiveBoost === 'function' ? __fbEffectiveBoost() : __FB_ARMOR_BOOST);
-   var dmg = 1 * (1 + atkBoost) * (1 - defBoost);
+   var dmg = 1 * wmult * (1 + atkBoost) * (1 - defBoost);
   mpHP = Math.max(0, mpHP - dmg);
   try { player.hpbar.set(mpHP/mpMaxHP, true); } catch(e){}
   try { net.sendAction({ kind: 'hit', data: { by: attackerId, hp: mpHP } }); } catch(e){}
@@ -6419,6 +6431,11 @@ function mpCombatInit(){
   if(snb && !snb._mpw){
     snb._mpw = true;
     snb.addEventListener('pointerdown', function(e){ e.preventDefault(); if (typeof __fbShowSeason === 'function') __fbShowSeason(); });
+  }
+  var amb = document.getElementById('mparmorbtn');
+  if(amb && !amb._mpw){
+    amb._mpw = true;
+    amb.addEventListener('pointerdown', function(e){ e.preventDefault(); if (typeof __fbShowArmory === 'function') __fbShowArmory(); });
   }
 }
 
@@ -6544,8 +6561,10 @@ function mpBotHits(msg, ax, az){
       try { b.net.sendAction({ kind:'blocked', data:{ by: msg.id } }); } catch(e){}
       continue;
     }
-    // damage + knockback
-    b.hp = Math.max(0, b.hp - 1);
+    // damage + knockback (attacker's weapon multiplies damage)
+    var bwmult = 1;
+    try { bwmult = (msg.data && typeof msg.data.wmult === 'number') ? Math.max(1, Math.min(5, msg.data.wmult)) : 1; } catch(e){}
+    b.hp = Math.max(0, b.hp - bwmult);
     var ka = Math.atan2(b.x - ax, b.z - az);
     b.x = Math.max(-26, Math.min(26, b.x + Math.cos(ka)*1.6));
     b.z = Math.max(-108, Math.min(44, b.z + Math.sin(ka)*1.6));
@@ -6891,7 +6910,7 @@ function mpOnAction(msg){
       if(typeof toast === 'function') toast('🛡️ BLOCKED!');
       return;
     }
-    mpTakeHit(msg.id, ax, az, !isVersus);
+    mpTakeHit(msg.id, ax, az, !isVersus, msg);
     return;
   }
   if(msg.kind === 'block'){
@@ -7248,7 +7267,7 @@ var FB_SEASON1_REWARDS = [
   { t:'boost', n:0.01, e:'🌟', name:'+1% Boost' },
   { t:'badge', id:'bucket_brigade', e:'🪣', name:'Bucket Brigade Badge' },
   { t:'gems',  n:5,   e:'💎', name:'5 Gems' },
-  { t:'emote', id:'spin', e:'🌀', name:'Spin Emote' },
+  { t:'emote', id:'spin', e:'🌀', name:'Spin Emote + 🏹 Spitfire Bow', weapon:'weapon_ember_bow_04' },
   { t:'coins', n:150, e:'🪙', name:'150 Coins' },
   { t:'badge', id:'smoke_alarm_hero', e:'🚨', name:'Smoke Alarm Hero Badge' },
   { t:'gems',  n:10,  e:'💎', name:'10 Gems' },
@@ -7256,11 +7275,11 @@ var FB_SEASON1_REWARDS = [
   { t:'coins', n:200, e:'🪙', name:'200 Coins' },
   { t:'boost', n:0.01, e:'🌟', name:'+1% Boost' },
   { t:'badge', id:'extinguisher_pro', e:'🧯', name:'Extinguisher Pro Badge' },
-  { t:'gems',  n:15,  e:'💎', name:'15 Gems' },
+  { t:'gems',  n:15,  e:'💎', name:'15 Gems + 💥 Spark Grenade', weapon:'weapon_scatter_bomb_05' },
   { t:'emote', id:'fire_spin', e:'🔥', name:'Fire Spin Emote' },
   { t:'coins', n:300, e:'🪙', name:'300 Coins' },
   { t:'badge', id:'inferno_legend', e:'🌋', name:'Inferno Legend Badge' },
-  { t:'crown', e:'👑', name:'IGNITION CROWN', gems:25, boost:0.01 }
+  { t:'crown', e:'👑', name:'IGNITION CROWN + 🔱 Doom Rod', gems:25, boost:0.01, weapon:'weapon_inferno_staff_06' }
 ];
 
 /* ----- Season 1 state (localStorage, fbSeason1_* namespace) ----- */
@@ -7343,6 +7362,8 @@ function __fbSeasonGrant(r){
       __FB_SEASON_BOOST = Math.round((__FB_SEASON_BOOST + r.boost) * 10000) / 10000;
       if (__fbSeason1.badges.indexOf('ignition_crown') < 0) __fbSeason1.badges.push('ignition_crown');
     }
+    /* a weapon unlock can ride along with any reward type */
+    if (r.weapon && typeof __fbUnlockWeapon === 'function') { try { __fbUnlockWeapon(r.weapon); } catch(e){} }
   } catch(e){}
 }
 
@@ -7397,6 +7418,276 @@ function __fbFetchSeason(){
       } catch(e){}
     }).catch(function(){});
   } catch(e){}
+}
+
+/* ============================================================
+   WEAPONS (⚔️) — the Armory
+   Jeff's official roster. Damage multipliers stack multiplicatively
+   with armor/season boosts. All-ages, fire-safety centered.
+   This section READS bronze/silver/season state — never modifies it.
+   ============================================================ */
+var FB_WEAPONS = [
+  { id:'weapon_hose_blaster_01', icon:'🔥', name:'High-Pressure Magma Hose', cls:'Blaze', mult:2.5, element:'Plasma Fire', effect:'Area-of-Effect Splash', desc:'Standard-issue heavy tactical launcher for front-line hero strikes.', unlock:'starter', unlockText:'Starter weapon — yours from the beginning!' },
+  { id:'weapon_fist_gauntlets_02', icon:'🥊', name:'Soot-Crusher Power Fists', cls:'Ruko', mult:2.2, element:'Kinetic Impact', effect:'Armor-Piercing Slam', desc:'Heavy brass knuckles built for close-quarters brawling and smashing stone blocks.', unlock:'bronze_full', unlockText:'Full BRONZE set (all 4 pieces)' },
+  { id:'weapon_ember_bow_04', icon:'🏹', name:'Spitfire Precision Bow', cls:'Sizzle', mult:2.0, element:'Ignition Arrow', effect:'Long-Range Pierce', desc:'Fires concentrated high-velocity fire bolts to pick off backline targets.', unlock:'season8', unlockText:'Season 1 — Tier 8' },
+  { id:'weapon_scatter_bomb_05', icon:'💥', name:'Blue-Tip Spark Grenade', cls:'Cinder', mult:2.4, element:'Wild Chaos', effect:'Multi-Split Explosion', desc:'Bounces wildly and fragments into dozens of miniature burning sparks.', unlock:'season16', unlockText:'Season 1 — Tier 16' },
+  { id:'weapon_anvil_drop_03', icon:'⚒️', name:'Magma Core Anvil', cls:'Boulder', mult:3.0, element:'Earth-Magma', effect:'Vertical Crush', desc:'Drops with maximum weight to flatten wood and metal enemy structures.', unlock:'silver', unlockText:'SILVER armor (all 250 tasks)' },
+  { id:'weapon_inferno_staff_06', icon:'🔱', name:'Underworld Doom Rod', cls:'Lord Inferno', mult:3.5, element:'Dark Slag', effect:'Boss Terrain Scorcher', desc:'Elite weaponized staff wielded by boss-tier underworld entities.', unlock:'season20', unlockText:'Season 1 — Tier 20 (Ignition Crown)' }
+];
+var FB_WEAPON_STARTER = 'weapon_hose_blaster_01';
+
+/* ----- weapon state (localStorage, fbWeapons_* namespace) ----- */
+var __fbWeaponEquipped = FB_WEAPON_STARTER;
+var __fbWeaponsUnlocked = [FB_WEAPON_STARTER];
+var __fbWeaponsInitDone = false;
+
+function __fbLoadWeapons(){
+  if (__fbWeaponsInitDone) return;
+  __fbWeaponsInitDone = true;
+  try {
+    var eq = localStorage.getItem('fbWeapons_equipped');
+    if (eq) __fbWeaponEquipped = eq;
+    var un = localStorage.getItem('fbWeapons_unlocked');
+    if (un) { var u = JSON.parse(un); if (u && u.length !== undefined) __fbWeaponsUnlocked = u; }
+    if (__fbWeaponsUnlocked.indexOf(FB_WEAPON_STARTER) < 0) __fbWeaponsUnlocked.unshift(FB_WEAPON_STARTER);
+    if (__fbWeaponById(__fbWeaponEquipped) && __fbWeaponsUnlocked.indexOf(__fbWeaponEquipped) < 0)
+      __fbWeaponEquipped = FB_WEAPON_STARTER;
+  } catch(e){}
+  try { __fbFetchWeapons(); } catch(e){}
+  try { __fbCheckWeaponUnlocks(); } catch(e){}
+}
+
+function __fbSaveWeapons(){
+  try {
+    localStorage.setItem('fbWeapons_equipped', __fbWeaponEquipped);
+    localStorage.setItem('fbWeapons_unlocked', JSON.stringify(__fbWeaponsUnlocked));
+  } catch(e){}
+}
+
+function __fbWeaponById(id){
+  for (var i = 0; i < FB_WEAPONS.length; i++) if (FB_WEAPONS[i].id === id) return FB_WEAPONS[i];
+  return null;
+}
+
+/* equipped weapon's damage multiplier (1 = fallback, no weapon data) */
+function __fbWeaponMult(){
+  try {
+    __fbLoadWeapons();
+    var w = __fbWeaponById(__fbWeaponEquipped);
+    if (w && __fbWeaponsUnlocked.indexOf(w.id) >= 0 && typeof w.mult === 'number') return w.mult;
+  } catch(e){}
+  return 1;
+}
+
+function __fbBronzeFull(){
+  try {
+    var a = (typeof __FB_ARMOR !== 'undefined') ? __FB_ARMOR : null;
+    return !!(a && a.greaves && a.gauntlets && a.helmet && a.chestplate);
+  } catch(e){ return false; }
+}
+
+/* is this weapon's unlock condition met right now? */
+function __fbWeaponUnlockedBy(id){
+  try {
+    var w = __fbWeaponById(id);
+    if (!w) return false;
+    __fbLoadSeason();
+    switch (w.unlock) {
+      case 'starter': return true;
+      case 'bronze_full': return __fbBronzeFull();
+      case 'silver': return (typeof __FB_SILVER_UNLOCKED !== 'undefined' && !!__FB_SILVER_UNLOCKED);
+      case 'season8': return !!(__fbSeason1.claimed && __fbSeason1.claimed[8]);
+      case 'season16': return !!(__fbSeason1.claimed && __fbSeason1.claimed[16]);
+      case 'season20': return !!(__fbSeason1.claimed && __fbSeason1.claimed[20]);
+    }
+  } catch(e){}
+  return false;
+}
+
+/* unlock a weapon (idempotent) */
+function __fbUnlockWeapon(id, silent){
+  try {
+    __fbLoadWeapons();
+    if (__fbWeaponsUnlocked.indexOf(id) >= 0) return false;
+    __fbWeaponsUnlocked.push(id);
+    __fbSaveWeapons();
+    try { __fbSyncWeapons(); } catch(e){}
+    if (!silent) {
+      var w = __fbWeaponById(id);
+      try { if (typeof toast === 'function') toast('⚔️ WEAPON UNLOCKED: ' + (w ? w.icon + ' ' + w.name : id) + '!'); } catch(e){}
+      try { if (typeof beep === 'function') { beep(523,0.12,'sine',0.07); setTimeout(function(){ beep(659,0.12,'sine',0.07); },120); setTimeout(function(){ beep(784,0.22,'sine',0.07); },240); } } catch(e){}
+    }
+    try { __fbRefreshArmoryUI(); } catch(e){}
+    try { __fbRefreshVaultUI(); } catch(e){}
+    return true;
+  } catch(e){ return false; }
+}
+
+/* unlock anything newly qualified (retroactive-safe for already-claimed tiers) */
+function __fbCheckWeaponUnlocks(){
+  try {
+    __fbLoadWeapons();
+    var changed = false;
+    for (var i = 0; i < FB_WEAPONS.length; i++) {
+      var w = FB_WEAPONS[i];
+      if (__fbWeaponsUnlocked.indexOf(w.id) < 0 && __fbWeaponUnlockedBy(w.id)) {
+        if (__fbUnlockWeapon(w.id)) changed = true;
+      }
+    }
+    return changed;
+  } catch(e){ return false; }
+}
+
+function __fbEquipWeapon(id){
+  try {
+    __fbLoadWeapons();
+    if (__fbWeaponsUnlocked.indexOf(id) < 0) return false;
+    __fbWeaponEquipped = id;
+    __fbSaveWeapons();
+    try { __fbSyncWeapons(); } catch(e){}
+    var w = __fbWeaponById(id);
+    try { if (typeof toast === 'function') toast('⚔️ Equipped: ' + w.icon + ' ' + w.name + ' (' + w.mult + 'x damage)!'); } catch(e){}
+    try { if (typeof beep === 'function') beep(660, 0.1, 'sine', 0.06); } catch(e){}
+    try { __fbRefreshArmoryUI(); } catch(e){}
+    try { __fbRefreshVaultUI(); } catch(e){}
+    return true;
+  } catch(e){ return false; }
+}
+
+/* ----- server sync (defensive: endpoint may not exist yet) ----- */
+function __fbSyncWeapons(){
+  var t = null;
+  try { if (window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if (!t) return;
+  try {
+    fetch('https://fire-babys-auth.jeffpruden288.workers.dev/profile/weapons', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: t, equipped: __fbWeaponEquipped, unlocked: __fbWeaponsUnlocked })
+    }).catch(function(){});
+  } catch(e){}
+}
+
+function __fbFetchWeapons(){
+  var t = null;
+  try { if (window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if (!t) return;
+  try {
+    fetch('https://fire-babys-auth.jeffpruden288.workers.dev/profile/get', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: t })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      try {
+        if (j && j.ok && j.profile && j.profile.weapons) {
+          var sw = j.profile.weapons;
+          var set = {};
+          __fbWeaponsUnlocked.forEach(function(id){ set[id] = 1; });
+          if (sw.unlocked && sw.unlocked.forEach) sw.unlocked.forEach(function(id){ if (__fbWeaponById(id)) set[id] = 1; });
+          __fbWeaponsUnlocked = Object.keys(set);
+          if (sw.equipped && __fbWeaponById(sw.equipped) && __fbWeaponsUnlocked.indexOf(sw.equipped) >= 0)
+            __fbWeaponEquipped = sw.equipped;
+          __fbSaveWeapons();
+        }
+      } catch(e){}
+    }).catch(function(){});
+  } catch(e){}
+}
+
+/* ----- Armory UI (⚔️) ----- */
+var __fbArmoryUIOpen = false;
+
+function __fbArmoryHTML(){
+  __fbLoadWeapons();
+  __fbCheckWeaponUnlocks();
+  var w = __fbWeaponById(__fbWeaponEquipped) || __fbWeaponById(FB_WEAPON_STARTER);
+  var rows = '';
+  FB_WEAPONS.forEach(function(wp){
+    var un = __fbWeaponsUnlocked.indexOf(wp.id) >= 0;
+    var eq = __fbWeaponEquipped === wp.id;
+    rows += '<div class="fb-arm-card" data-wid="' + wp.id + '" style="padding:12px;margin-bottom:8px;border-radius:12px;cursor:' +
+      (un && !eq ? 'pointer' : 'default') + ';background:' + (eq ? 'rgba(255,140,46,0.16)' : (un ? 'rgba(255,140,46,0.06)' : 'rgba(140,140,140,0.06)')) +
+      ';border:2px solid ' + (eq ? '#ff8c2e' : (un ? 'rgba(255,140,46,0.45)' : 'rgba(160,160,160,0.3)')) + ';">' +
+      '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div style="font-size:32px;min-width:40px;text-align:center;' + (un ? '' : 'filter:grayscale(1);') + '">' + (un ? wp.icon : '🔒') + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="color:' + (un ? '#ffe9d6' : '#9a9a9a') + ';font-size:14px;font-weight:900;">' + wp.name +
+            (eq ? ' <span style="color:#ff8c2e;font-size:11px;">✅ EQUIPPED</span>' : '') + '</div>' +
+          '<div style="color:#ff9c4a;font-size:11px;font-weight:700;margin-top:2px;">' + wp.cls + ' &bull; ' + wp.element + ' &bull; <b>' + wp.mult + 'x damage</b></div>' +
+          '<div style="color:#c9a882;font-size:11px;margin-top:2px;">' + wp.effect + '</div>' +
+          (un
+            ? '<div style="color:#8a8a8a;font-size:11px;margin-top:2px;">' + wp.desc + '</div>' + (eq ? '' : '<div style="color:#ff8c2e;font-size:12px;font-weight:800;margin-top:4px;">👆 Tap to equip</div>')
+            : '<div style="color:#9a9a9a;font-size:11px;margin-top:4px;">🔒 ' + wp.unlockText + '</div>') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  return '' +
+  '<div style="width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;background:#1c1006;border:3px solid #ff8c2e;border-radius:20px;padding:20px;box-sizing:border-box;">' +
+    '<div style="color:#ff9c4a;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;">⚔️ THE ARMORY</div>' +
+    '<div style="color:#c9a882;font-size:12px;text-align:center;margin:6px 0 12px;">Choose your weapon — multipliers stack with your armor boosts.</div>' +
+    '<div style="padding:10px;border-radius:12px;text-align:center;margin-bottom:12px;background:rgba(255,140,46,0.1);border:2px solid #ff8c2e;">' +
+      '<div style="font-size:30px;">' + w.icon + '</div>' +
+      '<div style="color:#ff9c4a;font-size:14px;font-weight:900;">WIELDING: ' + w.name + '</div>' +
+      '<div style="color:#ffe9d6;font-size:12px;">' + w.mult + 'x damage &bull; ' + w.element + '</div>' +
+    '</div>' +
+    '<div id="fb-arm-list" style="flex:1;overflow-y:auto;min-height:150px;">' + rows + '</div>' +
+    '<button id="fb-arm-close" style="margin-top:12px;padding:12px;font-size:16px;font-weight:900;border:none;border-radius:12px;cursor:pointer;color:#1c1006;background:linear-gradient(180deg,#ff9c4a,#ff8c2e);">CLOSE</button>' +
+  '</div>';
+}
+
+function __fbShowArmory(){
+  try {
+    __fbLoadWeapons();
+    var old = document.getElementById('fb-armory-ov');
+    if (old) { old.parentNode.removeChild(old); __fbArmoryUIOpen = false; return; }
+    __fbArmoryUIOpen = true;
+    var ov = document.createElement('div');
+    ov.id = 'fb-armory-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(8,4,2,0.88);padding:16px;box-sizing:border-box;';
+    ov.innerHTML = __fbArmoryHTML();
+    ov.querySelector('#fb-arm-close').addEventListener('click', function(){ ov.parentNode.removeChild(ov); __fbArmoryUIOpen = false; });
+    ov.addEventListener('click', function(e){
+      if (e.target === ov){ ov.parentNode.removeChild(ov); __fbArmoryUIOpen = false; return; }
+      var el = e.target;
+      while (el && el !== ov) {
+        if (el.className && typeof el.className === 'string' && el.className.indexOf('fb-arm-card') >= 0) {
+          var wid = el.getAttribute('data-wid');
+          if (wid && wid !== __fbWeaponEquipped) __fbEquipWeapon(wid);
+          return;
+        }
+        el = el.parentNode;
+      }
+    });
+    document.body.appendChild(ov);
+  } catch(e){}
+}
+
+function __fbRefreshArmoryUI(){
+  if (__fbArmoryUIOpen) {
+    try {
+      var ov = document.getElementById('fb-armory-ov');
+      if (ov) { ov.parentNode.removeChild(ov); __fbArmoryUIOpen = false; }
+      __fbShowArmory();
+    } catch(e){}
+  }
+}
+
+/* ----- weapons section for the Vault panel ----- */
+function __fbVaultWeaponsHTML(){
+  __fbLoadWeapons();
+  var cards = '';
+  FB_WEAPONS.forEach(function(wp){
+    var un = __fbWeaponsUnlocked.indexOf(wp.id) >= 0;
+    var eq = __fbWeaponEquipped === wp.id;
+    cards += '<div style="flex:1 1 44%;min-width:128px;padding:10px;border-radius:12px;text-align:center;background:' +
+      (eq ? 'rgba(255,140,46,0.14)' : (un ? 'rgba(255,140,46,0.06)' : 'rgba(140,140,140,0.06)')) + ';border:1px solid ' +
+      (eq ? '#ff8c2e' : (un ? 'rgba(255,140,46,0.45)' : 'rgba(160,160,160,0.3)')) + ';">' +
+      '<div style="font-size:28px;' + (un ? '' : 'filter:grayscale(1);') + '">' + (un ? wp.icon : '🔒') + '</div>' +
+      '<div style="color:' + (un ? '#ffe9d6' : '#9a9a9a') + ';font-size:11px;font-weight:800;margin-top:4px;">' + wp.name + (eq ? ' ✅' : '') + '</div>' +
+      '<div style="color:#ff9c4a;font-size:11px;margin-top:2px;">' + (un ? wp.mult + 'x damage' : wp.unlockText) + '</div></div>';
+  });
+  return '<div style="color:#ffd76a;font-size:13px;font-weight:900;letter-spacing:1px;margin:12px 0 8px;">⚔️ WEAPONS — THE ARMORY</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + cards + '</div>' +
+    '<div style="color:#c9a882;font-size:11px;margin-top:6px;text-align:center;">Open the ⚔️ Armory to equip a weapon.</div>';
 }
 
 /* ============================================================
@@ -7476,6 +7767,7 @@ function __fbVaultHTML(){
           (badgesN > 0 ? ' — ' + badgesN + ' badges' : '') + '</div>' +
         '<div style="color:#c9a882;font-size:11px;margin-top:4px;">Open the 🎫 Season panel to see every reward.</div>' +
       '</div>' +
+      __fbVaultWeaponsHTML() +
     '</div>' +
     '<button id="fb-vault-close" style="margin-top:12px;padding:12px;font-size:16px;font-weight:900;border:none;border-radius:12px;cursor:pointer;color:#1c1006;background:linear-gradient(180deg,#ffd76a,#e8a83e);">CLOSE</button>' +
   '</div>';
@@ -7578,8 +7870,9 @@ function __fbRefreshSeasonUI(){
   }
 }
 
-/* init season state at load (local first; server merges in background) */
+/* init season + weapon state at load (local first; server merges in background) */
 try { __fbLoadSeason(); } catch(e){}
+try { __fbLoadWeapons(); } catch(e){}
 
 
 })();
