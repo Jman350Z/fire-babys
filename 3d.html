@@ -2841,6 +2841,43 @@ function showHub(){
   renderHub();
   refreshNamePill();
   document.getElementById('hubov').style.display='flex';
+  catchDeepLink(); // ?mode=catch from the homepage: jump straight into a CATCH match
+}
+/* Deep-link: 3d.html?mode=catch — from the homepage PLAY CATCH button.
+   Opens multiplayer, pre-selects CATCH, auto-creates a bot-filled lobby,
+   readies up and starts: one tap from the homepage into a CATCH match vs AI. */
+var _catchDL = false;
+function catchDeepLink(){
+  if(_catchDL) return;
+  var q = null;
+  try { q = new URLSearchParams(location.search).get('mode'); } catch(e){}
+  if(q !== 'catch') return;
+  _catchDL = true;
+  setTimeout(function(){
+    try {
+      if(typeof startMultiplayer !== 'function') return;
+      startMultiplayer();
+      mpMode = 'catch';
+      var btns = document.querySelectorAll('.mpmodebtn');
+      for(var i=0;i<btns.length;i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-mode')==='catch');
+      mpCreateLobby();
+      var tries = 0;
+      var iv = setInterval(function(){
+        tries++;
+        try {
+          if(net && net.isHost && net.state && net.state.players && net.state.players.length){
+            if(!mpReady && typeof mpToggleReady === 'function') mpToggleReady();
+            var sb = document.getElementById('mpstartbtn');
+            if(sb && !sb.disabled && /START|PLAYERS/.test(sb.textContent || '')){
+              clearInterval(iv);
+              if(typeof mpHostStart === 'function') mpHostStart();
+            }
+          }
+        } catch(e){}
+        if(tries > 150) clearInterval(iv); // ~2.5 min timeout
+      }, 1000);
+    } catch(e){}
+  }, 700);
 }
 function hideHub(){ document.getElementById('hubov').style.display='none'; }
 function modeEnter(){
