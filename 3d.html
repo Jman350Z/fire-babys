@@ -130,6 +130,8 @@
   <button class="mpcbtn" id="mpatkbtn" aria-label="Attack">🔥</button>
   <button class="mpcbtn" id="mplbbtn" aria-label="Leaderboard" style="font-size:22px;">🏆</button>
   <button class="mpcbtn" id="mptaskbtn" aria-label="Tasks" style="font-size:22px;">📋</button>
+  <button class="mpcbtn" id="mpvaultbtn" aria-label="Vault" style="font-size:22px;">🗝️</button>
+  <button class="mpcbtn" id="mpseasonbtn" aria-label="Season" style="font-size:22px;">🎫</button>
 </div>
 <div id="expbar"><span id="explabel">BLAZE Lv1</span><div id="expfillwrap"><div id="expfill"></div></div></div>
 <div id="toast"></div>
@@ -3335,7 +3337,7 @@ function animate(){
       }
       __fbLastPX = px; __fbLastPZ = pz;
       __fbTimeAcc += dt;
-      if (__fbTimeAcc >= 60) { fbTaskEvent('time_min', 1); __fbTimeAcc = 0; }
+      if (__fbTimeAcc >= 60) { fbTaskEvent('time_min', 1); if (typeof __fbSeasonXP === 'function') __fbSeasonXP(10, 'time'); __fbTimeAcc = 0; }
     }
   } catch(e){}
 
@@ -5666,6 +5668,8 @@ function __fbOnTaskComplete(t) {
     if (typeof toast === 'function') toast('✅ TASK DONE: ' + t.name);
     if (typeof beep === 'function') beep(660, 0.12, 'sine', 0.06);
   } catch (e) {}
+  // Season 1 XP for every completed task
+  try { if (typeof __fbSeasonXP === 'function') __fbSeasonXP(50, 'task'); } catch(e){}
   // update UI if open
   try { __fbRefreshTaskUI(); } catch (e) {}
 }
@@ -5764,10 +5768,13 @@ function addSilverArmor(g, R) {
   } catch (e) {}
 }
 
-/* ----- effective boost: silver (20%) overrides bronze (10%) ----- */
+/* ----- effective boost: silver (20%) overrides bronze (10%); season boost stacks on top ----- */
 function __fbEffectiveBoost() {
-  if (__FB_SILVER_UNLOCKED) return __FB_SILVER_BOOST;
-  return (typeof __FB_ARMOR_BOOST !== 'undefined') ? __FB_ARMOR_BOOST : 0;
+  var b = 0;
+  if (typeof __FB_SILVER_UNLOCKED !== 'undefined' && __FB_SILVER_UNLOCKED) b = __FB_SILVER_BOOST;
+  else b = (typeof __FB_ARMOR_BOOST !== 'undefined') ? __FB_ARMOR_BOOST : 0;
+  try { if (typeof __FB_SEASON_BOOST === 'number' && __FB_SEASON_BOOST > 0) b += __FB_SEASON_BOOST; } catch(e){}
+  return b;
 }
 
 /* ----- server sync ----- */
@@ -6403,6 +6410,16 @@ function mpCombatInit(){
     tk._mpw = true;
     tk.addEventListener('pointerdown', function(e){ e.preventDefault(); if (typeof __fbShowTasks === 'function') __fbShowTasks(); });
   }
+  var vb = document.getElementById('mpvaultbtn');
+  if(vb && !vb._mpw){
+    vb._mpw = true;
+    vb.addEventListener('pointerdown', function(e){ e.preventDefault(); if (typeof __fbShowVault === 'function') __fbShowVault(); });
+  }
+  var snb = document.getElementById('mpseasonbtn');
+  if(snb && !snb._mpw){
+    snb._mpw = true;
+    snb.addEventListener('pointerdown', function(e){ e.preventDefault(); if (typeof __fbShowSeason === 'function') __fbShowSeason(); });
+  }
 }
 
 /* =====================================================================
@@ -6947,7 +6964,7 @@ function mpOnAction(msg){
       if(typeof toast === 'function' && krp.name) toast('💀 ' + krp.name + ' got KO\'d!');
       // Stats: I got the KO.
       try {
-        if(byId === net.playerId){ __FB_STATS.kills++; __fbReportStats(); if (typeof fbTaskEvent === 'function') fbTaskEvent('ko', 1); }
+        if(byId === net.playerId){ __FB_STATS.kills++; __fbReportStats(); if (typeof fbTaskEvent === 'function') fbTaskEvent('ko', 1); if (typeof __fbSeasonXP === 'function') __fbSeasonXP(25, 'ko'); }
       } catch(e){}
     }
     return;
@@ -7200,6 +7217,370 @@ var _mpInitTimer = setInterval(function(){
     clearInterval(_mpInitTimer);
   }
 }, 100);
+
+/* ============================================================
+   THE VAULT + SEASON 1: "IGNITION" BATTLE PASS
+   ------------------------------------------------------------
+   The Vault (🗝️) is your personal trophy room: every armor piece,
+   every season reward, all in one place.
+   Season 1 "Ignition" (🎫) is a 20-tier battle pass. Earn XP from
+   KOs (+25), task completions (+50), and time played (+10/min).
+   Free track is live. Premium track is coming soon.
+   All-ages, fire-safety centered. This section only READS bronze,
+   silver, task, and leaderboard state — it never modifies them.
+   ============================================================ */
+
+/* ----- Season 1 config ----- */
+var FB_SEASON1 = {
+  id: 'ignition',
+  name: 'IGNITION',
+  tiers: 20,
+  xpPerTier: 100,
+  xpFor: { ko: 25, task: 50, time_min: 10 }
+};
+/* Free-track rewards, tier 1..20.
+   Types: coins, gems, emote (store emote id), badge, boost, crown */
+var FB_SEASON1_REWARDS = [
+  { t:'coins', n:50,  e:'🪙', name:'50 Coins' },
+  { t:'badge', id:'first_spark', e:'🔥', name:'First Spark Badge' },
+  { t:'emote', id:'clap', e:'👏', name:'Clap Emote' },
+  { t:'coins', n:100, e:'🪙', name:'100 Coins' },
+  { t:'boost', n:0.01, e:'🌟', name:'+1% Boost' },
+  { t:'badge', id:'bucket_brigade', e:'🪣', name:'Bucket Brigade Badge' },
+  { t:'gems',  n:5,   e:'💎', name:'5 Gems' },
+  { t:'emote', id:'spin', e:'🌀', name:'Spin Emote' },
+  { t:'coins', n:150, e:'🪙', name:'150 Coins' },
+  { t:'badge', id:'smoke_alarm_hero', e:'🚨', name:'Smoke Alarm Hero Badge' },
+  { t:'gems',  n:10,  e:'💎', name:'10 Gems' },
+  { t:'emote', id:'dance', e:'💃', name:'Dance Emote' },
+  { t:'coins', n:200, e:'🪙', name:'200 Coins' },
+  { t:'boost', n:0.01, e:'🌟', name:'+1% Boost' },
+  { t:'badge', id:'extinguisher_pro', e:'🧯', name:'Extinguisher Pro Badge' },
+  { t:'gems',  n:15,  e:'💎', name:'15 Gems' },
+  { t:'emote', id:'fire_spin', e:'🔥', name:'Fire Spin Emote' },
+  { t:'coins', n:300, e:'🪙', name:'300 Coins' },
+  { t:'badge', id:'inferno_legend', e:'🌋', name:'Inferno Legend Badge' },
+  { t:'crown', e:'👑', name:'IGNITION CROWN', gems:25, boost:0.01 }
+];
+
+/* ----- Season 1 state (localStorage, fbSeason1_* namespace) ----- */
+var __fbSeason1 = { xp: 0, claimed: {}, badges: [] };
+var __FB_SEASON_BOOST = 0;
+var __fbSeasonInitDone = false;
+
+function __fbLoadSeason(){
+  if (__fbSeasonInitDone) return;
+  __fbSeasonInitDone = true;
+  try {
+    var xp = parseInt(localStorage.getItem('fbSeason1_xp'), 10);
+    if (!isNaN(xp) && xp >= 0) __fbSeason1.xp = xp;
+    var cl = localStorage.getItem('fbSeason1_claimed');
+    if (cl) { var c = JSON.parse(cl); if (c) __fbSeason1.claimed = c; }
+    var bg = localStorage.getItem('fbSeason1_badges');
+    if (bg) { var b = JSON.parse(bg); if (b && b.length !== undefined) __fbSeason1.badges = b; }
+    var bo = parseFloat(localStorage.getItem('fbSeason1_boost'));
+    if (!isNaN(bo) && bo > 0) __FB_SEASON_BOOST = bo;
+  } catch(e){}
+  /* merge server profile in background (defensive: endpoint may not exist yet) */
+  try { __fbFetchSeason(); } catch(e){}
+}
+
+function __fbSaveSeason(){
+  try {
+    localStorage.setItem('fbSeason1_xp', String(__fbSeason1.xp));
+    localStorage.setItem('fbSeason1_claimed', JSON.stringify(__fbSeason1.claimed));
+    localStorage.setItem('fbSeason1_badges', JSON.stringify(__fbSeason1.badges));
+    localStorage.setItem('fbSeason1_boost', String(__FB_SEASON_BOOST));
+  } catch(e){}
+}
+
+/* current tier: 1..20 (tier N reward unlocks at N*100 XP) */
+function __fbSeasonTier(){
+  __fbLoadSeason();
+  var t = Math.floor(__fbSeason1.xp / FB_SEASON1.xpPerTier) + 1;
+  if (t < 1) t = 1;
+  if (t > FB_SEASON1.tiers) t = FB_SEASON1.tiers;
+  return t;
+}
+
+/* award season XP; auto-claims newly unlocked tier rewards */
+function __fbSeasonXP(n, why){
+  try {
+    __fbLoadSeason();
+    n = n || 0;
+    if (n <= 0) return;
+    var before = Math.floor(__fbSeason1.xp / FB_SEASON1.xpPerTier);
+    __fbSeason1.xp += n;
+    var after = Math.floor(__fbSeason1.xp / FB_SEASON1.xpPerTier);
+    if (after > before) {
+      for (var t = before + 1; t <= after && t <= FB_SEASON1.tiers; t++) {
+        __fbClaimSeasonTier(t);
+      }
+      try { __fbSyncSeason(); } catch(e){}
+      try { __fbRefreshSeasonUI(); } catch(e){}
+      try { __fbRefreshVaultUI(); } catch(e){}
+    }
+    __fbSaveSeason();
+  } catch(e){}
+}
+
+/* grant one tier reward (idempotent) */
+function __fbSeasonGrant(r){
+  try {
+    var sty = (typeof window.FireBabysStyle !== 'undefined') ? window.FireBabysStyle : null;
+    if (r.t === 'coins') {
+      if (sty && typeof sty.addCoins === 'function') sty.addCoins(r.n);
+    } else if (r.t === 'gems') {
+      if (sty && typeof sty.addGems === 'function') sty.addGems(r.n);
+    } else if (r.t === 'emote') {
+      if (sty && typeof sty.grantEmote === 'function') sty.grantEmote(r.id);
+    } else if (r.t === 'badge') {
+      if (__fbSeason1.badges.indexOf(r.id) < 0) __fbSeason1.badges.push(r.id);
+    } else if (r.t === 'boost') {
+      __FB_SEASON_BOOST = Math.round((__FB_SEASON_BOOST + r.n) * 10000) / 10000;
+    } else if (r.t === 'crown') {
+      if (sty && typeof sty.addGems === 'function') sty.addGems(r.gems);
+      __FB_SEASON_BOOST = Math.round((__FB_SEASON_BOOST + r.boost) * 10000) / 10000;
+      if (__fbSeason1.badges.indexOf('ignition_crown') < 0) __fbSeason1.badges.push('ignition_crown');
+    }
+  } catch(e){}
+}
+
+function __fbClaimSeasonTier(tier){
+  try {
+    if (__fbSeason1.claimed[tier]) return;
+    var r = FB_SEASON1_REWARDS[tier - 1];
+    if (!r) return;
+    __fbSeason1.claimed[tier] = true;
+    __fbSeasonGrant(r);
+    __fbSaveSeason();
+    try { if (typeof toast === 'function') toast('🎫 TIER ' + tier + ': ' + r.e + ' ' + r.name + '!'); } catch(e){}
+    try { if (typeof beep === 'function') { beep(784, 0.12, 'sine', 0.07); setTimeout(function(){ beep(1046, 0.22, 'sine', 0.07); }, 130); } } catch(e){}
+  } catch(e){}
+}
+
+/* ----- server sync (defensive: endpoints may not exist yet) ----- */
+function __fbSyncSeason(){
+  var t = null;
+  try { if (window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if (!t) return;
+  try {
+    fetch('https://fire-babys-auth.jeffpruden288.workers.dev/profile/season', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: t, season: FB_SEASON1.id, xp: __fbSeason1.xp,
+        tier: __fbSeasonTier(), badges: __fbSeason1.badges, boost: __FB_SEASON_BOOST })
+    }).catch(function(){});
+  } catch(e){}
+}
+
+function __fbFetchSeason(){
+  var t = null;
+  try { if (window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if (!t) return;
+  try {
+    fetch('https://fire-babys-auth.jeffpruden288.workers.dev/profile/get', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: t })
+    }).then(function(r){ return r.json(); }).then(function(j){
+      try {
+        if (j && j.ok && j.profile && j.profile.season && j.profile.season.id === FB_SEASON1.id) {
+          var s = j.profile.season;
+          if (typeof s.xp === 'number' && s.xp > __fbSeason1.xp) {
+            __fbSeason1.xp = s.xp;
+            if (s.badges && s.badges.length !== undefined) __fbSeason1.badges = s.badges;
+            if (typeof s.boost === 'number' && s.boost > __FB_SEASON_BOOST) __FB_SEASON_BOOST = s.boost;
+            var maxT = Math.min(FB_SEASON1.tiers, Math.floor(__fbSeason1.xp / FB_SEASON1.xpPerTier));
+            for (var t2 = 1; t2 <= maxT; t2++) __fbClaimSeasonTier(t2);
+            __fbSaveSeason();
+          }
+        }
+      } catch(e){}
+    }).catch(function(){});
+  } catch(e){}
+}
+
+/* ============================================================
+   THE VAULT (🗝️) — personal trophy room
+   ============================================================ */
+var __fbVaultUIOpen = false;
+
+function __fbVaultEquipped(){
+  try {
+    if (typeof __FB_SILVER_UNLOCKED !== 'undefined' && __FB_SILVER_UNLOCKED)
+      return { icon:'🥈', name:'SILVER ARMOR', desc:'Full set — +20% over everything', color:'#cceeff', glow:true };
+    var a = (typeof __FB_ARMOR !== 'undefined') ? __FB_ARMOR : null;
+    var n = 0, full = false;
+    if (a) {
+      n = (a.greaves?1:0) + (a.gauntlets?1:0) + (a.helmet?1:0) + (a.chestplate?1:0);
+      full = (typeof __FB_ARMOR_FULL !== 'undefined') ? __FB_ARMOR_FULL : (n === 4);
+    }
+    if (full) return { icon:'🥉', name:'BRONZE FULL SET', desc:'Diamond chestplate — +10% over everything', color:'#ffd76a', glow:true };
+    if (n > 0) return { icon:'🥉', name:'BRONZE ' + n + '/4', desc:'+' + (n * 2.5) + '% boost — finish the 2D stages!', color:'#c9a882', glow:false };
+  } catch(e){}
+  return { icon:'🔥', name:'NO ARMOR YET', desc:'Beat 2D stages to earn bronze pieces!', color:'#ffe9d6', glow:false };
+}
+
+function __fbVaultHTML(){
+  var eq = __fbVaultEquipped();
+  var a = (typeof __FB_ARMOR !== 'undefined') ? __FB_ARMOR : {};
+  var pieces = [
+    { k:'greaves',    e:'🥾', name:'Bronze Greaves',    req:'Beat 2D Stage 5' },
+    { k:'gauntlets',  e:'🧤', name:'Bronze Gauntlets',  req:'Beat 2D Stage 10' },
+    { k:'helmet',     e:'🪖', name:'Bronze Helmet',     req:'Beat 2D Stage 15' },
+    { k:'chestplate', e:'🛡️', name:'Bronze Chestplate', req:'Beat 2D Stage 20' }
+  ];
+  var grid = '';
+  pieces.forEach(function(p){
+    var has = !!a[p.k];
+    grid += '<div style="flex:1 1 44%;min-width:128px;padding:10px;border-radius:12px;text-align:center;background:' +
+      (has ? 'rgba(255,215,106,0.12)' : 'rgba(140,140,140,0.07)') + ';border:1px solid ' +
+      (has ? '#ffd76a' : 'rgba(160,160,160,0.35)') + ';">' +
+      '<div style="font-size:30px;">' + (has ? p.e : '🔒') + '</div>' +
+      '<div style="color:' + (has ? '#ffd76a' : '#9a9a9a') + ';font-size:12px;font-weight:800;margin-top:4px;">' + p.name + '</div>' +
+      '<div style="color:#c9a882;font-size:11px;margin-top:2px;">' + (has ? '✅ +2.5% boost' : p.req) + '</div></div>';
+  });
+  var sDone = 0;
+  try { sDone = (typeof __fbTasksCompletedCount === 'function') ? __fbTasksCompletedCount() : 0; } catch(e){}
+  var sOn = (typeof __FB_SILVER_UNLOCKED !== 'undefined' && __FB_SILVER_UNLOCKED);
+  var sPct = Math.min(100, Math.round(sDone / 250 * 100));
+  var tier = __fbSeasonTier();
+  var claimedN = Object.keys(__fbSeason1.claimed).length;
+  var badgesN = __fbSeason1.badges.length;
+  var seasonBoostPct = Math.round(__FB_SEASON_BOOST * 1000) / 10;
+  return '' +
+  '<div style="width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;background:#161006;border:3px solid #ffd76a;border-radius:20px;padding:20px;box-sizing:border-box;">' +
+    '<div style="color:#ffd76a;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;">🗝️ THE VAULT</div>' +
+    '<div style="color:#c9a882;font-size:12px;text-align:center;margin:6px 0 12px;">Your personal trophy room — every piece of loot you own.</div>' +
+    '<div style="padding:12px;border-radius:14px;text-align:center;margin-bottom:12px;background:rgba(255,215,106,0.08);border:2px solid ' + eq.color + ';' +
+      (eq.glow ? 'box-shadow:0 0 18px rgba(255,215,106,0.35);' : '') + '">' +
+      '<div style="font-size:34px;">' + eq.icon + '</div>' +
+      '<div style="color:' + eq.color + ';font-size:15px;font-weight:900;letter-spacing:1px;">EQUIPPED: ' + eq.name + '</div>' +
+      '<div style="color:#ffe9d6;font-size:12px;margin-top:2px;">' + eq.desc + '</div>' +
+      (seasonBoostPct > 0 ? '<div style="color:#ff9c4a;font-size:12px;margin-top:4px;">🌟 Season boost: +' + seasonBoostPct + '%</div>' : '') +
+    '</div>' +
+    '<div style="flex:1;overflow-y:auto;min-height:150px;">' +
+      '<div style="color:#ffd76a;font-size:13px;font-weight:900;letter-spacing:1px;margin:8px 0;">🥉 BRONZE KNIGHT — 2D GAME</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + grid + '</div>' +
+      '<div style="color:#ffd76a;font-size:13px;font-weight:900;letter-spacing:1px;margin:12px 0 8px;">🥈 SILVER ARMOR — 250 TASKS</div>' +
+      '<div style="padding:12px;border-radius:12px;text-align:center;background:' + (sOn ? 'rgba(204,238,255,0.12)' : 'rgba(140,140,140,0.07)') +
+        ';border:1px solid ' + (sOn ? '#cceeff' : 'rgba(160,160,160,0.35)') + ';">' +
+        '<div style="font-size:30px;">' + (sOn ? '🥈' : '🔒') + '</div>' +
+        '<div style="color:' + (sOn ? '#cceeff' : '#9a9a9a') + ';font-size:13px;font-weight:800;">' +
+          (sOn ? 'SILVER ARMOR — +20% over everything!' : 'Silver Armor — ' + sDone + '/250 tasks') + '</div>' +
+        (!sOn ? '<div style="height:8px;background:#2a1a0c;border-radius:4px;margin-top:8px;"><div style="height:100%;width:' + sPct +
+          '%;background:linear-gradient(90deg,#8899ff,#cceeff);border-radius:4px;"></div></div>' : '') +
+      '</div>' +
+      '<div style="color:#ffd76a;font-size:13px;font-weight:900;letter-spacing:1px;margin:12px 0 8px;">🎫 SEASON 1: IGNITION</div>' +
+      '<div style="padding:12px;border-radius:12px;text-align:center;background:rgba(255,140,46,0.08);border:1px solid rgba(255,140,46,0.4);">' +
+        '<div style="color:#ff9c4a;font-size:13px;font-weight:800;">Tier ' + tier + '/20 — ' + claimedN + ' rewards claimed' +
+          (badgesN > 0 ? ' — ' + badgesN + ' badges' : '') + '</div>' +
+        '<div style="color:#c9a882;font-size:11px;margin-top:4px;">Open the 🎫 Season panel to see every reward.</div>' +
+      '</div>' +
+    '</div>' +
+    '<button id="fb-vault-close" style="margin-top:12px;padding:12px;font-size:16px;font-weight:900;border:none;border-radius:12px;cursor:pointer;color:#1c1006;background:linear-gradient(180deg,#ffd76a,#e8a83e);">CLOSE</button>' +
+  '</div>';
+}
+
+function __fbShowVault(){
+  try {
+    __fbLoadSeason();
+    if (typeof __fbLoadTasks === 'function') { try { __fbLoadTasks(); } catch(e){} }
+    var old = document.getElementById('fb-vault-ov');
+    if (old) { old.parentNode.removeChild(old); __fbVaultUIOpen = false; return; }
+    __fbVaultUIOpen = true;
+    var ov = document.createElement('div');
+    ov.id = 'fb-vault-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(8,4,2,0.88);padding:16px;box-sizing:border-box;';
+    ov.innerHTML = __fbVaultHTML();
+    ov.querySelector('#fb-vault-close').addEventListener('click', function(){ ov.parentNode.removeChild(ov); __fbVaultUIOpen = false; });
+    ov.addEventListener('click', function(e){ if (e.target === ov){ ov.parentNode.removeChild(ov); __fbVaultUIOpen = false; } });
+    document.body.appendChild(ov);
+  } catch(e){}
+}
+
+function __fbRefreshVaultUI(){
+  if (__fbVaultUIOpen) {
+    try {
+      var ov = document.getElementById('fb-vault-ov');
+      if (ov) { ov.parentNode.removeChild(ov); __fbVaultUIOpen = false; }
+      __fbShowVault();
+    } catch(e){}
+  }
+}
+
+/* ============================================================
+   SEASON 1: IGNITION (🎫) — battle pass panel
+   ============================================================ */
+var __fbSeasonUIOpen = false;
+
+function __fbSeasonHTML(){
+  var tier = __fbSeasonTier();
+  var xp = __fbSeason1.xp;
+  var maxXp = FB_SEASON1.tiers * FB_SEASON1.xpPerTier;
+  var pct = Math.min(100, Math.round(xp / maxXp * 100));
+  var rows = '';
+  FB_SEASON1_REWARDS.forEach(function(r, i){
+    var t = i + 1;
+    var unlocked = xp >= t * FB_SEASON1.xpPerTier;
+    var claimed = !!__fbSeason1.claimed[t];
+    rows += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;border-radius:10px;background:' +
+      (claimed ? 'rgba(255,140,46,0.16)' : 'rgba(255,140,46,0.05)') + ';border:1px solid ' +
+      (claimed ? '#ff8c2e' : 'rgba(255,140,46,0.25)') + ';">' +
+      '<div style="color:#ffd76a;font-weight:900;font-size:12px;min-width:50px;">TIER ' + t + '</div>' +
+      '<div style="font-size:24px;min-width:32px;text-align:center;">' + (claimed || unlocked ? r.e : '🔒') + '</div>' +
+      '<div style="flex:1;min-width:0;"><div style="color:#ffe9d6;font-size:13px;font-weight:700;">' + r.name + '</div>' +
+      '<div style="color:#c9a882;font-size:11px;">' +
+        (claimed ? '✅ Claimed' : (unlocked ? 'Ready!' : (t * FB_SEASON1.xpPerTier) + ' XP')) +
+      '</div></div></div>';
+  });
+  return '' +
+  '<div style="width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;background:#1c1006;border:3px solid #ff8c2e;border-radius:20px;padding:20px;box-sizing:border-box;">' +
+    '<div style="color:#ff9c4a;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;">🎫 SEASON 1: IGNITION</div>' +
+    '<div style="color:#ffe9d6;font-size:13px;text-align:center;margin:8px 0;">Tier <b style="color:#ffd76a;">' + tier + '</b>/20 &nbsp;•&nbsp; ' + xp + ' XP</div>' +
+    '<div style="height:10px;background:#3a2410;border-radius:5px;margin-bottom:6px;"><div style="height:100%;width:' + pct +
+      '%;background:linear-gradient(90deg,#ff8c2e,#ffd76a);border-radius:5px;"></div></div>' +
+    '<div style="color:#c9a882;font-size:11px;text-align:center;margin-bottom:10px;">Earn XP: KOs (+' + FB_SEASON1.xpFor.ko +
+      ') • Tasks (+' + FB_SEASON1.xpFor.task + ') • Play time (+' + FB_SEASON1.xpFor.time_min + '/min)</div>' +
+    '<div style="flex:1;overflow-y:auto;min-height:150px;">' + rows +
+      '<div style="margin:10px 0 4px;padding:14px;border-radius:12px;text-align:center;background:rgba(136,153,255,0.07);border:1px dashed #8899ff;">' +
+        '<div style="font-size:24px;">🔒</div>' +
+        '<div style="color:#cceeff;font-size:14px;font-weight:900;letter-spacing:1px;">PREMIUM TRACK</div>' +
+        '<div style="color:#c9a882;font-size:12px;margin-top:2px;">Coming soon — even more loot!</div>' +
+      '</div>' +
+    '</div>' +
+    '<button id="fb-season-close" style="margin-top:12px;padding:12px;font-size:16px;font-weight:900;border:none;border-radius:12px;cursor:pointer;color:#1c1006;background:linear-gradient(180deg,#ff9c4a,#ff8c2e);">CLOSE</button>' +
+  '</div>';
+}
+
+function __fbShowSeason(){
+  try {
+    __fbLoadSeason();
+    var old = document.getElementById('fb-season-ov');
+    if (old) { old.parentNode.removeChild(old); __fbSeasonUIOpen = false; return; }
+    __fbSeasonUIOpen = true;
+    var ov = document.createElement('div');
+    ov.id = 'fb-season-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(8,4,2,0.88);padding:16px;box-sizing:border-box;';
+    ov.innerHTML = __fbSeasonHTML();
+    ov.querySelector('#fb-season-close').addEventListener('click', function(){ ov.parentNode.removeChild(ov); __fbSeasonUIOpen = false; });
+    ov.addEventListener('click', function(e){ if (e.target === ov){ ov.parentNode.removeChild(ov); __fbSeasonUIOpen = false; } });
+    document.body.appendChild(ov);
+  } catch(e){}
+}
+
+function __fbRefreshSeasonUI(){
+  if (__fbSeasonUIOpen) {
+    try {
+      var ov = document.getElementById('fb-season-ov');
+      if (ov) { ov.parentNode.removeChild(ov); __fbSeasonUIOpen = false; }
+      __fbShowSeason();
+    } catch(e){}
+  }
+}
+
+/* init season state at load (local first; server merges in background) */
+try { __fbLoadSeason(); } catch(e){}
+
 
 })();
 </script>
@@ -8514,6 +8895,7 @@ function fbInit(){
   window.FireBabysStyle = {
     look:function(){ return FBC.look; }, gems:fbGems, coins:fbCoins,
     addGems:fbAddGems, addCoins:fbAddCoins,
+    grantEmote:function(id){ try{ if(id && FBC.inv && FBC.inv.emotes.indexOf(id)<0){ FBC.inv.emotes.push(id); saveState(); } }catch(e){} },
     emote:fbDoEmote, openStore:fbOpenStore, openCustomize:fbOpenCustomize
   };
 }
