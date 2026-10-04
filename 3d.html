@@ -2847,20 +2847,33 @@ function showHub(){
    Opens multiplayer, pre-selects CATCH, auto-creates a bot-filled lobby,
    readies up and starts: one tap from the homepage into a CATCH match vs AI. */
 var _catchDL = false;
+function _cdlDbg(msg){
+  try {
+    var d = document.getElementById('cdldbg');
+    if(!d){ d = document.createElement('div'); d.id='cdldbg';
+      d.style.cssText='position:fixed;top:8px;left:8px;z-index:99999;background:#000;color:#0f0;font:12px monospace;padding:8px;max-width:92vw;white-space:pre-wrap;';
+      document.body.appendChild(d); }
+    d.textContent += msg + '\n';
+  } catch(e){}
+}
 function catchDeepLink(){
-  if(_catchDL) return;
+  if(_catchDL){ _cdlDbg('cdl: already ran'); return; }
   var q = null;
-  try { q = new URLSearchParams(location.search).get('mode'); } catch(e){}
+  try { q = new URLSearchParams(location.search).get('mode'); } catch(e){ _cdlDbg('cdl: qs parse err ' + e); }
+  _cdlDbg('cdl: entry, q=' + q + ' search=' + location.search);
   if(q !== 'catch') return;
   _catchDL = true;
   setTimeout(function(){
     try {
+      _cdlDbg('cdl: t+700ms, typeof startMultiplayer=' + (typeof startMultiplayer));
       if(typeof startMultiplayer !== 'function') return;
       startMultiplayer();
+      _cdlDbg('cdl: startMultiplayer called');
       mpMode = 'catch';
       var btns = document.querySelectorAll('.mpmodebtn');
       for(var i=0;i<btns.length;i++) btns[i].classList.toggle('on', btns[i].getAttribute('data-mode')==='catch');
       mpCreateLobby();
+      _cdlDbg('cdl: mpCreateLobby called');
       var tries = 0;
       var iv = setInterval(function(){
         tries++;
