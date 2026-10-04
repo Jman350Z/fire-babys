@@ -111,6 +111,60 @@ body {
 
 		<script src="index.js"></script>
 		<script>
+// Fire Babys bridge: lets the Godot web export read the auth token and talk
+// to the profile worker (same account as the 2D/3D games).
+window.fbBridge = {
+  profile: "",
+  profileError: "",
+  getToken: function () {
+    try { return localStorage.getItem("fb_auth_token") || ""; } catch (e) { return ""; }
+  },
+  getLocal: function (k) {
+    try { return localStorage.getItem(k) || ""; } catch (e) { return ""; }
+  },
+  setLocal: function (k, v) {
+    try { localStorage.setItem(k, v); } catch (e) {}
+  },
+  fetchProfile: function () {
+    var self = this;
+    self.profile = ""; self.profileError = "";
+    var t = self.getToken();
+    if (!t) { self.profileError = "no_token"; return; }
+    fetch("https://fire-babys-auth.jeffpruden288.workers.dev/profile/get", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: t })
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      self.profile = JSON.stringify(j);
+    }).catch(function (e) { self.profileError = String(e); });
+  },
+  postSeason: function (payloadJson) {
+    var t = this.getToken();
+    if (!t) return;
+    var p = {};
+    try { p = JSON.parse(payloadJson); } catch (e) { return; }
+    p.token = t;
+    fetch("https://fire-babys-auth.jeffpruden288.workers.dev/profile/season", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(p)
+    }).catch(function () {});
+  },
+  postWeapons: function (payloadJson) {
+    var t = this.getToken();
+    if (!t) return;
+    var p = {};
+    try { p = JSON.parse(payloadJson); } catch (e) { return; }
+    p.token = t;
+    fetch("https://fire-babys-auth.jeffpruden288.workers.dev/profile/weapons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(p)
+    }).catch(function () {});
+  }
+};
+</script>
+		<script>
 // Fire Babys: index.wasm ships split (GitHub's 25MB file limit) — reassemble on fetch.
 (function () {
 	const origFetch = window.fetch.bind(window);
@@ -130,9 +184,10 @@ body {
 		return origFetch(url, opts);
 	};
 })();
-		</script>
+</script>
+		<script src="https://firebabys.io/auth-gate.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":63152,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":106372,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -236,7 +291,7 @@ const engine = new Engine(GODOT_CONFIG);
 	}
 }());
 		</script>
-	<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "103dfc2c031d45238949156f1859ca69"}'></script>
+		<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "103dfc2c031d45238949156f1859ca69"}'></script>
 </body>
 </html>
 
