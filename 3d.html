@@ -127,6 +127,7 @@
   <button class="mpcbtn" id="mpjumpbtn" aria-label="Jump">⬆️</button>
   <button class="mpcbtn" id="mpblkbtn" aria-label="Block">🛡️</button>
   <button class="mpcbtn" id="mpatkbtn" aria-label="Attack">🔥</button>
+  <button class="mpcbtn" id="mplbbtn" aria-label="Leaderboard" style="font-size:22px;">🏆</button>
 </div>
 <div id="expbar"><span id="explabel">BLAZE Lv1</span><div id="expfillwrap"><div id="expfill"></div></div></div>
 <div id="toast"></div>
@@ -3413,6 +3414,165 @@ var mpKO = false;            // local knocked-out flag
 var mpKOTimer = 0;           // respawn countdown (s)
 var mpKOs = { team0: 0, team1: 0 };  // KO counts per team
 var mpShield = null;         // local shield bubble mesh
+
+/* ---------- bronze knight armor (2D stage rewards) ----------
+   Pieces earned in the 2D game (stage 5/10/15/20). Server-authoritative
+   via the auth worker; falls back to local 2D save until server is live.
+   Full set = +10% damage dealt, -10% damage taken, gold glow. */
+var __FB_ARMOR_URL = 'https://fire-babys-auth.jeffpruden288.workers.dev';
+var __FB_ARMOR = { greaves: false, gauntlets: false, helmet: false, chestplate: false };
+var __FB_ARMOR_BOOST = 0;    // 0..0.10
+var __FB_ARMOR_FULL = false;
+var __FB_STATS = { kills: 0, deaths: 0 };  // session deltas, reported to server
+
+function __fbArmorBoost(a){
+  var n = 0;
+  if(a.greaves) n++; if(a.gauntlets) n++; if(a.helmet) n++; if(a.chestplate) n++;
+  return n * 0.025;
+}
+function __fbLocalArmor(){
+  try {
+    var raw = localStorage.getItem('fb_bronze_armor_v1');
+    if(raw){ var p = JSON.parse(raw); if(p && p.pieces) return p.pieces; }
+  } catch(e){}
+  return { greaves: false, gauntlets: false, helmet: false, chestplate: false };
+}
+function __fbApplyArmor(a){
+  __FB_ARMOR = {
+    greaves: !!a.greaves, gauntlets: !!a.gauntlets,
+    helmet: !!a.helmet, chestplate: !!a.chestplate,
+  };
+  __FB_ARMOR_BOOST = __fbArmorBoost(__FB_ARMOR);
+  __FB_ARMOR_FULL = __FB_ARMOR.chestplate && __FB_ARMOR.helmet && __FB_ARMOR.gauntlets && __FB_ARMOR.greaves;
+  try {
+    if(player && player.group) addBronzeArmor(player.group, 1, __FB_ARMOR);
+  } catch(e){}
+  // Broadcast so opponents see the armor (and fear it).
+  try {
+    if(typeof net !== 'undefined' && net && net.connected && typeof mpInGame !== 'undefined' && mpInGame){
+      net.sendAction({ kind: 'armor', data: {
+        g: __FB_ARMOR.greaves ? 1 : 0, ga: __FB_ARMOR.gauntlets ? 1 : 0,
+        h: __FB_ARMOR.helmet ? 1 : 0, c: __FB_ARMOR.chestplate ? 1 : 0 } });
+    }
+  } catch(e){}
+}
+function __fbFetchArmor(){
+  var t = null;
+  try { if(window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if(!t){ __fbApplyArmor(__fbLocalArmor()); return; }
+  fetch(__FB_ARMOR_URL + '/profile/get', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ token: t }),
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if(j && j.ok && j.profile && j.profile.armor) __fbApplyArmor(j.profile.armor);
+    else __fbApplyArmor(__fbLocalArmor());
+  }).catch(function(){ __fbApplyArmor(__fbLocalArmor()); });
+}
+function __fbReportStats(){
+  var t = null;
+  try { if(window.FireBabysAuth && window.FireBabysAuth.getToken) t = window.FireBabysAuth.getToken(); } catch(e){}
+  if(!t) return;
+  var d = { kills: __FB_STATS.kills, deaths: __FB_STATS.deaths, wins: 0, losses: 0 };
+  if(!d.kills && !d.deaths) return;
+  __FB_STATS.kills = 0; __FB_STATS.deaths = 0;
+  fetch(__FB_ARMOR_URL + '/profile/stats', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ token: t, delta: d }),
+  }).catch(function(){});
+}
+
+/* ----- armor meshes: flat gray pieces, gold glow on full set ----- */
+function addBronzeArmor(g, R, armor){
+  if(!g || !armor || typeof THREE === 'undefined') return;
+  try {
+    if(g.userData.bronzeArmor){
+      g.userData.bronzeArmor.forEach(function(m){ g.remove(m); });
+    }
+    g.userData.bronzeArmor = null;
+    g.userData.bronzeGlow = null;
+    var parts = [];
+    var gray = new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.55, metalness: 0.45 });
+    var full = armor.chestplate && armor.helmet && armor.gauntlets && armor.greaves;
+    var chestMat = full
+      ? new THREE.MeshStandardMaterial({ color: 0xc09a4a, roughness: 0.35, metalness: 0.7, emissive: 0xffd76a, emissiveIntensity: 0.35 })
+      : gray;
+    if(armor.greaves){
+      [-1, 1].forEach(function(s){
+        var gr = new THREE.Mesh(new THREE.CylinderGeometry(R*0.26, R*0.30, R*0.55, 10), gray);
+        gr.position.set(s*R*0.38, -R*0.95, 0); gr.castShadow = true;
+        g.add(gr); parts.push(gr);
+      });
+    }
+    if(armor.gauntlets){
+      [-1, 1].forEach(function(s){
+        var ga = new THREE.Mesh(new THREE.CylinderGeometry(R*0.20, R*0.23, R*0.45, 10), gray);
+        ga.position.set(s*R*1.02, -R*0.15, 0); ga.rotation.z = s * -0.12; ga.castShadow = true;
+        g.add(ga); parts.push(ga);
+      });
+    }
+    if(armor.helmet){
+      var helm = new THREE.Mesh(new THREE.SphereGeometry(R*0.92, 18, 12, 0, Math.PI*2, 0, Math.PI*0.55), gray);
+      helm.position.y = R*0.55; helm.castShadow = true;
+      g.add(helm); parts.push(helm);
+      var brim = new THREE.Mesh(new THREE.TorusGeometry(R*0.88, R*0.07, 8, 20), gray);
+      brim.rotation.x = Math.PI/2; brim.position.y = R*0.62;
+      g.add(brim); parts.push(brim);
+    }
+    if(armor.chestplate){
+      var chest = new THREE.Mesh(new THREE.SphereGeometry(R*1.04, 18, 12, 0, Math.PI*2, 0, Math.PI*0.62), chestMat);
+      chest.position.y = R*0.02; chest.castShadow = true;
+      g.add(chest); parts.push(chest);
+      var dia = new THREE.Mesh(new THREE.OctahedronGeometry(R*0.22),
+        new THREE.MeshStandardMaterial({ color: 0xbfefff, roughness: 0.05, metalness: 0.1,
+          emissive: 0x88ccff, emissiveIntensity: full ? 0.9 : 0.35 }));
+      dia.position.set(0, R*0.12, R*0.98); dia.rotation.y = Math.PI/4;
+      g.add(dia); parts.push(dia);
+    }
+    if(full && typeof GLOW_TEX !== 'undefined' && GLOW_TEX){
+      var glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: 0xffd76a,
+        blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0.35 }));
+      glow.scale.set(R*3.6, R*3.6, 1);
+      g.add(glow); parts.push(glow);
+      g.userData.bronzeGlow = glow;
+    }
+    g.userData.bronzeArmor = parts;
+  } catch(e){}
+}
+
+/* ----- leaderboard overlay ----- */
+function __fbShowLeaderboard(){
+  try {
+    var old = document.getElementById('fb-lb-ov');
+    if(old){ old.parentNode.removeChild(old); return; }
+    var ov = document.createElement('div');
+    ov.id = 'fb-lb-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;background:rgba(8,4,2,0.85);padding:20px;box-sizing:border-box;';
+    ov.innerHTML = '<div style="width:100%;max-width:440px;max-height:80vh;overflow-y:auto;background:#1c1006;border:3px solid #ffd76a;border-radius:20px;padding:24px;">' +
+      '<div style="color:#ffd76a;font-size:22px;font-weight:900;letter-spacing:2px;text-align:center;">🏆 LEADERBOARD</div>' +
+      '<div id="fb-lb-rows" style="color:#ffe9d6;font-size:15px;margin:16px 0;text-align:center;">Loading...</div>' +
+      '<button id="fb-lb-close" style="display:block;margin:0 auto;padding:12px 30px;font-size:16px;font-weight:900;border:none;border-radius:12px;cursor:pointer;color:#2a1206;background:linear-gradient(180deg,#ffd76a,#ff8c2e);">CLOSE</button></div>';
+    ov.querySelector('#fb-lb-close').addEventListener('click', function(){ ov.parentNode.removeChild(ov); });
+    ov.addEventListener('click', function(e){ if(e.target === ov) ov.parentNode.removeChild(ov); });
+    document.body.appendChild(ov);
+    fetch(__FB_ARMOR_URL + '/leaderboard?limit=25').then(function(r){ return r.json(); }).then(function(j){
+      var el = document.getElementById('fb-lb-rows');
+      if(!el) return;
+      if(!j || !j.ok || !j.leaders || !j.leaders.length){ el.textContent = 'No legends yet. Be the first!'; return; }
+      var html = '';
+      j.leaders.forEach(function(p, i){
+        var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+        var armor = p.fullSet ? ' 💎' : p.pieces ? ' 🛡️x' + p.pieces : '';
+        html += '<div style="display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid rgba(255,140,46,0.25);">' +
+          '<span>' + medal + ' ' + String(p.name || 'Fire Tamer').slice(0,18) + armor + '</span>' +
+          '<span style="color:#ffd76a;">' + p.wins + 'W · ' + p.kills + 'K</span></div>';
+      });
+      el.innerHTML = html;
+    }).catch(function(){
+      var el = document.getElementById('fb-lb-rows');
+      if(el) el.textContent = 'Could not reach the leaderboard. Try again soon!';
+    });
+  } catch(e){}
+}
 /* ---------- jump state ---------- */
 var mpJumpY = 0, mpJumpV = 0, mpJumps = 0, mpFlipT = 0;
 var JUMP_GRAV = 25, JUMP_V1 = 14, JUMP_V2 = 12, ATK_RANGE = 3.5;
@@ -3822,7 +3982,7 @@ function mpDoAttack(){
     try {
       var bp = player.group.position;
       net.sendAction({ kind: 'attack', x: Math.round(bp.x*100), y: Math.round(bp.z*100),
-        data: { dir: Math.round((player.group.rotation.y||0)*100) } });
+        data: { dir: Math.round((player.group.rotation.y||0)*100), boost: __FB_ARMOR_BOOST } });
       // host: server doesn't echo own actions, so check bot hits locally
       if(net.isHost && mpBots.length) mpBotHits({ id: net.playerId }, bp.x, bp.z);
     } catch(e){}
@@ -3873,7 +4033,11 @@ function mpTakeHit(attackerId, ax, az, friendly){
   try { player.group.userData.flash = 1; } catch(e){}
   if(typeof beep === 'function') beep(150, 0.15, 'sawtooth', 0.09);
   if(friendly){ if(typeof toast === 'function') toast('💨 Friendly bump!'); return; }
-  mpHP = Math.max(0, mpHP - 1);
+  // Bronze armor: attacker deals +boost%, defender takes -boost%.
+  var atkBoost = 0;
+  try { atkBoost = (msg.data && typeof msg.data.boost === 'number') ? Math.max(0, Math.min(0.5, msg.data.boost)) : 0; } catch(e){}
+  var dmg = 1 * (1 + atkBoost) * (1 - __FB_ARMOR_BOOST);
+  mpHP = Math.max(0, mpHP - dmg);
   try { player.hpbar.set(mpHP/mpMaxHP, true); } catch(e){}
   try { net.sendAction({ kind: 'hit', data: { by: attackerId, hp: mpHP } }); } catch(e){}
   if(mpHP <= 0) mpDoKO(attackerId);
@@ -3882,6 +4046,8 @@ function mpTakeHit(attackerId, ax, az, friendly){
 function mpDoKO(attackerId){
   if(mpKO) return;
   mpKO = true; mpKOTimer = 3.0;
+  // Stats: I died.
+  try { __FB_STATS.deaths++; __fbReportStats(); } catch(e){}
   mpSetBlock(false);
   try { player.group.rotation.z = Math.PI/2 * 0.9; } catch(e){}
   fbExtinguishPoof(player.group);
@@ -3946,6 +4112,11 @@ function mpCombatInit(){
       var k = (e.key||'').toLowerCase();
       if(k === 'k'){ mpBlockKey = false; if(combatActive()) mpSetBlock(false); }
     });
+  }
+  var lb = document.getElementById('mplbbtn');
+  if(lb && !lb._mpw){
+    lb._mpw = true;
+    lb.addEventListener('pointerdown', function(e){ e.preventDefault(); __fbShowLeaderboard(); });
   }
 }
 
@@ -4291,6 +4462,8 @@ function mpEnterGame(){
 function mpSpawnLocal(){
   // Reuse the standard squad creation but strip followers for MP clarity
   if(typeof createSquad === 'function') createSquad(0, 40);
+  // Bronze knight armor on the local hero (fetched server-authoritative).
+  try { __fbFetchArmor(); } catch(e){}
   // Remove AI followers in multiplayer (they'd confuse remote sync)
   if(typeof followers !== 'undefined' && followers.length){
     followers.forEach(function(f){ if(f.group && f.group.parent) f.group.parent.remove(f.group); });
@@ -4420,6 +4593,19 @@ function mpOnAction(msg){
     }
     return;
   }
+  if(msg.kind === 'armor'){
+    // Opponent's bronze armor: show it on their fighter.
+    var arp2 = remotePlayers[msg.id];
+    if(arp2 && arp2.group && msg.data){
+      var ra = {
+        greaves: !!msg.data.g, gauntlets: !!msg.data.ga,
+        helmet: !!msg.data.h, chestplate: !!msg.data.c,
+      };
+      arp2.bronzeArmor = ra;
+      try { addBronzeArmor(arp2.group, 1, ra); } catch(e){}
+    }
+    return;
+  }
   if(msg.kind === 'blocked'){
     // my attack was blocked — small knockback on me
     if(msg.data && msg.data.by === net.playerId){
@@ -4458,6 +4644,10 @@ function mpOnAction(msg){
         updateMpScoreboard();
       }
       if(typeof toast === 'function' && krp.name) toast('💀 ' + krp.name + ' got KO\'d!');
+      // Stats: I got the KO.
+      try {
+        if(byId === net.playerId){ __FB_STATS.kills++; __fbReportStats(); }
+      } catch(e){}
     }
     return;
   }
