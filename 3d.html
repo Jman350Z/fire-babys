@@ -6472,6 +6472,7 @@ function mpRespawn(){
   fbDressPlayer();
   var sx = 0, sz = 40;
   if(mpGameMode !== 'coop') sx = (mpMyTeam === 0 ? -6 : 6);
+  if(mpGameMode === 'catch'){ sx = 0; sz = (mpMyTeam === 0 ? -5 : 29); }
   try { player.group.position.x = sx; player.group.position.z = sz; } catch(e){}
   try { net.sendAction({ kind: 'respawn', data: { hp: mpHP } }); } catch(e){}
   if(typeof toast === 'function') toast('🔥 Back in the fight!');
@@ -6846,7 +6847,7 @@ function mpEnterGame(){
   // Spawn local squad (just the player, no AI followers in multiplayer)
   mpSpawnLocal();
   if(mpGameMode === 'catch' && player && player.group){
-    try{ player.group.position.set(0, 1.05, mpMyTeam === 0 ? -90 : 30); }catch(e){}
+    try{ player.group.position.set(0, 1.05, mpMyTeam === 0 ? -5 : 29); }catch(e){}
   }
   mpEnsureShield();
   try {
@@ -6880,7 +6881,7 @@ function mpEnterGame(){
       if(!bb.id) continue;
       bb.hp = 5; bb.ko = false; bb.koTimer = 0; bb.atkCd = 1 + Math.random()*2;
       bb.blockUntil = 0; bb.atkAnimT = 0;
-      if(mpGameMode === 'catch'){ bb.x = 0; bb.z = (bb.team === 0 ? -90 : 30); }
+      if(mpGameMode === 'catch'){ bb.x = 0; bb.z = (bb.team === 0 ? -5 : 29); }
       else { bb.x = (bb.team === 0 ? -6 : 6); bb.z = 40; }
       bb.dir = 0;
       bb.wx = bb.x; bb.wz = bb.z; bb.wanderT = 0;
@@ -7227,7 +7228,7 @@ var mpCatch = null;
 var CATCH_GRAB_R = 3.5, CATCH_GRAB_T = 0.8, CATCH_POOL_R = 6;
 var CATCH_TIME = 300;
 
-function mpCatchPools(){ return [{x:0, z:-95, team:0}, {x:0, z:35, team:1}]; }
+function mpCatchPools(){ return [{x:0, z:0, team:0}, {x:0, z:34, team:1}]; }
 function mpCatchPoolOf(team){ var z = mpCatchPools(); return z[team] || z[0]; }
 
 function mpCatchInit(){
@@ -7704,6 +7705,11 @@ function mpUpdateExplore(dt, t){
     document.getElementById('stagepill').textContent = '🌐 ' +
       (mpGameMode === 'coop' ? 'CO-OP' : mpGameMode.toUpperCase());
   } catch(e){}
+  // CATCH arena lighting: bright warm fog so the match stays readable
+  // (the open-world biome fog at the old field was nearly black-red)
+  if(mpGameMode === 'catch' && mpInGame && typeof scene !== 'undefined' && scene.fog){
+    try{ scene.fog.color.lerp(new THREE.Color(0xffd9a8), 1-Math.pow(0.2,dt)); }catch(e){}
+  }
 }
 
 /* ---------- init ---------- */
