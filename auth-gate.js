@@ -16,8 +16,10 @@
  *   window.FireBabysAuth.onAuthed(cb)   -> cb(user) now or when signed in
  *   Event: document 'fb-authed' with detail {email, name}
  *
- * Test mode: add ?mock=1 to the page URL to use an in-memory fake backend
- * (no network). ?auth=<url> overrides the worker URL.
+ * Security: the auth worker URL can only be set by page code
+ * (window.FB_AUTH_URL) or a data-auth-url attribute on the script tag.
+ * URL query parameters can never change it, and there is no mock mode —
+ * every sign-in goes through the real server.
  */
 (function () {
   "use strict";
@@ -32,39 +34,12 @@
   var AUTH_URL =
     window.FB_AUTH_URL ||
     (thisScript && thisScript.getAttribute("data-auth-url")) ||
-    qs.get("auth") ||
     "https://fire-babys-auth.jeffpruden288.workers.dev";
   var SHOW_BADGE =
     (thisScript && thisScript.getAttribute("data-badge") === "1") ||
     qs.get("badge") === "1";
-  var MOCK = qs.get("mock") === "1";
-
-  // ---- mock backend (test only, no network) ----
-  var mockDB = { users: {}, tokens: {} };
-  function mockPost(path, body) {
-    return new Promise(function (resolve) {
-      setTimeout(function () {
-        if (path === "/auth/register") {
-          var email = String(body.email || "").trim().toLowerCase();
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-            resolve({ ok: false, error: "invalid_email" });
-            return;
-          }
-          var t = "mock" + Math.random().toString(36).slice(2, 28);
-          mockDB.tokens[t] = { email: email };
-          resolve({ ok: true, token: t });
-        } else if (path === "/auth/session") {
-          var rec = mockDB.tokens[body.token];
-          resolve(rec ? { ok: true, email: rec.email, name: "" } : { ok: false });
-        } else {
-          resolve({ ok: false });
-        }
-      }, 300);
-    });
-  }
 
   function post(path, body) {
-    if (MOCK) return mockPost(path, body);
     return fetch(AUTH_URL + path, {
       method: "POST",
       headers: { "content-type": "application/json" },
