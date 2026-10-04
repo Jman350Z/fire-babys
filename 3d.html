@@ -236,7 +236,7 @@
       <button class="mpmodebtn" data-mode="4v4">⚔️ 4v4</button>
       <button class="mpmodebtn" data-mode="6v6">⚔️ 6v6</button>
       <button class="mpmodebtn" data-mode="7v7">⚔️ 7v7</button>
-      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>
+      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>       <button class="mpmodebtn" data-mode="catch">🏃 CATCH</button>
     </div>
     <button class="bigbtn" id="mpcreatebtn">CREATE LOBBY 🔥</button><br>
     <div class="clabel" style="margin-top:12px">— OR JOIN —</div>
@@ -362,7 +362,7 @@
   "use strict";
 
   var MAX_PLAYERS = 30;
-  var MODES = { "2v2": 4, "4v4": 8, "6v6": 12, "7v7": 14, "15v15": 30 };
+  var MODES = { "2v2": 4, "4v4": 8, "6v6": 12, "7v7": 14, "15v15": 30, "catch": 30 };
   var MOVE_HZ = 12;
   var PING_INTERVAL_MS = 20000;
   var RECONNECT_DELAYS = [1000, 2000, 5000, 10000]; // backoff steps
@@ -6015,7 +6015,7 @@ function mpWireNet(){
 function mpRenderLobby(state){
   if(!state) return;
   document.getElementById('mplobbycode').textContent = 'CODE: ' + state.code;
-  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : '⚔️ ' + state.mode.toUpperCase();
+  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : (state.mode === 'catch' ? '🏃 CATCH' : '⚔️ ' + state.mode.toUpperCase());
   document.getElementById('mplobbymode').textContent = modeLabel + ' · ' + state.players.length + '/' + state.maxPlayers;
   document.getElementById('mplobbyerr').style.display = 'none';
 
@@ -6056,18 +6056,33 @@ function mpRenderLobby(state){
       canStart = false; label = '🎮 ADDING PLAYERS...';
     } else if(!isVersus){
       canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
+    } else if(state.mode === 'catch'){
+      var ccn = state.players.length;
+      var ccOk = ccn >= 4 && ccn <= 30 && ccn % 2 === 0;
+      if(ccOk){
+        canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
+      } else if(mpBotsEnabled && allReady){
+        var ccTarget = Math.max(4, humans + (humans % 2 === 0 ? 0 : 1));
+        if(ccTarget <= 30 && ccTarget > humans){ canStart = true; label = '🎮 START WITH ' + (ccTarget - humans) + ' PLAYERS'; }
+        else { canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)'; }
+      } else {
+        canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)';
+      }
     } else if(state.players.length === need){
       canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
     } else if(mpBotsEnabled && humans < need){
       canStart = allReady;
-      label = allReady ? '🤖 START WITH ' + (need - humans) + ' BOTS' : '⏳ WAITING FOR READY...';
+      label = allReady ? '🎮 START WITH ' + (need - humans) + ' PLAYERS' : '⏳ WAITING FOR READY...';
     } else {
       canStart = false; label = '⏳ NEED ' + need + ' PLAYERS (have ' + state.players.length + ')';
     }
     startBtn.disabled = !canStart;
     startBtn.textContent = label;
     // auto-start once bot fill completes (all present + ready)
-    if(mpBotStarting && state.players.length === need && allReady){
+    var ccNeedMet = state.mode === 'catch'
+      ? (state.players.length >= 4 && state.players.length <= 30 && state.players.length % 2 === 0)
+      : state.players.length === need;
+    if(mpBotStarting && ccNeedMet && allReady){
       mpBotStarting = false;
       try { net.start(); } catch(e){}
     }
@@ -6263,6 +6278,7 @@ function spRefreshUI(){
 }
 /* ----- attack (multiplayer + single-player) ----- */
 function mpDoAttack(){
+  if(mpGameMode === 'catch') return; // CATCH: grab-and-carry only, no attacks
   if(!combatActive() || mpBlocking || mpAtkCd > 0) return;
   if(mpInGame && mpKO) return;
   if(!mpInGame && (!player || !player.group || player.dead)) return;
@@ -6451,6 +6467,16 @@ function mpHostStart(){
   var isVersus = st.mode !== 'coop';
   var need = isVersus ? ((typeof FireBabysNet !== 'undefined' && FireBabysNet.MODES[st.mode]) || 0) : 0;
   var humans = st.players.filter(function(p){ return !mpIsBotName(p.name); }).length;
+  if(st.mode === 'catch'){
+    var ccn2 = st.players.length;
+    var ccOk2 = ccn2 >= 4 && ccn2 <= 30 && ccn2 % 2 === 0;
+    if(!ccOk2 && mpBotsEnabled){
+      var ccT2 = Math.max(4, humans + (humans % 2 === 0 ? 0 : 1));
+      if(ccT2 <= 30 && ccT2 > humans){ mpStartWithBots(ccT2 - humans); return; }
+    }
+    try { net.start(); } catch(e){}
+    return;
+  }
   if(isVersus && mpBotsEnabled && humans < need && st.players.length < need){
     mpStartWithBots(need - st.players.length);
   } else {
@@ -6461,7 +6487,7 @@ function mpStartWithBots(count){
   if(mpBotStarting || count <= 0) return;
   mpBotStarting = true;
   var sb = document.getElementById('mpstartbtn');
-  if(sb){ sb.disabled = true; sb.textContent = '🤖 ADDING BOTS...'; }
+  if(sb){ sb.disabled = true; sb.textContent = '🎮 ADDING PLAYERS...'; }
   var need = count, done = 0, failed = 0;
   for(var i=0;i<count;i++){
     mpAddBot(function(err){
@@ -6598,6 +6624,7 @@ function mpBotTick(dt){
       }
       continue;
     }
+    if(mpGameMode === 'catch' && typeof mpBotTickCatch === 'function'){ mpBotTickCatch(b, dt); continue; }
     if(b.atkCd > 0) b.atkCd -= dt;
     // block expiry
     if(b.blockUntil && now >= b.blockUntil){
@@ -6734,6 +6761,9 @@ function mpEnterGame(){
 
   // Spawn local squad (just the player, no AI followers in multiplayer)
   mpSpawnLocal();
+  if(mpGameMode === 'catch' && player && player.group){
+    try{ player.group.position.set(0, 1.05, mpMyTeam === 0 ? -90 : 30); }catch(e){}
+  }
   mpEnsureShield();
   try {
     player.hpbar.set(1);
@@ -6741,6 +6771,15 @@ function mpEnterGame(){
     player.group.scale.set(1,1,1);
   } catch(e){}
   mpShowCombat(true);
+  // CATCH: build pools, hide attack/block buttons (grab-and-carry only)
+  if(mpGameMode === 'catch'){
+    if(typeof mpCatchInit === 'function') mpCatchInit();
+    var _hab = document.getElementById('mpatkbtn'); if(_hab) _hab.style.display = 'none';
+    var _hbb = document.getElementById('mpblkbtn'); if(_hbb) _hbb.style.display = 'none';
+  } else {
+    var _rab = document.getElementById('mpatkbtn'); if(_rab) _rab.style.display = '';
+    var _rbb = document.getElementById('mpblkbtn'); if(_rbb) _rbb.style.display = '';
+  }
 
   // Spawn remote players from lobby state (skip disconnected ghosts)
   if(net && net.state && net.state.players){
@@ -6757,7 +6796,9 @@ function mpEnterGame(){
       if(!bb.id) continue;
       bb.hp = 5; bb.ko = false; bb.koTimer = 0; bb.atkCd = 1 + Math.random()*2;
       bb.blockUntil = 0; bb.atkAnimT = 0;
-      bb.x = (bb.team === 0 ? -6 : 6); bb.z = 40; bb.dir = 0;
+      if(mpGameMode === 'catch'){ bb.x = 0; bb.z = (bb.team === 0 ? -90 : 30); }
+      else { bb.x = (bb.team === 0 ? -6 : 6); bb.z = 40; }
+      bb.dir = 0;
       bb.wx = bb.x; bb.wz = bb.z; bb.wanderT = 0;
       bb.jumpY = 0; bb.jumpV = 0; bb.jumps = 0;
       var brp = remotePlayers[bb.id];
@@ -6772,7 +6813,9 @@ function mpEnterGame(){
   }
 
   // Objective banner
-  if(mpGameMode === 'coop'){
+  if(mpGameMode === 'catch'){
+    setObjective('🏃 CATCH — grab enemies with a teammate, dunk them in your pool! Last team standing wins!');
+  } else if(mpGameMode === 'coop'){
     setObjective('🤝 CO-OP — explore together! (fires are visual only in MP beta)');
   } else {
     var myColor = mpMyTeam === 0 ? 'BLUE' : 'RED';
@@ -6882,6 +6925,13 @@ function mpOnAction(msg){
     var team = rp ? rp.team : mpMyTeam;
     if(team === 0) mpScores.team0++; else mpScores.team1++;
     updateMpScoreboard();
+  }
+  if(msg.kind === 'catch_dunk' && mpGameMode === 'catch'){
+    if(!mpCatch) mpCatchInit();
+    mpCatchApplyDunk(msg.team, msg.victim, msg.vteam, msg.x/100, msg.z/100);
+    updateMpScoreboard();
+    if(mpCatch.suddenDeath || mpCatchRemaining(0) === 0 || mpCatchRemaining(1) === 0) mpCatch.over = true;
+    return;
   }
   // Show a small toast for remote extinguish actions
   if(msg.kind && typeof toast === 'function'){
@@ -7015,8 +7065,16 @@ function updateMpScoreboard(){
   var pill = document.getElementById('foepill');
   if(pill){
     pill.style.display = '';
-    pill.innerHTML = '🔵 <b>' + mpKOs.team0 + '</b>💀 ' + mpScores.team0 + '🔥 — ' +
-      mpScores.team1 + '🔥 <b>' + mpKOs.team1 + '</b>💀 🔴';
+    if(mpGameMode === 'catch' && mpCatch){
+      var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
+      var tsec = Math.max(0, Math.ceil(mpCatch.timer));
+      var tstr = Math.floor(tsec/60) + ':' + ('0' + (tsec%60)).slice(-2);
+      pill.innerHTML = '🏃 🔥 <b>' + r0 + '</b> — <b>' + r1 + '</b> 💧' +
+        (mpCatch.suddenDeath ? ' ⚡ SD' : ' ⏱️ ' + tstr);
+    } else {
+      pill.innerHTML = '🔵 <b>' + mpKOs.team0 + '</b>💀 ' + mpScores.team0 + '🔥 — ' +
+        mpScores.team1 + '🔥 <b>' + mpKOs.team1 + '</b>💀 🔴';
+    }
   }
 }
 
@@ -7038,9 +7096,10 @@ function mpSyncFrame(){
   for(var id in remotePlayers){
     var rp = remotePlayers[id];
     var g = rp.group.position;
+    var catchFrozen = (mpGameMode === 'catch' && mpCatch && mpCatch.caught[id]);
     var dx = rp.targetX - g.x, dz = rp.targetZ - g.z;
     var d = Math.hypot(dx, dz);
-    if(d > 0.05){
+    if(d > 0.05 && !catchFrozen){
       var step = Math.min(d, d * 0.2 + 0.5); // smooth lerp
       g.x += dx / d * step; g.z += dz / d * step;
       rp.group.rotation.y = Math.atan2(dx, dz);
@@ -7072,6 +7131,358 @@ function mpSyncFrame(){
     try { if(rp.hpbar) rp.hpbar.quaternion.copy(camera.quaternion); } catch(e){}
   }
 }
+/* ==================== CATCH MODE ====================
+   Jeff's game (2v2 up to 15v15): two teammates within 3.5 units of an
+   enemy for 0.8s catch them (lifted, can't move). Carriers move at 55%
+   speed and drag the victim to their OWN team's swimming pool.
+   Teammates can rescue: 1 rescuer = carriers 50% slower, 2+ rescuers =
+   carriers fully stopped, then the victim breaks free after 1.5s.
+   Dunk the victim in your pool: they POOF into a steam cloud and are
+   ELIMINATED (no respawns). Last team standing wins. No KO combat. */
+var mpCatch = null;
+var CATCH_GRAB_R = 3.5, CATCH_GRAB_T = 0.8, CATCH_POOL_R = 6;
+var CATCH_TIME = 300;
+
+function mpCatchPools(){ return [{x:0, z:-95, team:0}, {x:0, z:35, team:1}]; }
+function mpCatchPoolOf(team){ var z = mpCatchPools(); return z[team] || z[0]; }
+
+function mpCatchInit(){
+  mpCatch = { caught:{}, grabProg:{}, immunity:{}, eliminated:{}, timer:CATCH_TIME,
+              over:false, suddenDeath:false, meshes:[], effects:[] };
+  var pools = mpCatchPools();
+  for(var i=0;i<pools.length;i++){
+    try{
+      /* pool deck ring */
+      var ring = new THREE.Mesh(
+        new THREE.RingGeometry(CATCH_POOL_R-0.5, CATCH_POOL_R+0.9, 48),
+        new THREE.MeshBasicMaterial({ color:0xf2f8ff, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
+      ring.rotation.x = -Math.PI/2; ring.position.set(pools[i].x, 0.18, pools[i].z);
+      ring.userData.poolRipple = true;
+      scene.add(ring); mpCatch.meshes.push(ring);
+      /* water */
+      var water = new THREE.Mesh(
+        new THREE.CircleGeometry(CATCH_POOL_R-0.5, 48),
+        new THREE.MeshBasicMaterial({ color:0x2e9fe8, transparent:true, opacity:0.85, side:THREE.DoubleSide }));
+      water.rotation.x = -Math.PI/2; water.position.set(pools[i].x, 0.14, pools[i].z);
+      water.userData.poolRipple = true;
+      scene.add(water); mpCatch.meshes.push(water);
+      /* inner sparkle */
+      var deep = new THREE.Mesh(
+        new THREE.CircleGeometry(CATCH_POOL_R-2.2, 48),
+        new THREE.MeshBasicMaterial({ color:0x9fdcff, transparent:true, opacity:0.5, side:THREE.DoubleSide }));
+      deep.rotation.x = -Math.PI/2; deep.position.set(pools[i].x, 0.16, pools[i].z);
+      deep.userData.poolRipple = true;
+      scene.add(deep); mpCatch.meshes.push(deep);
+    }catch(e){}
+  }
+}
+
+function mpCatchCleanup(){
+  if(mpCatch){
+    if(mpCatch.meshes){ for(var i=0;i<mpCatch.meshes.length;i++){ try{ scene.remove(mpCatch.meshes[i]); }catch(e){} } }
+    if(mpCatch.effects){ for(var j=0;j<mpCatch.effects.length;j++){ try{ scene.remove(mpCatch.effects[j].mesh); }catch(e){} } }
+  }
+  mpCatch = null;
+}
+
+/* every ACTIVE player with a live position: local + remotes (bots included) */
+function mpCatchPlayers(){
+  var out = [];
+  try{
+    if(typeof player !== 'undefined' && player && player.group && net && net.playerId &&
+       !(mpCatch && mpCatch.eliminated[net.playerId]))
+      out.push({ id: net.playerId, x: player.group.position.x, z: player.group.position.z,
+                 team: (typeof mpMyTeam==='number'?mpMyTeam:0), name: 'you' });
+    for(var id in remotePlayers){
+      if(mpCatch && mpCatch.eliminated[id]) continue;
+      var rp = remotePlayers[id];
+      if(!rp || !rp.group || !rp.group.visible) continue;
+      out.push({ id:id, x: rp.group.position.x, z: rp.group.position.z,
+                 team: (typeof rp.team==='number'?rp.team:0), name: rp.name || '?' });
+    }
+  }catch(e){}
+  return out;
+}
+
+function mpCatchGroupOf(id){
+  if(net && id === net.playerId) return (typeof player!=='undefined' && player) ? player.group : null;
+  var rp = remotePlayers[id]; return rp ? rp.group : null;
+}
+
+/* grey out a player's floating name tag */
+function mpCatchGreyName(id){
+  try{
+    var g = mpCatchGroupOf(id);
+    if(!g) return;
+    g.traverse(function(o){
+      if(o && o.isSprite && o.material){ o.material.color.setHex(0x8a8a8a); }
+    });
+  }catch(e){}
+}
+
+function mpCatchFree(vid){
+  if(!mpCatch) return;
+  delete mpCatch.caught[vid];
+  delete mpCatch.grabProg[vid];
+  try{ var g = mpCatchGroupOf(vid); if(g && g.userData) g.userData.baseY = 1.05; }catch(e){}
+}
+
+/* local player's catch role: {caught, carrier, eliminated, mul} */
+function mpCatchLocal(){
+  var res = { caught:false, carrier:false, eliminated:false, mul:1 };
+  if(!mpCatch || !net || !net.playerId) return res;
+  var me = net.playerId;
+  if(mpCatch.eliminated[me]){ res.eliminated = true; res.mul = 0; return res; }
+  if(mpCatch.caught[me]){ res.caught = true; res.mul = 0; return res; }
+  for(var vid in mpCatch.caught){
+    var c = mpCatch.caught[vid];
+    if(c.carriers[0] === me || c.carriers[1] === me){
+      res.carrier = true;
+      var r = c.rescuers || 0;
+      res.mul = 0.55 * (r === 1 ? 0.5 : 1) * (r >= 2 ? 0 : 1);
+      return res;
+    }
+  }
+  return res;
+}
+
+function mpCatchRemaining(team){
+  var n = 0;
+  try{
+    if(typeof player !== 'undefined' && player && player.group && net && net.playerId &&
+       (typeof mpMyTeam==='number'?mpMyTeam:0) === team && !(mpCatch && mpCatch.eliminated[net.playerId])) n++;
+    for(var id in remotePlayers){
+      var rp = remotePlayers[id];
+      if(!rp || !rp.group) continue;
+      if((typeof rp.team==='number'?rp.team:0) === team && !(mpCatch && mpCatch.eliminated[id])) n++;
+    }
+  }catch(e){}
+  return n;
+}
+
+/* big cartoon steam poof at x,z */
+function mpCatchPoof(x, z){
+  try{
+    var grp = new THREE.Group();
+    for(var i=0;i<7;i++){
+      var s = 1.2 + Math.random()*1.8;
+      var puff = new THREE.Mesh(
+        new THREE.SphereGeometry(s, 12, 10),
+        new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.85 }));
+      puff.position.set((Math.random()-0.5)*4, 1+Math.random()*3, (Math.random()-0.5)*4);
+      grp.add(puff);
+    }
+    grp.position.set(x, 0, z);
+    scene.add(grp);
+    if(mpCatch) mpCatch.effects.push({ mesh:grp, t:0 });
+    if(typeof beep === 'function'){ beep(300, 0.25, 'sine', 0.12); setTimeout(function(){ beep(150, 0.35, 'sine', 0.1); }, 120); }
+  }catch(e){}
+}
+
+function mpCatchTick(dt){
+  if(!mpCatch || mpCatch.over || !mpInGame || !net) return;
+  var now = (typeof clock !== 'undefined') ? clock.elapsedTime : 0;
+  /* pool ripple */
+  try{
+    for(var mi=0; mi<mpCatch.meshes.length; mi++){
+      var mm = mpCatch.meshes[mi];
+      if(mm && mm.userData && mm.userData.poolRipple)
+        mm.material.opacity = 0.55 + 0.3 * Math.abs(Math.sin(now * 2.4 + mm.position.x));
+    }
+  }catch(e){}
+  /* steam poof effects */
+  try{
+    for(var ei=mpCatch.effects.length-1; ei>=0; ei--){
+      var ef = mpCatch.effects[ei];
+      ef.t += dt;
+      var k = ef.t / 1.4;
+      ef.mesh.scale.setScalar(1 + k*2.2);
+      ef.mesh.position.y = k * 3;
+      ef.mesh.traverse(function(o){ if(o && o.material) o.material.opacity = Math.max(0, 0.85 * (1-k)); });
+      if(k >= 1){ scene.remove(ef.mesh); mpCatch.effects.splice(ei,1); }
+    }
+  }catch(e){}
+  /* match timer */
+  if(!mpCatch.suddenDeath){
+    mpCatch.timer -= dt;
+    if(mpCatch.timer <= 0){
+      var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
+      if(r0 !== r1){
+        mpCatch.over = true;
+        if(net.isHost){ try{ net.end({results:{note:'🏃 CATCH — time!'}}); }catch(e2){} }
+        return;
+      }
+      mpCatch.suddenDeath = true;
+      if(typeof toast === 'function') toast('⚡ SUDDEN DEATH — next elimination wins!');
+    }
+  }
+  var plist = mpCatchPlayers();
+  var byId = {}; for(var i=0;i<plist.length;i++) byId[plist[i].id] = plist[i];
+  /* grab detection */
+  for(var vi=0; vi<plist.length; vi++){
+    var V = plist[vi];
+    if(mpCatch.caught[V.id]) continue;
+    if(mpCatch.immunity[V.id] && now < mpCatch.immunity[V.id]) continue;
+    var atk = [];
+    for(var ai=0; ai<plist.length; ai++){
+      var A = plist[ai];
+      if(A.id === V.id || A.team === V.team) continue;
+      if(Math.hypot(A.x - V.x, A.z - V.z) <= CATCH_GRAB_R) atk.push(A);
+    }
+    if(atk.length >= 2){
+      var gp = mpCatch.grabProg[V.id] || (mpCatch.grabProg[V.id] = {t:0});
+      gp.t += dt;
+      if(gp.t >= CATCH_GRAB_T){
+        atk.sort(function(a,b){
+          return Math.hypot(a.x-V.x, a.z-V.z) - Math.hypot(b.x-V.x, b.z-V.z);
+        });
+        mpCatch.caught[V.id] = { carriers:[atk[0].id, atk[1].id], team: atk[0].team, stopT:0, rescuers:0 };
+        delete mpCatch.grabProg[V.id];
+        try{ var vg0 = mpCatchGroupOf(V.id); if(vg0 && vg0.userData) vg0.userData.baseY = 2.3; }catch(e2){}
+        if(typeof toast === 'function') toast('🙌 ' + mpDisplayName(V.name) + ' got CAUGHT!');
+        if(typeof beep === 'function') beep(440, 0.12, 'square', 0.07);
+      }
+    } else delete mpCatch.grabProg[V.id];
+  }
+  /* carried victims: validate carriers, rescue tug-of-war, pool dunk */
+  for(var vid in mpCatch.caught){
+    var c = mpCatch.caught[vid];
+    var Vp = byId[vid];
+    var c0 = byId[c.carriers[0]], c1 = byId[c.carriers[1]];
+    var c0ok = c0 && !mpCatch.caught[c.carriers[0]] && !mpCatch.eliminated[c.carriers[0]] &&
+               Math.hypot(c0.x-Vp.x, c0.z-Vp.z) <= 9;
+    var c1ok = c1 && !mpCatch.caught[c.carriers[1]] && !mpCatch.eliminated[c.carriers[1]] &&
+               Math.hypot(c1.x-Vp.x, c1.z-Vp.z) <= 9;
+    if(!Vp || !c0ok || !c1ok){ mpCatchFree(vid); continue; }
+    var rescuers = 0;
+    for(var ri=0; ri<plist.length; ri++){
+      var R = plist[ri];
+      if(R.id === vid || R.team !== Vp.team) continue;
+      if(Math.hypot(R.x-Vp.x, R.z-Vp.z) <= CATCH_GRAB_R) rescuers++;
+    }
+    c.rescuers = rescuers;
+    if(rescuers >= 2){
+      c.stopT += dt;
+      if(c.stopT >= 1.5){
+        mpCatchFree(vid);
+        mpCatch.immunity[vid] = now + 2;
+        if(typeof toast === 'function') toast('💪 ' + mpDisplayName(Vp.name) + ' was RESCUED!');
+        continue;
+      }
+    } else c.stopT = 0;
+    var mx = (c0.x + c1.x) / 2, mz = (c0.z + c1.z) / 2;
+    try{
+      var vg = mpCatchGroupOf(vid);
+      if(vg){ vg.position.x = mx; vg.position.z = mz; }
+    }catch(e2){}
+    if(net.isHost){
+      var pool = mpCatchPoolOf(c.team);
+      if(Math.hypot(mx - pool.x, mz - pool.z) <= CATCH_POOL_R) mpCatchDoDunk(c.team, vid, Vp.team, mx, mz);
+    }
+  }
+  updateMpScoreboard();
+}
+
+function mpCatchDoDunk(team, vid, vteam, x, z){
+  if(!mpCatch || mpCatch.over || mpCatch.eliminated[vid]) return;
+  try{ net.sendAction({ kind:'catch_dunk', team:team, victim:vid, vteam:vteam, x:Math.round(x*100), z:Math.round(z*100) }); }catch(e){}
+  mpCatchApplyDunk(team, vid, vteam, x, z);
+  var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
+  if(r0 === 0 || r1 === 0 || mpCatch.suddenDeath){
+    mpCatch.over = true;
+    var winner = r0 === 0 ? 1 : 0;
+    try{ net.end({results:{note:'🏃 CATCH — ' + (winner===0 ? '🔵 BLUE' : '🔴 RED') + ' team wins!'}}); }catch(e2){}
+  }
+}
+
+function mpCatchApplyDunk(team, vid, vteam, x, z){
+  if(!mpCatch || mpCatch.eliminated[vid]) return;
+  mpCatch.eliminated[vid] = true;
+  mpCatchFree(vid);
+  mpCatchPoof(x, z);
+  try{
+    var g = mpCatchGroupOf(vid);
+    if(g) g.visible = false;
+  }catch(e){}
+  mpCatchGreyName(vid);
+  /* host parks eliminated bots */
+  try{
+    if(net && net.isHost){
+      for(var i=0;i<mpBots.length;i++){
+        if(mpBots[i].id === vid){ mpBots[i].eliminated = true; break; }
+      }
+    }
+  }catch(e2){}
+  var nm = '?';
+  try{
+    if(net && vid === net.playerId) nm = 'you';
+    else { var rp = remotePlayers[vid]; nm = mpDisplayName(rp ? rp.name : '?'); }
+  }catch(e3){}
+  if(typeof toast === 'function') toast('💨 POOF! ' + nm + ' is OUT!');
+  updateMpScoreboard();
+}
+
+/* bot AI for CATCH: chase, gang-grab, carry to pool, rescue teammates */
+function mpBotTickCatch(b, dt){
+  if(!mpCatch || b.eliminated) return;
+  if(mpCatch.caught[b.id]) return; /* I'm caught: stay put */
+  if(mpCatch.eliminated[b.id]) return;
+  var plist = mpCatchPlayers();
+  var byId = {}; for(var i=0;i<plist.length;i++) byId[plist[i].id] = plist[i];
+  var carrying = null;
+  for(var vid in mpCatch.caught){
+    var cc = mpCatch.caught[vid];
+    if(cc.carriers[0] === b.id || cc.carriers[1] === b.id){ carrying = cc; break; }
+  }
+  var tx = null, tz = null, smul = 1;
+  if(carrying){
+    var pool = mpCatchPoolOf(carrying.team);
+    tx = pool.x; tz = pool.z;
+    var r = carrying.rescuers || 0;
+    smul = 0.55 * (r === 1 ? 0.5 : 1) * (r >= 2 ? 0 : 1);
+  } else {
+    var bv = null, bd = 1e9;
+    for(var vid2 in mpCatch.caught){
+      var Vp = byId[vid2];
+      if(!Vp || Vp.team !== b.team) continue;
+      var d = Math.hypot(Vp.x - b.x, Vp.z - b.z);
+      if(d < bd){ bd = d; bv = Vp; }
+    }
+    if(bv){ tx = bv.x; tz = bv.z; }
+    else {
+      var ex = null, ez = null, ed = 1e9;
+      for(var pi=0; pi<plist.length; pi++){
+        var P = plist[pi];
+        if(P.id === b.id || P.team === b.team) continue;
+        if(mpCatch.caught[P.id]) continue;
+        var pd = Math.hypot(P.x - b.x, P.z - b.z);
+        if(pd < ed){ ed = pd; ex = P.x; ez = P.z; }
+      }
+      if(ex !== null){ tx = ex; tz = ez; }
+      else {
+        b.wanderT -= dt;
+        if(b.wanderT <= 0){
+          b.wanderT = 2 + Math.random()*3;
+          b.wx = Math.max(-24, Math.min(24, b.x + (Math.random()-0.5)*22));
+          b.wz = Math.max(-100, Math.min(40, b.z + (Math.random()-0.5)*22));
+        }
+        tx = b.wx; tz = b.wz;
+      }
+    }
+  }
+  if(tx !== null){
+    var mx = tx - b.x, mz = tz - b.z, md = Math.hypot(mx, mz);
+    if(md > 0.3){
+      var step = Math.min(5.2 * smul * dt, md);
+      b.x += mx / md * step; b.z += mz / md * step;
+      b.dir = Math.atan2(mx, mz);
+      b.x = Math.max(-26, Math.min(26, b.x));
+      b.z = Math.max(-108, Math.min(44, b.z));
+    }
+  }
+}
+/* ================== END CATCH MODE ================== */
+
 /* Public: send an extinguish action (call from game code when player extinguishes) */
 function mpSendExtinguish(x, z){
   if(!mpInGame || !net) return;
@@ -7090,7 +7501,9 @@ function mpOnGameEnd(msg){
   mpExitGame();
   // show results
   var stats = '';
-  if(mpGameMode !== 'coop'){
+  if(mpGameMode === 'catch'){
+    stats = '🏃 CATCH — last team standing wins!';
+  } else if(mpGameMode !== 'coop'){
     var w = mpScores.team0 > mpScores.team1 ? '🔵 BLUE TEAM WINS!' :
             mpScores.team1 > mpScores.team0 ? '🔴 RED TEAM WINS!' : "🤝 IT'S A TIE!";
     stats = w + '<br>Blue: ' + mpScores.team0 + ' — Red: ' + mpScores.team1;
@@ -7114,6 +7527,9 @@ function mpOnGameEnd(msg){
 }
 function mpExitGame(){
   mpShowCombat(false);
+  if(typeof mpCatchCleanup === 'function') mpCatchCleanup();
+  var _cab = document.getElementById('mpatkbtn'); if(_cab) _cab.style.display = '';
+  var _cbb = document.getElementById('mpblkbtn'); if(_cbb) _cbb.style.display = '';
   mpInGame = false;
   mpClearBots();
   mpBlocking = false; mpKO = false;
@@ -7175,10 +7591,15 @@ function mpUpdateExplore(dt, t){
     if(mpFlipT <= 0){ try { player.group.rotation.x = 0; } catch(e){} }
   }
 
+  if(mpGameMode === 'catch' && typeof mpCatchTick === 'function'){ try{ mpCatchTick(dt); }catch(e){} }
   var mv = (typeof moveInput === 'function') ? moveInput() : {on:false,x:0,z:0};
   var bp = player.group.position;
-  if(mv.on && !mpKO){
-    var sp = (mpBlocking ? 3.75 : 7.5)*dt; // blocking slows movement 50%
+  var catchMul = 1, catchHeld = false;
+  if(mpGameMode === 'catch' && mpCatch && typeof mpCatchLocal === 'function'){
+    try{ var lr = mpCatchLocal(); catchMul = lr.mul; catchHeld = lr.caught || lr.eliminated; }catch(e){}
+  }
+  if(mv.on && !mpKO && !catchHeld){
+    var sp = (mpBlocking ? 3.75 : 7.5) * catchMul * dt; // blocking slows 50%; CATCH carry/rescue slows
     var nx = bp.x + mv.x*sp, nz = bp.z + mv.z*sp;
     nx = Math.max(-26, Math.min(26, nx)); nz = Math.max(-108, Math.min(44, nz));
     if(typeof resolveColliders === 'function'){
