@@ -254,7 +254,7 @@
     <div class="sub" id="mplobbymode" style="font-size:14px">CO-OP</div>
     <div id="mpplayerlist" style="max-height:30vh;overflow-y:auto;margin:12px 0;text-align:left;width:min(78vw,340px);"></div>
     <label id="mpbotwrap" style="display:none;align-items:center;gap:8px;justify-content:center;margin:6px 0;font-weight:700;color:#ffd9ae;font-size:14px;cursor:pointer;">
-      <input type="checkbox" id="mpbotfill" checked style="width:18px;height:18px;accent-color:#ff8c2e;"> 🤖 Fill empty slots with bots
+      <input type="checkbox" id="mpbotfill" checked style="width:18px;height:18px;accent-color:#ff8c2e;"> 🎮 Fill empty slots with AI players
     </label>
     <button class="bigbtn" id="mpreadybtn" style="font-size:15px;padding:12px 40px;">✅ READY</button><br>
     <button class="bigbtn" id="mpstartbtn" style="display:none;font-size:15px;padding:12px 40px;background:linear-gradient(180deg,#2e8a4a,#1e5e2e);">🚀 START GAME</button><br>
@@ -5879,7 +5879,7 @@ function mpIsBotId(id){
   for(var i=0;i<mpBots.length;i++) if(mpBots[i].id === id) return true;
   return false;
 }
-function mpIsBotName(n){ return typeof n === 'string' && n.indexOf('🤖') === 0; }
+function mpIsBotName(n){ return typeof n === 'string' && n.indexOf('🤖') === 0; } function mpDisplayName(n){ return typeof n === 'string' && n.indexOf('🤖') === 0 ? n.slice(2) : n; }
 
 /* ---------- team colors ---------- */
 var TEAM_COLORS = [
@@ -6033,8 +6033,8 @@ function mpRenderLobby(state){
     }
     var hostStar = (p.id === state.hostId) ? ' <span class="hostname">👑</span>' : '';
     var youTag = (net && p.id === net.playerId) ? ' (you)' : '';
-    var botTag = mpIsBotName(p.name) ? ' <span class="teamtag" style="background:#5a3a8a">BOT</span>' : '';
-    div.innerHTML = '<div class="rdot"></div><div>' + escapeHtml(p.name) + youTag + hostStar + botTag + '</div>' + teamTag +
+    var botTag = ''; /* bots show clean gamer names now - no badge */
+    div.innerHTML = '<div class="rdot"></div><div>' + escapeHtml(mpDisplayName(p.name)) + youTag + hostStar + '</div>' + teamTag +
       '<div style="margin-left:auto;color:' + (p.ready ? '#4aff6a' : '#888') + '">' + (p.ready ? 'READY' : '...') + '</div>';
     list.appendChild(div);
     // track my team
@@ -6053,7 +6053,7 @@ function mpRenderLobby(state){
     var allReady = state.players.length > 0 && state.players.every(function(p){ return p.ready; });
     var canStart = false, label = '';
     if(mpBotStarting){
-      canStart = false; label = '🤖 ADDING BOTS...';
+      canStart = false; label = '🎮 ADDING PLAYERS...';
     } else if(!isVersus){
       canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
     } else if(state.players.length === need){
@@ -6822,7 +6822,7 @@ function mpSpawnRemote(p){
   try {
     var g = makeBaby(spec, 'eager', 1);
     g.userData.baseY = 1.55;
-    var tag = nameTag(p.name.slice(0,14), isVersus ? (p.team===0 ? '#7ac9ff' : '#ff9a8a') : '#ffd76a');
+    var tag = nameTag(mpDisplayName(p.name).slice(0,14), isVersus ? (p.team===0 ? '#7ac9ff' : '#ff9a8a') : '#ffd76a');
     tag.position.y = 2.9; g.add(tag);
     // combat: HP bar + block shield bubble
     var hb = null, sh = null;
