@@ -166,9 +166,7 @@
       "</form>" +
       '<div id="fbgate-google-wrap" style="display:none;">' +
       '<div class="fbgate-div">OR</div>' +
-      '<button class="fbgate-google" id="fbgate-google" type="button">' +
-      '<svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>' +
-      "Sign in with Google</button></div>" +
+      '<div id="fbgate-google-btn" style="display:flex;justify-content:center;margin-top:12px;min-height:44px;"></div></div>' +
       '<p class="fbgate-fine">We use your email to keep your account safe.<br>No spam, ever. Kids: ask a grown-up first.</p>' +
       "</div>";
 
@@ -197,6 +195,8 @@
                 ? "Hmm, that email doesn't look right. Try again?"
                 : res && res.error === "rate_limited"
                 ? "Too many tries — give it an hour and come back."
+                : res && res.error === "already_registered"
+                ? (res.message || "This email already has a Fire Babys account. Sign in with Google, or on your original device.")
                 : "Couldn't reach the sign-in server. Check your connection and retry."
             );
           }
@@ -217,70 +217,68 @@
       if (!gid) return;
       var wrap = el.querySelector("#fbgate-google-wrap");
       if (wrap) wrap.style.display = "block";
-      var gbtn = el.querySelector("#fbgate-google");
-      if (gbtn) {
-        gbtn.addEventListener("click", function () {
-        gbtn.disabled = true;
-        var errBox = el.querySelector(".fbgate-err");
-        errBox.style.display = "none";
-        function doGoogle() {
-          try {
-            google.accounts.id.initialize({
-              client_id: GOOGLE_CLIENT_ID,
-              callback: function (resp) {
-                if (!resp || !resp.credential) {
-                  gbtn.disabled = false;
-                  showError("Google sign-in was cancelled. Try again?");
-                  return;
+      var btnHost = el.querySelector("#fbgate-google-btn");
+      function onGoogleCredential(resp) {
+        if (!resp || !resp.credential) {
+          showError("Google sign-in was cancelled. Try again?");
+          return;
+        }
+        post("/auth/google", { idToken: resp.credential }).then(
+          function (res) {
+            if (res && res.ok && res.token) {
+              setToken(res.token);
+              finishAuth({ email: res.email, name: "" });
+              // Fetch the name via session.
+              post("/auth/session", { token: res.token }).then(function (s) {
+                if (s && s.ok && s.name) {
+                  setUser({ email: res.email, name: s.name });
                 }
-                post("/auth/google", { idToken: resp.credential }).then(
-                  function (res) {
-                    if (res && res.ok && res.token) {
-                      setToken(res.token);
-                      finishAuth({ email: res.email, name: "" });
-                      // Fetch the name via session.
-                      post("/auth/session", { token: res.token }).then(function (s) {
-                        if (s && s.ok && s.name) {
-                          setUser({ email: res.email, name: s.name });
-                        }
-                      });
-                    } else {
-                      gbtn.disabled = false;
-                      showError(
-                        res && res.error === "google_not_configured"
-                          ? "Google sign-in isn't set up yet. Use email for now."
-                          : "Google sign-in failed. Try email instead."
-                      );
-                    }
-                  },
-                  function () {
-                    gbtn.disabled = false;
-                    showError("Couldn't reach the sign-in server. Check your connection.");
-                  }
-                );
-              },
-            });
-            google.accounts.id.prompt();
-          } catch (e) {
-            gbtn.disabled = false;
-            showError("Couldn't load Google sign-in. Try email instead.");
+              });
+            } else {
+              showError(
+                res && res.error === "google_not_configured"
+                  ? "Google sign-in isn't set up yet. Use email for now."
+                  : "Google sign-in failed. Try email instead."
+              );
+            }
+          },
+          function () {
+            showError("Couldn't reach the sign-in server. Check your connection.");
           }
+        );
+      }
+      function renderGoogleButton() {
+        try {
+          google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: onGoogleCredential,
+          });
+          // Official Google-rendered button: its own click opens the
+          // account chooser directly. (One-Tap prompt() is unreliable —
+          // it can be silently suppressed with no callback — so the
+          // button is the dependable path.)
+          google.accounts.id.renderButton(btnHost, {
+            theme: "outline",
+            size: "large",
+            text: "signin_with",
+            width: 320,
+          });
+        } catch (e) {
+          showError("Couldn't load Google sign-in. Try email instead.");
         }
-        if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-          doGoogle();
-        } else {
-          var s = document.createElement("script");
-          s.src = "https://accounts.google.com/gsi/client";
-          s.async = true;
-          s.defer = true;
-          s.onload = doGoogle;
-          s.onerror = function () {
-            gbtn.disabled = false;
-            showError("Couldn't load Google sign-in. Try email instead.");
-          };
-          document.head.appendChild(s);
-        }
-      });
+      }
+      if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+        renderGoogleButton();
+      } else {
+        var s = document.createElement("script");
+        s.src = "https://accounts.google.com/gsi/client";
+        s.async = true;
+        s.defer = true;
+        s.onload = renderGoogleButton;
+        s.onerror = function () {
+          showError("Couldn't load Google sign-in. Try email instead.");
+        };
+        document.head.appendChild(s);
       }
     });
     return el;
