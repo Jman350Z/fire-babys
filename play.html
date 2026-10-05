@@ -9072,7 +9072,7 @@ CT.scoreboard = function(create){
       document.body.appendChild(el);
       var q = document.createElement('button');
       q.textContent = '✕';
-      q.setAttribute('aria-label', 'Quit catch mode');
+      q.setAttribute('aria-label', 'Quit splash mode');
       q.style.cssText = 'background:#3a1c0c;color:#ffd76a;border:1px solid #ffd76a;' +
         'border-radius:8px;font-size:13px;padding:3px 9px;cursor:pointer;';
       q.addEventListener('click', function(){ CT.stop(true); });
@@ -9133,7 +9133,7 @@ CT.showEnd = function(result){
       'border:3px solid #ffd76a;border-radius:20px;padding:26px;text-align:center;">' +
       '<div style="font:900 30px system-ui;color:' + col + ';margin-bottom:8px;">' + title + '</div>' +
       '<div style="font:600 14px system-ui;color:#ffe9d6;margin-bottom:6px;">' + sub + '</div>' +
-      '<div style="font:700 12px system-ui;color:#d8b89a;margin-bottom:18px;">Catch the ember imps! 💨</div>' +
+      '<div style="font:700 12px system-ui;color:#d8b89a;margin-bottom:18px;">Splash the ember imps! 💨</div>' +
       '<div style="display:flex;gap:10px;justify-content:center;">' +
       '<button id="ctAgain" style="background:linear-gradient(180deg,#ff7a2e,#e23c0a);color:#fff;border:none;' +
       'border-radius:12px;font:900 16px system-ui;padding:12px 26px;cursor:pointer;">🔁 PLAY AGAIN</button>' +
@@ -9187,7 +9187,7 @@ CT.start = function(){
       }
     }
     try{ if(typeof UI !== 'undefined'){ UI.setBigBtn(false); UI.showTroops(false); UI.showNova(false); } }catch(e1){}
-    try{ if(typeof UI !== 'undefined' && UI.hint) UI.hint('🏃 CATCH! 2 babys grab 1 imp — throw them in YOUR pool! 💨'); }catch(e2){}
+    try{ if(typeof UI !== 'undefined' && UI.hint) UI.hint('🏃 SPLASH! 2 babys grab 1 imp — throw them in YOUR pool! 💨'); }catch(e2){}
     try{ if(typeof joy !== 'undefined'){ joy.active = false; joy.id = -1; joy.dx = 0; joy.dy = 0; } }catch(e3){}
     CT.scoreboard(true);
   }catch(e){}
@@ -9227,7 +9227,7 @@ CT.injectBtn = function(){
     if(!grid || !grid.appendChild) return false;
     var b = document.createElement('button');
     b.id = 'titleCatch';
-    b.textContent = '🏃 CATCH';
+    b.textContent = '🏃 SPLASH';
     b.style.cssText = 'background:rgba(12,6,4,.72);color:#ffe9d6;border:1px solid rgba(255,150,60,.4);' +
       'border-radius:12px;font:800 14px system-ui;padding:12px;cursor:pointer;letter-spacing:.5px;';
     b.addEventListener('click', function(){

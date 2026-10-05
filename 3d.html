@@ -236,7 +236,7 @@
       <button class="mpmodebtn" data-mode="4v4">⚔️ 4v4</button>
       <button class="mpmodebtn" data-mode="6v6">⚔️ 6v6</button>
       <button class="mpmodebtn" data-mode="7v7">⚔️ 7v7</button>
-      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>       <button class="mpmodebtn" data-mode="catch">🏃 CATCH</button>
+      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>       <button class="mpmodebtn" data-mode="catch">🏃 SPLASH</button>
     </div>
     <button class="bigbtn" id="mpcreatebtn">CREATE LOBBY 🔥</button><br>
     <div class="clabel" style="margin-top:12px">— OR JOIN —</div>
@@ -2841,9 +2841,9 @@ function showHub(){
   renderHub();
   refreshNamePill();
   document.getElementById('hubov').style.display='flex';
-  catchDeepLink(); // ?mode=catch from the homepage: jump straight into a CATCH match
+  catchDeepLink(); // ?mode=catch (or ?mode=splash) from the homepage: jump straight into a SPLASH match
 }
-/* Deep-link: 3d.html?mode=catch — from the homepage PLAY CATCH button.
+/* Deep-link: 3d.html?mode=catch (alias ?mode=splash) — from the homepage PLAY SPLASH button.
    The multiplayer code lives inside an IIFE, so its functions are NOT global.
    The only global entry is window.FBMultiplayer.start(); everything else is
    driven by clicking the real MP menu buttons (mode select, create, ready,
@@ -2858,7 +2858,8 @@ function _cdlClick(sel){
 }
 function catchDeepLink(){
   var q = null;
-  if(!q || q.toLowerCase() !== 'catch') return; // not a catch deep-link
+  var ql = q ? q.toLowerCase() : '';
+  if(!q || (ql !== 'catch' && ql !== 'splash')) return; // ?mode=catch or ?mode=splash
   _catchDL = true;
   var t0 = Date.now();
   var iv = setInterval(function(){
@@ -6074,7 +6075,7 @@ function mpWireNet(){
 function mpRenderLobby(state){
   if(!state) return;
   document.getElementById('mplobbycode').textContent = 'CODE: ' + state.code;
-  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : (state.mode === 'catch' ? '🏃 CATCH' : '⚔️ ' + state.mode.toUpperCase());
+  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : (state.mode === 'catch' ? '🏃 SPLASH' : '⚔️ ' + state.mode.toUpperCase());
   document.getElementById('mplobbymode').textContent = modeLabel + ' · ' + state.players.length + '/' + state.maxPlayers;
   document.getElementById('mplobbyerr').style.display = 'none';
 
@@ -6337,7 +6338,7 @@ function spRefreshUI(){
 }
 /* ----- attack (multiplayer + single-player) ----- */
 function mpDoAttack(){
-  if(mpGameMode === 'catch') return; // CATCH: grab-and-carry only, no attacks
+  if(mpGameMode === 'catch') return; // SPLASH: grab-and-carry only, no attacks
   if(!combatActive() || mpBlocking || mpAtkCd > 0) return;
   if(mpInGame && mpKO) return;
   if(!mpInGame && (!player || !player.group || player.dead)) return;
@@ -6874,7 +6875,7 @@ function mpEnterGame(){
 
   // Objective banner
   if(mpGameMode === 'catch'){
-    setObjective('🏃 CATCH — grab enemies with a teammate, dunk them in your pool! Last team standing wins!');
+    setObjective('🏃 SPLASH — grab enemies with a teammate, dunk them in your pool! Last team standing wins!');
   } else if(mpGameMode === 'coop'){
     setObjective('🤝 CO-OP — explore together! (fires are visual only in MP beta)');
   } else {
@@ -7191,7 +7192,7 @@ function mpSyncFrame(){
     try { if(rp.hpbar) rp.hpbar.quaternion.copy(camera.quaternion); } catch(e){}
   }
 }
-/* ==================== CATCH MODE ====================
+/* ==================== SPLASH MODE ====================
    Jeff's game (2v2 up to 15v15): two teammates within 3.5 units of an
    enemy for 0.8s catch them (lifted, can't move). Carriers move at 55%
    speed and drag the victim to their OWN team's swimming pool.
@@ -7369,7 +7370,7 @@ function mpCatchTick(dt){
       var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
       if(r0 !== r1){
         mpCatch.over = true;
-        if(net.isHost){ try{ net.end({results:{note:'🏃 CATCH — time!'}}); }catch(e2){} }
+        if(net.isHost){ try{ net.end({results:{note:'🏃 SPLASH — time!'}}); }catch(e2){} }
         return;
       }
       mpCatch.suddenDeath = true;
@@ -7451,7 +7452,7 @@ function mpCatchDoDunk(team, vid, vteam, x, z){
   if(r0 === 0 || r1 === 0 || mpCatch.suddenDeath){
     mpCatch.over = true;
     var winner = r0 === 0 ? 1 : 0;
-    try{ net.end({results:{note:'🏃 CATCH — ' + (winner===0 ? '🔵 BLUE' : '🔴 RED') + ' team wins!'}}); }catch(e2){}
+    try{ net.end({results:{note:'🏃 SPLASH — ' + (winner===0 ? '🔵 BLUE' : '🔴 RED') + ' team wins!'}}); }catch(e2){}
   }
 }
 
@@ -7541,7 +7542,7 @@ function mpBotTickCatch(b, dt){
     }
   }
 }
-/* ================== END CATCH MODE ================== */
+/* ================== END SPLASH MODE ================== */
 
 /* Public: send an extinguish action (call from game code when player extinguishes) */
 function mpSendExtinguish(x, z){
@@ -7562,7 +7563,7 @@ function mpOnGameEnd(msg){
   // show results
   var stats = '';
   if(mpGameMode === 'catch'){
-    stats = '🏃 CATCH — last team standing wins!';
+    stats = '🏃 SPLASH — last team standing wins!';
   } else if(mpGameMode !== 'coop'){
     var w = mpScores.team0 > mpScores.team1 ? '🔵 BLUE TEAM WINS!' :
             mpScores.team1 > mpScores.team0 ? '🔴 RED TEAM WINS!' : "🤝 IT'S A TIE!";
@@ -7659,7 +7660,7 @@ function mpUpdateExplore(dt, t){
     try{ var lr = mpCatchLocal(); catchMul = lr.mul; catchHeld = lr.caught || lr.eliminated; }catch(e){}
   }
   if(mv.on && !mpKO && !catchHeld){
-    var sp = (mpBlocking ? 3.75 : 7.5) * catchMul * dt; // blocking slows 50%; CATCH carry/rescue slows
+    var sp = (mpBlocking ? 3.75 : 7.5) * catchMul * dt; // blocking slows 50%; SPLASH carry/rescue slows
     var nx = bp.x + mv.x*sp, nz = bp.z + mv.z*sp;
     nx = Math.max(-26, Math.min(26, nx)); nz = Math.max(-108, Math.min(44, nz));
     if(typeof resolveColliders === 'function'){
@@ -7680,7 +7681,7 @@ function mpUpdateExplore(dt, t){
     document.getElementById('stagepill').textContent = '🌐 ' +
       (mpGameMode === 'coop' ? 'CO-OP' : mpGameMode.toUpperCase());
   } catch(e){}
-  // CATCH arena lighting: bright warm fog so the match stays readable
+  // SPLASH arena lighting: bright warm fog so the match stays readable
   // (the open-world biome fog at the old field was nearly black-red)
   if(mpGameMode === 'catch' && mpInGame && typeof scene !== 'undefined' && scene.fog){
     try{ scene.fog.color.lerp(new THREE.Color(0xffd9a8), 1-Math.pow(0.2,dt)); }catch(e){}
