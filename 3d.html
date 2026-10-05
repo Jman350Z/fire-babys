@@ -2849,18 +2849,6 @@ function showHub(){
    driven by clicking the real MP menu buttons (mode select, create, ready,
    start) exactly like a player would. */
 var _catchDL = false;
-function _cdlDbg(msg){
-  try{
-    var d = document.getElementById('cdldbg');
-    if(!d){
-      d = document.createElement('div');
-      d.id = 'cdldbg';
-      d.style.cssText = 'position:fixed;top:0;left:0;z-index:99999;background:rgba(0,0,0,0.85);color:#0f0;font:10px/1.4 monospace;padding:6px;max-width:92vw;pointer-events:none;white-space:pre-wrap;';
-      document.body.appendChild(d);
-    }
-    d.textContent += msg + '\n';
-  }catch(e){}
-}
 function _cdlClick(sel){
   try{
     var el = document.querySelector(sel);
@@ -2869,41 +2857,30 @@ function _cdlClick(sel){
   return false;
 }
 function catchDeepLink(){
-  if(_catchDL){ _cdlDbg('cdl: already ran'); return; }
   var q = null;
-  try { q = new URLSearchParams(location.search).get('mode'); } catch(e){ _cdlDbg('cdl: qs parse err ' + e); }
-  _cdlDbg('cdl: entry, q=' + q + ' search=' + location.search);
   if(!q || q.toLowerCase() !== 'catch') return; // not a catch deep-link
   _catchDL = true;
-  _cdlDbg('cdl: waiting for FBMultiplayer');
   var t0 = Date.now();
   var iv = setInterval(function(){
     var fb = null;
     try { fb = window.FBMultiplayer; } catch(e){}
     if(!fb || typeof fb.start !== 'function'){
-      if(Date.now() - t0 > 15000){ clearInterval(iv); _cdlDbg('cdl: FBMultiplayer TIMEOUT'); }
       return;
     }
     clearInterval(iv);
-    _cdlDbg('cdl: opening MP menu');
-    try { fb.start(); } catch(e){ _cdlDbg('cdl: fb.start err ' + e); return; }
     setTimeout(function(){
       var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
-      _cdlDbg('cdl: catch mode btn ' + (cbtn ? 'FOUND' : 'MISSING'));
       if(cbtn) cbtn.click();
       setTimeout(function(){
-        _cdlDbg('cdl: clicking CREATE LOBBY');
         _cdlClick('#mpcreatebtn');
         var t1 = Date.now();
         var iv2 = setInterval(function(){
           var lov = document.getElementById('mplobbyov');
           var lobbyOpen = lov && lov.style.display === 'flex';
           if(!lobbyOpen){
-            if(Date.now() - t1 > 25000){ clearInterval(iv2); _cdlDbg('cdl: lobby TIMEOUT'); }
             return;
           }
           clearInterval(iv2);
-          _cdlDbg('cdl: lobby open, readyying up');
           try {
             var bf = document.getElementById('mpbotfill');
             if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
@@ -2915,11 +2892,9 @@ function catchDeepLink(){
             var vis = !!(sb && sb.style.display !== 'none');
             if(vis){
               clearInterval(iv3);
-              _cdlDbg('cdl: clicking START GAME');
               sb.click();
               return;
             }
-            if(Date.now() - t2 > 30000){ clearInterval(iv3); _cdlDbg('cdl: start-btn TIMEOUT'); }
           }, 1000);
         }, 1000);
       }, 900);
@@ -9696,6 +9671,13 @@ function fbInit(){
       }
     });
   }catch(e){}
+  /* cross-block API: these are called from outside this IIFE (combat anim, multiplayer) */
+  window.fbSwingWeapon = fbSwingWeapon;
+  window.fbAttachWeapon = fbAttachWeapon;
+  window.fbDressPlayer = fbDressPlayer;
+  window.fbDressRemote = fbDressRemote;
+  window.fbExtinguishPoof = fbExtinguishPoof;
+  window.fbReignite = fbReignite;
   window.FireBabysStyle = {
     look:function(){ return FBC.look; }, gems:fbGems, coins:fbCoins,
     addGems:fbAddGems, addCoins:fbAddCoins,
