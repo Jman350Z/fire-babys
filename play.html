@@ -99,7 +99,7 @@
 /* =====================================================================
    FIRE BABYS — Step 2: the full game
    Deploy fire-baby squads on the grid, merge matching babys to higher
-   tiers, drive your hero with the joystick, and BURN the enemy castle.
+   tiers, drive your hero with the joystick, and CAPTURE the enemy castle.
    Single file, offline, Canvas 2D, fixed 60Hz sim, strict object pools,
    procedural WebAudio. Zero external resources.
    ===================================================================== */
@@ -490,7 +490,7 @@ function acquireTarget(u){
   } else {
     t = nearestEnemy(u, 1e9);          /* guardian, archer, boss: nearest */
   }
-  /* no enemy units left: march on the enemy castle and burn it down */
+  /* no enemy units left: march on the enemy castle and capture it */
   u.target = t >= 0 ? t : CASTLE_T;
 }
 
@@ -571,7 +571,7 @@ function dealDamageCastle(side, raw, isCrit, sx, sy){
   }
 }
 function castleStrike(u){
-  /* unit attacks the enemy castle: melee burns it, ranged lobs fire */
+  /* unit attacks the enemy castle: melee strikes it, ranged lobs fire */
   var c = castles[1 - u.side];
   u.faceX = (c.x - u.x) >= 0 ? 1 : -1;
   if(u.projSpeed > 0){
@@ -1113,7 +1113,7 @@ var Game = {
     UI.setBigBtn(false);
     UI.showTroops(false);
     UI.showNova(true);
-    UI.hint('Drive your hero — burn their castle! 🏰🔥');
+    UI.hint('Drive your hero — capture their castle! 🏰');
     AudioSys.ui();
     buzz(15);
   },
@@ -1857,7 +1857,7 @@ var UI = {
   },
   setBanner: function(){ this.el.banner.classList.remove('show'); },
   showBanner: function(won){
-    this.el.bannerBig.textContent = won ? '🏰 CASTLE BURNED!' : 'YOUR CASTLE BURNED…';
+    this.el.bannerBig.textContent = won ? '🏰 CASTLE CAPTURED!' : 'YOUR CASTLE WAS CAPTURED…';
     this.el.bannerSub.textContent = won
       ? '+' + Game.bonusWon + ' gold · Stage ' + Game.stage + ' cleared · Wins: ' + SaveSys.data.wins
       : 'Stage ' + Game.stage + ' — regroup and retry!';
@@ -5309,7 +5309,7 @@ T.build = function(){
     'display:flex;flex-direction:column;align-items:center;padding:0 22px 26px;';
 
   var tag = document.createElement('div');
-  tag.textContent = 'BAD ASS • FIRED UP • READY TO BLAST';
+  tag.textContent = 'BLAZE ON • FIRED UP • READY TO BLAST';
   tag.style.cssText = 'color:#ffb347;font:800 11px system-ui;letter-spacing:2.5px;margin-bottom:12px;';
   panel.appendChild(tag);
 

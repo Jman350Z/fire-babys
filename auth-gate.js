@@ -170,15 +170,73 @@
       '<p class="fbgate-fine">We use your email to keep your account safe.<br>No spam, ever. Kids: ask a grown-up first.</p>' +
       "</div>";
 
-    el.querySelector("#fbgate-form").addEventListener("submit", function (ev) {
-      ev.preventDefault();
-      var email = el.querySelector("#fbgate-email").value;
-      var name = el.querySelector("#fbgate-name").value;
-      var btn = el.querySelector(".fbgate-btn");
-      btn.disabled = true;
-      btn.textContent = "SIGNING IN...";
-      var errBox = el.querySelector(".fbgate-err");
-      errBox.style.display = "none";
+    // Show the 6-digit code entry step (email verification / account recovery).
+    function showCodeStep(email, name, purpose, btn, errBox) {
+      var form = el.querySelector("#fbgate-form");
+      form.innerHTML =
+        '<div class="fbgate-h">CHECK YOUR EMAIL</div>' +
+        '<p class="fbgate-sub">We sent a 6-digit code to<br><b style="color:#ffd9ae">' +
+        String(email).replace(/[<>"'&]/g, "") +
+        '</b><br>It expires in 10 minutes.</p>' +
+        '<label for="fbgate-code">Code</label>' +
+        '<input id="fbgate-code" type="text" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" />' +
+        '<button class="fbgate-btn" type="submit">VERIFY</button>' +
+        '<div class="fbgate-err" role="alert"></div>' +
+        '<p class="fbgate-fine"><a href="#" id="fbgate-resend" style="color:#ffb066">Resend code</a></p>';
+      var codeInput = form.querySelector("#fbgate-code");
+      var vbtn = form.querySelector(".fbgate-btn");
+      var verr = form.querySelector(".fbgate-err");
+      codeInput.focus();
+      form.querySelector("#fbgate-resend").addEventListener("click", function (ev) {
+        ev.preventDefault();
+        verr.style.display = "none";
+        vbtn.disabled = true; vbtn.textContent = "SENDING...";
+        post("/auth/code", { email: email, purpose: purpose }).then(function (r) {
+          vbtn.disabled = false; vbtn.textContent = "VERIFY";
+          if (!(r && r.ok)) {
+            verr.textContent = "Couldn't resend the code. Try again in a bit.";
+            verr.style.display = "block";
+          }
+        }, function () {
+          vbtn.disabled = false; vbtn.textContent = "VERIFY";
+        });
+      });
+      form.addEventListener("submit", function (ev2) {
+        ev2.preventDefault();
+        var code = codeInput.value.trim();
+        if (!/^\\d{6}$/.test(code)) {
+          verr.textContent = "Enter the 6-digit code from your email.";
+          verr.style.display = "block";
+          return;
+        }
+        vbtn.disabled = true; vbtn.textContent = "VERIFYING...";
+        verr.style.display = "none";
+        post("/auth/verify", { email: email, code: code, name: name }).then(function (res) {
+          if (res && res.ok && res.token) {
+            setToken(res.token);
+            finishAuth({ email: String(email).trim().toLowerCase(), name: String(name || "").trim() });
+          } else {
+            vbtn.disabled = false; vbtn.textContent = "VERIFY";
+            verr.textContent =
+              res && res.error === "bad_code"
+                ? "Wrong code — " + (res.attemptsLeft || 0) + " tries left."
+                : res && res.error === "code_expired"
+                ? "That code expired. Tap Resend code for a fresh one."
+                : res && res.error === "too_many_attempts"
+                ? "Too many wrong tries. Tap Resend code for a fresh one."
+                : "Couldn't verify. Check your connection and retry.";
+            verr.style.display = "block";
+          }
+        }, function () {
+          vbtn.disabled = false; vbtn.textContent = "VERIFY";
+          verr.textContent = "Couldn't reach the sign-in server. Check your connection.";
+          verr.style.display = "block";
+        });
+      });
+    }
+
+    // Legacy direct register (used only when the server has no email service).
+    function legacyRegister(email, name, btn, errBox) {
       post("/auth/register", { email: email, name: name }).then(
         function (res) {
           if (res && res.ok && res.token) {
@@ -190,15 +248,40 @@
           } else {
             btn.disabled = false;
             btn.textContent = "SIGN IN";
-            showError(
-              res && res.error === "invalid_email"
-                ? "Hmm, that email doesn't look right. Try again?"
-                : res && res.error === "rate_limited"
-                ? "Too many tries — give it an hour and come back."
-                : res && res.error === "already_registered"
-                ? (res.message || "This email already has a Fire Babys account. Sign in with Google, or on your original device.")
-                : "Couldn't reach the sign-in server. Check your connection and retry."
-            );
+            if (res && res.error === "already_registered") {
+              // Offer email-code recovery instead of a dead end.
+              errBox.innerHTML = "This email already has a Fire Babys account.<br>" +
+                '<a href="#" id="fbgate-recover" style="color:#ffb066;font-weight:800">Email me a sign-in code</a>' +
+                " to play on this device, or sign in with Google.";
+              errBox.style.display = "block";
+              var rl = errBox.querySelector("#fbgate-recover");
+              if (rl) rl.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                errBox.style.display = "none";
+                btn.disabled = true; btn.textContent = "SENDING CODE...";
+                post("/auth/code", { email: email, purpose: "recover" }).then(function (r) {
+                  if (r && r.ok) {
+                    showCodeStep(email, name, "recover", btn, errBox);
+                  } else {
+                    btn.disabled = false; btn.textContent = "SIGN IN";
+                    showError(r && r.error === "email_not_configured"
+                      ? "Email codes aren't set up yet — sign in with Google, or on your original device."
+                      : "Couldn't send the code. Try again in a bit.");
+                  }
+                }, function () {
+                  btn.disabled = false; btn.textContent = "SIGN IN";
+                  showError("Couldn't reach the sign-in server. Check your connection.");
+                });
+              });
+            } else {
+              showError(
+                res && res.error === "invalid_email"
+                  ? "Hmm, that email doesn't look right. Try again?"
+                  : res && res.error === "rate_limited"
+                  ? "Too many tries — give it an hour and come back."
+                  : "Couldn't reach the sign-in server. Check your connection and retry."
+              );
+            }
           }
         },
         function () {
@@ -207,6 +290,35 @@
           showError("Couldn't reach the sign-in server. Check your connection and retry.");
         }
       );
+    }
+
+    el.querySelector("#fbgate-form").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var email = el.querySelector("#fbgate-email").value;
+      var name = el.querySelector("#fbgate-name").value;
+      var btn = el.querySelector(".fbgate-btn");
+      btn.disabled = true;
+      btn.textContent = "SIGNING IN...";
+      var errBox = el.querySelector(".fbgate-err");
+      errBox.style.display = "none";
+      // Ask the server whether email verification is available.
+      post("/auth/config", {}).then(function (cfg) {
+        if (cfg && cfg.ok && cfg.emailVerification) {
+          // Verified flow: send a code, then verify it.
+          post("/auth/code", { email: email, purpose: "verify" }).then(function (r) {
+            if (r && r.ok && r.sent) {
+              showCodeStep(email, name, "verify", btn, errBox);
+            } else if (r && r.error === "already_registered") {
+              legacyRegister(email, name, btn, errBox);
+            } else {
+              // Server couldn't send (or rate limited) — fall back honestly.
+              legacyRegister(email, name, btn, errBox);
+            }
+          }, function () { legacyRegister(email, name, btn, errBox); });
+        } else {
+          legacyRegister(email, name, btn, errBox);
+        }
+      }, function () { legacyRegister(email, name, btn, errBox); });
     });
 
     document.body.appendChild(el);

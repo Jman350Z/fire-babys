@@ -163,7 +163,7 @@
     <h1 class="logo">FIRE<br>BABYS</h1>
     <div class="sub">3 D &nbsp;O P E N &nbsp;W O R L D</div>
     <div class="tag">One connected world &middot; six towns &middot; West Ember High crew<br>
-    Kid-safe &middot; 100% offline &middot; no data collected</div>
+    Kid-safe &middot; online multiplayer &middot; data details on the Parents page</div>
     <div id="clskey">
       <span>🟧 A trash</span><span>🟨 B grease</span><span>🟦 C electrical</span><span>⬜ D metal</span>
     </div>
@@ -8427,7 +8427,6 @@ function startGame(){
       <button class="stab sel" data-tab="armor">&#128737;&#65039; ARMOR</button>
       <button class="stab" data-tab="weapons">&#9876;&#65039; WEAPONS</button>
       <button class="stab" data-tab="emotes">&#128131; EMOTES</button>
-      <button class="stab" data-tab="gems">&#128293; GEMS</button>
     </div>
     <div class="storegrid" id="storegrid"></div>
     <div style="margin-top:10px">
@@ -9412,7 +9411,7 @@ function fbRenderStore(){
   var grid = $('storegrid'); if(!grid) return;
   grid.innerHTML = '';
   fbRefreshCurrencyUI();
-  if(fbStoreTab==='gems'){ fbRenderGemPacks(grid); return; }
+  if(fbStoreTab==='gems'){ fbStoreTab='armor'; } /* GEMS tab hidden until real payments exist */
   fbStoreItems(fbStoreTab).forEach(function(it){
     var owned = fbIsOwned(fbStoreTab, it.id), eq = fbIsEquipped(fbStoreTab, it.id);
     var card = document.createElement('div');

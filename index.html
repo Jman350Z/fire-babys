@@ -63,9 +63,7 @@ h2{font-size:min(9vw,34px);font-weight:900;letter-spacing:2px;color:#ffb347;text
 .safety li b{color:#ffd76a}
 #fanclub{text-align:center}
 .newsbox{max-width:520px;margin:0 auto;background:rgba(255,255,255,.045);border:2px solid rgba(255,106,26,.35);border-radius:20px;padding:28px}
-.newsbox input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid rgba(255,150,60,.5);background:rgba(10,4,2,.8);color:#ffe9d6;font-size:16px;margin:14px 0}
-.newsbox .btn{width:100%;cursor:pointer;font-family:inherit}
-#soonmsg{display:none;margin-top:14px;color:#ffd76a;font-weight:700}
+.newsbox .btn{width:100%;cursor:pointer;font-family:inherit;text-decoration:none;box-sizing:border-box}
 .discord{text-align:center}
 .discord .card{max-width:560px;margin:0 auto;text-align:center}
 footer{border-top:2px solid rgba(255,106,26,.3);padding:28px 0;text-align:center;color:#a87f5c;font-size:14px}
@@ -148,9 +146,7 @@ Real fire is never a toy — only grown-ups handle flame! 🔥🚒</p></div>
 <div class="secsub">Our newsletter: family fire-safety tips, game updates, character lore, and leaderboard highlights.</div>
 <div class="newsbox">
 <p style="color:#e8c9a8">Get the good stuff in your inbox. No spam, ever — unsubscribe anytime.</p>
-<input type="email" id="nl-email" placeholder="you@example.com" aria-label="Email address">
-<button class="btn" id="nl-btn" type="button">NOTIFY ME 🔥</button>
-<p id="soonmsg">🚧 Launching soon — join the Discord below and you'll hear it first!</p>
+<a class="btn" href="https://firebabyofficial.substack.com" target="_blank" rel="noopener">JOIN THE FAN CLUB 🔥</a>
 </div>
 </div></section>
 
@@ -169,18 +165,5 @@ Real fire is never a toy — only grown-ups handle flame! 🔥🚒</p></div>
 <p style="margin-top:10px">Copyright (c) 2026 Jeffery Pruden. All rights reserved.</p>
 </div></footer>
 
-<script>
-// Honest coming-soon state: the newsletter backend isn't live yet.
-document.getElementById('nl-btn').addEventListener('click', function(){
-  var em = document.getElementById('nl-email').value.trim();
-  var msg = document.getElementById('soonmsg');
-  msg.style.display = 'block';
-  if(em && em.indexOf('@') > 0){
-    msg.textContent = '🚧 Launching soon — we saved your interest! Join the Discord below and you\'ll hear it first!';
-  } else {
-    msg.textContent = '🚧 Launching soon — join the Discord below and you\'ll hear it first!';
-  }
-});
-</script>
 </body>
 </html>
