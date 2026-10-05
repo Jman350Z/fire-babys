@@ -145,7 +145,7 @@ footer .line{font-weight:800;color:var(--gold);margin-top:12px;font-size:16px}
         <h3>🌊 SPLASH</h3>
         <div class="by">by the Fire Babys team</div>
         <p class="desc">The flagship showdown! Two teams, two pools — grab rival Fire Babys and dunk them in your pool. Last team standing wins. Silly, splashy, and full of real fire-safety lessons.</p>
-        <div class="meta"><span class="plays">🔥 12,408 plays</span><a class="playbtn" href="https://firebabys.io/3d.html?mode=splash">Play</a></div>
+        <div class="meta"><a class="playbtn" href="https://firebabys.io/3d.html?mode=splash">Play</a></div>
       </div>
     </article>
 
@@ -234,35 +234,18 @@ footer .line{font-weight:800;color:var(--gold);margin-top:12px;font-size:16px}
 <section class="block" id="submit">
   <h2 class="sec">🎮 Submit Your Game</h2>
   <p class="sub">Built a Fire Babys mode? Send it in! Our team reviews every entry for safety, brand fit, and the Six Pillars <b>before</b> anything appears in the Arcade. Nothing goes live automatically.</p>
-  <form class="card-form" id="submitForm">
-    <label for="cname">Your creator name</label>
-    <input type="text" id="cname" name="creator_name" required placeholder="e.g. PixelPenny">
-    <label for="cemail">Your email</label>
-    <input type="email" id="cemail" name="email" required placeholder="you@example.com">
-    <label for="gtitle">Game title</label>
-    <input type="text" id="gtitle" name="game_title" required placeholder="e.g. Ember Dash">
-    <label for="gdesc">Short description (2–3 sentences)</label>
-    <textarea id="gdesc" name="description" required placeholder="What do players do? What makes it fun and safe for kids?"></textarea>
-    <label for="gurl">Link to your game (playable URL or file link)</label>
-    <input type="url" id="gurl" name="game_url" required placeholder="https://...">
-    <div class="rules">
-      <input type="checkbox" id="agree" required>
-      <label for="agree" style="margin:0;font-weight:600">I agree to the <a href="https://github.com/Jman350Z/fire-babys-creator-kit/blob/main/COMPETITION-RULES.md" target="_blank" rel="noopener">Creator Competition rules</a> — including the permanent royalty-free license for my entry, and that the $10,000 prize is only paid if my mode ships in the official phone app.</label>
-    </div>
-    <button class="btn" type="submit" style="border:none;cursor:pointer">Send for Review 🚀</button>
-    <div id="formMsg">✅ Got it! Your game is <b>under review</b>. Our team checks every entry for safety and brand fit before it appears in the Arcade — we'll email you either way.</div>
-  </form>
+  <div class="card-form" style="text-align:center;padding:32px 24px">
+    <p style="margin-bottom:16px"><b>One game per person.</b> You'll need your <b>real full name, phone number, and mailing address</b> to be eligible for the $10,000 prize — plus your game title, description, and game link (under 250KB).</p>
+    <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSfD5lHC6apj5JqVs8yatzPMn2SVlUr-pybYmsNgAIcAC52jYg/viewform" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Submit Your Game 🚀</a>
+    <p style="margin-top:16px;font-size:14px;opacity:.8">Every submission is security-scanned and reviewed by our team.<br>Full rules: <a href="https://github.com/Jman350Z/fire-babys-creator-kit/blob/main/COMPETITION-RULES.md" target="_blank" rel="noopener">Creator Competition rules</a></p>
+  </div>
 </section>
 
 <section class="block">
   <div class="news">
     <h2>🔔 Get new arcade games weekly</h2>
     <p>One email a week: the newest creator games, competition news, and fire-safety fun.</p>
-    <form class="row" id="newsForm">
-      <input type="email" id="newsEmail" required placeholder="you@example.com" aria-label="Email address">
-      <button type="submit">Sign me up</button>
-    </form>
-    <div id="newsMsg">🎉 You're on the list! See you Friday.</div>
+    <p style="margin-top:12px"><a class="btn" href="https://firebabyofficial.substack.com" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Join the Fan Club Newsletter</a></p>
   </div>
 </section>
 
@@ -277,33 +260,8 @@ footer .line{font-weight:800;color:var(--gold);margin-top:12px;font-size:16px}
 
 <script>
 (function(){
-  var ENDPOINT = "https://example.com/api/arcade-submissions"; // PLACEHOLDER — owner: wire up a real review endpoint
-  var f = document.getElementById("submitForm");
-  f.addEventListener("submit", function(e){
-    e.preventDefault();
-    var data = {
-      creator_name: document.getElementById("cname").value,
-      email: document.getElementById("cemail").value,
-      game_title: document.getElementById("gtitle").value,
-      description: document.getElementById("gdesc").value,
-      game_url: document.getElementById("gurl").value,
-      agreed_rules: document.getElementById("agree").checked,
-      submitted_at: new Date().toISOString()
-    };
-    // Fire-and-forget to the (placeholder) review endpoint — never auto-publishes.
-    try {
-      fetch(ENDPOINT, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data), mode:"no-cors"});
-    } catch(err) {}
-    document.getElementById("formMsg").style.display = "block";
-    f.querySelector("button[type=submit]").disabled = true;
-    f.scrollIntoView({behavior:"smooth", block:"center"});
-  });
-  var n = document.getElementById("newsForm");
-  n.addEventListener("submit", function(e){
-    e.preventDefault();
-    document.getElementById("newsMsg").style.display = "block";
-    document.getElementById("newsEmail").value = "";
-  });
+  // Submission + newsletter now handled by real services (Google Form, Substack).
+  // No fake endpoints remain on this page.
 })();
 </script>
 </body>
