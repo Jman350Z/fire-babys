@@ -47,9 +47,11 @@
     border-radius:999px; padding:6px 14px; font-size:13px; font-weight:800; letter-spacing:1px; }
   #fps { color:#7dff9a; }
   #foepill { display:none; }
-  #objbanner { position:fixed; top:84px; left:0; right:0; z-index:9; display:none; text-align:center;
+  #objbanner { position:fixed; top:84px; left:50%; transform:translateX(-50%); z-index:9; display:none; text-align:center;
     pointer-events:none; color:#ffd76a; font:800 13px system-ui; letter-spacing:2px;
-    text-shadow:0 2px 8px #000; padding:0 12px; }
+    text-shadow:0 2px 8px #000; padding:6px 16px; max-width:calc(100vw - 140px);
+    background:rgba(10,4,2,.65); border-radius:12px; border:1px solid rgba(255,140,46,.35);
+    white-space:normal; }
   #joy { position:fixed; left:22px; bottom:26px; width:124px; height:124px; border-radius:50%;
     z-index:9; background:rgba(20,10,6,.35); border:2px solid rgba(255,150,60,.45);
     display:none; pointer-events:auto; touch-action:none; }
@@ -333,7 +335,7 @@
   .gbigbtn:active { transform:translateY(3px); box-shadow:0 1px 0 #a33c10; }
   .sitem.confirm { border-color:#ff5a3c; animation:fbshake .3s; }
   @keyframes fbshake { 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-  #fbemotebtn { position:fixed; right:14px; bottom:118px; z-index:12; width:64px; height:64px; border-radius:50%;
+  #fbemotebtn { position:fixed; right:22px; bottom:118px; z-index:12; width:64px; height:64px; border-radius:50%;
     font-size:30px; display:none; align-items:center; justify-content:center;
     background:linear-gradient(180deg,#ffd76a,#ff8c2e); border:3px solid #ff6a1a;
     box-shadow:0 4px 0 #a33c10, 0 8px 18px rgba(255,106,26,.4); cursor:pointer; }
@@ -1496,7 +1498,8 @@ function buildOpenWorld(){
   /* ---- SLAGHEAP (z -42..-22): canyon walls, scrap, molten river ---- */
   var wallM=new THREE.MeshLambertMaterial({color:0x3a2c20});
   [[-15,-32],[15,-32]].forEach(function(p){
-    prop(new THREE.BoxGeometry(6,9,20), wallM, p[0], 4.5, p[1], 0.15, 4.5);
+    var _wm = prop(new THREE.BoxGeometry(6,9,20), wallM, p[0], 4.5, p[1], 0.15, 4.5);
+    try { if(_wm){ _wm.userData.slagWall = true; } } catch(e){}
   });
   for(var s2=0;s2<8;s2++){
     var sx=(Math.random()<0.5?-1:1)*(10+Math.random()*4), sz=-24-Math.random()*16;
@@ -2130,10 +2133,11 @@ function bindInput(){
   }
   joyEl.addEventListener('pointerdown', function(e){
     joy.active=true; joy.id=e.pointerId;
-    joyEl.setPointerCapture(e.pointerId);
+    try { joyEl.setPointerCapture(e.pointerId); } catch(_e){}
     joyMove(e);
     e.preventDefault();
-  });
+    e.stopPropagation();
+  }, {passive:false});
   function joyMove(e){
     if(!joy.active||e.pointerId!==joy.id) return;
     var r=joyEl.getBoundingClientRect();
@@ -3483,7 +3487,21 @@ function animate(){
 
   fpsAcc+=dt; fpsN++; fpsT+=dt;
   if(fpsT>0.5){
-    document.getElementById('fps').textContent=Math.round(fpsN/fpsAcc);
+    var _fps = Math.round(fpsN/fpsAcc);
+    document.getElementById('fps').textContent=_fps;
+    // auto quality: if FPS stays low, drop to low quality for smoothness
+    try{
+      if(typeof FBQ!=='undefined' && FBQ.level!=='low'){
+        window._fbLowFpsN = (_fps < 25) ? (window._fbLowFpsN||0)+1 : 0;
+        if(window._fbLowFpsN >= 6){
+          window._fbLowFpsN = 0;
+          FBQ.level='low'; FBQ.pixelRatio=1; FBQ.shadows=false;
+          try{ renderer.setPixelRatio(1); }catch(e){}
+          try{ renderer.shadowMap.enabled=false; }catch(e){}
+          try{ localStorage.setItem('fb_quality','low'); }catch(e){}
+        }
+      }
+    }catch(e){}
     fpsAcc=0;fpsN=0;fpsT=0;
   }
 }
@@ -6903,13 +6921,28 @@ function mpEnterGame(){
     player.group.scale.set(1,1,1);
   } catch(e){}
   mpShowCombat(true);
-  // CATCH: build pools, hide attack/block buttons (grab-and-carry only)
+  // CATCH/SPLASH: attack becomes GRAB button (grab is proximity-based, button teaches the mechanic)
   if(mpGameMode === 'catch'){
     if(typeof mpCatchInit === 'function') mpCatchInit();
-    var _hab = document.getElementById('mpatkbtn'); if(_hab) _hab.style.display = 'none';
+    var _hab = document.getElementById('mpatkbtn');
+    if(_hab){
+      _hab.style.display = '';
+      _hab.textContent = '🤼';
+      _hab.setAttribute('aria-label', 'Grab');
+      _hab.title = 'Grab: stand next to an enemy with a teammate!';
+      if(!_hab._grabW){
+        _hab._grabW = true;
+        _hab.addEventListener('pointerdown', function(e){
+          e.preventDefault();
+          try { if(typeof toast === 'function') toast('🤼 Stand next to an enemy WITH a teammate to grab them!'); } catch(e2){}
+          try { if(typeof beep === 'function') beep(660, 0.08, 'square', 0.05); } catch(e2){}
+        });
+      }
+    }
     var _hbb = document.getElementById('mpblkbtn'); if(_hbb) _hbb.style.display = 'none';
   } else {
-    var _rab = document.getElementById('mpatkbtn'); if(_rab) _rab.style.display = '';
+    var _rab = document.getElementById('mpatkbtn');
+    if(_rab){ _rab.style.display = ''; _rab.textContent = '🔥'; _rab.setAttribute('aria-label', 'Attack'); }
     var _rbb = document.getElementById('mpblkbtn'); if(_rbb) _rbb.style.display = '';
   }
 
@@ -6998,7 +7031,10 @@ function mpSpawnRemote(p){
     var g = makeBaby(spec, 'eager', 1);
     g.userData.baseY = 1.55;
     var tag = nameTag(mpDisplayName(p.name).slice(0,14), isVersus ? (p.team===0 ? '#7ac9ff' : '#ff9a8a') : '#ffd76a');
-    tag.position.y = 2.9; g.add(tag);
+    // offset tag height per-player so overlapping players' labels don't stack exactly
+    var _tagOff = 0;
+    try { for(var _ti=0; _ti<String(p.id).length; _ti++){ _tagOff += String(p.id).charCodeAt(_ti); } _tagOff = (_tagOff % 5) * 0.22; } catch(e){}
+    tag.position.y = 2.9 + _tagOff; g.add(tag);
     // combat: HP bar + block shield bubble
     var hb = null, sh = null;
     try {
@@ -7281,6 +7317,14 @@ function mpCatchPoolOf(team){ var z = mpCatchPools(); return z[team] || z[0]; }
 function mpCatchInit(){
   mpCatch = { caught:{}, grabProg:{}, immunity:{}, eliminated:{}, timer:CATCH_TIME,
               over:false, suddenDeath:false, meshes:[], effects:[] };
+  // hide story-biome clutter (dark slag walls) so the arena looks clean
+  try {
+    if(typeof scene !== 'undefined' && scene){
+      scene.traverse(function(o){
+        if(o && o.userData && o.userData.slagWall){ o.visible = false; }
+      });
+    }
+  } catch(e){}
   var pools = mpCatchPools();
   for(var i=0;i<pools.length;i++){
     try{
@@ -7314,6 +7358,14 @@ function mpCatchCleanup(){
     if(mpCatch.meshes){ for(var i=0;i<mpCatch.meshes.length;i++){ try{ scene.remove(mpCatch.meshes[i]); }catch(e){} } }
     if(mpCatch.effects){ for(var j=0;j<mpCatch.effects.length;j++){ try{ scene.remove(mpCatch.effects[j].mesh); }catch(e){} } }
   }
+  // restore story-biome walls
+  try {
+    if(typeof scene !== 'undefined' && scene){
+      scene.traverse(function(o){
+        if(o && o.userData && o.userData.slagWall){ o.visible = true; }
+      });
+    }
+  } catch(e){}
   mpCatch = null;
 }
 
