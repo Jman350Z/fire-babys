@@ -7700,8 +7700,9 @@ function mpBotTickCatch(b, dt){
   }
   if(tx !== null){
     var mx = tx - b.x, mz = tz - b.z, md = Math.hypot(mx, mz);
-    if(md > 0.3){
-      var step = Math.min(5.2 * smul * dt, md);
+    // stop at 1.5 units to avoid overlapping/stacking on top of targets
+    if(md > 1.5){
+      var step = Math.min(5.2 * smul * dt, md - 1.5);
       b.x += mx / md * step; b.z += mz / md * step;
       b.dir = Math.atan2(mx, mz);
       b.x = Math.max(-26, Math.min(26, b.x));
@@ -7857,6 +7858,7 @@ function mpUpdateExplore(dt, t){
 
 /* ---------- init ---------- */
 function mpInit(){
+  window._mpInitDone = true;
   mpPatchGameLoop();
   mpCombatInit();
   spPatchDealDamage();   // block negates damage in single-player
@@ -7877,7 +7879,6 @@ function mpInit(){
     start: startMultiplayer, leave: mpLeaveLobby,
     sendExtinguish: mpSendExtinguish, net: function(){ return net; }
   };
-  window._mpInitDone = true;
 }
 
 // Auto-init when game scripts are ready (init() has run)
