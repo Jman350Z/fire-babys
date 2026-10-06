@@ -231,7 +231,12 @@
     <input id="mpname" maxlength="14" placeholder="e.g. Blaze Fan" autocomplete="off">
     <div class="clabel">GAME MODE</div>
     <div id="mpmodesel" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;">
-      <button class="mpmodebtn on" data-mode="catch">🌊 SPLASH</button>
+      <button class="mpmodebtn on" data-mode="coop">🤝 CO-OP</button>
+      <button class="mpmodebtn" data-mode="2v2">⚔️ 2v2</button>
+      <button class="mpmodebtn" data-mode="4v4">⚔️ 4v4</button>
+      <button class="mpmodebtn" data-mode="6v6">⚔️ 6v6</button>
+      <button class="mpmodebtn" data-mode="7v7">⚔️ 7v7</button>
+      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>       <button class="mpmodebtn" data-mode="catch">🏃 SPLASH</button>
     </div>
     <button class="bigbtn" id="mpcreatebtn">CREATE LOBBY 🔥</button><br>
     <div class="clabel" style="margin-top:12px">— OR JOIN —</div>
@@ -2796,10 +2801,14 @@ function avgSquadLevel(){
 
 /* ---------- mode hub ---------- */
 var MODES=[
-  {id:'splash', icon:'\uD83C\uDF0A', name:'SPLASH', desc:'Two teams. Two pools. Dunk your rivals! Last team standing wins.', start:startSplash}
+  {id:'story', icon:'📖', name:'STORY MODE', desc:'Six towns. One journey. Save the land.', start:startStoryMode},
+  {id:'free', icon:'🧭', name:'FREE MODE', desc:'Roam the whole world. No gates, no rules.', start:startFreeMode},
+  {id:'practice', icon:'🎯', name:'PRACTICE', desc:'Drill the Extinguish Matchup Matrix.', start:startPractice},
+  {id:'tournament', icon:'🏆', name:'TOURNAMENTS', desc:'3-round bracket. Win the trophy.', start:startTournament},
+  {id:'rescue', icon:'🚨', name:'RESCUE MODE', desc:'Save 5 trapped ember-pups before time runs out!', start:startRescue},
+  {id:'survival', icon:'💀', name:'SURVIVAL', desc:'Endless waves. How long can the crew last?', start:startSurvival},
+  {id:'leaderboard', icon:'🏅', name:'LEADERBOARDS', desc:'Top Tamers & Tournament Champions.', start:showLeaderboards}
 ];
-// SPLASH ONLY (2026-10-05, Jeff's order): story/free/practice/tournament/rescue/survival
-// removed from the hub. Originals saved in workspace/fire-babys-modes-backup/2026-10-05/.
 function renderHub(){
   var wrap=document.getElementById('hubbtns');
   wrap.innerHTML='';
@@ -2819,42 +2828,20 @@ function renderHub(){
     document.getElementById('hubov').style.display='none'; openCreation(); });
   wrap.appendChild(pb);
 }
-/* SPLASH ONLY (2026-10-05): boots the player straight into a SPLASH match.
-   Opens the multiplayer menu with SPLASH preselected, auto-creates a lobby,
-   fills it with bots, readies up, and starts. */
-function startSplash(){
-  try{ hideHub(); }catch(e){}
-  try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
-  try{
-    var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
-    if(cbtn) cbtn.click();
-  }catch(e){}
-  setTimeout(function(){
-    try{ document.getElementById('mpmenuov').style.display='none'; }catch(e){}
-    _cdlClick('#mpcreatebtn');
-    var iv2 = setInterval(function(){
-      var lov = document.getElementById('mplobbyov');
-      if(!(lov && lov.style.display === 'flex')) return;
-      clearInterval(iv2);
-      try {
-        var bf = document.getElementById('mpbotfill');
-        if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
-      } catch(e){}
-      _cdlClick('#mpreadybtn');
-      var iv3 = setInterval(function(){
-        var sb = document.getElementById('mpstartbtn');
-        if(sb && sb.style.display !== 'none'){ clearInterval(iv3); sb.click(); }
-      }, 1000);
-    }, 1000);
-  }, 900);
-}
 function showHub(){
-  // SPLASH ONLY (2026-10-05, Jeff's order): the hub is gone. Every path that
-  // used to return here now drops the player straight into a SPLASH match.
   state='HUB'; gameMode='hub';
-  ['victoryov','defeatov','lbov','hubov'].forEach(function(id){ try{ document.getElementById(id).style.display='none'; }catch(e){} });
-  try{ refreshNamePill(); }catch(e){}
-  startSplash();
+  if(!player) createSquad(0, 40); // first entry from title: spawn the squad before clearArena reads it
+  clearArena(); hideStronghold();
+  ['victoryov','defeatov','lbov'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('objbanner').style.display='none';
+  document.getElementById('expbar').style.display='none';
+  showJoy(false);
+  setObjective(null);
+  renderHub();
+  refreshNamePill();
+  document.getElementById('hubov').style.display='flex';
+  catchDeepLink(); // ?mode=catch (or ?mode=splash) from the homepage: jump straight into a SPLASH match
 }
 /* Deep-link: 3d.html?mode=catch (alias ?mode=splash) — from the homepage PLAY SPLASH button.
    The multiplayer code lives inside an IIFE, so its functions are NOT global.
@@ -3490,7 +3477,7 @@ function animate(){
 
 var MP_SERVER = "wss://fire-babys-multiplayer.jeffpruden288.workers.dev";
 var net = null;              // FireBabysNet instance
-var mpMode = "catch";        // SPLASH ONLY (2026-10-05): all other modes removed
+var mpMode = "coop";         // selected mode for lobby creation
 var mpReady = false;         // local ready state
 var mpInGame = false;        // true when multiplayer game is running
 var remotePlayers = {};      // playerId -> { group, name, team, targetX, targetZ, targetDir }
@@ -7249,6 +7236,69 @@ function mpCatchInit(){
       scene.add(deep); mpCatch.meshes.push(deep);
     }catch(e){}
   }
+  /* ============ SPLASH STADIUM (PlayStation style) ============ */
+  try{
+    var ST = { cx:0, cz:17, w:44, l:60 }; // arena center, width (x), length (z)
+    function _sm(geo, color, x, y, z, opacity){
+      var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:color, transparent:opacity<1, opacity:opacity }));
+      m.position.set(x, y, z); scene.add(m); mpCatch.meshes.push(m); return m;
+    }
+    /* --- stadium floor: clean bright arena --- */
+    _sm(new THREE.PlaneGeometry(ST.w, ST.l), 0x3ddc84, ST.cx, 0.02, ST.cz).rotation.x = -Math.PI/2;
+    /* --- team zones: blue tint (team 0, z<17), red tint (team 1, z>17) --- */
+    var blueZone = _sm(new THREE.PlaneGeometry(ST.w, ST.l/2), 0x4fc3ff, ST.cx, 0.04, ST.cz - ST.l/4, 0.25);
+    blueZone.rotation.x = -Math.PI/2;
+    var redZone = _sm(new THREE.PlaneGeometry(ST.w, ST.l/2), 0xff6a5e, ST.cx, 0.04, ST.cz + ST.l/4, 0.25);
+    redZone.rotation.x = -Math.PI/2;
+    /* --- center line (white, down the middle) --- */
+    var cl = _sm(new THREE.PlaneGeometry(ST.w, 0.6), 0xffffff, ST.cx, 0.06, ST.cz, 0.95);
+    cl.rotation.x = -Math.PI/2;
+    /* --- center circle --- */
+    var cc = _sm(new THREE.RingGeometry(3.5, 4.1, 48), 0xffffff, ST.cx, 0.06, ST.cz, 0.9);
+    cc.rotation.x = -Math.PI/2;
+    /* --- arena border lines --- */
+    var bw = 0.5;
+    [[ST.cx, ST.cz-ST.l/2, ST.w, bw],[ST.cx, ST.cz+ST.l/2, ST.w, bw]].forEach(function(p){
+      var l = _sm(new THREE.PlaneGeometry(p[2], p[3]), 0xffffff, p[0], 0.06, p[1], 0.9);
+      l.rotation.x = -Math.PI/2;
+    });
+    [[ST.cx-ST.w/2, ST.cz],[ST.cx+ST.w/2, ST.cz]].forEach(function(p){
+      var l = _sm(new THREE.PlaneGeometry(bw, ST.l), 0xffffff, p[0], 0.06, p[1], 0.9);
+      l.rotation.x = -Math.PI/2;
+    });
+    /* --- tiered seating bowl (3 tiers around arena) --- */
+    var tierColors = [0x2b1a0e, 0x3a2415, 0x4a2f1c];
+    for(var t=0; t<3; t++){
+      var tw = ST.w + 8 + t*10, tl = ST.l + 8 + t*10, th = 3 + t*3.5;
+      /* 4 side walls forming the tier */
+      _sm(new THREE.BoxGeometry(tw, th, 2), tierColors[t], ST.cx, th/2, ST.cz - tl/2);
+      _sm(new THREE.BoxGeometry(tw, th, 2), tierColors[t], ST.cx, th/2, ST.cz + tl/2);
+      _sm(new THREE.BoxGeometry(2, th, tl), tierColors[t], ST.cx - tw/2, th/2, ST.cz);
+      _sm(new THREE.BoxGeometry(2, th, tl), tierColors[t], ST.cx + tw/2, th/2, ST.cz);
+      /* seat rows (colored dots = crowd) */
+      var crowdColors = [0xff6a00, 0x4fc3ff, 0xffc93c, 0xffffff, 0xff4757];
+      for(var s=0; s<40; s++){
+        var cc2 = crowdColors[s % crowdColors.length];
+        var ang = (s/40)*Math.PI*2;
+        var rx = tw/2 + 1.5, rz = tl/2 + 1.5;
+        var sx = ST.cx + Math.cos(ang)*rx*0.85, sz = ST.cz + Math.sin(ang)*rz*0.85;
+        _sm(new THREE.SphereGeometry(0.5, 6, 6), cc2, sx, th+0.8, sz, 1);
+      }
+    }
+    /* --- 4 light towers (corners) --- */
+    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){
+      var lx = ST.cx + c[0]*(ST.w/2+14), lz = ST.cz + c[1]*(ST.l/2+14);
+      _sm(new THREE.CylinderGeometry(0.6, 0.8, 18, 8), 0x555555, lx, 9, lz);
+      _sm(new THREE.BoxGeometry(4, 2, 0.5), 0xffffcc, lx, 18.5, lz, 0.95);
+    });
+    /* --- jumbotron scoreboard --- */
+    var jb = _sm(new THREE.BoxGeometry(12, 6, 1), 0x111111, ST.cx, 16, ST.cz - ST.l/2 - 12);
+    _sm(new THREE.BoxGeometry(12.5, 0.5, 1.2), 0xff6a00, ST.cx, 19.2, ST.cz - ST.l/2 - 12);
+    _sm(new THREE.BoxGeometry(12.5, 0.5, 1.2), 0xff6a00, ST.cx, 12.8, ST.cz - ST.l/2 - 12);
+    /* --- team banners --- */
+    _sm(new THREE.BoxGeometry(8, 3, 0.3), 0x1e88e5, ST.cx - 12, 8, ST.cz - ST.l/2 - 6);
+    _sm(new THREE.BoxGeometry(8, 3, 0.3), 0xe63900, ST.cx + 12, 8, ST.cz - ST.l/2 - 6);
+  }catch(e){}
 }
 
 function mpCatchCleanup(){
