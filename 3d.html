@@ -6242,11 +6242,28 @@ function updateReadyBtn(){
     : 'linear-gradient(180deg,#2e8a4a,#1e5e2e)';
 }
 function mpLeaveLobby(){
-  mpClearBots();
-  mpCleanupNet();
-  document.getElementById('mplobbyov').style.display = 'none';
-  if(mpInGame) mpExitGame();
-  if(typeof showHub === 'function') showHub();
+  // Show immediate feedback - quitting takes time (bot disconnects)
+  try{
+    var _lo = document.createElement('div');
+    _lo.id = 'mp-leaving-ov';
+    _lo.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);color:#ffd76a;font:800 20px system-ui;';
+    _lo.textContent = 'Leaving match...';
+    document.body.appendChild(_lo);
+  }catch(e){}
+  // Do the slow cleanup asynchronously so the UI updates first
+  setTimeout(function(){
+    try{
+      mpClearBots();
+      mpCleanupNet();
+      document.getElementById('mplobbyov').style.display = 'none';
+      if(mpInGame) mpExitGame();
+      var _lo2 = document.getElementById('mp-leaving-ov');
+      if(_lo2) _lo2.parentNode.removeChild(_lo2);
+      if(typeof showHub === 'function') showHub();
+    }catch(e){
+      try{ var _lo3 = document.getElementById('mp-leaving-ov'); if(_lo3) _lo3.parentNode.removeChild(_lo3); }catch(ee){}
+    }
+  }, 100);
 }
 function mpCleanupNet(){
   if(net){ try { net.disconnect(); } catch(e){} net = null; }
@@ -8590,10 +8607,9 @@ function startGame(){
       if(l) l.style.display = 'none';
       // Deep-link ?mode=splash/?mode=catch goes straight to SPLASH via the MP UI
       try { if(typeof catchDeepLink === 'function') catchDeepLink(); } catch(e){}
-      // Show hub or character creation (catchDeepLink may already be driving the MP flow)
-      if(typeof needsCreation === 'function' && needsCreation()){
-        if(typeof openCreation === 'function') openCreation();
-      } else if(typeof showHub === 'function') {
+      // SPLASH ONLY (Jeff's order 2026-10-05): skip character creation entirely,
+      // always go straight to the SPLASH flow via showHub()
+      if(typeof showHub === 'function') {
         // Skip showHub if the deep-link already started the SPLASH flow
         try { if(typeof _catchDL === 'undefined' || !_catchDL) showHub(); } catch(e){ showHub(); }
       }
