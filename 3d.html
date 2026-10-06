@@ -47,7 +47,7 @@
     border-radius:999px; padding:6px 14px; font-size:13px; font-weight:800; letter-spacing:1px; }
   #fps { color:#7dff9a; }
   #foepill { display:none; }
-  #objbanner { position:fixed; top:54px; left:0; right:0; z-index:9; display:none; text-align:center;
+  #objbanner { position:fixed; top:84px; left:0; right:0; z-index:9; display:none; text-align:center;
     pointer-events:none; color:#ffd76a; font:800 13px system-ui; letter-spacing:2px;
     text-shadow:0 2px 8px #000; padding:0 12px; }
   #joy { position:fixed; left:22px; bottom:26px; width:124px; height:124px; border-radius:50%;
@@ -57,10 +57,11 @@
     background:radial-gradient(circle at 35% 30%,#ffd76a,#ff7a2e 70%);
     transform:translate(-50%,-50%); box-shadow:0 0 18px rgba(255,140,40,.7); pointer-events:none; }
   /* multiplayer combat buttons: attack / block / jump (bottom-right, MP only) */
-  #mpcombat { position:fixed; right:16px; bottom:24px; z-index:10; display:none;
-    gap:12px; align-items:flex-end; }
+  #mpcombat { position:fixed; right:8px; left:8px; bottom:12px; z-index:10; display:none;
+    gap:8px; align-items:flex-end; justify-content:flex-end; flex-wrap:nowrap; overflow-x:auto;
+    padding:4px 2px; -webkit-overflow-scrolling:touch; }
   #mpcombat.on { display:flex; }
-  .mpcbtn { width:74px; height:74px; border-radius:50%; font-size:32px; line-height:1;
+  .mpcbtn { width:60px; height:60px; min-width:60px; border-radius:50%; font-size:26px; line-height:1;
     border:3px solid rgba(255,255,255,.4); cursor:pointer; touch-action:manipulation;
     -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;
     box-shadow:0 4px 0 rgba(0,0,0,.35), 0 0 18px rgba(255,150,60,.35);
@@ -120,8 +121,17 @@
   <div class="pill"><span id="fps">60</span> FPS</div>
   <div class="pill" id="foepill">👾 <span id="foecount">0</span> LEFT</div>
   <div class="pill" id="windpill">💨 WIND → E</div>
+  <div class="pill" id="pausepill" style="cursor:pointer;pointer-events:auto;" title="Pause">⏸️</div>
 </div>
 <div id="objbanner"></div>
+<div id="pausemenu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;background:rgba(0,0,0,.75);align-items:center;justify-content:center;">
+  <div style="background:#1a0f08;border:2px solid #ff8c2e;border-radius:16px;padding:32px;text-align:center;max-width:90vw;">
+    <div style="font:800 28px system-ui;color:#ffd76a;margin-bottom:8px;letter-spacing:2px;">⏸️ PAUSED</div>
+    <div style="font:400 14px system-ui;color:#ffb347;margin-bottom:24px;">Take a breather, fire baby!</div>
+    <button id="resumebtn" style="display:block;width:220px;margin:0 auto 12px;padding:14px;font:800 16px system-ui;background:linear-gradient(180deg,#ffd76a,#ff8c2e);border:none;border-radius:12px;color:#3a1c00;cursor:pointer;letter-spacing:1px;">▶️ RESUME</button>
+    <button id="quitbtn" style="display:block;width:220px;margin:0 auto;padding:14px;font:800 16px system-ui;background:rgba(255,255,255,.1);border:2px solid rgba(255,140,46,.5);border-radius:12px;color:#ffd76a;cursor:pointer;letter-spacing:1px;">🚪 QUIT TO LOBBY</button>
+  </div>
+</div>
 
 <div id="joy"><div id="knob"></div></div>
 <div id="mpcombat">
@@ -231,12 +241,7 @@
     <input id="mpname" maxlength="14" placeholder="e.g. Blaze Fan" autocomplete="off">
     <div class="clabel">GAME MODE</div>
     <div id="mpmodesel" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;">
-      <button class="mpmodebtn on" data-mode="coop">🤝 CO-OP</button>
-      <button class="mpmodebtn" data-mode="2v2">⚔️ 2v2</button>
-      <button class="mpmodebtn" data-mode="4v4">⚔️ 4v4</button>
-      <button class="mpmodebtn" data-mode="6v6">⚔️ 6v6</button>
-      <button class="mpmodebtn" data-mode="7v7">⚔️ 7v7</button>
-      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>       <button class="mpmodebtn" data-mode="catch">🏃 SPLASH</button>
+      <button class="mpmodebtn on" data-mode="catch">🌊 SPLASH</button>
     </div>
     <button class="bigbtn" id="mpcreatebtn">CREATE LOBBY 🔥</button><br>
     <div class="clabel" style="margin-top:12px">— OR JOIN —</div>
@@ -2801,14 +2806,10 @@ function avgSquadLevel(){
 
 /* ---------- mode hub ---------- */
 var MODES=[
-  {id:'story', icon:'📖', name:'STORY MODE', desc:'Six towns. One journey. Save the land.', start:startStoryMode},
-  {id:'free', icon:'🧭', name:'FREE MODE', desc:'Roam the whole world. No gates, no rules.', start:startFreeMode},
-  {id:'practice', icon:'🎯', name:'PRACTICE', desc:'Drill the Extinguish Matchup Matrix.', start:startPractice},
-  {id:'tournament', icon:'🏆', name:'TOURNAMENTS', desc:'3-round bracket. Win the trophy.', start:startTournament},
-  {id:'rescue', icon:'🚨', name:'RESCUE MODE', desc:'Save 5 trapped ember-pups before time runs out!', start:startRescue},
-  {id:'survival', icon:'💀', name:'SURVIVAL', desc:'Endless waves. How long can the crew last?', start:startSurvival},
-  {id:'leaderboard', icon:'🏅', name:'LEADERBOARDS', desc:'Top Tamers & Tournament Champions.', start:showLeaderboards}
+  {id:'splash', icon:'\uD83C\uDF0A', name:'SPLASH', desc:'Two teams. Two pools. Dunk your rivals! Last team standing wins.', start:startSplash}
 ];
+// SPLASH ONLY (2026-10-05, Jeff's order): story/free/practice/tournament/rescue/survival
+// removed from the hub. Originals saved in workspace/fire-babys-modes-backup/2026-10-05/.
 function renderHub(){
   var wrap=document.getElementById('hubbtns');
   wrap.innerHTML='';
@@ -2828,20 +2829,42 @@ function renderHub(){
     document.getElementById('hubov').style.display='none'; openCreation(); });
   wrap.appendChild(pb);
 }
+/* SPLASH ONLY (2026-10-05): boots the player straight into a SPLASH match.
+   Opens the multiplayer menu with SPLASH preselected, auto-creates a lobby,
+   fills it with bots, readies up, and starts. */
+function startSplash(){
+  try{ hideHub(); }catch(e){}
+  try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
+  try{
+    var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
+    if(cbtn) cbtn.click();
+  }catch(e){}
+  setTimeout(function(){
+    try{ document.getElementById('mpmenuov').style.display='none'; }catch(e){}
+    _cdlClick('#mpcreatebtn');
+    var iv2 = setInterval(function(){
+      var lov = document.getElementById('mplobbyov');
+      if(!(lov && lov.style.display === 'flex')) return;
+      clearInterval(iv2);
+      try {
+        var bf = document.getElementById('mpbotfill');
+        if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
+      } catch(e){}
+      _cdlClick('#mpreadybtn');
+      var iv3 = setInterval(function(){
+        var sb = document.getElementById('mpstartbtn');
+        if(sb && sb.style.display !== 'none'){ clearInterval(iv3); sb.click(); }
+      }, 1000);
+    }, 1000);
+  }, 900);
+}
 function showHub(){
+  // SPLASH ONLY (2026-10-05, Jeff's order): the hub is gone. Every path that
+  // used to return here now drops the player straight into a SPLASH match.
   state='HUB'; gameMode='hub';
-  if(!player) createSquad(0, 40); // first entry from title: spawn the squad before clearArena reads it
-  clearArena(); hideStronghold();
-  ['victoryov','defeatov','lbov'].forEach(function(id){ document.getElementById(id).style.display='none'; });
-  document.getElementById('topbar').style.display='none';
-  document.getElementById('objbanner').style.display='none';
-  document.getElementById('expbar').style.display='none';
-  showJoy(false);
-  setObjective(null);
-  renderHub();
-  refreshNamePill();
-  document.getElementById('hubov').style.display='flex';
-  catchDeepLink(); // ?mode=catch (or ?mode=splash) from the homepage: jump straight into a SPLASH match
+  ['victoryov','defeatov','lbov','hubov'].forEach(function(id){ try{ document.getElementById(id).style.display='none'; }catch(e){} });
+  try{ refreshNamePill(); }catch(e){}
+  startSplash();
 }
 /* Deep-link: 3d.html?mode=catch (alias ?mode=splash) — from the homepage PLAY SPLASH button.
    The multiplayer code lives inside an IIFE, so its functions are NOT global.
@@ -3477,7 +3500,7 @@ function animate(){
 
 var MP_SERVER = "wss://fire-babys-multiplayer.jeffpruden288.workers.dev";
 var net = null;              // FireBabysNet instance
-var mpMode = "coop";         // selected mode for lobby creation
+var mpMode = "catch";        // SPLASH ONLY (2026-10-05): all other modes removed
 var mpReady = false;         // local ready state
 var mpInGame = false;        // true when multiplayer game is running
 var remotePlayers = {};      // playerId -> { group, name, team, targetX, targetZ, targetDir }
@@ -6258,8 +6281,8 @@ function spPostFrame(dt){
     mpAtkAnimT -= dt;
     var ak = Math.sin(Math.max(0,(0.28-mpAtkAnimT))/0.28*Math.PI);
     try { player.group.scale.set(1+0.25*ak, 1-0.15*ak, 1+0.25*ak); } catch(e){}
-    fbSwingWeapon(player.group, ak);
-    if(mpAtkAnimT <= 0){ try { player.group.scale.set(1,1,1); } catch(e){} fbSwingWeapon(player.group, 0); }
+    if(typeof fbSwingWeapon==='function') fbSwingWeapon(player.group, ak);
+    if(mpAtkAnimT <= 0){ try { player.group.scale.set(1,1,1); } catch(e){} if(typeof fbSwingWeapon==='function') fbSwingWeapon(player.group, 0); }
   }
   if(mpJumpY > 0 || mpJumpV !== 0){
     mpJumpV -= JUMP_GRAV*dt;
@@ -6516,6 +6539,54 @@ function mpCombatInit(){
   }
 }
 
+/* ----- pause menu ----- */
+var fbPaused = false;
+function fbTogglePause(show){
+  fbPaused = (typeof show === 'boolean') ? show : !fbPaused;
+  var pm = document.getElementById('pausemenu');
+  if(pm) pm.style.display = fbPaused ? 'flex' : 'none';
+  var pp = document.getElementById('pausepill');
+  if(pp) pp.textContent = fbPaused ? '▶️' : '⏸️';
+  try {
+    if(typeof mpClock !== 'undefined' && mpClock){
+      if(fbPaused){ mpClock._pausedAt = performance.now(); }
+      else if(mpClock._pausedAt){ /* resume: clock delta continues naturally */ delete mpClock._pausedAt; }
+    }
+  } catch(e){}
+}
+function fbPauseInit(){
+  var pp = document.getElementById('pausepill');
+  if(pp && !pp._fbw){
+    pp._fbw = true;
+    pp.addEventListener('pointerdown', function(e){ e.preventDefault(); e.stopPropagation(); fbTogglePause(); });
+  }
+  var rb = document.getElementById('resumebtn');
+  if(rb && !rb._fbw){
+    rb._fbw = true;
+    rb.addEventListener('click', function(e){ e.preventDefault(); fbTogglePause(false); });
+  }
+  var qb = document.getElementById('quitbtn');
+  if(qb && !qb._fbw){
+    qb._fbw = true;
+    qb.addEventListener('click', function(e){
+      e.preventDefault();
+      fbTogglePause(false);
+      try { if(typeof mpLeaveGame === 'function') mpLeaveGame(); } catch(e){}
+      try { if(typeof showHub === 'function') showHub(); } catch(e){}
+    });
+  }
+  if(!window._fbPauseKey){
+    window._fbPauseKey = true;
+    window.addEventListener('keydown', function(e){
+      var k = (e.key||'').toLowerCase();
+      if(k === 'escape' || k === 'p'){
+        try { if(typeof mpInGame !== 'undefined' && mpInGame) fbTogglePause(); } catch(e){}
+      }
+    });
+  }
+}
+try { if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fbPauseInit); else fbPauseInit(); } catch(e){}
+
 /* =====================================================================
    AI BOTS — host-simulated players that fill empty team slots.
    Bots are REAL server players: the host opens one WebSocket per bot,
@@ -6758,8 +6829,8 @@ function mpBotTick(dt){
       b.atkAnimT -= dt;
       var ak = Math.sin(Math.max(0,(0.28-b.atkAnimT))/0.28*Math.PI);
       try { rp.group.scale.set(1+0.25*ak, 1-0.15*ak, 1+0.25*ak); } catch(e){}
-      fbSwingWeapon(rp.group, ak);
-      if(b.atkAnimT <= 0){ try { rp.group.scale.set(1,1,1); } catch(e){} fbSwingWeapon(rp.group, 0); }
+      if(typeof fbSwingWeapon==='function') fbSwingWeapon(rp.group, ak);
+      if(b.atkAnimT <= 0){ try { rp.group.scale.set(1,1,1); } catch(e){} if(typeof fbSwingWeapon==='function') fbSwingWeapon(rp.group, 0); }
     }
     b.x = Math.max(-26, Math.min(26, b.x));
     b.z = Math.max(-108, Math.min(44, b.z));
@@ -7174,8 +7245,8 @@ function mpSyncFrame(){
       rp.atkAnimT -= 0.016;
       var rk = Math.sin(Math.max(0,(0.28-rp.atkAnimT))/0.28*Math.PI);
       try { rp.group.scale.set(1+0.25*rk, 1-0.15*rk, 1+0.25*rk); } catch(e){}
-      fbSwingWeapon(rp.group, rk);
-      if(rp.atkAnimT <= 0){ try { rp.group.scale.set(1,1,1); } catch(e){} fbSwingWeapon(rp.group, 0); }
+      if(typeof fbSwingWeapon==='function') fbSwingWeapon(rp.group, rk);
+      if(rp.atkAnimT <= 0){ try { rp.group.scale.set(1,1,1); } catch(e){} if(typeof fbSwingWeapon==='function') fbSwingWeapon(rp.group, 0); }
     }
     // remote jump physics
     if((rp.jumpY||0) > 0 || (rp.jumpV||0) !== 0){
@@ -7209,7 +7280,7 @@ function mpCatchPoolOf(team){ var z = mpCatchPools(); return z[team] || z[0]; }
 
 function mpCatchInit(){
   mpCatch = { caught:{}, grabProg:{}, immunity:{}, eliminated:{}, timer:CATCH_TIME,
-              over:false, suddenDeath:false, meshes:[], effects:[], stadiumFx:[] };
+              over:false, suddenDeath:false, meshes:[], effects:[] };
   var pools = mpCatchPools();
   for(var i=0;i<pools.length;i++){
     try{
@@ -7236,160 +7307,12 @@ function mpCatchInit(){
       scene.add(deep); mpCatch.meshes.push(deep);
     }catch(e){}
   }
-  /* ============ SPLASH STADIUM v2 (BADASS EDITION) ============
-     Rocket League neon + Pokemon crowd + Fall Guys color.
-     Animated crowd, sweeping spotlights, glowing edges,
-     jumbotron, entrance tunnels, banners, confetti. */
-  try{
-    var ST = { cx:0, cz:17, w:44, l:60 };
-    function _sm(geo, mat, x, y, z){
-      var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
-      scene.add(m); mpCatch.meshes.push(m); return m;
-    }
-    function _bm(color, x, y, z, op){
-      return _sm(new THREE.BoxGeometry(1,1,1),
-        new THREE.MeshBasicMaterial({color:color, transparent:(op||1)<1, opacity:op||1}), x, y, z);
-    }
-    /* --- arena floor: vibrant green --- */
-    var floor = _sm(new THREE.PlaneGeometry(ST.w, ST.l),
-      new THREE.MeshBasicMaterial({color:0x2ecc71}), ST.cx, 0.02, ST.cz);
-    floor.rotation.x = -Math.PI/2;
-    /* --- team halves: blue / red tint --- */
-    var bz = _sm(new THREE.PlaneGeometry(ST.w, ST.l/2),
-      new THREE.MeshBasicMaterial({color:0x3498db, transparent:true, opacity:0.3}), ST.cx, 0.04, ST.cz-ST.l/4);
-    bz.rotation.x = -Math.PI/2;
-    var rz = _sm(new THREE.PlaneGeometry(ST.w, ST.l/2),
-      new THREE.MeshBasicMaterial({color:0xe74c3c, transparent:true, opacity:0.3}), ST.cx, 0.04, ST.cz+ST.l/4);
-    rz.rotation.x = -Math.PI/2;
-    /* --- NEON GLOWING EDGES (Rocket League style) --- */
-    var neonMat = new THREE.MeshBasicMaterial({color:0x00ffff});
-    var neonMat2 = new THREE.MeshBasicMaterial({color:0xff00ff});
-    /* perimeter neon strips */
-    [[ST.w,0.3,ST.cx,ST.cz-ST.l/2],[ST.w,0.3,ST.cx,ST.cz+ST.l/2]].forEach(function(p,i){
-      var n = _sm(new THREE.BoxGeometry(p[0],0.4,p[1]), i?neonMat2:neonMat, p[2], 0.3, p[3]);
-      n.userData.neonPulse = true; mpCatch.stadiumFx.push({mesh:n, t:Math.random()*10});
-    });
-    [[0.3,ST.l,ST.cx-ST.w/2,ST.cz],[0.3,ST.l,ST.cx+ST.w/2,ST.cz]].forEach(function(p,i){
-      var n = _sm(new THREE.BoxGeometry(p[0],0.4,p[1]), i?neonMat:neonMat2, p[2], 0.3, p[3]);
-      n.userData.neonPulse = true; mpCatch.stadiumFx.push({mesh:n, t:Math.random()*10});
-    });
-    /* --- center line + circle (bright white) --- */
-    var cl = _sm(new THREE.PlaneGeometry(ST.w, 0.8),
-      new THREE.MeshBasicMaterial({color:0xffffff}), ST.cx, 0.06, ST.cz);
-    cl.rotation.x = -Math.PI/2;
-    var cc = _sm(new THREE.RingGeometry(4, 4.8, 48),
-      new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide}), ST.cx, 0.06, ST.cz);
-    cc.rotation.x = -Math.PI/2;
-    /* --- FIRE BABY emblem at center (flame circle) --- */
-    var emb = _sm(new THREE.CircleGeometry(2.5, 32),
-      new THREE.MeshBasicMaterial({color:0xff6a00, transparent:true, opacity:0.8, side:THREE.DoubleSide}), ST.cx, 0.07, ST.cz);
-    emb.rotation.x = -Math.PI/2;
-    var emb2 = _sm(new THREE.CircleGeometry(1.5, 32),
-      new THREE.MeshBasicMaterial({color:0xffc93c, side:THREE.DoubleSide}), ST.cx, 0.08, ST.cz);
-    emb2.rotation.x = -Math.PI/2;
-    /* --- TIERED SEATING BOWL (4 tiers, bigger) --- */
-    var crowdMeshes = [];
-    for(var t=0; t<4; t++){
-      var tw = ST.w+10+t*12, tl = ST.l+10+t*12, th = 4+t*4;
-      var tc = [0x1a1a2e, 0x16213e, 0x0f3460, 0x533483][t];
-      var wallMat = new THREE.MeshBasicMaterial({color:tc});
-      _sm(new THREE.BoxGeometry(tw, th, 3), wallMat, ST.cx, th/2, ST.cz-tl/2);
-      _sm(new THREE.BoxGeometry(tw, th, 3), wallMat, ST.cx, th/2, ST.cz+tl/2);
-      _sm(new THREE.BoxGeometry(3, th, tl), wallMat, ST.cx-tw/2, th/2, ST.cz);
-      _sm(new THREE.BoxGeometry(3, th, tl), wallMat, ST.cx+tw/2, th/2, ST.cz);
-      /* animated crowd - colorful spheres that bob */
-      var cols = [0xff6a00,0x4fc3ff,0xffc93c,0xffffff,0xff4757,0x9b59ff,0x2ecc71];
-      for(var s=0; s<60; s++){
-        var ang = (s/60)*Math.PI*2 + t*0.3;
-        var sx = ST.cx + Math.cos(ang)*(tw/2)*0.88;
-        var sz = ST.cz + Math.sin(ang)*(tl/2)*0.88;
-        var cm = _sm(new THREE.SphereGeometry(0.6, 8, 8),
-          new THREE.MeshBasicMaterial({color:cols[(s+t)%cols.length]}),
-          sx, th+1, sz);
-        cm.userData.crowdBob = { baseY: th+1, phase: Math.random()*Math.PI*2, speed: 2+Math.random()*3 };
-        crowdMeshes.push(cm);
-      }
-    }
-    mpCatch.crowd = crowdMeshes;
-    /* --- STADIUM ROOF (partial, open center) --- */
-    var roofMat = new THREE.MeshBasicMaterial({color:0x2c3e50, transparent:true, opacity:0.9});
-    _sm(new THREE.BoxGeometry(ST.w+40, 1, 12), roofMat, ST.cx, 26, ST.cz-ST.l/2-18);
-    _sm(new THREE.BoxGeometry(ST.w+40, 1, 12), roofMat, ST.cx, 26, ST.cz+ST.l/2+18);
-    _sm(new THREE.BoxGeometry(12, 1, ST.l+40), roofMat, ST.cx-ST.w/2-18, 26, ST.cz);
-    _sm(new THREE.BoxGeometry(12, 1, ST.l+40), roofMat, ST.cx+ST.w/2+18, 26, ST.cz);
-    /* roof support pillars */
-    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c){
-      _sm(new THREE.CylinderGeometry(1,1.2,26,8),
-        new THREE.MeshBasicMaterial({color:0x34495e}),
-        ST.cx+c[0]*(ST.w/2+20), 13, ST.cz+c[1]*(ST.l/2+20));
-    });
-    /* --- 4 MEGA LIGHT TOWERS with sweeping spotlights --- */
-    mpCatch.spotlights = [];
-    [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(c, idx){
-      var lx = ST.cx+c[0]*(ST.w/2+16), lz = ST.cz+c[1]*(ST.l/2+16);
-      _sm(new THREE.CylinderGeometry(0.8,1,22,8),
-        new THREE.MeshBasicMaterial({color:0x7f8c8d}), lx, 11, lz);
-      var head = _sm(new THREE.BoxGeometry(5,3,1),
-        new THREE.MeshBasicMaterial({color:0xffffcc}), lx, 23, lz);
-      /* visible light beam (cone) */
-      var beam = _sm(new THREE.ConeGeometry(6, 24, 16, 1, true),
-        new THREE.MeshBasicMaterial({color:0xffffaa, transparent:true, opacity:0.15, side:THREE.DoubleSide}),
-        lx, 12, lz);
-      beam.userData.spotlight = { cx:lx, cz:lz, phase: idx*1.57 };
-      mpCatch.spotlights.push(beam);
-    });
-    /* --- JUMBOTRON (massive, animated) --- */
-    var jbFrame = _sm(new THREE.BoxGeometry(16, 9, 1.5),
-      new THREE.MeshBasicMaterial({color:0x111111}), ST.cx, 20, ST.cz-ST.l/2-14);
-    var jbScreen = _sm(new THREE.PlaneGeometry(14, 7),
-      new THREE.MeshBasicMaterial({color:0x00a8ff}), ST.cx, 20, ST.cz-ST.l/2-13.2);
-    jbScreen.userData.jumbotron = true;
-    mpCatch.stadiumFx.push({mesh:jbScreen, t:0});
-    /* jumbotron frame glow */
-    _sm(new THREE.BoxGeometry(17, 1, 1.7),
-      new THREE.MeshBasicMaterial({color:0xff6a00}), ST.cx, 24.8, ST.cz-ST.l/2-14);
-    _sm(new THREE.BoxGeometry(17, 1, 1.7),
-      new THREE.MeshBasicMaterial({color:0xff6a00}), ST.cx, 15.2, ST.cz-ST.l/2-14);
-    /* --- ENTRANCE TUNNELS (team colored) --- */
-    _sm(new THREE.BoxGeometry(10, 6, 8),
-      new THREE.MeshBasicMaterial({color:0x1e88e5}), ST.cx, 3, ST.cz-ST.l/2-8);
-    _sm(new THREE.BoxGeometry(10, 6, 8),
-      new THREE.MeshBasicMaterial({color:0xe63900}), ST.cx, 3, ST.cz+ST.l/2+8);
-    /* tunnel glow */
-    var tg1 = _sm(new THREE.PlaneGeometry(8, 4),
-      new THREE.MeshBasicMaterial({color:0x4fc3ff, transparent:true, opacity:0.6}), ST.cx, 3, ST.cz-ST.l/2-3.9);
-    var tg2 = _sm(new THREE.PlaneGeometry(8, 4),
-      new THREE.MeshBasicMaterial({color:0xff6a5e, transparent:true, opacity:0.6}), ST.cx, 3, ST.cz+ST.l/2+3.9);
-    tg2.rotation.y = Math.PI;
-    /* --- HANGING CHAMPIONSHIP BANNERS --- */
-    var bannerCols = [0xff6a00, 0x4fc3ff, 0xffc93c, 0x9b59ff];
-    for(var b=0; b<8; b++){
-      var ang2 = (b/8)*Math.PI*2;
-      var bx = ST.cx + Math.cos(ang2)*(ST.w/2+8);
-      var bz2 = ST.cz + Math.sin(ang2)*(ST.l/2+8);
-      var ban = _sm(new THREE.BoxGeometry(3, 5, 0.2),
-        new THREE.MeshBasicMaterial({color:bannerCols[b%4]}), bx, 20, bz2);
-      ban.userData.bannerWave = { phase: b*0.8 };
-      mpCatch.stadiumFx.push({mesh:ban, t:b*0.8});
-    }
-    /* --- CONFETTI PARTICLES (floating) --- */
-    for(var cf=0; cf<50; cf++){
-      var cfm = _sm(new THREE.PlaneGeometry(0.4, 0.6),
-        new THREE.MeshBasicMaterial({color:[0xff6a00,0x4fc3ff,0xffc93c,0xffffff][cf%4], side:THREE.DoubleSide}),
-        ST.cx+(Math.random()-0.5)*ST.w, 5+Math.random()*15, ST.cz+(Math.random()-0.5)*ST.l);
-      cfm.userData.confetti = { speed: 0.5+Math.random(), phase: Math.random()*10 };
-      mpCatch.stadiumFx.push({mesh:cfm, t:Math.random()*10});
-    }
-  }catch(e){}
 }
 
 function mpCatchCleanup(){
   if(mpCatch){
     if(mpCatch.meshes){ for(var i=0;i<mpCatch.meshes.length;i++){ try{ scene.remove(mpCatch.meshes[i]); }catch(e){} } }
     if(mpCatch.effects){ for(var j=0;j<mpCatch.effects.length;j++){ try{ scene.remove(mpCatch.effects[j].mesh); }catch(e){} } }
-    if(mpCatch.stadiumFx){ for(var k=0;k<mpCatch.stadiumFx.length;k++){ try{ scene.remove(mpCatch.stadiumFx[k].mesh); }catch(e){} } }
-    if(mpCatch.crowd){ for(var c=0;c<mpCatch.crowd.length;c++){ try{ scene.remove(mpCatch.crowd[c]); }catch(e){} } }
-    if(mpCatch.spotlights){ for(var s2=0;s2<mpCatch.spotlights.length;s2++){ try{ scene.remove(mpCatch.spotlights[s2]); }catch(e){} } }
   }
   mpCatch = null;
 }
@@ -7497,41 +7420,6 @@ function mpCatchTick(dt){
       var mm = mpCatch.meshes[mi];
       if(mm && mm.userData && mm.userData.poolRipple)
         mm.material.opacity = 0.55 + 0.3 * Math.abs(Math.sin(now * 2.4 + mm.position.x));
-    }
-  }catch(e){}
-  /* STADIUM ANIMATIONS (crowd, neon, spotlights, jumbotron, banners, confetti) */
-  try{
-    var st = mpCatch.stadiumFx || [];
-    for(var si=0; si<st.length; si++){
-      var sfx = st[si]; if(!sfx || !sfx.mesh) continue;
-      sfx.t += dt;
-      var m = sfx.mesh, ud = m.userData || {};
-      if(ud.neonPulse){
-        m.material.color.setHSL((0.5 + 0.3*Math.sin(sfx.t*3)) % 1, 1, 0.6);
-      } else if(ud.jumbotron){
-        m.material.color.setHSL((sfx.t*0.2) % 1, 0.8, 0.5);
-      } else if(ud.bannerWave){
-        m.rotation.z = Math.sin(sfx.t*2 + ud.phase) * 0.15;
-      } else if(ud.confetti){
-        m.position.y -= ud.speed * dt * 2;
-        m.rotation.x += dt*3; m.rotation.y += dt*2;
-        if(m.position.y < 0.5) m.position.y = 20;
-      } else if(ud.spotlight){
-        var sw = Math.sin(sfx.t*1.5 + ud.phase) * 10;
-        m.position.x = ud.cx + sw;
-        m.position.z = ud.cz + Math.cos(sfx.t*1.2 + ud.phase) * 8;
-        m.lookAt(ST.cx || 0, 0, 17);
-      }
-    }
-    /* crowd bobbing */
-    if(mpCatch.crowd){
-      for(var ci=0; ci<mpCatch.crowd.length; ci++){
-        var cm2 = mpCatch.crowd[ci];
-        if(cm2 && cm2.userData && cm2.userData.crowdBob){
-          var cb = cm2.userData.crowdBob;
-          cm2.position.y = cb.baseY + Math.abs(Math.sin(now*cb.speed + cb.phase)) * 0.8;
-        }
-      }
     }
   }catch(e){}
   /* steam poof effects */
@@ -7820,8 +7708,8 @@ function mpUpdateExplore(dt, t){
     mpAtkAnimT -= dt;
     var ak = Math.sin(Math.max(0,(0.28-mpAtkAnimT))/0.28*Math.PI);
     try { player.group.scale.set(1+0.25*ak, 1-0.15*ak, 1+0.25*ak); } catch(e){}
-    fbSwingWeapon(player.group, ak);
-    if(mpAtkAnimT <= 0){ try { player.group.scale.set(1,1,1); } catch(e){} fbSwingWeapon(player.group, 0); }
+    if(typeof fbSwingWeapon==='function') fbSwingWeapon(player.group, ak);
+    if(mpAtkAnimT <= 0){ try { player.group.scale.set(1,1,1); } catch(e){} if(typeof fbSwingWeapon==='function') fbSwingWeapon(player.group, 0); }
   }
   // --- jump physics ---
   if(mpJumpY > 0 || mpJumpV !== 0){
@@ -7862,7 +7750,7 @@ function mpUpdateExplore(dt, t){
   // stage pill
   try {
     document.getElementById('stagepill').textContent = '🌐 ' +
-      (mpGameMode === 'coop' ? 'CO-OP' : mpGameMode.toUpperCase());
+      (mpGameMode === 'coop' ? 'CO-OP' : (mpGameMode === 'catch' ? 'SPLASH' : mpGameMode.toUpperCase()));
   } catch(e){}
   // SPLASH arena lighting: bright warm fog so the match stays readable
   // (the open-world biome fog at the old field was nearly black-red)
