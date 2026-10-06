@@ -2885,6 +2885,7 @@ function _cdlClick(sel){
 }
 function catchDeepLink(){
   var q = null;
+  try { q = new URLSearchParams(window.location.search).get('mode'); } catch(e){}
   var ql = q ? q.toLowerCase() : '';
   if(!q || (ql !== 'catch' && ql !== 'splash')) return; // ?mode=catch or ?mode=splash
   _catchDL = true;
@@ -2893,9 +2894,16 @@ function catchDeepLink(){
     var fb = null;
     try { fb = window.FBMultiplayer; } catch(e){}
     if(!fb || typeof fb.start !== 'function'){
+      // timeout after 15s: fall back to normal hub flow
+      if(Date.now() - t0 > 15000){
+        clearInterval(iv);
+        _catchDL = false;
+        try { if(typeof showHub === 'function') showHub(); } catch(e){}
+      }
       return;
     }
     clearInterval(iv);
+    try { if(typeof fb.start === 'function') fb.start(); } catch(e){}
     setTimeout(function(){
       var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
       if(cbtn) cbtn.click();
@@ -8505,11 +8513,14 @@ function startGame(){
       init();
       // SUCCESS: hide loading
       if(l) l.style.display = 'none';
-      // Show hub or character creation
+      // Deep-link ?mode=splash/?mode=catch goes straight to SPLASH via the MP UI
+      try { if(typeof catchDeepLink === 'function') catchDeepLink(); } catch(e){}
+      // Show hub or character creation (catchDeepLink may already be driving the MP flow)
       if(typeof needsCreation === 'function' && needsCreation()){
         if(typeof openCreation === 'function') openCreation();
       } else if(typeof showHub === 'function') {
-        showHub();
+        // Skip showHub if the deep-link already started the SPLASH flow
+        try { if(typeof _catchDL === 'undefined' || !_catchDL) showHub(); } catch(e){ showHub(); }
       }
     } catch(e) {
       // FAIL: hide loading, show error (never hang on black screen)
