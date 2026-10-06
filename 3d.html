@@ -2838,29 +2838,43 @@ function renderHub(){
    fills it with bots, readies up, and starts. */
 function startSplash(){
   try{ hideHub(); }catch(e){}
-  try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
-  try{
-    var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
-    if(cbtn) cbtn.click();
-  }catch(e){}
-  setTimeout(function(){
-    try{ document.getElementById('mpmenuov').style.display='none'; }catch(e){}
-    _cdlClick('#mpcreatebtn');
-    var iv2 = setInterval(function(){
-      var lov = document.getElementById('mplobbyov');
-      if(!(lov && lov.style.display === 'flex')) return;
-      clearInterval(iv2);
-      try {
-        var bf = document.getElementById('mpbotfill');
-        if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
-      } catch(e){}
-      _cdlClick('#mpreadybtn');
-      var iv3 = setInterval(function(){
-        var sb = document.getElementById('mpstartbtn');
-        if(sb && sb.style.display !== 'none'){ clearInterval(iv3); sb.click(); }
+  // Wait for MP system to be initialized before driving the UI
+  var _ssTries = 0;
+  var _ssIv = setInterval(function(){
+    _ssTries++;
+    var _mpOk = false;
+    try { _mpOk = !!window._mpInitDone && typeof startMultiplayer === 'function'; } catch(e){}
+    if(!_mpOk){
+      if(_ssTries > 30){ // 15s timeout: give up silently, leave title screen
+        clearInterval(_ssIv);
+      }
+      return;
+    }
+    clearInterval(_ssIv);
+    try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
+    try{
+      var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
+      if(cbtn) cbtn.click();
+    }catch(e){}
+    setTimeout(function(){
+      try{ document.getElementById('mpmenuov').style.display='none'; }catch(e){}
+      _cdlClick('#mpcreatebtn');
+      var iv2 = setInterval(function(){
+        var lov = document.getElementById('mplobbyov');
+        if(!(lov && lov.style.display === 'flex')) return;
+        clearInterval(iv2);
+        try {
+          var bf = document.getElementById('mpbotfill');
+          if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
+        } catch(e){}
+        _cdlClick('#mpreadybtn');
+        var iv3 = setInterval(function(){
+          var sb = document.getElementById('mpstartbtn');
+          if(sb && sb.style.display !== 'none'){ clearInterval(iv3); sb.click(); }
+        }, 1000);
       }, 1000);
-    }, 1000);
-  }, 900);
+    }, 900);
+  }, 500);
 }
 function showHub(){
   // SPLASH ONLY (2026-10-05, Jeff's order): the hub is gone. Every path that
@@ -6160,17 +6174,23 @@ function mpRenderLobby(state){
     var need = isVersus ? ((typeof FireBabysNet !== 'undefined' && FireBabysNet.MODES[ state.mode ]) || 0) : 0;
     var humans = state.players.filter(function(p){ return !mpIsBotName(p.name); }).length;
     var allReady = state.players.length > 0 && state.players.every(function(p){ return p.ready; });
+    // Host doesn't need to be "ready" to start — clicking START is their ready.
+    // Only require non-host players to be ready.
+    var othersReady = state.players.length > 0 && state.players.every(function(p){
+      try { if(net && p.id === net.playerId) return true; } catch(e){}
+      return p.ready;
+    });
     var canStart = false, label = '';
     if(mpBotStarting){
       canStart = false; label = '🎮 ADDING PLAYERS...';
     } else if(!isVersus){
-      canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
+      canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
     } else if(state.mode === 'catch'){
       var ccn = state.players.length;
       var ccOk = ccn >= 4 && ccn <= 30 && ccn % 2 === 0;
       if(ccOk){
-        canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
-      } else if(mpBotsEnabled && allReady){
+        canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
+      } else if(mpBotsEnabled && othersReady){
         var ccTarget = Math.max(4, humans + (humans % 2 === 0 ? 0 : 1));
         if(ccTarget <= 30 && ccTarget > humans){ canStart = true; label = '🎮 START WITH ' + (ccTarget - humans) + ' PLAYERS'; }
         else { canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)'; }
@@ -6178,10 +6198,10 @@ function mpRenderLobby(state){
         canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)';
       }
     } else if(state.players.length === need){
-      canStart = allReady; label = allReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
+      canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
     } else if(mpBotsEnabled && humans < need){
-      canStart = allReady;
-      label = allReady ? '🎮 START WITH ' + (need - humans) + ' PLAYERS' : '⏳ WAITING FOR READY...';
+      canStart = othersReady;
+      label = othersReady ? '🎮 START WITH ' + (need - humans) + ' PLAYERS' : '⏳ WAITING FOR READY...';
     } else {
       canStart = false; label = '⏳ NEED ' + need + ' PLAYERS (have ' + state.players.length + ')';
     }
@@ -7042,7 +7062,9 @@ function mpSpawnRemote(p){
     // offset tag height per-player so overlapping players' labels don't stack exactly
     var _tagOff = 0;
     try { for(var _ti=0; _ti<String(p.id).length; _ti++){ _tagOff += String(p.id).charCodeAt(_ti); } _tagOff = (_tagOff % 5) * 0.22; } catch(e){}
-    tag.position.y = 2.9 + _tagOff; g.add(tag);
+    tag.position.y = 2.9 + _tagOff;
+    try { tag.userData.isNameTag = true; } catch(e){}
+    g.add(tag);
     // combat: HP bar + block shield bubble
     var hb = null, sh = null;
     try {
@@ -7416,7 +7438,14 @@ function mpCatchFree(vid){
   if(!mpCatch) return;
   delete mpCatch.caught[vid];
   delete mpCatch.grabProg[vid];
-  try{ var g = mpCatchGroupOf(vid); if(g && g.userData) g.userData.baseY = 1.05; }catch(e){}
+  try{
+    var g = mpCatchGroupOf(vid);
+    if(g && g.userData) g.userData.baseY = 1.05;
+    // restore name tag visibility
+    if(g) g.traverse(function(o){
+      if(o && o.isSprite && o.userData && o.userData.isNameTag){ o.visible = true; }
+    });
+  }catch(e){}
 }
 
 /* local player's catch role: {caught, carrier, eliminated, mul} */
@@ -7530,7 +7559,14 @@ function mpCatchTick(dt){
         });
         mpCatch.caught[V.id] = { carriers:[atk[0].id, atk[1].id], team: atk[0].team, stopT:0, rescuers:0 };
         delete mpCatch.grabProg[V.id];
-        try{ var vg0 = mpCatchGroupOf(V.id); if(vg0 && vg0.userData) vg0.userData.baseY = 2.3; }catch(e2){}
+        try{
+          var vg0 = mpCatchGroupOf(V.id);
+          if(vg0 && vg0.userData) vg0.userData.baseY = 2.3;
+          // hide victim's name tag while carried to avoid label stacking with carrier
+          if(vg0) vg0.traverse(function(o){
+            if(o && o.isSprite && o.userData && o.userData.isNameTag){ o.visible = false; }
+          });
+        }catch(e2){}
         if(typeof toast === 'function') toast('🙌 ' + mpDisplayName(V.name) + ' got CAUGHT!');
         if(typeof beep === 'function') beep(440, 0.12, 'square', 0.07);
       }
@@ -7841,6 +7877,7 @@ function mpInit(){
     start: startMultiplayer, leave: mpLeaveLobby,
     sendExtinguish: mpSendExtinguish, net: function(){ return net; }
   };
+  window._mpInitDone = true;
 }
 
 // Auto-init when game scripts are ready (init() has run)
