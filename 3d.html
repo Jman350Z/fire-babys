@@ -2845,12 +2845,20 @@ function startSplash(){
     var _mpOk = false;
     try { _mpOk = !!window._mpInitDone && typeof startMultiplayer === 'function'; } catch(e){}
     if(!_mpOk){
-      if(_ssTries > 30){ // 15s timeout: give up silently, leave title screen
+      if(_ssTries > 30){ // 15s timeout: try force-init, then proceed anyway
         clearInterval(_ssIv);
+        try { if(typeof mpInit === 'function' && !window._mpInitDone) mpInit(); } catch(e){}
+        try { if(typeof startMultiplayer === 'function') startMultiplayer(); } catch(e){}
+        // continue with the rest of the flow below via a direct call
+        _startSplashContinue();
       }
       return;
     }
     clearInterval(_ssIv);
+    _startSplashContinue();
+  }, 500);
+}
+function _startSplashContinue(){
     try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
     try{
       var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
@@ -2874,7 +2882,6 @@ function startSplash(){
         }, 1000);
       }, 1000);
     }, 900);
-  }, 500);
 }
 function showHub(){
   // SPLASH ONLY (2026-10-05, Jeff's order): the hub is gone. Every path that
@@ -6617,8 +6624,7 @@ function fbPauseInit(){
     qb.addEventListener('click', function(e){
       e.preventDefault();
       fbTogglePause(false);
-      try { if(typeof mpLeaveGame === 'function') mpLeaveGame(); } catch(e){}
-      try { if(typeof showHub === 'function') showHub(); } catch(e){}
+      try { if(typeof mpLeaveLobby === 'function') mpLeaveLobby(); } catch(e){}
     });
   }
   if(!window._fbPauseKey){
@@ -6926,6 +6932,37 @@ function mpEnterGame(){
   mpInGame = true;
   mpScores = { team0: 0, team1: 0 };
   mpKOs = { team0: 0, team1: 0 };
+  // TEAM BALANCE: if all players are on the same team (server didn't split),
+  // force-split bots so SPLASH has actual enemies. Critical for versus modes.
+  try{
+    if(mpGameMode === 'catch' || mpGameMode === 'versus'){
+      var allIds = [];
+      if(net && net.playerId) allIds.push(net.playerId);
+      for(var _bid in remotePlayers) allIds.push(_bid);
+      // check if all on team 0
+      var allTeam0 = true;
+      for(var _i=0; _i<allIds.length; _i++){
+        var _id = allIds[_i];
+        var _t = (_id === net.playerId) ? mpMyTeam : 
+                 (remotePlayers[_id] ? remotePlayers[_id].team : 0);
+        if(_t !== 0) { allTeam0 = false; break; }
+      }
+      if(allTeam0 && allIds.length >= 2){
+        // split: first half team 0, second half team 1
+        // keep local player on team 0, assign alternating bots to team 1
+        var botIds = [];
+        for(var _j=0; _j<allIds.length; _j++){
+          if(allIds[_j] !== net.playerId) botIds.push(allIds[_j]);
+        }
+        // assign every other bot to team 1 for balanced teams
+        for(var _k=0; _k<botIds.length; _k++){
+          if(_k % 2 === 1 && remotePlayers[botIds[_k]]){
+            remotePlayers[botIds[_k]].team = 1;
+          }
+        }
+      }
+    }
+  }catch(_e){}
   // reset combat + jump state
   mpHP = mpMaxHP; mpKO = false; mpBlocking = false; mpAtkCd = 0; mpAtkAnimT = 0;
   mpJumpY = 0; mpJumpV = 0; mpJumps = 0; mpFlipT = 0;
