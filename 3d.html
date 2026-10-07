@@ -2908,7 +2908,9 @@ function catchDeepLink(){
   var q = null;
   try { q = new URLSearchParams(window.location.search).get('mode'); } catch(e){}
   var ql = q ? q.toLowerCase() : '';
-  if(!q || (ql !== 'catch' && ql !== 'splash')) return; // ?mode=catch or ?mode=splash
+  // SPLASH ONLY (Jeff's order): no ?mode param defaults to SPLASH too.
+  // Every entry point goes straight to a SPLASH match.
+  if(ql !== 'catch' && ql !== 'splash') ql = 'splash';
   _catchDL = true;
   var t0 = Date.now();
   var iv = setInterval(function(){
@@ -6242,11 +6244,16 @@ function updateReadyBtn(){
     : 'linear-gradient(180deg,#2e8a4a,#1e5e2e)';
 }
 function mpLeaveLobby(){
+  // Hide pause menu immediately (belt & suspenders: fbTogglePause may have missed it)
+  try{ var _pm = document.getElementById('pausemenu'); if(_pm) _pm.style.display = 'none'; }catch(e){}
+  try{ if(typeof fbPaused !== 'undefined') fbPaused = false; }catch(e){}
   // Show immediate feedback - quitting takes time (bot disconnects)
   try{
+    var _old = document.getElementById('mp-leaving-ov');
+    if(_old) _old.parentNode.removeChild(_old);
     var _lo = document.createElement('div');
     _lo.id = 'mp-leaving-ov';
-    _lo.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);color:#ffd76a;font:800 20px system-ui;';
+    _lo.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);color:#ffd76a;font:800 20px system-ui;';
     _lo.textContent = 'Leaving match...';
     document.body.appendChild(_lo);
   }catch(e){}
@@ -6255,8 +6262,9 @@ function mpLeaveLobby(){
     try{
       mpClearBots();
       mpCleanupNet();
-      document.getElementById('mplobbyov').style.display = 'none';
+      try{ document.getElementById('mplobbyov').style.display = 'none'; }catch(e){}
       if(mpInGame) mpExitGame();
+      try{ var _pm2 = document.getElementById('pausemenu'); if(_pm2) _pm2.style.display = 'none'; }catch(e){}
       var _lo2 = document.getElementById('mp-leaving-ov');
       if(_lo2) _lo2.parentNode.removeChild(_lo2);
       if(typeof showHub === 'function') showHub();
@@ -6984,9 +6992,14 @@ function mpEnterGame(){
   mpHP = mpMaxHP; mpKO = false; mpBlocking = false; mpAtkCd = 0; mpAtkAnimT = 0;
   mpJumpY = 0; mpJumpV = 0; mpJumps = 0; mpFlipT = 0;
   // Hide all overlays, enter explore-like mode
-  ['mpmenuov','mplobbyov','mpendov'].forEach(function(id){
-    document.getElementById(id).style.display = 'none';
-  });
+  // (hide twice: immediately + after 1s, to win any race with delayed lobby UI updates)
+  var _hideMpOverlays = function(){
+    ['mpmenuov','mplobbyov','mpendov'].forEach(function(id){
+      try{ document.getElementById(id).style.display = 'none'; }catch(e){}
+    });
+  };
+  _hideMpOverlays();
+  setTimeout(_hideMpOverlays, 1000);
   if(typeof modeEnter === 'function') modeEnter();
   gameMode = 'multiplayer';
   state = 'EXPLORE';
@@ -7096,6 +7109,15 @@ function mpSpawnLocal(){
       }
     }
   }
+  // Hide the local player's own name tag in multiplayer (reduces clutter;
+  // you know who you are). Remote players keep theirs.
+  try{
+    if(player && player.group){
+      player.group.traverse(function(o){
+        if(o && o.isSprite) o.visible = false;
+      });
+    }
+  }catch(e){}
 }
 function mpSpawnRemote(p){
   if(remotePlayers[p.id] || !p) return;
@@ -7557,6 +7579,45 @@ function mpCatchPoof(x, z){
 function mpCatchTick(dt){
   if(!mpCatch || mpCatch.over || !mpInGame || !net) return;
   var now = (typeof clock !== 'undefined') ? clock.elapsedTime : 0;
+  /* TEAM BALANCE ENFORCER (throttled): if all players ended up on team 0
+     (server didn't split, bots joined late, or rejoin cleared state),
+     force-split so SPLASH always has two opposing teams. */
+  try{
+    if(!mpCatch._tbNext || now >= mpCatch._tbNext){
+      mpCatch._tbNext = now + 3;
+      var _t0 = 0, _t1 = 0, _ids = [];
+      if(net && net.playerId){
+        _ids.push(net.playerId);
+        if((typeof mpMyTeam === 'number' ? mpMyTeam : 0) === 0) _t0++; else _t1++;
+      }
+      for(var _rid in remotePlayers){
+        var _rr = remotePlayers[_rid];
+        if(!_rr || !_rr.group) continue;
+        _ids.push(_rid);
+        if((typeof _rr.team === 'number' ? _rr.team : 0) === 0) _t0++; else _t1++;
+      }
+      if(_ids.length >= 2 && (_t0 === 0 || _t1 === 0)){
+        // all on one team: split bots, keep local player where they are
+        var _bots = [];
+        for(var _bi = 0; _bi < _ids.length; _bi++){
+          if(_ids[_bi] !== net.playerId) _bots.push(_ids[_bi]);
+        }
+        var _targetT1 = Math.ceil(_bots.length / 2);
+        var _assigned = 0;
+        for(var _bj = 0; _bj < _bots.length && _assigned < _targetT1; _bj++){
+          // assign every other bot to team 1 for a balanced split
+          if(_bj % 2 === 1 && remotePlayers[_bots[_bj]]){
+            remotePlayers[_bots[_bj]].team = 1;
+            _assigned++;
+          }
+        }
+        // safety: if still none on team 1 (e.g. 1 bot), force the first bot over
+        if(_assigned === 0 && _bots.length > 0 && remotePlayers[_bots[0]]){
+          remotePlayers[_bots[0]].team = 1;
+        }
+      }
+    }
+  }catch(_e){}
   /* pool ripple */
   try{
     for(var mi=0; mi<mpCatch.meshes.length; mi++){
