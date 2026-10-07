@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tristan's Dark Knight Rescue — Fire Babys</title>
+<meta name="description" content="Prince Tristan's quest to rescue Princess Trinity! A Fire Babys game by Jman350Z & fire team.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#stage{font-size:18px;color:#ff6a00}
+#hpbar{width:140px;height:14px;background:#333;border:2px solid #000;border-radius:7px;overflow:hidden;margin-top:4px}
+#hpfill{height:100%;width:100%;background:linear-gradient(90deg,#ff3b2e,#ff8a00);transition:width .2s}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,5,15,.92);color:#fff;text-align:center;padding:24px;overflow-y:auto}
+#overlay h1{font-size:clamp(26px,6vw,44px);font-weight:900;margin-bottom:14px;color:#c41e7a;text-shadow:0 0 20px #ff2a6d}
+#overlay h1.gold{color:#ffd23f;text-shadow:0 0 20px #ff8a00}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:480px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:460px}
+#overlay button{background:#c41e7a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#overlay button:active{transform:translateY(3px)}
+#mathgate{background:#222;border-radius:12px;padding:16px;margin:14px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
+.hidden{display:none!important}
+#dpad{position:fixed;left:12px;bottom:20px;z-index:10;display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:4px;opacity:.75}
+.dbtn{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);border-radius:14px;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center}
+.dbtn:active{background:rgba(255,255,255,.4)}
+#actions{position:fixed;right:12px;bottom:20px;z-index:10;display:flex;gap:12px;opacity:.85}
+.abtn{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.5);color:#fff;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center}
+#btnAtk{background:rgba(196,30,122,.55)}
+#btnJump{background:rgba(255,106,0,.55)}
+#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div></div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="dpad">
+<div></div><div class="dbtn" id="dUp">▲</div><div></div>
+<div class="dbtn" id="dLeft">◀</div><div></div><div class="dbtn" id="dRight">▶</div>
+<div></div><div class="dbtn" id="dDown">▼</div><div></div>
+</div>
+<div id="actions">
+<div class="abtn" id="btnJump">JUMP</div>
+<div class="abtn" id="btnAtk">⚔️</div>
+</div>
+<div id="overlay">
+<h1 id="otitle">⚔️ TRISTAN'S<br>DARK KNIGHT RESCUE</h1>
+<div id="obody"></div>
+<div id="mathgate" class="hidden">
+<p>🔒 Parental Gate: solve to continue</p>
+<p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p>
+<button onclick="checkMath()">UNLOCK</button>
+</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: If your clothes catch fire — STOP, DROP, and ROLL!</div>
+<button id="obtn" onclick="startGame()">▶ BEGIN QUEST</button>
+</div>
+</div>
+<script>
+'use strict';
+/* ============================================================
+   TRISTAN'S DARK KNIGHT RESCUE — Game #56
+   15-stage action platformer. Prince Tristan rescues Princess Trinity.
+   COPPA: zero PII, zero trackers. Parental math gate on external links.
+   ============================================================ */
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),
+      olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+/* ---------- Web Audio synth ---------- */
+let AC=null;
+function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(type){
+  const ac=audio();if(!ac)return;
+  const o=ac.createOscillator(),g=ac.createGain();
+  o.connect(g);g.connect(ac.destination);
+  const t=ac.currentTime;
+  if(type==='slash'){o.type='sawtooth';o.frequency.setValueAtTime(800,t);o.frequency.exponentialRampToValueAtTime(200,t+0.12);g.gain.setValueAtTime(0.25,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);}
+  else if(type==='hit'){o.type='square';o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(60,t+0.15);g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.2);}
+  else if(type==='jump'){o.type='sine';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(600,t+0.12);g.gain.setValueAtTime(0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);}
+  else if(type==='coin'){o.type='sine';o.frequency.setValueAtTime(880,t);o.frequency.setValueAtTime(1320,t+0.08);g.gain.setValueAtTime(0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.2);}
+  else if(type==='hurt'){o.type='sawtooth';o.frequency.setValueAtTime(400,t);o.frequency.exponentialRampToValueAtTime(100,t+0.25);g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.3);}
+  else if(type==='boss'){o.type='sawtooth';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(40,t+0.5);g.gain.setValueAtTime(0.4,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.6);}
+  else if(type==='win'){[523,659,784,1047].forEach((f,i)=>{const oo=ac.createOscillator(),gg=ac.createGain();oo.connect(gg);gg.connect(ac.destination);oo.type='sine';oo.frequency.value=f;gg.gain.setValueAtTime(0.2,t+i*0.12);gg.gain.exponentialRampToValueAtTime(0.01,t+i*0.12+0.3);oo.start(t+i*0.12);oo.stop(t+i*0.12+0.35);});return;}
+  o.start(t);o.stop(t+0.7);
+}
+
+/* ---------- Object pools (no GC stutter) ---------- */
+const POOL={
+  particles:[],projectiles:[],floaters:[],
+  init(){for(let i=0;i<200;i++)this.particles.push({active:false});
+    for(let i=0;i<40;i++)this.projectiles.push({active:false});
+    for(let i=0;i<20;i++)this.floaters.push({active:false});},
+  spawnP(x,y,vx,vy,life,color,size){const p=this.particles.find(p=>!p.active);if(!p)return;
+    p.active=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;},
+  spawnProj(x,y,vx,vy,dmg,friendly){const p=this.projectiles.find(p=>!p.active);if(!p)return null;
+    p.active=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.dmg=dmg;p.friendly=friendly;p.life=2;return p;},
+  spawnText(x,y,txt,color){const f=this.floaters.find(f=>!f.active);if(!f)return;
+    f.active=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;}
+};
+POOL.init();
+
+/* ---------- Screen shake & hit-stop ---------- */
+let shakeX=0,shakeY=0,shakeT=0,hitStop=0;
+function addShake(mag,time){shakeT=Math.max(shakeT,time);shakeMag=Math.max(shakeMag||0,mag);}
+let shakeMag=0;
+function addHitStop(t){hitStop=Math.max(hitStop,t);}
+
+/* ---------- Input (virtual gamepad + keyboard) ---------- */
+const keys={left:false,right:false,up:false,down:false,jump:false,attack:false};
+function bindHold(el,prop){
+  const on=e=>{e.preventDefault();keys[prop]=true;};
+  const off=e=>{e.preventDefault();keys[prop]=false;};
+  el.addEventListener('touchstart',on,{passive:false});
+  el.addEventListener('touchend',off,{passive:false});
+  el.addEventListener('touchcancel',off,{passive:false});
+  el.addEventListener('mousedown',on);el.addEventListener('mouseup',off);el.addEventListener('mouseleave',off);
+}
+bindHold(document.getElementById('dLeft'),'left');
+bindHold(document.getElementById('dRight'),'right');
+bindHold(document.getElementById('dUp'),'up');
+bindHold(document.getElementById('dDown'),'down');
+bindHold(document.getElementById('btnJump'),'jump');
+bindHold(document.getElementById('btnAtk'),'attack');
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=true;
+  if(e.key==='ArrowUp'||e.key==='w')keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s')keys.down=true;
+  if(e.key===' '||e.key==='z')keys.jump=true;
+  if(e.key==='x'||e.key==='Enter')keys.attack=true;
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=false;
+  if(e.key==='ArrowUp'||e.key==='w')keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s')keys.down=false;
+  if(e.key===' '||e.key==='z')keys.jump=false;
+  if(e.key==='x'||e.key==='Enter')keys.attack=false;
+});
+
+/* ---------- Parental math gate ---------- */
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;
+  document.getElementById('mq').textContent=a+' + '+b;
+  mathgate.classList.remove('hidden');
+}
+function checkMath(){
+  const v=parseInt(document.getElementById('ma').value,10);
+  if(v===mathAnswer){mathgate.classList.add('hidden');startGame();}
+  else{document.getElementById('ma').value='';document.getElementById('mq').parentElement.style.color='#ff6a6a';}
+}
+
+/* ---------- Game state ---------- */
+const G={
+  state:'title',stage:1,score:0,combo:0,comboT:0,
+  camX:0,levelW:0,platforms:[],enemies:[],hazards:[],coins:[],
+  boss:null,bossActive:false,doorX:0,
+  time:0
+};
+const P={ // player (Dark Knight Tristan)
+  x:0,y:0,vx:0,vy:0,w:34,h:48,hp:100,maxHp:100,
+  facing:1,onGround:false,wallSliding:false,
+  atkCd:0,atkCombo:0,atkT:0,invuln:0,
+  jumpBuf:0,coyote:0
+};
+const GRAV=2200,JUMP_V=780,MOVE_SPD=320;
+
+/* ---------- Level generation (15 stages) ---------- */
+function buildStage(n){
+  G.platforms=[];G.enemies=[];G.hazards=[];G.coins=[];G.boss=null;G.bossActive=false;
+  const diff=Math.min(1,(n-1)/14); // 0..1 difficulty
+  G.levelW=2400+n*220;
+  const groundY=H-90;
+  // ground segments (with gaps)
+  let x=0;
+  while(x<G.levelW){
+    const segW=400+Math.random()*400;
+    const gap=n>3&&Math.random()<0.3+diff*0.3?120+Math.random()*120:0;
+    if(gap>0&&x>300){
+      G.platforms.push({x:x,y:groundY,w:segW,h:90,brk:false});
+      x+=segW+gap;
+    }else{
+      G.platforms.push({x:x,y:groundY,w:segW,h:90,brk:false});
+      x+=segW;
+    }
+  }
+  // floating platforms
+  const nPlat=4+Math.floor(n*0.5);
+  for(let i=0;i<nPlat;i++){
+    G.platforms.push({x:300+Math.random()*(G.levelW-600),y:groundY-120-Math.random()*220,
+      w:110+Math.random()*80,h:22,brk:n>6&&Math.random()<0.25});
+  }
+  // collapsing bridges (stage 6+)
+  if(n>=6){
+    for(let i=0;i<2+Math.floor(diff*3);i++){
+      G.platforms.push({x:500+Math.random()*(G.levelW-1000),y:groundY-60,
+        w:180,h:18,brk:true,shake:0,gone:false});
+    }
+  }
+  // enemies: dark fortress sentinels (rock creatures)
+  const nEn=3+Math.floor(n*0.7);
+  for(let i=0;i<nEn;i++){
+    G.enemies.push({
+      x:400+Math.random()*(G.levelW-700),y:groundY-44,
+      vx:(Math.random()<0.5?-1:1)*(40+diff*60),vy:0,w:36,h:44,
+      hp:2+Math.floor(diff*3),maxHp:2+Math.floor(diff*3),
+      patrolMin:0,patrolMax:0,alive:true,hitT:0,type:Math.random()<0.2?'brute':'sentinel'
+    });
+    const e=G.enemies[G.enemies.length-1];
+    e.patrolMin=e.x-120;e.patrolMax=e.x+120;
+    if(e.type==='brute'){e.w=52;e.h=64;e.hp+=2;e.maxHp+=2;}
+  }
+  // swinging pendulum hazards (stage 4+)
+  if(n>=4){
+    for(let i=0;i<1+Math.floor(diff*4);i++){
+      G.hazards.push({type:'pendulum',x:600+Math.random()*(G.levelW-1200),
+        y:60,len:140+Math.random()*80,ang:0.6,spd:1.2+diff*1.2,r:22});
+    }
+  }
+  // coins (score)
+  for(let i=0;i<12+Math.floor(n*0.8);i++){
+    G.coins.push({x:200+Math.random()*(G.levelW-400),y:groundY-80-Math.random()*260,taken:false,ph:Math.random()*6});
+  }
+  // boss on stage 15
+  if(n===15){
+    G.boss={x:G.levelW-400,y:groundY-120,w:90,h:120,hp:30,maxHp:30,
+      vx:0,vy:0,atkT:0,alive:true,hitT:0,phase:1};
+    sfx('boss');
+  }
+  G.doorX=G.levelW-150;
+  // reset player
+  P.x=80;P.y=groundY-200;P.vx=0;P.vy=0;P.hp=P.maxHp;P.invuln=0;
+  G.camX=0;
+  document.getElementById('stage').textContent='STAGE '+n+'/15';
+}
+
+/* ---------- Player physics ---------- */
+function updatePlayer(dt){
+  // horizontal
+  const target=(keys.right?MOVE_SPD:0)-(keys.left?MOVE_SPD:0);
+  P.vx+=(target-P.vx)*Math.min(1,dt*10);
+  P.facing=target!==0?Math.sign(target):P.facing;
+  // gravity
+  P.vy+=GRAV*dt;
+  // wall slide
+  P.wallSliding=false;
+  // jump (buffered + coyote)
+  if(keys.jump)P.jumpBuf=0.12;else P.jumpBuf-=dt;
+  if(P.onGround)P.coyote=0.1;else P.coyote-=dt;
+  if(P.jumpBuf>0&&(P.onGround||P.coyote>0)){
+    P.vy=-JUMP_V;P.onGround=false;P.coyote=0;P.jumpBuf=0;sfx('jump');
+    for(let i=0;i<8;i++)POOL.spawnP(P.x,P.y+P.h/2,(Math.random()-0.5)*200,Math.random()*-100,0.4,'#8a8a8a',3);
+  }
+  // variable jump height
+  if(!keys.jump&&P.vy<-300)P.vy=-300;
+  // attack
+  P.atkCd-=dt;
+  if(keys.attack&&P.atkCd<=0){
+    P.atkCd=0.32;P.atkT=0.18;P.atkCombo=(P.atkCombo+1)%3;
+    sfx('slash');addShake(3,0.1);
+    // sword arc hitbox
+    const sx=P.x+P.facing*44,sy=P.y;
+    for(let i=0;i<10;i++)POOL.spawnP(sx,sy,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.25,'#ff2a6d',4);
+    // damage enemies
+    [...G.enemies,G.boss].forEach(e=>{
+      if(!e||!e.alive)return;
+      if(Math.abs(e.x-sx)<60&&Math.abs(e.y-sy)<60){
+        e.hp-=1+Math.floor(P.atkCombo/2);e.hitT=0.15;
+        G.combo++;G.comboT=1.5;
+        const pts=100*G.combo;G.score+=pts;
+        POOL.spawnText(e.x,e.y-40,'+'+pts,'#ffd23f');
+        for(let i=0;i<12;i++)POOL.spawnP(e.x,e.y,(Math.random()-0.5)*400,(Math.random()-0.5)*400,0.5,'#ff6a00',4);
+        sfx('hit');addShake(5,0.15);addHitStop(0.05);
+        if(e.hp<=0){e.alive=false;G.score+=500;POOL.spawnText(e.x,e.y-40,'+500!','#ff2a6d');
+          for(let i=0;i<20;i++)POOL.spawnP(e.x,e.y,(Math.random()-0.5)*500,(Math.random()-0.5)*500,0.7,'#666',5);}
+      }
+    });
+  }
+  P.atkT-=dt;
+  // integrate
+  P.x+=P.vx*dt;P.y+=P.vy*dt;
+  P.x=Math.max(20,Math.min(G.levelW-20,P.x));
+  // platform collision
+  P.onGround=false;
+  for(const pl of G.platforms){
+    if(pl.gone)continue;
+    if(P.x+P.w/2>pl.x&&P.x-P.w/2<pl.x+pl.w&&P.y+P.h/2>pl.y&&P.y+P.h/2<pl.y+pl.h+P.vy*dt+4&&P.vy>=0){
+      if(pl.brk&&!pl.shake){pl.shake=0.5;}
+      P.y=pl.y-P.h/2;P.vy=0;P.onGround=true;
+    }
+    // wall collision
+    if(P.y>P.y-0){ // side check
+      if(P.x+P.w/2>pl.x&&P.x-P.w/2<pl.x+pl.w&&P.y+P.h/2>pl.y+10&&P.y-P.h/2<pl.y+pl.h){
+        if(P.x<pl.x)P.x=pl.x-P.w/2;else P.x=pl.x+pl.w+P.w/2;
+        if(!P.onGround&&Math.abs(P.vx)>50){P.wallSliding=true;P.vy=Math.min(P.vy,120);}
+      }
+    }
+  }
+  // wall jump
+  if(P.wallSliding&&keys.jump&&P.jumpBuf>0){
+    P.vy=-JUMP_V*0.9;P.vx=-P.facing*MOVE_SPD*1.2;P.jumpBuf=0;sfx('jump');
+  }
+  // collapsing platforms
+  for(const pl of G.platforms){
+    if(pl.brk&&pl.shake>0){pl.shake-=dt;if(pl.shake<=0)pl.gone=true;}
+  }
+  // fell off
+  if(P.y>H+200){P.hp-=20;P.x=Math.max(80,P.x-200);P.y=H-300;P.vy=0;P.invuln=1;sfx('hurt');}
+  // invuln decay
+  P.invuln-=dt;
+  // combo decay
+  G.comboT-=dt;if(G.comboT<=0)G.combo=0;
+  // camera
+  G.camX+=(P.x-W*0.4-G.camX)*Math.min(1,dt*5);
+  G.camX=Math.max(0,Math.min(G.levelW-W,G.camX));
+  // HUD
+  document.getElementById('hpfill').style.width=(P.hp/P.maxHp*100)+'%';
+  document.getElementById('score').textContent='SCORE '+G.score;
+}
+
+/* ---------- Enemies & hazards ---------- */
+function updateEnemies(dt){
+  for(const e of G.enemies){
+    if(!e.alive)continue;
+    e.hitT-=dt;
+    // patrol
+    e.x+=e.vx*dt;
+    if(e.x<e.patrolMin||e.x>e.patrolMax)e.vx*=-1;
+    // gravity (simple)
+    e.y+=e.vy*dt;e.vy+=GRAV*dt*0.5;
+    for(const pl of G.platforms){
+      if(pl.gone)continue;
+      if(e.x+e.w/2>pl.x&&e.x-e.w/2<pl.x+pl.w&&e.y+e.h/2>pl.y&&e.y+e.h/2<pl.y+30&&e.vy>=0){
+        e.y=pl.y-e.h/2;e.vy=0;
+      }
+    }
+    // touch player
+    if(P.invuln<=0&&Math.abs(e.x-P.x)<(e.w+P.w)/2-6&&Math.abs(e.y-P.y)<(e.h+P.h)/2-6){
+      P.hp-=e.type==='brute'?15:8;P.invuln=0.8;sfx('hurt');addShake(8,0.2);
+      for(let i=0;i<10;i++)POOL.spawnP(P.x,P.y,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.4,'#ff3b2e',4);
+      if(P.hp<=0){playerDie();return;}
+    }
+  }
+  // pendulums
+  for(const hz of G.hazards){
+    if(hz.type==='pendulum'){
+      hz.ang+=hz.spd*dt*Math.cos(G.time*0.5)>0?hz.spd*dt:-hz.spd*dt;
+      // simpler: oscillate
+      hz.phase=(hz.phase||0)+hz.spd*dt;
+      const px=hz.x+Math.sin(hz.phase)*hz.len*0.7;
+      const py=hz.y+Math.cos(hz.phase)*hz.len*0.4+hz.len*0.6;
+      hz.bx=px;hz.by=py;
+      if(P.invuln<=0&&Math.hypot(px-P.x,py-P.y)<hz.r+P.w/2){
+        P.hp-=12;P.invuln=0.8;sfx('hurt');addShake(8,0.2);
+        if(P.hp<=0){playerDie();return;}
+      }
+    }
+  }
+  // boss
+  if(G.boss&&G.boss.alive){
+    const b=G.boss;b.hitT-=dt;b.atkT-=dt;
+    // chase player slowly
+    const dx=P.x-b.x;
+    b.vx+=(Math.sign(dx)*120-b.vx)*Math.min(1,dt*2);
+    b.x+=b.vx*dt;
+    // slam attack
+    if(b.atkT<=0&&Math.abs(dx)<200){
+      b.atkT=2;sfx('boss');addShake(12,0.4);
+      POOL.spawnProj(b.x,b.y,Math.sign(dx)*300,0,10,false);
+      for(let i=0;i<15;i++)POOL.spawnP(b.x,b.y+40,(Math.random()-0.5)*400,-Math.random()*300,0.6,'#ff2a6d',5);
+    }
+    // boss touch
+    if(P.invuln<=0&&Math.abs(b.x-P.x)<(b.w+P.w)/2&&Math.abs(b.y-P.y)<(b.h+P.h)/2){
+      P.hp-=20;P.invuln=1;sfx('hurt');addShake(10,0.3);
+      if(P.hp<=0){playerDie();return;}
+    }
+    if(b.hp<=0){b.alive=false;bossDefeated();}
+  }
+  // coins
+  for(const c of G.coins){
+    if(c.taken)continue;c.ph+=dt*4;
+    if(Math.hypot(c.x-P.x,c.y-P.y)<36){c.taken=true;G.score+=50;sfx('coin');POOL.spawnText(c.x,c.y-20,'+50','#ffd23f');}
+  }
+  // reach door
+  if(P.x>G.doorX-30&&(!G.boss||!G.boss.alive)){stageClear();}
+}
+
+function playerDie(){
+  G.state='dead';
+  showOverlay('💀 DEFEATED',
+    '<p>The Dark Knight falls... but the quest for Trinity continues!</p><p>Score: '+G.score+'</p>',
+    '🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!',
+    '↻ TRY AGAIN',()=>{buildStage(G.stage);G.state='play';});
+}
+function stageClear(){
+  sfx('win');G.score+=1000*G.stage;
+  if(G.stage>=15){victoryCutscene();return;}
+  G.state='stageclear';
+  let msg='<p>Stage '+G.stage+' cleared! Score: '+G.score+'</p>';
+  if(G.stage===7){ // Stage 8 checkpoint dialogue (MIDDLE name placement #2)
+    msg+='<p style="color:#ffd23f;font-weight:800">💬 "Tristan presses deeper into the keep, his dark obsidian sword blazing for Trinity!"</p>';
+  }
+  showOverlay('✅ STAGE '+G.stage+' CLEAR',msg,
+    '🔥 Fire Safety: Know two ways out of every room in case of fire!',
+    '▶ STAGE '+(G.stage+1),()=>{G.stage++;buildStage(G.stage);G.state='play';});
+}
+function bossDefeated(){
+  sfx('win');G.score+=5000;
+  for(let i=0;i<40;i++)POOL.spawnP(G.boss.x,G.boss.y,(Math.random()-0.5)*600,(Math.random()-0.5)*600,1,'#ffd23f',6);
+  addShake(15,0.6);
+}
+function victoryCutscene(){ // END name placement #3
+  G.state='victory';sfx('win');
+  showOverlay('👑 VICTORY!',
+    '<p style="font-size:18px;color:#ffd23f;font-weight:800">💖 "Princess Trinity is safely rescued by Tristan in the highest tower!"</p><p>The dark fortress crumbles. Light returns to the kingdom.</p><p>Final Score: '+G.score+'</p>',
+    '🔥 Fire Safety: You did it! Remember — in a real emergency, get out and call 911!',
+    '↻ PLAY AGAIN',()=>{G.stage=1;G.score=0;buildStage(1);G.state='play';});
+  otitle.classList.add('gold');
+}
+
+/* ---------- Overlay ---------- */
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+
+/* ---------- Rendering ---------- */
+function drawKnight(x,y,facing,atkT,atkCombo){
+  ctx.save();ctx.translate(x,y);ctx.scale(facing,1);
+  // dark crimson aura
+  const aura=ctx.createRadialGradient(0,0,10,0,0,60);
+  aura.addColorStop(0,'rgba(255,42,109,0.4)');aura.addColorStop(1,'rgba(255,42,109,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,0,60,0,Math.PI*2);ctx.fill();
+  // body armor (dark)
+  ctx.fillStyle='#2a2a3a';
+  ctx.fillRect(-14,-24,28,44); // torso
+  // shoulder pads
+  ctx.fillStyle='#1a1a2a';
+  ctx.beginPath();ctx.arc(-16,-20,10,0,Math.PI*2);ctx.arc(16,-20,10,0,Math.PI*2);ctx.fill();
+  // helmet with crimson plume
+  ctx.fillStyle='#33334a';ctx.fillRect(-12,-40,24,18);
+  ctx.fillStyle='#ff2a6d'; // plume
+  ctx.beginPath();ctx.moveTo(0,-40);ctx.quadraticCurveTo(20,-55,8,-68);ctx.quadraticCurveTo(4,-50,-4,-40);ctx.fill();
+  // visor glow
+  ctx.fillStyle='#ff2a6d';ctx.fillRect(-8,-32,16,4);
+  // legs
+  ctx.fillStyle='#22222e';
+  const legSwing=Math.sin(G.time*10)*4;
+  ctx.fillRect(-12,20,10,22+legSwing);ctx.fillRect(2,20,10,22-legSwing);
+  // fire sword (obsidian with flame)
+  if(atkT>0){
+    const sw=Math.sin((0.18-atkT)/0.18*Math.PI);
+    ctx.save();ctx.translate(20,0);ctx.rotate(-0.6-sw*1.2);
+    // blade
+    const bg=ctx.createLinearGradient(0,0,60,0);
+    bg.addColorStop(0,'#1a1a2a');bg.addColorStop(1,'#4a4a6a');
+    ctx.fillStyle=bg;ctx.fillRect(0,-5,58,10);
+    // flame edge
+    ctx.fillStyle='#ff6a00';
+    ctx.beginPath();ctx.moveTo(58,-5);ctx.quadraticCurveTo(78,0,58,5);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }else{
+    ctx.fillStyle='#1a1a2a';ctx.fillRect(14,-6,44,8);
+    ctx.fillStyle='#ff6a00';ctx.fillRect(52,-4,10,4);
+  }
+  ctx.restore();
+}
+function drawSentinel(e){
+  ctx.save();ctx.translate(e.x-G.camX,e.y);
+  if(e.hitT>0)ctx.globalAlpha=0.6;
+  const s=e.type==='brute'?1.4:1;
+  ctx.scale(s,s);
+  // rock body
+  const g=ctx.createRadialGradient(-8,-8,4,0,0,26);
+  g.addColorStop(0,'#777');g.addColorStop(1,'#444');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(-18,20);ctx.lineTo(-22,-8);ctx.lineTo(-10,-22);ctx.lineTo(10,-22);ctx.lineTo(22,-8);ctx.lineTo(18,20);ctx.closePath();ctx.fill();
+  // glowing red eyes
+  ctx.fillStyle='#ff2a2a';
+  ctx.beginPath();ctx.arc(-7,-8,4,0,Math.PI*2);ctx.arc(7,-8,4,0,Math.PI*2);ctx.fill();
+  // cracks
+  ctx.strokeStyle='#ff6a00';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(-4,0);ctx.lineTo(2,18);ctx.stroke();
+  ctx.restore();
+}
+function drawBoss(b){
+  ctx.save();ctx.translate(b.x-G.camX,b.y);
+  if(b.hitT>0)ctx.globalAlpha=0.6;
+  // massive dark golem
+  const g=ctx.createRadialGradient(-20,-20,10,0,0,70);
+  g.addColorStop(0,'#555');g.addColorStop(1,'#222');
+  ctx.fillStyle=g;
+  ctx.fillRect(-45,-120,90,120);
+  ctx.fillStyle='#1a1a1a';
+  ctx.beginPath();ctx.arc(-55,-90,22,0,Math.PI*2);ctx.arc(55,-90,22,0,Math.PI*2);ctx.fill();
+  // crown of dark crystals
+  ctx.fillStyle='#ff2a6d';
+  for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*18-8,-120);ctx.lineTo(i*18,-150);ctx.lineTo(i*18+8,-120);ctx.closePath();ctx.fill();}
+  // eyes
+  ctx.fillStyle='#ff2a2a';ctx.fillRect(-25,-95,18,8);ctx.fillRect(7,-95,18,8);
+  // HP bar
+  ctx.fillStyle='#333';ctx.fillRect(-45,-165,90,10);
+  ctx.fillStyle='#ff2a6d';ctx.fillRect(-45,-165,90*(b.hp/b.maxHp),10);
+  ctx.restore();
+}
+function render(){
+  // bg: dark fortress
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a0a18');g.addColorStop(0.6,'#1a0f24');g.addColorStop(1,'#2a1520');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // distant towers
+  ctx.fillStyle='#141422';
+  const par=G.camX*0.3;
+  for(let i=0;i<8;i++){
+    const tx=((i*500-par)%(W+400))-200;
+    ctx.fillRect(tx,H-320,60,240);
+    ctx.beginPath();ctx.moveTo(tx-10,H-320);ctx.lineTo(tx+30,H-370);ctx.lineTo(tx+70,H-320);ctx.fill();
+  }
+  // torches
+  ctx.fillStyle='#ff6a00';
+  for(let i=0;i<6;i++){
+    const tx=((i*400-G.camX*0.6)%(W+200))-100;
+    const fl=Math.sin(G.time*8+i)*4;
+    ctx.beginPath();ctx.arc(tx,H-200+fl,8,0,Math.PI*2);ctx.fill();
+  }
+  ctx.save();
+  if(shakeT>0){ctx.translate(shakeX,shakeY);}
+  const cx=G.camX;
+  // platforms
+  for(const pl of G.platforms){
+    if(pl.gone)continue;
+    const sx=pl.x-cx;
+    if(sx>W+100||sx+pl.w<-100)continue;
+    ctx.fillStyle=pl.brk?'#5a3a2a':'#3a3a4a';
+    if(pl.shake>0)ctx.fillStyle='#7a4a3a';
+    ctx.fillRect(sx,pl.y,pl.w,pl.h);
+    ctx.fillStyle='#4a4a5a';ctx.fillRect(sx,pl.y,pl.w,6);
+  }
+  // coins
+  for(const c of G.coins){
+    if(c.taken)continue;
+    const sx=c.x-cx;if(sx<-50||sx>W+50)continue;
+    ctx.fillStyle='#ffd23f';
+    ctx.beginPath();ctx.arc(sx,c.y+Math.sin(c.ph)*4,10,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff8a00';ctx.beginPath();ctx.arc(sx,c.y+Math.sin(c.ph)*4,6,0,Math.PI*2);ctx.fill();
+  }
+  // pendulums
+  for(const hz of G.hazards){
+    if(hz.type!=='pendulum'||!hz.bx)continue;
+    ctx.strokeStyle='#666';ctx.lineWidth=6;
+    ctx.beginPath();ctx.moveTo(hz.x-cx,hz.y);ctx.lineTo(hz.bx-cx,hz.by);ctx.stroke();
+    ctx.fillStyle='#888';
+    ctx.beginPath();ctx.arc(hz.bx-cx,hz.by,hz.r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff2a2a';
+    ctx.beginPath();ctx.arc(hz.bx-cx,hz.by,hz.r*0.4,0,Math.PI*2);ctx.fill();
+  }
+  // enemies
+  for(const e of G.enemies)if(e.alive)drawSentinel(e);
+  // boss
+  if(G.boss&&G.boss.alive)drawBoss(G.boss);
+  // exit door
+  const dx=G.doorX-cx;
+  if(dx>-100&&dx<W+100){
+    ctx.fillStyle='#ffd23f';
+    ctx.fillRect(dx-20,H-90-120,40,120);
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(dx-12,H-90-100,24,80);
+    ctx.fillStyle='#ff6a00';
+    ctx.font='28px sans-serif';ctx.fillText('🚪',dx-14,H-90-60);
+  }
+  // player
+  if(G.state==='play'||G.state==='stageclear'){
+    if(P.invuln<=0||Math.floor(G.time*10)%2===0)
+      drawKnight(P.x-cx,P.y,P.facing,P.atkT,P.atkCombo);
+  }
+  // particles
+  for(const p of POOL.particles){
+    if(!p.active)continue;
+    ctx.globalAlpha=p.life/p.max;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-cx-p.size/2,p.y-p.size/2,p.size,p.size);
+  }
+  ctx.globalAlpha=1;
+  // projectiles
+  for(const p of POOL.projectiles){
+    if(!p.active)continue;
+    ctx.fillStyle=p.friendly?'#ff2a6d':'#ff6a00';
+    ctx.beginPath();ctx.arc(p.x-cx,p.y,8,0,Math.PI*2);ctx.fill();
+  }
+  // floating text
+  ctx.font='bold 18px sans-serif';ctx.textAlign='center';
+  for(const f of POOL.floaters){
+    if(!f.active)continue;
+    ctx.globalAlpha=f.life;ctx.fillStyle=f.color;
+    ctx.fillText(f.txt,f.x-cx,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.restore();
+}
+
+/* ---------- Main loop ---------- */
+let lastT=0;
+function loop(t){
+  const rawDt=Math.min((t-lastT)/1000||0,0.05);lastT=t;
+  // hit-stop
+  let dt=rawDt;
+  if(hitStop>0){hitStop-=rawDt;dt=rawDt*0.1;}
+  G.time+=dt;
+  // shake decay
+  if(shakeT>0){shakeT-=dt;
+    shakeX=(Math.random()-0.5)*shakeMag*2;shakeY=(Math.random()-0.5)*shakeMag*2;
+    if(shakeT<=0){shakeMag=0;shakeX=0;shakeY=0;}
+  }
+  if(G.state==='play'){
+    updatePlayer(dt);updateEnemies(dt);
+    // update pools
+    for(const p of POOL.particles){
+      if(!p.active)continue;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=800*dt;p.life-=dt;
+      if(p.life<=0)p.active=false;
+    }
+    for(const p of POOL.projectiles){
+      if(!p.active)continue;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+      if(p.life<=0){p.active=false;continue;}
+      // enemy proj hits player
+      if(!p.friendly&&P.invuln<=0&&Math.hypot(p.x-P.x,p.y-P.y)<24){
+        p.active=false;P.hp-=10;P.invuln=0.8;sfx('hurt');
+        if(P.hp<=0)playerDie();
+      }
+    }
+    for(const f of POOL.floaters){
+      if(!f.active)continue;f.y-=60*dt;f.life-=dt*1.2;
+      if(f.life<=0)f.active=false;
+    }
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Start ---------- */
+function startGame(){
+  audio(); // unlock audio
+  G.stage=1;G.score=0;G.combo=0;
+  buildStage(1);G.state='play';
+  overlay.classList.add('hidden');
+}
+function showIntro(){ // BEGINNING name placement #1
+  otitle.innerHTML='⚔️ TRISTAN\'S<br>DARK KNIGHT RESCUE';
+  obody.innerHTML='<p>A cute fire baby swells with <b style="color:#ff2a6d">dark crimson energy</b>... and transforms into a towering armored <b>Dark Knight</b> wielding a blazing obsidian fire sword!</p><p style="color:#ffd23f;font-weight:800">💬 "Prince Tristan rises to take back the fortress and save Princess Trinity!"</p><p>🕹️ <b>Controls:</b> D-pad to move • JUMP to leap (wall-jump too!) • ⚔️ to slash sentinels</p><p>Battle through <b>15 stages</b>. Defeat the fortress boss. Rescue the princess!</p>';
+  obtn.textContent='▶ BEGIN QUEST';
+  obtn.onclick=()=>{showMathGate();};
+  overlay.classList.remove('hidden');
+}
+obtn.onclick=()=>{showMathGate();};
+showIntro();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
