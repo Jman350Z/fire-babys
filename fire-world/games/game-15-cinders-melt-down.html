@@ -3,129 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cinder's Melt-Down — Fire Babys</title>
+<title>Cinder's Melt-Down — by Jman350Z & fire team</title>
+<meta name="description" content="Test your memory! Flip cards to find matching Fire Babys pairs.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#141020;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
-canvas{display:block;width:100%;height:100%}
-#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,14,30,.94);color:#fff;text-align:center;padding:24px}
-#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#e2a0ff}
-#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+html,body{width:100%;height:100%;overflow:hidden;background:#160a1e;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,5,20,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;background:linear-gradient(180deg,#e2a0ff,#8a4dff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#e9d6ff}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
-#overlay button{background:#7a3aa0;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
-#mathgate{background:#221a30;border-radius:12px;padding:16px;margin:12px 0}
-#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
+#overlay button{background:linear-gradient(180deg,#e2a0ff,#8a4dff);color:#fff;border:3px solid #e2a0ff;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #5a2a9d}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #5a2a9d}
+#mathgate{background:#1a0e2a;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #8a4dff}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
-#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#lvlSel{display:flex;gap:8px;margin:12px 0}
+.lvlBtn{width:52px;height:52px;border-radius:12px;border:3px solid #8a4dff;background:#1a0e2a;color:#e2a0ff;font-size:14px;font-weight:900;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="hud"><div id="score">PAIRS 0/8</div><div id="moves">FLIPS 0</div></div>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="flips">🃏 0</div>
+<div class="pill" id="pairs">✅ 0/8</div>
+</div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 <div id="overlay">
-<h1>🃏 CINDER'S<br>MELT-DOWN</h1>
-<div id="obody"><p><b style="color:#e2a0ff">Lord Inferno</b> & <b style="color:#e2a0ff">Ruko</b> test your memory!</p><p>🖱️ <b>Flip</b> two cards at a time — find all 8 matching fire baby pairs! Fewer flips = higher score!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
-<div class="lesson">🔥 Fire Safety: Remember your family's fire escape plan — practice it twice a year!</div>
+<h1 id="otitle">🃏 CINDER'S MELT-DOWN</h1>
+<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> test your memory!</p><p><b>Tap</b> cards to flip two at a time — find all matching Fire Babys pairs! Fewer flips = more stars!</p><div id="lvlSel"></div></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Remembering your escape plan is the most important memory game!</div>
 <button id="obtn">▶ PLAY</button>
+</div>
 </div>
 <script>
 'use strict';
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
-let W,H,CW,CH,OX,OY;const COLS=4,ROWS=4;
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;
-  CW=Math.min(W*0.22,H*0.13);CH=CW*1.25;OX=(W-CW*COLS)/2;OY=H*0.18;}
-addEventListener('resize',resize);resize();
-let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
-let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
-function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
-// 8 fire baby faces (color + expression combos)
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR,CELL,GX,GY,COLS,ROWS;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layout();}
+function layout(){
+  const pairs=[8,10,12][G.level-1]||8;
+  COLS=pairs<=8?4:6;ROWS=Math.ceil(pairs*2/COLS);
+  CELL=Math.min(W*0.9/COLS,H*0.62/ROWS,90);
+  GX=(W-CELL*COLS)/2;GY=(H-CELL*ROWS)/2+30;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  flip(){tone(500,700,0.08,'triangle',0.12);},
+  match(){tone(700,1000,0.12,'sine',0.14);tone(1000,1400,0.1,'sine',0.1,0.08);},
+  no(){tone(300,200,0.15,'square',0.1);},
+  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.09));},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
 const FACES=[
-  {c:'#ff8a2e',e:'happy'},{c:'#ff3b2e',e:'angry'},{c:'#ffd23f',e:'happy'},{c:'#ff2a6d',e:'silly'},
-  {c:'#ff6a00',e:'happy'},{c:'#c4a0ff',e:'calm'},{c:'#7ac4ff',e:'happy'},{c:'#e63900',e:'brave'}
+  {e:'🔥',c:'#ff4a3a',n:'Blaze'},{e:'😡',c:'#ff8a00',n:'Ruko'},
+  {e:'✨',c:'#ffd23f',n:'Sizzle'},{e:'🪨',c:'#8a7a6a',n:'Boulder'},
+  {e:'❄️',c:'#7fd4ff',n:'Cinder'},{e:'👹',c:'#c4a0ff',n:'Inferno'},
+  {e:'💧',c:'#4a90d9',n:'Aqua'},{e:'🌋',c:'#ff6a00',n:'Magma'},
+  {e:'⚡',c:'#ffeb3b',n:'Volt'},{e:'🌟',c:'#fff',n:'Nova'},
+  {e:'🔮',c:'#9a7fd4',n:'Mystic'},{e:'💎',c:'#aee2ff',n:'Crystal'},
 ];
-const G={state:'title',cards:[],first:null,lock:false,pairs:0,flips:0,parts:[],shake:0,combo:0};
-function startGame(){audio();G.pairs=0;G.flips=0;G.first=null;G.lock=false;G.parts=[];G.combo=0;
-  const deck=[];for(let i=0;i<8;i++){deck.push(i,i);}
+const G={state:'title',level:1,cards:[],first:null,second:null,lock:false,
+  flips:0,matched:0,score:0,time:0,combo:0};
+function initLevel(n){
+  G.level=n;G.flips=0;G.matched=0;G.score=0;G.combo=0;G.first=null;G.second=null;G.lock=false;
+  const pairCount=[8,10,12][n-1]||8;
+  layout();
+  const faces=FACES.slice(0,pairCount);
+  let deck=[];
+  faces.forEach((f,i)=>{deck.push({id:i,face:f},{id:i,face:f});});
+  // shuffle
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
-  G.cards=deck.map((v,i)=>({v,flipped:false,matched:false,flip:0}));
-  G.state='play';updHud();overlay.classList.add('hidden');}
-function updHud(){document.getElementById('score').textContent='PAIRS '+G.pairs+'/8';document.getElementById('moves').textContent='FLIPS '+G.flips;}
-function boom(x,y,n,c){for(let i=0;i<n;i++)G.parts.push({x,y,vx:(Math.random()-0.5)*300,vy:(Math.random()-0.5)*300,life:0.6,max:0.6,c});}
-function flipCard(i){
+  G.cards=deck.map((d,i)=>({id:d.id,face:d.face,flip:0,matched:false,glow:0,
+    r:Math.floor(i/COLS),c:i%COLS}));
+  updateHUD();
+}
+function updateHUD(){
+  document.getElementById('score').textContent='⭐ '+G.score;
+  document.getElementById('flips').textContent='🃏 '+G.flips;
+  const total=[8,10,12][G.level-1]||8;
+  document.getElementById('pairs').textContent=`✅ ${G.matched}/${total}`;
+}
+canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.lock)return;
-  const c=G.cards[i];
-  if(c.flipped||c.matched)return;
-  c.flipped=true;G.flips++;sfx(500,700,0.1,'sine',0.15);updHud();
-  if(!G.first){G.first=i;}
+  const rect=canvas.getBoundingClientRect();
+  const c=Math.floor((e.clientX-rect.left-GX)/CELL),r=Math.floor((e.clientY-rect.top-GY)/CELL);
+  const card=G.cards.find(cd=>cd.r===r&&cd.c===c);
+  if(!card||card.matched||card.flip>0.5)return;
+  if(G.first===card)return;
+  card.flip=0.01;sfx.flip();
+  if(!G.first)G.first=card;
   else{
-    const a=G.cards[G.first],b=c;
-    if(a.v===b.v){
-      G.lock=true;
-      setTimeout(()=>{a.matched=true;b.matched=true;G.pairs++;G.combo++;
-        const cx=OX+(i%COLS)*CW+CW/2,cy=OY+Math.floor(i/COLS)*CH+CH/2;
-        boom(cx,cy,20,FACES[a.v].c);sfx(600,1200,0.25,'sine',0.2);G.shake=6;
-        G.first=null;G.lock=false;updHud();
-        if(G.pairs>=8)endGame();},400);
+    G.second=card;G.lock=true;G.flips++;
+    if(G.first.id===G.second.id){
+      setTimeout(()=>{
+        G.first.matched=true;G.second.matched=true;
+        G.first.glow=0.6;G.second.glow=0.6;
+        G.matched++;G.combo++;
+        const pts=100+G.combo*25;
+        G.score+=pts;sfx.match();updateHUD();
+        spawnText(G.first);
+        G.first=null;G.second=null;G.lock=false;
+        if(G.matched>=([8,10,12][G.level-1]||8))levelComplete();
+      },400);
     }else{
-      G.lock=true;G.combo=0;
-      const f=G.first;
-      setTimeout(()=>{a.flipped=false;b.flipped=false;G.first=null;G.lock=false;sfx(300,200,0.15,'square',0.12);},800);
+      G.combo=0;
+      setTimeout(()=>{
+        G.first.flip=-0.01;G.second.flip=-0.01;
+        sfx.no();
+        G.first=null;G.second=null;G.lock=false;
+        updateHUD();
+      },800);
     }
+    updateHUD();
   }
+});
+const floaters=[];
+for(let i=0;i<10;i++)floaters.push({a:false});
+function spawnText(card){
+  const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=GX+card.c*CELL+CELL/2;f.y=GY+card.r*CELL;f.txt='+'+(100+G.combo*25);f.life=1;
 }
-function endGame(){G.state='over';
-  const score=Math.max(100,1000-G.flips*10+G.combo*50);
-  obody.innerHTML='<p>🎉 All pairs found in <b>'+G.flips+'</b> flips! Score: <b>'+score+'</b></p>';
-  document.querySelector('#overlay h1').textContent='🏆 YOU WIN!';
-  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');
-  sfx(523,1047,0.5,'sine',0.25);}
-function drawFace(x,y,r,face,alpha){
-  ctx.save();ctx.globalAlpha=alpha;
-  const g=ctx.createRadialGradient(x-4,y-5,3,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(0.4,face.c);g.addColorStop(1,face.c);
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(x-r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.7,x+r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.1,x-r*0.4,y-r*0.7);ctx.fill();
-  ctx.fillStyle='#2b1a0e';
-  if(face.e==='angry'){ctx.fillRect(x-11,y-8,9,3);ctx.fillRect(x+2,y-8,9,3);}
-  ctx.beginPath();ctx.arc(x-5,y-1,3,0,Math.PI*2);ctx.arc(x+5,y-1,3,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();
-  if(face.e==='silly'){ctx.moveTo(x-7,y+8);ctx.lineTo(x+7,y+4);}
-  else ctx.arc(x,y+5,6,0.2,Math.PI-0.2);
-  ctx.stroke();ctx.restore();
-}
-function render(){
-  ctx.fillStyle='#141020';ctx.fillRect(0,0,W,H);
-  ctx.save();if(G.shake>0){ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);G.shake*=0.9;}
-  G.cards.forEach((c,i)=>{
-    const x=OX+(i%COLS)*CW+4,y=OY+Math.floor(i/COLS)*CH+4,w=CW-8,h=CH-8;
-    if(c.matched){
-      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],0.35);
-    }else if(c.flipped){
-      ctx.fillStyle='#2a2040';ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
-      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],1);
+function levelComplete(){
+  G.state='clear';sfx.win();
+  const total=[8,10,12][G.level-1]||8;
+  const perfect=total*2;
+  const stars=G.flips<=perfect+2?3:G.flips<=perfect+6?2:1;
+  const bonus=stars*300;G.score+=bonus;
+  setTimeout(()=>{
+    if(G.level>=3){
+      showOverlay('🏆 MEMORY MASTER!',
+        `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(3)}</div><p style="font-size:24px;font-weight:900">Score: ${G.score}</p>`,
+        '🔥 Fire Safety: You\'re a memory champion!',
+        '↻ PLAY AGAIN',()=>{initLevel(1);G.state='play';});
     }else{
-      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#4a3a6a');g.addColorStop(1,'#2a2040');
-      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
-      ctx.fillStyle='#e2a0ff';ctx.font='bold '+Math.floor(h*0.3)+'px sans-serif';ctx.textAlign='center';ctx.fillText('🔥',x+w/2,y+h/2+h*0.1);ctx.textAlign='left';}
-  });
-  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*0.016;p.y+=p.vy*0.016;p.life-=0.016;if(p.life<=0){G.parts.splice(i,1);continue;}ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
-  ctx.globalAlpha=1;ctx.restore();
+      showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
+        `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>Flips: ${G.flips} (+${bonus} bonus)</p><p>Score: ${G.score}</p>`,
+        '🔥 Fire Safety: Remembering your escape plan is the most important memory game!',
+        '▶ NEXT LEVEL',()=>{initLevel(G.level+1);G.state='play';});
+    }
+  },800);
 }
-function tapAt(x,y){
-  if(G.state!=='play')return;
-  const c=Math.floor((x-OX)/CW),r=Math.floor((y-OY)/CH);
-  if(c>=0&&c<COLS&&r>=0&&r<ROWS)flipCard(r*COLS+c);
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
 }
-canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapAt(t.clientX,t.clientY);},{passive:false});
-canvas.addEventListener('mousedown',e=>{tapAt(e.clientX,e.clientY);});
-let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;
-  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
-  render();requestAnimationFrame(loop);}
-obtn.onclick=()=>{showGate();};
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');showLevels();
+  }else document.getElementById('ma').value='';
+}
+function showLevels(){
+  otitle.innerHTML='🃏 PICK LEVEL';
+  let h='';
+  const names=['Easy (8 pairs)','Medium (10 pairs)','Hard (12 pairs)'];
+  for(let i=1;i<=3;i++)h+=`<button class="lvlBtn" style="width:auto;padding:0 16px" onclick="event.stopPropagation();pickLevel(${i})">${names[i-1]}</button>`;
+  obody.innerHTML=`<p>Find all matching pairs!</p><div id="lvlSel">${h}</div>`;
+  obtn.style.display='none';
+  overlay.classList.remove('hidden');
+}
+function pickLevel(n){sfx.click();audio();initLevel(n);G.state='play';overlay.classList.add('hidden');}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
+  obtn.textContent=btn;obtn.style.display='';
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+obtn.onclick=()=>{showMathGate();};
+function render(){
+  ctx.fillStyle='#160a1e';ctx.fillRect(0,0,W,H);
+  for(const card of G.cards){
+    const x=GX+card.c*CELL,y=GY+card.r*CELL;
+    // flip animation
+    if(card.flip>0&&card.flip<1)card.flip=Math.min(1,card.flip+0.12);
+    if(card.flip<0&&card.flip>-1)card.flip=Math.max(-1,card.flip-0.12);
+    if(card.flip===-1)card.flip=0;
+    const sx=Math.abs(Math.cos(card.flip*Math.PI/2));
+    const cx=x+CELL/2;
+    ctx.save();ctx.translate(cx,y+CELL/2);ctx.scale(Math.max(0.05,sx),1);ctx.translate(-CELL/2,-CELL/2);
+    const showingFront=card.flip>0.5||card.matched;
+    if(showingFront){
+      const g=ctx.createLinearGradient(0,0,0,CELL);
+      g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');
+      ctx.fillStyle=card.matched?'#2a4a2a':g;
+      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();
+      ctx.strokeStyle=card.matched?'#4caf50':card.face.c;ctx.lineWidth=3;ctx.stroke();
+      ctx.font=`${CELL*0.4}px system-ui`;ctx.textAlign='center';
+      ctx.fillText(card.face.e,CELL/2,CELL/2+CELL*0.14);
+      ctx.font=`900 ${CELL*0.13}px system-ui`;ctx.fillStyle='#333';
+      ctx.fillText(card.face.n,CELL/2,CELL*0.82);
+      ctx.textAlign='left';
+      if(card.glow>0){
+        ctx.strokeStyle=`rgba(255,210,63,${card.glow})`;ctx.lineWidth=5;
+        ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.stroke();
+        card.glow-=0.03;
+      }
+    }else{
+      const g=ctx.createLinearGradient(0,0,CELL,CELL);
+      g.addColorStop(0,'#3a2a5a');g.addColorStop(1,'#1a0e2a');
+      ctx.fillStyle=g;
+      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();
+      ctx.strokeStyle='#8a4dff';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='rgba(138,77,255,0.4)';ctx.font=`${CELL*0.35}px system-ui`;ctx.textAlign='center';
+      ctx.fillText('🔥',CELL/2,CELL/2+CELL*0.12);ctx.textAlign='left';
+    }
+    ctx.restore();
+  }
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font='900 20px system-ui';ctx.fillStyle='#ffd23f';
+    ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
+  for(const f of floaters){if(!f.a)continue;f.y-=30*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  render();
+  requestAnimationFrame(loop);
+}
+resize();
 requestAnimationFrame(loop);
 </script>
 </body>
