@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inferno Aim — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1c0e08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">SCORE 0</span><span id="wave">WAVE 1</span><span id="hp">🏰🏰🏰</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>🏹 INFERNO<br>AIM</h1>
+<p><b>Starring Lord Inferno &amp; Ruko</b></p>
+<p>Castle defense! Aim the ballista and <b>tap to fire</b> water bolts at incoming smoke monsters. Protect the castle — 3 hits and it's over!</p>
+<div class="lesson">🔥 Fire Safety: Aim water at the BASE of a fire! That's where the flames feed.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">CASTLE SAVED!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ DEFEND AGAIN</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.12){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function fireS(){sfx(300,.15,'sawtooth',.1);sfx(150,.2,'square',.08)} function hitS(){sfx(700,.15,'triangle',.12)} function boomS(){sfx(100,.4,'sawtooth',.2)}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),waveEl=document.getElementById('wave'),hpEl=document.getElementById('hp'),comboEl=document.getElementById('combo');
+let running=false,angle,bolts,foes,parts,shake,score,combo,comboT,hp,wave,waveKills,waveTotal,spawnT,castleX,castleY;
+function startGame(){
+  running=true;angle=-Math.PI/4;bolts=[];foes=[];parts=[];shake=0;score=0;combo=0;comboT=0;hp=3;wave=1;
+  castleX=W*0.12;castleY=H*0.82;
+  startWave();
+  scoreEl.textContent='SCORE 0';updateHp();
+  requestAnimationFrame(loop);
+}
+function updateHp(){hpEl.textContent='🏰'.repeat(Math.max(0,hp))+'💔'.repeat(Math.max(0,3-hp));}
+function startWave(){
+  waveKills=0;waveTotal=4+wave*2;spawnT=0;
+  waveEl.textContent='WAVE '+wave;
+}
+function spawnFoe(){
+  const y=H*0.15+Math.random()*H*0.5;
+  const spd=40+wave*12+Math.random()*30;
+  foes.push({x:W+40,y,r:24+Math.random()*12,hp:1+Math.floor(wave/3),spd});
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*7;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  // aim follows pointer
+  spawnT-=dt;
+  if(spawnT<=0&&foes.length<6&&waveKills<waveTotal){spawnT=Math.max(0.5,1.6-wave*0.12);spawnFoe();}
+  // bolts
+  for(let i=bolts.length-1;i>=0;i--){
+    const b=bolts[i];
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy+=300*dt;
+    if(b.x<-50||b.x>W+50||b.y>H+50){bolts.splice(i,1);continue;}
+    // hit foes
+    for(let j=foes.length-1;j>=0;j--){
+      const f=foes[j];
+      if(Math.hypot(b.x-f.x,b.y-f.y)<f.r+8){
+        bolts.splice(i,1);f.hp--;hitS();
+        explode(b.x,b.y,10,'#4da6ff');
+        if(f.hp<=0){
+          foes.splice(j,1);waveKills++;
+          explode(f.x,f.y,20,'#888');shake=Math.min(10,shake+5);
+          combo++;comboT=1.5;
+          const pts=100*combo;score+=pts;scoreEl.textContent='SCORE '+score;
+          if(combo>=3){comboEl.textContent='💧 COMBO x'+combo+' +'+pts;comboEl.style.opacity=1;sfx(600+combo*80,.12,'triangle',.12);}
+          if(waveKills>=waveTotal){wave++;setTimeout(()=>{if(running)startWave();},1200);sfx(784,.3,'triangle',.15);}
+        }
+        break;
+      }
+    }
+  }
+  // foes advance
+  for(let i=foes.length-1;i>=0;i--){
+    const f=foes[i];
+    f.x-=f.spd*dt;
+    if(f.x<castleX+60){
+      foes.splice(i,1);hp--;updateHp();boomS();shake=14;
+      explode(castleX+40,castleY-40,24,'#f66');
+      combo=0;comboEl.style.opacity=0;
+      if(hp<=0){running=false;showOver();return;}
+    }
+  }
+  comboT-=dt;if(comboT<=0){combo=0;comboEl.style.opacity=0;}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.3;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function showOver(){
+  const won=hp>0;
+  document.getElementById('ot').textContent=won?'🏆 ALL WAVES CLEARED!':'💥 CASTLE FALLEN!';
+  document.getElementById('od').textContent='Final score: '+score+' | Reached wave '+wave;
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Aim water at the BASE of a fire! That\'s where the flames feed.';
+  document.getElementById('over').classList.remove('hide');
+}
+let aimX=W/2,aimY=H/2;
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();aimX=e.clientX-r.left;aimY=e.clientY-r.top;});
+cv.addEventListener('pointerdown',e=>{
+  if(!running)return;
+  const r=cv.getBoundingClientRect();aimX=e.clientX-r.left;aimY=e.clientY-r.top;
+  const bx=castleX+40,by=castleY-80;
+  const dx=aimX-bx,dy=aimY-by,d=Math.hypot(dx,dy)||1;
+  const pow=700;
+  bolts.push({x:bx,y:by,vx:dx/d*pow,vy:dy/d*pow});
+  fireS();shake=Math.min(6,shake+2);
+  // recoil particles
+  explode(bx,by,6,'#ffd23f');
+});
+function drawBaby(x,y,r,crown){
+  ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+  g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,'#ffb300');g.addColorStop(1,'#e67e00');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(0,-r*1.5);ctx.quadraticCurveTo(r*0.9,-r*0.6,r*0.7,r*0.4);ctx.quadraticCurveTo(r*0.4,r,r*0.1,r);
+  ctx.quadraticCurveTo(-r*0.4,r,-r*0.7,r*0.4);ctx.quadraticCurveTo(-r*0.9,-r*0.6,0,-r*1.5);ctx.fill();
+  if(crown){ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.moveTo(-r*0.6,-r*0.9);ctx.lineTo(-r*0.3,-r*1.3);ctx.lineTo(0,-r*0.9);ctx.lineTo(r*0.3,-r*1.3);ctx.lineTo(r*0.6,-r*0.9);ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.28,r*0.05,r*0.16,0,7);ctx.arc(r*0.28,r*0.05,r*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.28,r*0.08,r*0.08,0,7);ctx.arc(r*0.28,r*0.08,r*0.08,0,7);ctx.fill();
+  ctx.strokeStyle='#7a2d00';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*0.35,r*0.25,0.3,Math.PI-0.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2a1a10');g.addColorStop(0.7,'#1c0e08');g.addColorStop(1,'#120806');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // ground
+  ctx.fillStyle='#3a2415';ctx.fillRect(-20,H*0.85,W+40,H*0.15+20);
+  // castle
+  ctx.fillStyle='#8a8a9a';ctx.fillRect(castleX-10,castleY-110,100,110);
+  ctx.fillStyle='#6a6a7a';
+  ctx.fillRect(castleX-20,castleY-140,30,30);ctx.fillRect(castleX+35,castleY-140,30,30);ctx.fillRect(castleX+80,castleY-140,30,30);
+  ctx.fillStyle='#4a4a5a';ctx.fillRect(castleX+30,castleY-60,40,60);
+  // ballista
+  const bx=castleX+40,by=castleY-80;
+  const dx=aimX-bx,dy=aimY-by,a=Math.atan2(dy,dx);
+  ctx.save();ctx.translate(bx,by);ctx.rotate(a);
+  ctx.fillStyle='#5a3a20';ctx.fillRect(-10,-8,70,16);
+  ctx.fillStyle='#4da6ff';ctx.beginPath();ctx.moveTo(60,-10);ctx.lineTo(84,0);ctx.lineTo(60,10);ctx.closePath();ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='#5a3a20';ctx.beginPath();ctx.arc(bx,by,16,0,7);ctx.fill();
+  // aim line
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;ctx.setLineDash([8,8]);
+  ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(aimX,aimY);ctx.stroke();ctx.setLineDash([]);
+  // bolts
+  bolts.forEach(b=>{
+    ctx.save();ctx.shadowColor='#4da6ff';ctx.shadowBlur=12;
+    ctx.fillStyle='#4da6ff';ctx.beginPath();ctx.arc(b.x,b.y,8,0,7);ctx.fill();ctx.restore();
+  });
+  // foes
+  foes.forEach(f=>{
+    ctx.save();ctx.translate(f.x,f.y);
+    ctx.fillStyle='rgba(100,100,100,.9)';
+    ctx.beginPath();ctx.arc(-8,-4,f.r*0.55,0,7);ctx.arc(8,-6,f.r*0.5,0,7);ctx.arc(6,8,f.r*0.55,0,7);ctx.fill();
+    ctx.fillStyle='#f66';ctx.beginPath();ctx.arc(-5,0,5,0,7);ctx.arc(7,-2,5,0,7);ctx.fill();
+    // hp pips
+    ctx.fillStyle='#fff';for(let i=0;i<f.hp;i++)ctx.fillRect(-f.r+i*10,-f.r-12,8,6);
+    ctx.restore();
+  });
+  // Lord Inferno + Ruko
+  drawBaby(castleX+120,castleY-30,24,true);
+  ctx.font='28px serif';ctx.fillText('😡',castleX+170,castleY-10);
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+</script>
+</body>
+</html>

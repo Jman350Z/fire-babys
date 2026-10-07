@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caldera Bounce — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140a06;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:17px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:22px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">YOU 0</span><span id="turn">YOUR MOVE</span><span id="foe">FOE 0</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>🌋 CALDERA<br>BOUNCE</h1>
+<p><b>Starring Lord Inferno &amp; Ruko</b></p>
+<p>Tactical bounce battle! <b>Tap your ember</b>, then tap a highlighted tile to bounce. Land on <b>smoke puffs</b> to capture them. Capture more than the foe AI in 20 turns!</p>
+<div class="lesson">🔥 Fire Safety: Think ahead! Plan TWO ways out of every room before you need them.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">VICTORY!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ REMATCH</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.1){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function moveS(){sfx(440,.1,'triangle',.09)} function capS(){sfx(880,.2,'sine',.12)} function aiS(){sfx(330,.12,'triangle',.08)} function winJ(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle',.12),i*100))}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,GS,BX,BY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;GS=Math.min(W,H*0.72)/6;BX=(W-GS*6)/2;BY=(H-GS*6)/2+30;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),foeEl=document.getElementById('foe'),turnEl=document.getElementById('turn'),comboEl=document.getElementById('combo');
+const N=6;
+let running=false,grid,sel,turn,movesLeft,playerScore,foeScore,parts,shake,combo,anim;
+function startGame(){
+  running=true;sel=null;turn='player';movesLeft=20;playerScore=0;foeScore=0;parts=[];shake=0;combo=0;anim=null;
+  grid=[];
+  for(let r=0;r<N;r++){grid.push([]);for(let c=0;c<N;c++)grid[r].push(null);}
+  // player embers (bottom)
+  grid[5][1]={t:'player'};grid[5][4]={t:'player'};
+  grid[4][2]={t:'player'};
+  // foe embers (top)
+  grid[0][1]={t:'foe'};grid[0][4]={t:'foe'};
+  grid[1][3]={t:'foe'};
+  // smoke puffs scattered
+  const spots=[[2,1],[2,4],[3,0],[3,2],[3,3],[3,5],[2,2],[1,1]];
+  spots.forEach(([r,c])=>{if(!grid[r][c]&&Math.random()<0.75)grid[r][c]={t:'puff'};});
+  scoreEl.textContent='YOU 0';foeEl.textContent='FOE 0';updateTurn();
+  requestAnimationFrame(loop);
+}
+function updateTurn(){turnEl.textContent=turn==='player'?'YOUR MOVE':'FOE THINKING...';turnEl.style.color=turn==='player'?'#7fd4ff':'#ff8a8a';}
+function cx(c){return BX+c*GS+GS/2;} function cy(r){return BY+r*GS+GS/2;}
+function validMoves(r,c){
+  const moves=[];
+  // bounce: jump over adjacent piece to empty tile (checkers-style)
+  const dirs=[[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+  dirs.forEach(([dr,dc])=>{
+    const r1=r+dr,c1=c+dc,r2=r+dr*2,c2=c+dc*2;
+    if(r2>=0&&r2<N&&c2>=0&&c2<N&&grid[r1]&&grid[r1][c1]&&!grid[r2][c2])moves.push([r2,c2,true]);
+  });
+  // simple step
+  [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc])=>{
+    const r1=r+dr,c1=c+dc;
+    if(r1>=0&&r1<N&&c1>=0&&c1<N&&!grid[r1][c1])moves.push([r1,c1,false]);
+  });
+  return moves;
+}
+function doMove(fr,fc,tr,tc,jump,who){
+  const piece=grid[fr][fc];
+  grid[fr][fc]=null;
+  const target=grid[tr][tc];
+  let captured=false;
+  if(target&&target.t==='puff'){
+    captured=true;
+    explode(cx(tc),cy(tr),18,'#aaa');
+    capS();shake=Math.min(10,shake+5);
+    if(who==='player'){playerScore++;scoreEl.textContent='YOU '+playerScore;combo++;if(combo>=2){comboEl.textContent='💨 CAPTURE x'+combo;comboEl.style.opacity=1;}}
+    else{foeScore++;foeEl.textContent='FOE '+foeScore;}
+  }else{combo=0;comboEl.style.opacity=0;}
+  grid[tr][tc]=piece;
+  anim={fr,fc,tr,tc,t:0,who};
+  moveS();
+  // bounce visual
+  explode(cx(tr),cy(tr),6,who==='player'?'#ffb300':'#ff6a6a');
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*4});}}
+function aiMove(){
+  // find best capture, else random move
+  let best=null;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    if(grid[r][c]&&grid[r][c].t==='foe'){
+      validMoves(r,c).forEach(([tr,tc,jump])=>{
+        const tgt=grid[tr][tc];
+        const score=(tgt&&tgt.t==='puff'?100:0)+(jump?10:0)+Math.random()*5-(Math.abs(tr-5)+Math.abs(tc-2));
+        if(!best||score>best.score)best={fr:r,fc:c,tr,tc,jump,score};
+      });
+    }
+  }
+  if(best){
+    aiS();
+    setTimeout(()=>{if(running){doMove(best.fr,best.fc,best.tr,best.tc,best.jump,'foe');endTurn();}},600);
+  }else{endTurn();}
+}
+function endTurn(){
+  movesLeft--;
+  if(movesLeft<=0||(!anyMoves('player')&&!anyMoves('foe'))){running=false;showOver();return;}
+  if(turn==='player'){turn='foe';updateTurn();setTimeout(()=>{if(running)aiMove();},700);}
+  else{turn='player';updateTurn();}
+}
+function anyMoves(who){
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)
+    if(grid[r][c]&&grid[r][c].t===who&&validMoves(r,c).length>0)return true;
+  return false;
+}
+function showOver(){
+  const won=playerScore>foeScore,tie=playerScore===foeScore;
+  document.getElementById('ot').textContent=won?'🏆 YOU WIN!':tie?'🤝 TIE!':'😤 FOE WINS!';
+  document.getElementById('od').textContent='YOU '+playerScore+' — FOE '+foeScore+' puffs captured!';
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Think ahead! Plan TWO ways out of every room before you need them.';
+  document.getElementById('over').classList.remove('hide');
+  if(won)winJ();
+}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  if(anim){anim.t+=dt*3;if(anim.t>=1)anim=null;}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+cv.addEventListener('pointerdown',e=>{
+  if(!running||turn!=='player'||anim)return;
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const c=Math.floor((x-BX)/GS),rr=Math.floor((y-BY)/GS);
+  if(c<0||c>=N||rr<0||rr>=N)return;
+  const cell=grid[rr][c];
+  if(sel){
+    const moves=validMoves(sel.r,sel.c);
+    const m=moves.find(([tr,tc])=>tr===rr&&tc===c);
+    if(m){
+      doMove(sel.r,sel.c,rr,c,m[2],'player');
+      sel=null;endTurn();return;
+    }
+  }
+  if(cell&&cell.t==='player'){sel={r:rr,c};sfx(500,.06,'sine',.06);}
+  else sel=null;
+});
+function drawPiece(x,y,t,r,bounce){
+  ctx.save();ctx.translate(x,y);
+  if(bounce)ctx.translate(0,-Math.sin(Math.min(1,bounce)*Math.PI)*20);
+  if(t==='player'){
+    const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+    g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,'#ffb300');g.addColorStop(1,'#e67e00');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.3,0,r*0.22,0,7);ctx.arc(r*0.3,0,r*0.22,0,7);ctx.fill();
+    ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.3,r*0.05,r*0.1,0,7);ctx.arc(r*0.3,r*0.05,r*0.1,0,7);ctx.fill();
+  }else if(t==='foe'){
+    const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+    g.addColorStop(0,'#ff9a8a');g.addColorStop(0.5,'#e63900');g.addColorStop(1,'#8a1005');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(-r*0.8,-r*0.5,r*1.6,r*0.3);
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.3,r*0.1,r*0.2,0,7);ctx.arc(r*0.3,r*0.1,r*0.2,0,7);ctx.fill();
+    ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.3,r*0.14,r*0.09,0,7);ctx.arc(r*0.3,r*0.14,r*0.09,0,7);ctx.fill();
+  }else{
+    ctx.fillStyle='rgba(140,140,140,.9)';
+    ctx.beginPath();ctx.arc(-r*0.3,0,r*0.45,0,7);ctx.arc(r*0.3,-r*0.2,r*0.4,0,7);ctx.arc(0,r*0.25,r*0.42,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.25,-r*0.1,r*0.12,0,7);ctx.fill();
+  }
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#241209');g.addColorStop(1,'#0d0505');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // board
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    ctx.fillStyle=(r+c)%2?'rgba(255,138,61,.10)':'rgba(255,138,61,.18)';
+    ctx.fillRect(BX+c*GS,BY+r*GS,GS,GS);
+  }
+  ctx.strokeStyle='#ff8a00';ctx.lineWidth=4;ctx.strokeRect(BX,BY,GS*N,GS*N);
+  // valid moves highlight
+  if(sel&&turn==='player'){
+    ctx.fillStyle='rgba(127,212,255,.35)';
+    validMoves(sel.r,sel.c).forEach(([tr,tc,jump])=>{
+      ctx.beginPath();ctx.arc(cx(tc),cy(tr),GS*0.18,0,7);ctx.fill();
+      if(jump){ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cx(tc),cy(tr),GS*0.3,0,7);ctx.stroke();}
+    });
+    ctx.strokeStyle='#fff';ctx.lineWidth=3;
+    ctx.strokeRect(BX+sel.c*GS+3,BY+sel.r*GS+3,GS-6,GS-6);
+  }
+  // pieces
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const p=grid[r][c];
+    if(!p)continue;
+    let bounce=0;
+    if(anim){
+      // hide moving piece at origin, draw at interpolated pos
+      if(anim.fr===r&&anim.fc===c)continue;
+      if(anim.tr===r&&anim.tc===c){
+        const fx=cx(anim.fc)+(cx(anim.tc)-cx(anim.fc))*anim.t;
+        const fy=cy(anim.fr)+(cy(anim.tr)-cy(anim.fr))*anim.t;
+        drawPiece(fx,fy,p.t,GS*0.34,anim.t);
+        continue;
+      }
+    }
+    drawPiece(cx(c),cy(r),p.t,GS*0.34,0);
+  }
+  // Lord Inferno & Ruko labels
+  ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';
+  ctx.fillText('🔥 YOU',W/2,BY+GS*N+28);
+  ctx.fillText('👹 FOE',W/2,BY-14);ctx.textAlign='left';
+  ctx.fillStyle='rgba(255,255,255,.65)';ctx.font='14px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Moves left: '+movesLeft,W/2,H-34);ctx.textAlign='left';
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Volcanic Stack Smash — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#150b06;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:17px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#ctl{position:absolute;bottom:16px;left:0;right:0;display:flex;justify-content:space-between;padding:0 20px;z-index:5}
+.cbtn{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.5);color:#fff;font-size:30px;font-weight:900}
+.cbtn:active{background:rgba(255,138,61,.5)}
+#back{position:absolute;top:52px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">⏱ 0.0s</span><span id="smash">💥 0</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><div><button class="cbtn" id="bl">◀</button><button class="cbtn" id="br" style="margin-left:12px">▶</button></div><button class="cbtn" id="bj">⬆</button></div>
+<div class="ov" id="gate">
+<h1>🌋 VOLCANIC<br>STACK SMASH</h1>
+<p><b>Starring Sizzle &amp; Lord Inferno</b></p>
+<p>Speedrun platformer! Race to the <b>summit flag</b> — smash through <b>cracked blocks</b> from above! Fastest time wins. Go go go!</p>
+<div class="lesson">🔥 Fire Safety: Volcanoes are dangerous! If one erupts near you, follow evacuation orders immediately.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">SUMMIT!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ RUN AGAIN</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.1){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function jumpS(){sfx(350,.12,'square',.08)} function smashS(){sfx(120,.2,'sawtooth',.16);sfx(600,.1,'triangle',.1)} function flagS(){[523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle',.13),i*90))}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),smashEl=document.getElementById('smash'),comboEl=document.getElementById('combo');
+let running=false,px,py,vx,vy,onG,plats,parts,shake,smashes,combo,comboT,time,camX,flagX,keys;
+const GRAV=0.6;
+function startGame(){
+  running=true;time=0;smashes=0;combo=0;comboT=0;shake=0;parts=[];keys={};
+  px=60;py=H-160;vx=0;vy=0;onG=false;camX=0;
+  plats=[{x:0,y:H-60,w:400,h:60,t:'solid'}];
+  let x=420,y=H-60;
+  const segs=[
+    [200,-80,'solid'],[180,0,'crack'],[200,-90,'solid'],[160,0,'crack'],
+    [220,-70,'solid'],[180,-60,'crack'],[200,-80,'solid'],[160,0,'crack'],
+    [240,-60,'solid'],[200,-90,'crack'],[180,0,'solid'],[220,-70,'crack'],
+    [260,-40,'solid'],
+  ];
+  segs.forEach(([w,dy,t])=>{x+=w*0.55;y+=dy;plats.push({x,y,w:w*0.9,h:22,t});x+=w*0.45;});
+  flagX=x+80;
+  plats.push({x:flagX-40,y:y-160,w:80,h:160,t:'solid'});
+  requestAnimationFrame(loop);
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*7;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,life:1,col,sz:3+Math.random()*5});}}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  time+=dt;
+  scoreEl.textContent='⏱ '+time.toFixed(1)+'s';
+  const sp=5.2;
+  if(keys.l)vx=Math.max(vx-1,-sp);else if(keys.r)vx=Math.min(vx+1,sp);else vx*=0.86;
+  vy+=GRAV;if(vy>16)vy=16;
+  // horizontal
+  px+=vx;onG=false;
+  plats.forEach(p=>{
+    if(p.gone)return;
+    if(px+20>p.x&&px-20<p.x+p.w&&py+24>p.y&&py-24<p.y+p.h){
+      if(vx>0)px=p.x-20;else if(vx<0)px=p.x+p.w+20;
+    }
+  });
+  // vertical
+  py+=vy;
+  plats.forEach(p=>{
+    if(p.gone)return;
+    if(px+20>p.x&&px-20<p.x+p.w&&py+24>p.y&&py-24<p.y+p.h){
+      if(vy>0){
+        // landing — check smash from above on crack blocks
+        if(p.t==='crack'&&vy>7){
+          p.gone=true;smashes++;smashEl.textContent='💥 '+smashes;
+          smashS();explode(p.x+p.w/2,p.y,18,'#a08060');shake=Math.min(12,shake+7);
+          combo++;comboT=1.4;
+          if(combo>=2){comboEl.textContent='💥 SMASH x'+combo;comboEl.style.opacity=1;}
+          vy=-9;
+        }else{py=p.y-24;vy=0;onG=true;}
+      }else if(vy<0){py=p.y+p.h+24;vy=0;}
+    }
+  });
+  if(keys.j&&onG){vy=-13.5;onG=false;jumpS();explode(px,py+24,6,'#fff');}
+  comboT-=dt;if(comboT<=0){combo=0;comboEl.style.opacity=0;}
+  camX+=(px-W*0.35-camX)*Math.min(1,dt*6);
+  if(camX<0)camX=0;
+  if(py>H+200){py=H-160;px=Math.max(60,px-200);vy=0;}
+  if(px+20>flagX){running=false;flagS();showOver();}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.4;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function showOver(){
+  const best=parseFloat(localStorage.getItem('vss_best')||'9999');
+  const isBest=time<best;
+  if(isBest)localStorage.setItem('vss_best',time.toFixed(1));
+  document.getElementById('od').textContent='Time: '+time.toFixed(1)+'s | Smashes: '+smashes+(isBest?' — NEW BEST! 🏆':' (Best: '+best+'s)');
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Volcanoes are dangerous! If one erupts near you, follow evacuation orders immediately.';
+  document.getElementById('over').classList.remove('hide');
+}
+function bindBtn(id,k){
+  const b=document.getElementById(id);
+  b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;});
+  b.addEventListener('pointerup',()=>keys[k]=false);
+  b.addEventListener('pointerleave',()=>keys[k]=false);
+}
+bindBtn('bl','l');bindBtn('br','r');bindBtn('bj','j');
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')keys.l=true;if(e.key==='ArrowRight')keys.r=true;
+  if(e.key===' '||e.key==='ArrowUp')keys.j=true;
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')keys.l=false;if(e.key==='ArrowRight')keys.r=false;
+  if(e.key===' '||e.key==='ArrowUp')keys.j=false;
+});
+function drawBaby(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  const dir=vx>=0?1:-1;ctx.scale(dir,1);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+  g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,'#ffb300');g.addColorStop(1,'#e67e00');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(0,-r*1.5);ctx.quadraticCurveTo(r*0.9,-r*0.6,r*0.7,r*0.4);ctx.quadraticCurveTo(r*0.4,r,r*0.1,r);
+  ctx.quadraticCurveTo(-r*0.4,r,-r*0.7,r*0.4);ctx.quadraticCurveTo(-r*0.9,-r*0.6,0,-r*1.5);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(r*0.15,r*0.05,r*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(r*0.2,r*0.08,r*0.08,0,7);ctx.fill();
+  ctx.strokeStyle='#7a2d00';ctx.lineWidth=2;ctx.beginPath();ctx.arc(r*0.1,r*0.4,r*0.2,0.3,Math.PI-0.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.translate(-camX,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#3a1c10');g.addColorStop(0.6,'#241009');g.addColorStop(1,'#120806');
+  ctx.fillStyle=g;ctx.fillRect(camX-20,-20,W+40,H+40);
+  // volcano bg
+  ctx.fillStyle='#4a2410';
+  for(let i=0;i<6;i++){const vx0=camX*0.5+i*600;ctx.beginPath();ctx.moveTo(vx0,H);ctx.lineTo(vx0+200,H-300);ctx.lineTo(vx0+400,H);ctx.closePath();ctx.fill();}
+  ctx.fillStyle='#ff5a00';
+  for(let i=0;i<6;i++){const vx0=camX*0.5+i*600;ctx.beginPath();ctx.moveTo(vx0+170,H-300);ctx.lineTo(vx0+200,H-340);ctx.lineTo(vx0+230,H-300);ctx.closePath();ctx.fill();}
+  plats.forEach(p=>{
+    if(p.gone)return;
+    if(p.t==='crack'){ctx.fillStyle='#8a6a4a';}
+    else{ctx.fillStyle='#5a3a20';}
+    ctx.fillRect(p.x,p.y,p.w,p.h);
+    ctx.fillStyle='rgba(255,255,255,.15)';ctx.fillRect(p.x,p.y,p.w,5);
+    if(p.t==='crack'){ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x+10,p.y);ctx.lineTo(p.x+p.w/2,p.y+p.h);ctx.moveTo(p.x+p.w-14,p.y);ctx.lineTo(p.x+p.w/2-8,p.y+p.h);ctx.stroke();}
+  });
+  // flag
+  ctx.fillStyle='#8a6a4a';ctx.fillRect(flagX,plats[plats.length-1].y-200,8,120);
+  const wave=Math.sin(Date.now()*0.006)*8;
+  ctx.fillStyle='#3fae4a';ctx.beginPath();ctx.moveTo(flagX+8,plats[plats.length-1].y-200);ctx.quadraticCurveTo(flagX+50,plats[plats.length-1].y-190+wave,flagX+80,plats[plats.length-1].y-200);ctx.lineTo(flagX+80,plats[plats.length-1].y-160);ctx.quadraticCurveTo(flagX+50,plats[plats.length-1].y-150+wave,flagX+8,plats[plats.length-1].y-160);ctx.closePath();ctx.fill();
+  drawBaby(px,py,24);
+  // Lord Inferno at start
+  ctx.font='40px serif';ctx.fillText('👹',40,H-120);
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+</script>
+</body>
+</html>

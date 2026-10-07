@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ruko's Speed Trap — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,5,15,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ff5a5a;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff5a5a;padding:6px;background:#1a0f1a;color:#fff}
+#gate button,#startBtn{background:#c41e3a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;display:flex;justify-content:center;gap:24px;color:#ffd23f;font-weight:900;font-size:20px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud"><span id="s1">🔴 0</span><span id="s2">🔵 0</span><span id="tm">⏱ 60</span></div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>💥 RUKO'S SPEED TRAP</h1>
+<p>Bumper arena! Smash your fire baby into rivals to knock them out of the ring. Most knockouts in 60 seconds wins!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Playful bumping is for games only — never push or shove real people!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.14,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const n1=3+Math.floor(Math.random()*5),n2=2+Math.floor(Math.random()*4);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
+let state='menu',me,foes=[],parts=[],time=60,shake=0,score1=0,score2=0;
+const R=()=>Math.min(W,H)*0.38, CX=()=>W/2, CY=()=>H/2;
+function baby(x,y,r,c1,c2){ctx.save();ctx.translate(x,y);const g=ctx.createRadialGradient(-r*.3,-r*.3,r*.2,0,0,r);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*.3,-r*.1,r*.22,0,7);ctx.arc(r*.3,-r*.1,r*.22,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*.3,-r*.08,r*.1,0,7);ctx.arc(r*.3,-r*.08,r*.1,0,7);ctx.fill();ctx.strokeStyle='#5a2000';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*.25,r*.3,.3,Math.PI-.3);ctx.stroke();ctx.restore();}
+function start(){state='play';time=60;score1=0;score2=0;parts=[];
+  me={x:CX()-80,y:CY(),vx:0,vy:0,r:30,c1:'#ff8a7a',c2:'#c41e12',ai:false};
+  foes=[{x:CX()+80,y:CY()-60,vx:0,vy:0,r:30,c1:'#7db4ff',c2:'#1e5ac4',ai:true,t:0},{x:CX()+40,y:CY()+90,vx:0,vy:0,r:30,c1:'#7db4ff',c2:'#1e5ac4',ai:true,t:2}];
+  ov.classList.add('hidden');}
+function boom(x,y,c){for(let i=0;i<16;i++){const a=Math.random()*7,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
+function end(){state='over';const w=score1>score2?'🔴 YOU WIN!':score1<score2?'🔵 RIVALS WIN!':'🤝 TIE!';
+  ov.innerHTML=`<h1>${w}</h1><p>Knockouts — You: <b>${score1}</b> | Rivals: <b>${score2}</b></p><div class="lesson">🔥 Fire Safety: Playful bumping is for games only — never push or shove real people!</div><button onclick="location.reload()" style="background:#c41e3a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
+function phys(b,dt){
+  b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=.985;b.vy*=.985;
+  const d=Math.hypot(b.x-CX(),b.y-CY());
+  if(d>R()){ // knocked out!
+    boom(b.x,b.y,'#ffd23f');beep(200,.3,'sawtooth');shake=14;
+    if(b===me){score2++;document.getElementById('s2').textContent='🔵 '+score2;b.x=CX()-80;b.y=CY();}
+    else{score1++;document.getElementById('s1').textContent='🔴 '+score1;b.x=CX()+60;b.y=CY();}
+    b.vx=b.vy=0;
+  }
+}
+function update(dt){
+  if(state!=='play')return;time-=dt;shake*=.9;
+  document.getElementById('tm').textContent='⏱ '+Math.ceil(time);
+  if(time<=0){end();return;}
+  // player input accel
+  const sp=900*dt;
+  if(keys.l)me.vx-=sp;if(keys.r)me.vx+=sp;if(keys.u)me.vy-=sp;if(keys.d)me.vy+=sp;
+  if(tch.x!==null){me.vx+=(tch.x-me.x)*6*dt;me.vy+=(tch.y-me.y)*6*dt;}
+  phys(me,dt);
+  foes.forEach((f,i)=>{
+    f.t+=dt;
+    // simple AI: chase player, avoid edge
+    const dx=me.x-f.x,dy=me.y-f.y,d=Math.hypot(dx,dy)||1;
+    f.vx+=dx/d*500*dt;f.vy+=dy/d*500*dt;
+    const ed=Math.hypot(f.x-CX(),f.y-CY());
+    if(ed>R()*.8){f.vx+=(CX()-f.x)*3*dt;f.vy+=(CY()-f.y)*3*dt;}
+    phys(f,dt);
+    // bump collisions
+    [me,...foes].forEach(o=>{if(o===f)return;const ddx=o.x-f.x,ddy=o.y-f.y,dd=Math.hypot(ddx,ddy),min=f.r+o.r;
+      if(dd<min&&dd>0){const nx=ddx/dd,ny=ddy/dd,push=260;f.vx-=nx*push*dt*8;f.vy-=ny*push*dt*8;o.vx+=nx*push*dt*8;o.vy+=ny*push*dt*8;beep(300,.08,'square');}});
+  });
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.4;});parts=parts.filter(p=>p.life>0);
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.fillStyle='#0d0a14';ctx.fillRect(-20,-20,W+40,H+40);
+  // arena
+  const g=ctx.createRadialGradient(CX(),CY(),R()*.3,CX(),CY(),R());
+  g.addColorStop(0,'#2a1a3a');g.addColorStop(1,'#160f22');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX(),CY(),R(),0,7);ctx.fill();
+  ctx.strokeStyle='#ff6a00';ctx.lineWidth=6;ctx.setLineDash([18,12]);ctx.beginPath();ctx.arc(CX(),CY(),R(),0,7);ctx.stroke();ctx.setLineDash([]);
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,6*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+  foes.forEach(f=>baby(f.x,f.y,f.r,f.c1,f.c2));baby(me.x,me.y,me.r,me.c1,me.c2);
+}
+let keys={l:0,r:0,u:0,d:0},tch={x:null,y:null},last=0;
+function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.l=1;if(e.key==='ArrowRight')keys.r=1;if(e.key==='ArrowUp')keys.u=1;if(e.key==='ArrowDown')keys.d=1;});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.l=0;if(e.key==='ArrowRight')keys.r=0;if(e.key==='ArrowUp')keys.u=0;if(e.key==='ArrowDown')keys.d=0;});
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();tch.x=e.clientX-r.left;tch.y=e.clientY-r.top;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',e=>{if(tch.x===null)return;const r=cv.getBoundingClientRect();tch.x=e.clientX-r.left;tch.y=e.clientY-r.top;});
+cv.addEventListener('pointerup',()=>tch.x=null);
+</script>
+</body>
+</html>

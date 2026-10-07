@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Spark Jump Arcade — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#160d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">SCORE 0</span><span id="moves">MOVES 30</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>⚡ SPARK JUMP<br>ARCADE</h1>
+<p><b>Starring Blaze &amp; Boulder</b></p>
+<p>Match-3 with physics! Tap two adjacent embers to <b>swap</b> them. Match 3+ of a color and they <b>pop with bouncy physics</b>! 30 moves — score big!</p>
+<div class="lesson">🔥 Fire Safety: Sparks fly! Keep a safe distance from campfires and fireworks.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">TIME'S UP!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.1){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function popS(n){sfx(500+n*100,.15,'triangle',.12)} function swapS(){sfx(300,.08,'square',.08)} function badS(){sfx(180,.15,'sawtooth',.1)}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,GS,GOX,GOY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;GS=Math.min(W*0.11,64);const bw=GS*6;GOX=(W-bw)/2;GOY=(H-GS*7)/2+20;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),movesEl=document.getElementById('moves'),comboEl=document.getElementById('combo');
+const COLS=6,ROWS=7,COLORS=['#ff6a00','#ffd23f','#ff3b5e','#4da6ff','#3fae4a'];
+let running=false,grid,sel,parts,shake,score,moves,combo,comboChain,falling;
+function startGame(){
+  running=true;sel=null;parts=[];shake=0;score=0;moves=30;combo=0;comboChain=0;falling=false;
+  grid=[];
+  for(let r=0;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++){grid[r].push(newGem(r,c));}}
+  // ensure no starting matches
+  while(findMatches().length>0){grid.forEach((row,r)=>row.forEach((g,c)=>{g.color=Math.floor(Math.random()*5);}));}
+  scoreEl.textContent='SCORE 0';movesEl.textContent='MOVES 30';
+  requestAnimationFrame(loop);
+}
+function newGem(r,c){return{r,c,color:Math.floor(Math.random()*COLORS.length),x:GOX+c*GS+GS/2,y:GOY+r*GS+GS/2,vy:0,scale:1,pop:0};}
+function cellX(c){return GOX+c*GS+GS/2;} function cellY(r){return GOY+r*GS+GS/2;}
+function findMatches(){
+  const matched=new Set();
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS-2;c++){
+    const col=grid[r][c].color;
+    if(grid[r][c+1].color===col&&grid[r][c+2].color===col){
+      let cc=c;while(cc<COLS&&grid[r][cc].color===col){matched.add(r+','+cc);cc++;}
+    }
+  }
+  for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-2;r++){
+    const col=grid[r][c].color;
+    if(grid[r+1][c].color===col&&grid[r+2][c].color===col){
+      let rr=r;while(rr<ROWS&&grid[rr][c].color===col){matched.add(rr+','+c);rr++;}
+    }
+  }
+  return [...matched].map(s=>s.split(',').map(Number));
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*7;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,life:1,col,sz:3+Math.random()*5});}}
+function resolveMatches(){
+  const m=findMatches();
+  if(m.length===0){
+    if(comboChain>0){combo=0;comboEl.style.opacity=0;}
+    comboChain=0;falling=false;checkMoves();return;
+  }
+  comboChain++;
+  const pts=m.length*10*comboChain;
+  score+=pts;scoreEl.textContent='SCORE '+score;
+  popS(comboChain);shake=Math.min(10,shake+4);
+  if(comboChain>=2){comboEl.textContent='⚡ CHAIN x'+comboChain+' +'+pts;comboEl.style.opacity=1;}
+  m.forEach(([r,c])=>{
+    const g=grid[r][c];
+    explode(g.x,g.y,10,COLORS[g.color]);
+    grid[r][c]=null;
+  });
+  // gravity
+  for(let c=0;c<COLS;c++){
+    let write=ROWS-1;
+    for(let r=ROWS-1;r>=0;r--){
+      if(grid[r][c]){if(write!==r){grid[write][c]=grid[r][c];grid[r][c].r=write;}write--;}
+    }
+    for(let r=write;r>=0;r--){const g=newGem(r,c);g.y=cellY(r)-GS*3;grid[r][c]=g;}
+  }
+  falling=true;
+  setTimeout(()=>{if(running)resolveMatches();},350);
+}
+function checkMoves(){
+  if(moves<=0){running=false;showOver();}
+}
+function trySwap(r1,c1,r2,c2){
+  if(falling||!running)return;
+  if(Math.abs(r1-r2)+Math.abs(c1-c2)!==1)return;
+  const a=grid[r1][c1],b=grid[r2][c2];
+  grid[r1][c1]=b;grid[r2][c2]=a;
+  a.r=r2;a.c=c2;b.r=r1;b.c=c1;
+  swapS();
+  if(findMatches().length>0){
+    moves--;movesEl.textContent='MOVES '+moves;
+    falling=true;
+    setTimeout(()=>{if(running)resolveMatches();},250);
+  }else{
+    // swap back
+    grid[r1][c1]=a;grid[r2][c2]=b;a.r=r1;a.c=c1;b.r=r2;b.c=c2;
+    badS();
+  }
+}
+function showOver(){
+  document.getElementById('od').textContent='Final score: '+score+'! Spark-tacular matching!';
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Sparks fly! Keep a safe distance from campfires and fireworks.';
+  document.getElementById('over').classList.remove('hide');
+  [523,659,784].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle',.12),i*100));
+}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  // gem physics: ease toward cell
+  grid.forEach(row=>row.forEach(g=>{
+    if(!g)return;
+    const tx=cellX(g.c),ty=cellY(g.r);
+    g.vy+=900*dt;
+    g.y+=g.vy*dt;g.x+=(tx-g.x)*Math.min(1,dt*10);
+    if(g.y>ty){g.y=ty;g.vy*=-0.3;if(Math.abs(g.vy)<30)g.vy=0;}
+    if(g.pop>0)g.pop-=dt*3;
+  }));
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.4;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+cv.addEventListener('pointerdown',e=>{
+  if(!running||falling)return;
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const c=Math.floor((x-GOX)/GS),rr=Math.floor((y-GOY)/GS);
+  if(c<0||c>=COLS||rr<0||rr>=ROWS)return;
+  if(!sel){sel={r:rr,c};sfx(400,.06,'sine',.06);}
+  else{
+    trySwap(sel.r,sel.c,rr,c);
+    sel=null;
+  }
+});
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#241209');g.addColorStop(1,'#120806');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // board
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  roundRect(GOX-10,GOY-10,GS*COLS+20,GS*ROWS+20,16);ctx.fill();
+  grid.forEach(row=>row.forEach(gm=>{
+    if(!gm)return;
+    const s=GS*0.4*(gm.pop>0?1+gm.pop*0.5:1);
+    ctx.save();
+    if(sel&&sel.r===gm.r&&sel.c===gm.c){ctx.shadowColor='#fff';ctx.shadowBlur=16;}
+    const rg=ctx.createRadialGradient(gm.x-s*0.3,gm.y-s*0.3,s*0.2,gm.x,gm.y,s);
+    rg.addColorStop(0,'#fff');rg.addColorStop(0.3,COLORS[gm.color]);rg.addColorStop(1,shade(COLORS[gm.color]));
+    ctx.fillStyle=rg;
+    ctx.beginPath();ctx.arc(gm.x,gm.y,s,0,7);ctx.fill();
+    ctx.restore();
+  }));
+  // selection ring
+  if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cellX(sel.c),cellY(sel.r),GS*0.48,0,7);ctx.stroke();}
+  // Blaze & Boulder buddies
+  ctx.font='36px serif';ctx.fillText('🔥',GOX-56,GOY+40);ctx.fillText('🪨',GOX+GS*COLS+16,GOY+40);
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function shade(hex){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,((n>>16)&255)-60),gg=Math.max(0,((n>>8)&255)-60),b=Math.max(0,(n&255)-60);
+  return `rgb(${r},${gg},${b})`;
+}
+</script>
+</body>
+</html>

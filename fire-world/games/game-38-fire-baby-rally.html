@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fire Baby Rally — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#101820;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,12,18,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#7fd4ff;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#2a9df4;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #7fd4ff;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">0m</span><span id="best">BEST 0m</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>🪝 FIRE BABY<br>RALLY</h1>
+<p><b>Starring Cinder &amp; Blaze</b></p>
+<p>Grapple rally! <b>Tap and hold</b> to shoot your grapple at anchor points, <b>release</b> to let go and fly! Swing past checkpoints — don't hit the ground!</p>
+<div class="lesson">🔥 Fire Safety: Ropes save lives! Firefighters use ropes and ladders — always have an escape route.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">RALLY OVER!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ RALLY AGAIN</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.1){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function grapS(){sfx(600,.1,'square',.08)} function releaseS(){sfx(400,.15,'sawtooth',.08)} function checkS(){sfx(880,.2,'triangle',.12)} function crashS(){sfx(120,.4,'sawtooth',.16)}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),comboEl=document.getElementById('combo');
+let best=parseInt(localStorage.getItem('fbr_best')||'0');bestEl.textContent='BEST '+best+'m';
+let running=false,px,py,vx,vy,grap,anchors,checks,parts,shake,dist,combo,comboT,camX,nextCheck,bgX;
+const GRAV=0.55,ROPE=220;
+function startGame(){
+  running=true;px=100;py=H*0.3;vx=4;vy=0;grap=null;
+  anchors=[];checks=[];parts=[];shake=0;dist=0;combo=0;comboT=0;camX=0;nextCheck=1;bgX=0;
+  for(let i=0;i<8;i++)spawnAnchor(300+i*320);
+  for(let i=1;i<=10;i++)checks.push({x:i*900,hit:false});
+  scoreEl.textContent='0m';
+  requestAnimationFrame(loop);
+}
+function spawnAnchor(x){anchors.push({x,y:60+Math.random()*(H*0.4)});}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  vx=Math.min(9,vx+dt*0.4);
+  if(grap){
+    // pendulum physics
+    const dx=px-grap.x,dy=py-grap.y,d=Math.hypot(dx,dy);
+    if(d>ROPE){
+      const nx=dx/d,ny=dy/d;
+      px=grap.x+nx*ROPE;py=grap.y+ny*ROPE;
+      const vn=vx*nx+vy*ny;
+      if(vn>0){vx-=vn*nx;vy-=vn*ny;}
+      // pump: add tangential boost
+      const tx=-ny,ty=nx;
+      const boost=(keysPump?2.2:0.6)*dt*60;
+      vx+=tx*boost*dt;vy+=ty*boost*dt;
+    }
+    vy+=GRAV*0.4;
+  }else{
+    vy+=GRAV;
+  }
+  vy=Math.min(vy,18);
+  px+=vx;py+=vy;
+  dist=px/50;scoreEl.textContent=Math.floor(dist)+'m';
+  camX=px-W*0.3;bgX+=vx*0.3;
+  // anchors recycle
+  anchors.forEach(a=>{if(a.x<camX-100){a.x=camX+W+Math.random()*200;a.y=60+Math.random()*(H*0.4);}});
+  // checkpoints
+  checks.forEach(ch=>{
+    if(!ch.hit&&px>ch.x){
+      ch.hit=true;checkS();explode(ch.x,H/2,16,'#3fae4a');
+      combo++;comboT=2;
+      if(combo>=2){comboEl.textContent='🏁 CHECKPOINT x'+combo;comboEl.style.opacity=1;}
+      nextCheck++;
+    }
+  });
+  comboT-=dt;if(comboT<=0){combo=0;comboEl.style.opacity=0;}
+  // ground / ceiling
+  if(py>H-24||py<10){
+    crashS();shake=14;explode(px,py,20,'#f66');
+    running=false;showOver();return;
+  }
+  // trail
+  if(Math.random()<0.4)parts.push({x:px-14,y:py,vx:-40,vy:(Math.random()-.5)*30,life:.5,col:'#ffb300',sz:4});
+  parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function showOver(){
+  const s=Math.floor(dist);
+  if(s>best){best=s;localStorage.setItem('fbr_best',best);}
+  document.getElementById('od').textContent='Rallied '+s+'m! Best: '+best+'m | Checkpoints: '+(nextCheck-1);
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Ropes save lives! Firefighters use ropes and ladders — always have an escape route.';
+  document.getElementById('over').classList.remove('hide');
+}
+let keysPump=false,holding=false;
+function tryGrapple(x,y){
+  if(!running||grap)return;
+  // find nearest anchor above
+  let bestA=null,bestD=1e9;
+  anchors.forEach(a=>{
+    const wx=a.x-camX*0; // anchors in world coords
+    const d=Math.hypot(wx-px,a.y-py);
+    if(a.y<py&&d<ROPE*1.6&&d<bestD){bestD=d;bestA=a;}
+  });
+  if(bestA){grap=bestA;grapS();explode(px,py,8,'#7fd4ff');}
+}
+cv.addEventListener('pointerdown',e=>{holding=true;keysPump=true;tryGrapple(e.clientX,e.clientY);});
+addEventListener('pointerup',()=>{holding=false;keysPump=false;if(grap){grap=null;releaseS();}});
+addEventListener('keydown',e=>{if(e.key===' '){keysPump=true;tryGrapple(0,0);}});
+addEventListener('keyup',e=>{if(e.key===' '){keysPump=false;grap=null;}});
+function drawBaby(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  if(grap)ctx.rotate(Math.atan2(vy,vx)*0.3);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+  g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,'#ffb300');g.addColorStop(1,'#e67e00');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(0,-r*1.5);ctx.quadraticCurveTo(r*0.9,-r*0.6,r*0.7,r*0.4);ctx.quadraticCurveTo(r*0.4,r,r*0.1,r);
+  ctx.quadraticCurveTo(-r*0.4,r,-r*0.7,r*0.4);ctx.quadraticCurveTo(-r*0.9,-r*0.6,0,-r*1.5);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.28,r*0.05,r*0.16,0,7);ctx.arc(r*0.28,r*0.05,r*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.28,r*0.08,r*0.08,0,7);ctx.arc(r*0.28,r*0.08,r*0.08,0,7);ctx.fill();
+  ctx.strokeStyle='#7a2d00';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*0.35,r*0.25,0.3,Math.PI-0.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.translate(-camX,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0e1622');g.addColorStop(0.7,'#101820');g.addColorStop(1,'#0a0e14');
+  ctx.fillStyle=g;ctx.fillRect(camX-20,-20,W+40,H+40);
+  // mountains
+  ctx.fillStyle='#1a2430';
+  for(let i=0;i<12;i++){const mx=camX*0.4+i*400;ctx.beginPath();ctx.moveTo(mx,H);ctx.lineTo(mx+150,H-180-(i%3)*60);ctx.lineTo(mx+300,H);ctx.closePath();ctx.fill();}
+  // ground
+  ctx.fillStyle='#232e3a';ctx.fillRect(camX-20,H-24,W+40,44);
+  ctx.fillStyle='#ff5a00';ctx.fillRect(camX-20,H-6,W+40,6);
+  // anchors
+  anchors.forEach(a=>{
+    const sx=a.x;
+    if(sx<camX-50||sx>camX+W+50)return;
+    ctx.fillStyle='#7fd4ff';ctx.shadowColor='#7fd4ff';ctx.shadowBlur=12;
+    ctx.beginPath();ctx.arc(sx,a.y,14,0,7);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sx,a.y,6,0,7);ctx.fill();
+  });
+  // checkpoints
+  checks.forEach(ch=>{
+    if(ch.x<camX-50||ch.x>camX+W+50)return;
+    ctx.strokeStyle=ch.hit?'#3fae4a':'#ffd23f';ctx.lineWidth=6;ctx.setLineDash([16,10]);
+    ctx.beginPath();ctx.moveTo(ch.x,0);ctx.lineTo(ch.x,H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=ch.hit?'#3fae4a':'#ffd23f';ctx.font='bold 20px sans-serif';ctx.textAlign='center';
+    ctx.fillText(ch.hit?'✓':'🏁',ch.x,60);ctx.textAlign='left';
+  });
+  // rope
+  if(grap){
+    ctx.strokeStyle='#ddd';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(px,py-10);ctx.lineTo(grap.x,grap.y);ctx.stroke();
+  }
+  drawBaby(px,py,24);
+  // Blaze buddy at start
+  if(camX<300){ctx.font='36px serif';ctx.fillText('🔥',40,H-80);}
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  if(holding&&!grap){ctx.fillStyle='rgba(127,212,255,.8)';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('AIMING...',px,py-44);ctx.textAlign='left';}
+  ctx.restore();
+}
+</script>
+</body>
+</html>
