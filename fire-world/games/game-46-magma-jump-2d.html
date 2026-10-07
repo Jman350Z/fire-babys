@@ -3,159 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Magma Jump 2D — Fire Babys</title>
-<meta name="description" content="Cut the ropes at the perfect moment in Magma Jump 2D! A Fire Babys physics game by Jman350Z & fire team.">
+<title>Magma Jump 2D — by Jman350Z & fire team</title>
+<meta name="description" content="Wall jump to the top! Bounce between walls. A Fire Babys climber.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#160a08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#140d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%}
-#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(22,8,5,.94);color:#fff;text-align:center;padding:24px}
-#overlay h1{font-size:clamp(26px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ff8a5a}
-#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,6,3,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
-#overlay button{background:#a03a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
-#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
-#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#1a0e08;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
-#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
-#cutbtn{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:10;background:#ff5a3a;color:#fff;border:3px solid #fff;font-size:22px;font-weight:900;padding:16px 54px;border-radius:999px}
-#cutbtn:active{transform:translateX(-50%) scale(0.94)}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
 <div id="game">
-<div id="hud"><div id="lvl">LEVEL 1/5</div><div id="lives">❤️❤️❤️</div><div id="score">SCORE 0</div></div>
+<div id="hud">
+<div class="pill gold" id="score">📏 0m</div>
+<div class="pill" id="combo">🔥 x1</div>
+<div class="pill" id="best">🏆 0m</div>
+</div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<button id="cutbtn" class="hidden">✂️ CUT!</button>
 <div id="overlay">
-<h1 id="otitle">✂️ MAGMA<br>JUMP 2D</h1>
-<div id="obody"><p>Blaze is swinging on ropes over lava! <b>Tap CUT (or tap the screen)</b> at the perfect moment to let go.</p><p>Swing to the next rope — or drop safely into the <b style="color:#7dff7d">green nest</b>. Miss and it's lava!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: Never swing or climb near hot stoves or fireplaces!</div>
-<button id="obtn">▶ START SWINGING</button>
+<h1 id="otitle">🧗 MAGMA JUMP 2D</h1>
+<div id="obody"><p>Wall-jump to the sky!</p><p><b>TAP</b> to jump to the opposite wall! Time it right to grab ⭐ stars. Avoid the 🔥 lava patches on the walls. Don't fall below the screen!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Climb to safety — know your exits!</div>
+<button id="obtn">▶ PLAY</button>
 </div>
 </div>
 <script>
 'use strict';
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate'),cutbtn=document.getElementById('cutbtn');
-let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
-let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
-let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
-function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
-const G={state:'title',level:1,lives:3,score:0};
-const GRAV=1400;
-let ropes=[],nest,baby;
-function buildLevel(n){
-  ropes=[];const topY=90;
-  const nR=2+Math.min(3,n);
-  for(let i=0;i<nR;i++){
-    const ax=W*(0.15+0.7*i/(nR-1));
-    ropes.push({ax,ay:topY,len:150+Math.random()*60,ang:(Math.random()<0.5?-1:1)*0.7,angV:0,cut:false});
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  jump(){tone(450,750,0.09,'square',0.09);},
+  star(){tone(900,1400,0.1,'sine',0.1);},
+  lava(){tone(300,80,0.35,'sawtooth',0.15);},
+  fall(){tone(400,80,0.5,'sawtooth',0.14);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+const G={state:'title',score:0,best:0,combo:1,
+  px:0,py:0,vx:0,vy:0,onWall:1, // 1=right,-1=left
+  camY:0,stars:[],lavas:[],time:0,dead:false,wallGap:0};
+try{G.best=parseInt(localStorage.getItem('walljump_best')||'0',10)||0;}catch(e){}
+function wallX(side,camY){
+  // walls narrow as you climb
+  const base=Math.min(W*0.42,180)-Math.min(60,-camY*0.008);
+  return side>0?W/2+base:W/2-base;
+}
+function reset(){
+  G.score=0;G.combo=1;G.camY=0;G.time=0;G.dead=false;
+  G.stars=[];G.lavas=[];
+  G.onWall=1;
+  G.px=wallX(1,0)-18;G.py=H*0.7;G.vx=0;G.vy=0;
+  // initial stars/lava
+  for(let i=0;i<10;i++)spawnRow(-i*220);
+  updateHUD();
+  document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';
+}
+function spawnRow(y){
+  // y is world y (negative up)
+  if(Math.random()<0.7){
+    const side=Math.random()<0.5?-1:1;
+    G.stars.push({x:W/2+side*Math.min(W*0.3,130),y:y-Math.random()*120,t:Math.random()*6,taken:false});
   }
-  nest={x:ropes[ropes.length-1].ax+(Math.random()<0.5?-1:1)*(60+Math.random()*60),y:H-140,w:110};
-  nest.x=Math.max(70,Math.min(W-70,nest.x));
-  baby={mode:'rope',ri:0,x:0,y:0,vx:0,vy:0,r:20};
-  attach(0);
-  document.getElementById('lvl').textContent='LEVEL '+n+'/5';
+  if(Math.random()<0.45){
+    const side=Math.random()<0.5?-1:1;
+    G.lavas.push({side,y:y-Math.random()*160,h:60+Math.random()*60});
+  }
 }
-function ropePos(r){return {x:r.ax+Math.sin(r.ang)*r.len,y:r.ay+Math.cos(r.ang)*r.len};}
-function attach(i){baby.mode='rope';baby.ri=i;ropes[i].angV=(Math.random()<0.5?-1:1)*1.6;}
-function cut(){
-  if(G.state!=='play'||baby.mode!=='rope')return;
-  const r=ropes[baby.ri];r.cut=true;
-  const p=ropePos(r),tv=r.angV*r.len;
-  baby.vx=Math.cos(r.ang)*tv;baby.vy=-Math.sin(r.ang)*tv;
-  baby.x=p.x;baby.y=p.y;baby.mode='fly';
-  sfx(500,900,0.15,'triangle');
+function updateHUD(){
+  document.getElementById('score').textContent='📏 '+Math.floor(G.score/10)+'m';
+  document.getElementById('combo').textContent='🔥 x'+G.combo;
 }
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.dead)return;
+  e.preventDefault();
+  // jump to opposite wall
+  G.onWall*=-1;
+  G.vx=G.onWall*420;
+  G.vy=-560;
+  sfx.jump();
+});
+const particles=[];
+for(let i=0;i<60;i++)particles.push({a:false});
 function update(dt){
-  if(baby.mode==='rope'){
-    const r=ropes[baby.ri];
-    r.angV+=(-9.8/r.len*Math.sin(r.ang))*dt*3;
-    r.angV*=0.999;r.ang+=r.angV*dt;
-    const p=ropePos(r);baby.x=p.x;baby.y=p.y;
-  }else{
-    baby.vy+=GRAV*dt;baby.x+=baby.vx*dt;baby.y+=baby.vy*dt;
-    for(let i=0;i<ropes.length;i++){
-      if(i===baby.ri||ropes[i].cut)continue;
-      const r=ropes[i],dx=baby.x-r.ax,dy=baby.y-r.ay,len=Math.hypot(dx,dy);
-      if(Math.abs(len-r.len)<26&&baby.y>r.ay){attach(i);sfx(700,1100,0.15);G.score+=50;break;}
-    }
-    if(baby.y+baby.r>nest.y&&baby.y-baby.r<nest.y+40&&Math.abs(baby.x-nest.x)<nest.w/2){
-      G.score+=400+G.level*100;sfx(600,1200,0.3);
-      if(G.level>=5){win();return;}
-      G.level++;buildLevel(G.level);return;
-    }
-    if(baby.y>H-60||baby.x<-40||baby.x>W+40){miss();}
+  G.time+=dt;
+  G.vy+=1800*dt;
+  G.px+=G.vx*dt;G.py+=G.vy*dt;
+  // wall stick
+  const wl=wallX(-1,G.camY),wr=wallX(1,G.camY);
+  if(G.px<wl+18){
+    G.px=wl+18;
+    if(G.vx<0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=-1;}
   }
+  if(G.px>wr-18){
+    G.px=wr-18;
+    if(G.vx>0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=1;}
+  }
+  // lava collision
+  const wy=G.py-G.camY;
+  for(const l of G.lavas){
+    const lx=wallX(l.side,G.camY);
+    const ly=l.y+G.camY;
+    if(Math.abs(G.px-lx)<30&&wy>ly&&wy<ly+l.h){
+      G.dead=true;sfx.lava();
+      gameOver('🔥 BURNED!');return;
+    }
+  }
+  // stars
+  for(const s of G.stars){
+    s.t+=dt*3;
+    if(!s.taken&&Math.hypot(G.px-s.x,G.py-(s.y+G.camY))<36){
+      s.taken=true;sfx.star();
+      G.score+=25*G.combo;G.combo=Math.min(8,G.combo+1);
+      updateHUD();
+      for(let i=0;i<6;i++){const p=particles.find(p=>!p.a);if(!p)break;
+        p.a=true;p.x=s.x;p.y=s.y+G.camY;const a=Math.random()*Math.PI*2;
+        p.vx=Math.cos(a)*160;p.vy=Math.sin(a)*160;
+        p.life=0.4;p.max=0.4;p.color='#ffd23f';p.size=3;}
+    }
+  }
+  G.stars=G.stars.filter(s=>!s.taken&&s.y+G.camY<H+60);
+  // camera follows up
+  const screenY=G.py-G.camY;
+  if(screenY<H*0.35){
+    G.camY-=(H*0.35-screenY);
+    const h=Math.floor(-G.camY/10);
+    if(h>G.score){G.score=h;updateHUD();}
+  }
+  // spawn more
+  let topY=1e9;
+  for(const s of G.stars)topY=Math.min(topY,s.y);
+  for(const l of G.lavas)topY=Math.min(topY,l.y);
+  while(topY>G.camY-400){
+    topY-=200+Math.random()*80;
+    spawnRow(topY-G.camY);
+  }
+  G.lavas=G.lavas.filter(l=>l.y+G.camY<H+100);
+  // fell
+  if(G.py-G.camY>H+60){
+    G.dead=true;sfx.fall();
+    gameOver('💥 YOU FELL!');
+  }
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
 }
-function miss(){
-  G.lives--;sfx(250,60,0.5,'sawtooth');
-  document.getElementById('lives').textContent='❤️'.repeat(G.lives)+'🖤'.repeat(3-G.lives);
-  if(G.lives<=0)gameOver();else buildLevel(G.level);
+function gameOver(title){
+  const isBest=G.score>G.best;
+  if(isBest){G.best=G.score;try{localStorage.setItem('walljump_best',String(G.best));}catch(e){}}
+  setTimeout(()=>{
+    showOverlay(title,
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Height: ${Math.floor(G.score/10)}m</p><p>Best: ${Math.floor(G.best/10)}m</p>`,
+      '🔥 Fire Safety: Climb to safety!',
+      '↻ CLIMB AGAIN',()=>{reset();G.state='play';});
+  },600);
 }
-function gameOver(){
-  G.state='dead';cutbtn.classList.add('hidden');
-  otitle.textContent='🔥 LAVA BATH!';
-  obody.innerHTML='<p>Blaze missed the nest! Score: '+G.score+'</p>';
-  olesson.textContent='🔥 Fire Safety: Never swing or climb near hot stoves or fireplaces!';
-  obtn.textContent='↻ SWING AGAIN';
-  obtn.onclick=()=>{overlay.classList.add('hidden');cutbtn.classList.remove('hidden');G.level=1;G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';buildLevel(1);G.state='play';};
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function win(){
-  G.state='win';cutbtn.classList.add('hidden');sfx(523,1047,0.5);
-  otitle.textContent='🎉 ROPE MASTER!';
-  obody.innerHTML='<p>Blaze reached every nest! Final score: '+G.score+'</p>';
-  olesson.textContent='🔥 Fire Safety: Look before you leap — and never near fire!';
-  obtn.textContent='↻ PLAY AGAIN';
-  obtn.onclick=()=>{overlay.classList.add('hidden');cutbtn.classList.remove('hidden');G.level=1;G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';buildLevel(1);G.state='play';};
-  overlay.classList.remove('hidden');
-}
+function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
 function render(){
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#160a08');g.addColorStop(0.7,'#2a1410');g.addColorStop(1,'#3a1a08');
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#ff5a1a';ctx.fillRect(0,H-60,W,60);
-  ctx.fillStyle='#ff8a3d';
-  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.arc(x+((G.level*37)%40),H-60+Math.sin(x*0.1)*6,10,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle='#2a6a2a';ctx.fillRect(nest.x-nest.w/2,nest.y,nest.w,40);
-  ctx.fillStyle='#3a8a3a';ctx.fillRect(nest.x-nest.w/2,nest.y,nest.w,10);
-  ctx.font='30px sans-serif';ctx.textAlign='center';ctx.fillText('🪹',nest.x,nest.y+32);ctx.textAlign='left';
-  for(const r of ropes){
-    if(r.cut)continue;
-    const p=ropePos(r);
-    ctx.strokeStyle='#c8a86a';ctx.lineWidth=5;
-    ctx.beginPath();ctx.moveTo(r.ax,r.ay);ctx.lineTo(p.x,p.y);ctx.stroke();
-    ctx.fillStyle='#8a6a3a';ctx.fillRect(r.ax-14,r.ay-14,28,14);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#1e1006');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const offY=-G.camY;
+  // walls
+  const wl=wallX(-1,G.camY),wr=wallX(1,G.camY);
+  const wg=ctx.createLinearGradient(wl,0,wr,0);
+  wg.addColorStop(0,'#3a2a1a');wg.addColorStop(0.5,'rgba(58,42,26,0)');wg.addColorStop(1,'#3a2a1a');
+  ctx.fillStyle='#3a2a1a';
+  ctx.fillRect(0,0,wl,H);
+  ctx.fillRect(wr,0,W-wr,H);
+  // wall texture
+  ctx.fillStyle='rgba(255,255,255,0.05)';
+  for(let y=(offY%80);y<H;y+=80){
+    ctx.fillRect(0,y,wl,4);ctx.fillRect(wr,y,W-wr,4);
   }
-  const bg=ctx.createRadialGradient(baby.x-5,baby.y-7,2,baby.x,baby.y,baby.r);
-  bg.addColorStop(0,'#ffd9a0');bg.addColorStop(0.6,'#ff8a3d');bg.addColorStop(1,'#d44a0a');
-  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(baby.x,baby.y,baby.r,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(baby.x-6,baby.y-3,3,0,Math.PI*2);ctx.arc(baby.x+6,baby.y-3,3,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(baby.x,baby.y+5,7,0.3,Math.PI-0.3);ctx.stroke();
-  if(baby.mode==='rope'){
-    const r=ropes[baby.ri],p=ropePos(r),tv=r.angV*r.len;
-    const vx=Math.cos(r.ang)*tv,vy=-Math.sin(r.ang)*tv;
-    ctx.fillStyle='rgba(255,255,255,0.35)';
-    let px=p.x,py=p.y,pvx=vx,pvy=vy;
-    for(let i=0;i<14;i++){pvy+=GRAV*0.05;px+=pvx*0.05;py+=pvy*0.05;ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();}
+  // lava patches
+  for(const l of G.lavas){
+    const lx=wallX(l.side,G.camY);
+    const ly=l.y+offY;
+    if(ly<-100||ly>H+100)continue;
+    const lg=ctx.createLinearGradient(0,ly,0,ly+l.h);
+    lg.addColorStop(0,'#ff6a00');lg.addColorStop(1,'#a32a00');
+    ctx.fillStyle=lg;
+    const x0=l.side<0?lx-24:lx-6;
+    ctx.fillRect(x0,ly,30,l.h);
+    ctx.fillStyle='rgba(255,221,68,0.8)';
+    for(let i=0;i<3;i++){
+      ctx.beginPath();ctx.arc(x0+15,ly+10+i*20+Math.sin(G.time*6+i)*3,4,0,Math.PI*2);ctx.fill();
+    }
   }
-  document.getElementById('score').textContent='SCORE '+G.score;
+  // stars
+  for(const s of G.stars){
+    const sy=s.y+offY;
+    if(sy<-30||sy>H+30)continue;
+    const bob=Math.sin(s.t)*4;
+    ctx.save();ctx.translate(s.x,sy+bob);
+    ctx.scale(Math.abs(Math.cos(s.t*0.5))*0.4+0.6,1);
+    const g=ctx.createRadialGradient(-4,-4,2,0,0,12);
+    g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+  // player
+  if(!G.dead){
+    const py=G.py+offY;
+    if(py<H+40){
+      ctx.save();ctx.translate(G.px,py);ctx.scale(-G.onWall*0.6,1);
+      const g=ctx.createRadialGradient(-6,-7,3,0,0,18);
+      g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#2b1a0e';
+      ctx.beginPath();ctx.arc(5,-3,3,0,Math.PI*2);ctx.fill();
+      // cling arms
+      ctx.strokeStyle='#a33c10';ctx.lineWidth=4;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(8,-6);ctx.lineTo(18,-10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(8,6);ctx.lineTo(18,10);ctx.stroke();
+      ctx.restore();
+    }
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    const sy=p.y;
+    ctx.beginPath();ctx.arc(p.x,sy,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  // combo
+  if(G.combo>1){
+    ctx.fillStyle='#ffd23f';ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText(`🔥 COMBO x${G.combo}`,W/2,90);
+    ctx.textAlign='left';
+  }
+  if(G.state==='play'&&G.time<3){
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText('TAP TO JUMP TO THE OTHER WALL!',W/2,H*0.5);
+    ctx.textAlign='left';
+  }
 }
-cutbtn.addEventListener('click',e=>{e.stopPropagation();cut();});
-canvas.addEventListener('touchstart',e=>{e.preventDefault();cut();},{passive:false});
-canvas.addEventListener('mousedown',()=>cut());
 let lastT=0;
-function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
-function startGame(){audio();G.state='play';overlay.classList.add('hidden');cutbtn.classList.remove('hidden');}
-obtn.onclick=()=>{showGate();};
-buildLevel(1);
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  render();
+  requestAnimationFrame(loop);
+}
+document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';
 requestAnimationFrame(loop);
 </script>
 </body>
