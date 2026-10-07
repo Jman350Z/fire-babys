@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Blaze Runner — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#1a0d05;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh;background:linear-gradient(#2b1608,#1a0d05)}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>🔥 <span id="score">0</span></span><span>🏆 <span id="best">0</span></span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>🔥 Blaze Runner 🔥</h1>
+<p><b>Tap / click / SPACE</b> to make Blaze JUMP over the lava gaps!<br>How far can you run?</p>
+<div class="safety">🧯 <b>Fire Safety:</b> If fire blocks your path, never try to jump over it — get LOW, get OUT, and call 911!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>💥 Oh no!</h1>
+<p>Blaze fell in the lava!<br>Distance: <b id="final">0</b>m</p>
+<div class="safety">🧯 <b>Remember:</b> Never jump over fire — get low, get out, call 911!</div>
+<button class="btn" id="againBtn">↻ RUN AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+const G=0.7,JV=-13.5;
+let py,vy,onGround,gaps,speed,score,best=+(localStorage.getItem('br_best')||0),run=false,frame=0;
+document.getElementById('best').textContent=best;
+const groundY=()=>H*0.78;
+function reset(){py=groundY()-26;vy=0;onGround=true;gaps=[];speed=5;score=0;frame=0;
+ for(let i=0;i<4;i++)gaps.push({x:W+i*(W*0.55)+200,w:70+Math.random()*60});}
+function jump(){if(onGround&&run){vy=JV;onGround=false;}}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+window.addEventListener('pointerdown',e=>{if(run&&!e.target.classList.contains('btn'))jump();});
+window.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump();}});
+function fireBaby(x,y,r,face){ // cute fire baby
+ const g=ctx.createRadialGradient(x,y-r*0.3,x,y,r*1.6);g.addColorStop(0,'#ffe27a');g.addColorStop(0.5,'#ffb347');g.addColorStop(1,'#ff7b1c');
+ ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*1.1,y-r*0.2,x+r*0.75,y+r*0.7);ctx.quadraticCurveTo(x+r*0.4,y+r*1.15,x,y+r*1.05);ctx.quadraticCurveTo(x-r*0.4,y+r*1.15,x-r*0.75,y+r*0.7);ctx.quadraticCurveTo(x-r*1.1,y-r*0.2,x,y-r);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x-r*0.32,y+r*0.1,r*0.2);ctx.arc(x+r*0.32,y+r*0.1,r*0.2);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x-r*0.32,y+r*0.12,r*0.1);ctx.arc(x+r*0.32,y+r*0.12,r*0.1);ctx.fill();
+ ctx.strokeStyle='#5a2400';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+r*0.42,r*0.22,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+ if(!onGround){ctx.strokeStyle='#5a2400';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x-r*1.15,y+r*0.3);ctx.lineTo(x-r*1.5,y-r*0.1);ctx.moveTo(x+r*1.15,y+r*0.3);ctx.lineTo(x+r*1.5,y-r*0.1);ctx.stroke();}
+}
+function loop(){
+ ctx.clearRect(0,0,W,H);
+ // bg volcano silhouettes
+ ctx.fillStyle='#33190a';for(let i=0;i<5;i++){let bx=(i*W/4-frame*0.2)%(W+200)-100;ctx.beginPath();ctx.moveTo(bx,H*0.7);ctx.lineTo(bx+80,H*0.35);ctx.lineTo(bx+160,H*0.7);ctx.fill();}
+ if(run){
+  frame++;
+  vy+=G;py+=vy;
+  if(py>=groundY()-26){py=groundY()-26;vy=0;onGround=true;}
+  speed=5+score/400;
+  score+=speed/10;document.getElementById('score').textContent=Math.floor(score);
+  for(let g of gaps){g.x-=speed;
+   if(g.x+g.w<-50){g.x=W+Math.random()*200;g.w=70+Math.random()*70+score/60;}
+   // fell in gap?
+   let px=W*0.25;
+   if(px> g.x+8&&px<g.x+g.w-8&&py+26>=groundY()-4){gameOver();}
+  }
+ }
+ // ground with gaps
+ ctx.fillStyle='#4a2c12';ctx.fillRect(0,groundY(),W,H-groundY());
+ ctx.fillStyle='#5f3a18';for(let i=0;i<W;i+=40)ctx.fillRect(i-(frame*speed%40),groundY(),18,8);
+ for(let g of gaps){ // lava in gaps
+  let gg=ctx.createLinearGradient(0,groundY(),0,H);gg.addColorStop(0,'#ffdd44');gg.addColorStop(0.5,'#ff7b1c');gg.addColorStop(1,'#c22e00');
+  ctx.fillStyle=gg;ctx.fillRect(g.x,groundY(),g.w,H-groundY());
+  ctx.fillStyle='#ffedb0';for(let b=0;b<3;b++){let bx=g.x+((frame*2+b*37)%g.w);ctx.beginPath();ctx.arc(bx,groundY()+14+((b*23)%30),4,0,7);ctx.fill();}
+ }
+ fireBaby(W*0.25,py,26);
+ requestAnimationFrame(loop);
+}
+function gameOver(){run=false;let s=Math.floor(score);document.getElementById('final').textContent=s;
+ if(s>best){best=s;localStorage.setItem('br_best',best);document.getElementById('best').textContent=best;}
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>
