@@ -3,141 +3,346 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Lava Rush Arcade — Fire Babys</title>
-<meta name="description" content="Swim upstream in Lava Rush Arcade! A Fire Babys swimmer game by Jman350Z & fire team.">
+<title>Lava Rush Arcade — by Jman350Z & fire team</title>
+<meta name="description" content="Dodge the lava! Endless rush. A Fire Babys arcade game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#0e1e2a;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
 #game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%}
-#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
-#stam{width:120px;height:10px;background:#333;border-radius:5px;overflow:hidden;margin-top:4px}
-#stamfill{height:100%;width:100%;background:#4ae2ff}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,20,32,.94);color:#fff;text-align:center;padding:24px}
-#overlay h1{font-size:clamp(24px,6vw,40px);font-weight:900;margin-bottom:12px;color:#4ae2ff}
-#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,4,16,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
-#overlay button{background:#1a6a8a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
-#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
-#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#141024;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
-#back{position:fixed;top:64px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
 <div id="game">
-<div id="hud"><div><div id="dist">0m</div><div id="stam"><div id="stamfill"></div></div></div><div id="lives">❤️❤️❤️</div><div id="score">SCORE 0</div></div>
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="dist">🏃 0m</div>
+<div class="pill" id="best">🏆 0m</div>
+</div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 <div id="overlay">
-<h1 id="otitle">🏊 LAVA RUSH<br>ARCADE</h1>
-<div id="obody"><p>Swim upstream against the lava current! <b>PRESS AND HOLD</b> to stroke upward — <b>release</b> to glide and save stamina.</p><p>Grab <b>air bubbles</b> 🫧 to refill stamina. Dodge the rocks! Stamina empty = you sink!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: Never swim alone — and never near hot springs or lava flows!</div>
-<button id="obtn">▶ DIVE IN</button>
+<h1 id="otitle">🌋 LAVA RUSH ARCADE</h1>
+<div id="obody"><p>Outrun the lava!</p><p><b>TAP / SPACE</b> to jump! <b>SWIPE DOWN</b> to slide! Dodge lava geysers and rock walls. Grab ⭐ for points. How far can you rush?</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Run from danger — never toward it!</div>
+<button id="obtn">▶ PLAY</button>
 </div>
 </div>
 <script>
 'use strict';
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate');
-let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
-let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
-let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
-function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
-const G={state:'title',lives:3,score:0,dist:0,speed:140,time:0};
-const P={x:0,y:0,vy:0,stam:100};
-let rocks=[],bubbles=[],parts=[];
-let holding=false;
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  jump(){tone(400,700,0.1,'square',0.09);},
+  slide(){tone(500,250,0.12,'sine',0.08);},
+  star(){tone(900,1400,0.1,'sine',0.1);},
+  die(){tone(350,80,0.45,'sawtooth',0.15);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+const G={state:'title',score:0,best:0,dist:0,
+  py:0,vy:0,jumping:false,sliding:false,slideT:0,
+  obstacles:[],stars:[],speed:420,spawnT:0.8,time:0,shake:0,dead:false,gy:0};
+try{G.best=parseInt(localStorage.getItem('lavarush_best')||'0',10)||0;}catch(e){}
+const GY=()=>H*0.78;
 function reset(){
-  P.x=W*0.35;P.y=H*0.6;P.vy=0;P.stam=100;
-  rocks=[];bubbles=[];G.dist=0;G.time=0;
+  G.score=0;G.dist=0;G.py=GY();G.vy=0;G.jumping=false;
+  G.sliding=false;G.slideT=0;G.obstacles=[];G.stars=[];
+  G.speed=420;G.spawnT=1;G.time=0;G.shake=0;G.dead=false;G.gy=GY();
+  updateHUD();
+  document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
+}
+function updateHUD(){
+  document.getElementById('score').textContent='⭐ '+G.score;
+  document.getElementById('dist').textContent='🏃 '+Math.floor(G.dist)+'m';
+}
+function spawnObstacle(){
+  const r=Math.random();
+  const y=GY();
+  if(r<0.35)G.obstacles.push({type:'geyser',x:W+40,y,t:0,warn:0.9,w:56,h:120});
+  else if(r<0.6)G.obstacles.push({type:'rock',x:W+40,y:y-50,w:50,h:50});
+  else if(r<0.8)G.obstacles.push({type:'lowbar',x:W+40,y:y-96,w:44,h:44});
+  else G.stars.push({x:W+40,y:y-60-Math.random()*120,t:Math.random()*6,taken:false});
+}
+function doJump(){
+  if(G.state!=='play'||G.dead||G.jumping)return;
+  G.jumping=true;G.vy=-780;sfx.jump();
+}
+function doSlide(){
+  if(G.state!=='play'||G.dead||G.jumping)return;
+  G.sliding=true;G.slideT=0.55;sfx.slide();
+}
+canvas.addEventListener('pointerdown',e=>{G._sy=e.clientY;G._st=performance.now();});
+canvas.addEventListener('pointerup',e=>{
+  if(G.state!=='play')return;
+  const dy=e.clientY-G._sy,dt=performance.now()-G._st;
+  if(dy>50&&dt<400)doSlide();else doJump();
+});
+addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='ArrowUp'){doJump();e.preventDefault();}
+  if(e.key==='ArrowDown')doSlide();
+});
+const particles=[],floaters=[];
+for(let i=0;i<80;i++)particles.push({a:false});
+for(let i=0;i<10;i++)floaters.push({a:false});
+function spawnText(x,y,txt,color){
+  const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
+}
+function die(){
+  if(G.dead)return;
+  G.dead=true;sfx.die();G.shake=0.5;
+  const d=Math.floor(G.dist);
+  const isBest=d>G.best;
+  if(isBest){G.best=d;try{localStorage.setItem('lavarush_best',String(d));}catch(e){}}
+  for(let i=0;i<16;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    p.a=true;p.x=W*0.3;p.y=G.py;const a=Math.random()*Math.PI*2;
+    p.vx=Math.cos(a)*250;p.vy=Math.sin(a)*250;
+    p.life=0.6;p.max=0.6;p.color='#ff6a00';p.size=4;}
+  setTimeout(()=>{
+    showOverlay('🔥 CAUGHT BY LAVA!',
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">${d}m</p><p>Score: ${G.score}</p><p>Best: ${G.best}m</p>`,
+      '🔥 Fire Safety: Run from danger!',
+      '↻ RUN AGAIN',()=>{reset();G.state='play';});
+  },700);
 }
 function update(dt){
-  G.time+=dt;G.speed=Math.min(320,140+G.time*4);
-  G.dist+=G.speed*dt/40;G.score=Math.floor(G.dist*10);
-  // swim physics
-  if(holding&&P.stam>0){P.vy-=900*dt;P.stam-=26*dt;if(Math.random()<0.4)parts.push({x:P.x-14,y:P.y+10,vx:-120,vy:60,life:0.4,c:'#aee2ff'});}
-  else{P.vy+=500*dt;P.stam=Math.min(100,P.stam+14*dt);}
-  P.vy=Math.max(-320,Math.min(380,P.vy));
-  P.y+=P.vy*dt;
-  P.y=Math.max(40,Math.min(H-40,P.y));
-  // spawn
-  if(Math.random()<dt*(1.1+G.time*0.02))rocks.push({x:W+40,y:Math.random()*H,r:22+Math.random()*22,vx:G.speed});
-  if(Math.random()<dt*0.9)bubbles.push({x:W+30,y:Math.random()*H,r:14,vx:G.speed*0.9,ph:Math.random()*6});
-  for(const r of rocks){r.x-=r.vx*dt;
-    if(Math.hypot(r.x-P.x,r.y-P.y)<r.r+16){hit();r.x=-999;}}
-  for(const b of bubbles){b.x-=b.vx*dt;b.ph+=dt*4;
-    if(Math.hypot(b.x-P.x,b.y-P.y)<b.r+18){b.x=-999;P.stam=Math.min(100,P.stam+30);G.score+=25;sfx(800,1300,0.15);parts.push({x:b.x,y:b.y,vx:0,vy:-60,life:0.5,c:'#4ae2ff',txt:'+25'});}}
-  rocks=rocks.filter(r=>r.x>-60);bubbles=bubbles.filter(b=>b.x>-60);
-  // sink at bottom with no stamina
-  if(P.y>H-50&&P.stam<=1){hit();}
-  for(const p of parts){p.x+=(p.vx||0)*dt;p.y+=(p.vy||-40)*dt;p.life-=dt;}
-  for(let i=parts.length-1;i>=0;i--)if(parts[i].life<=0)parts.splice(i,1);
-  document.getElementById('dist').textContent=Math.floor(G.dist)+'m';
-  document.getElementById('stamfill').style.width=P.stam+'%';
-  document.getElementById('stamfill').style.background=P.stam<25?'#ff5a5a':'#4ae2ff';
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  G.speed=Math.min(800,420+G.dist*1.1);
+  G.dist+=G.speed*dt/50;
+  // physics
+  if(G.jumping){
+    G.vy+=2100*dt;G.py+=G.vy*dt;
+    if(G.py>=GY()){G.py=GY();G.vy=0;G.jumping=false;}
+  }
+  if(G.sliding){G.slideT-=dt;if(G.slideT<=0)G.sliding=false;}
+  G.spawnT-=dt*G.speed/420;
+  if(G.spawnT<=0){spawnObstacle();G.spawnT=Math.max(0.42,0.95-G.dist*0.004)+Math.random()*0.35;}
+  const px=W*0.3;
+  const pTop=G.sliding?G.py-16:G.py-44,pBot=G.py;
+  // obstacles
+  for(let i=G.obstacles.length-1;i>=0;i--){
+    const o=G.obstacles[i];
+    o.x-=G.speed*dt;
+    if(o.type==='geyser'){
+      o.t+=dt;
+      const erupting=o.t>o.warn;
+      // hitbox when erupting
+      if(erupting){
+        const gTop=o.y-130;
+        if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>gTop&&pTop<o.y)die();
+      }else{
+        if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>o.y-30)die();
+      }
+    }else if(o.type==='rock'){
+      if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>o.y-o.h/2&&pTop<o.y+o.h/2)die();
+    }else{
+      // lowbar: must slide under (or jump over? no—slide)
+      if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pTop<o.y+o.h/2&&!G.sliding){
+        // if jumping high enough, clear it
+        if(pBot>o.y+o.h/2+10)die();
+      }
+    }
+    if(o.x<-80)G.obstacles.splice(i,1);
+  }
+  if(G.dead)return;
+  // stars
+  for(let i=G.stars.length-1;i>=0;i--){
+    const s=G.stars[i];
+    s.x-=G.speed*dt;s.t+=dt*4;
+    if(!s.taken&&Math.hypot(s.x-px,s.y-(G.py-24))<36){
+      s.taken=true;sfx.star();G.score+=10;
+      spawnText(s.x,s.y,'+10','#ffd23f');updateHUD();
+    }
+    if(s.x<-40||s.taken)G.stars.splice(i,1);
+  }
+  // run dust
+  if(!G.jumping&&Math.random()<0.3){
+    const p=particles.find(p=>!p.a);
+    if(p){p.a=true;p.x=px-14;p.y=G.py-4;p.vx=-80-Math.random()*60;p.vy=-40;
+      p.life=0.35;p.max=0.35;p.color='#8a7a6a';p.size=3;}
+  }
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  if(Math.random()<0.06)updateHUD();
 }
-function hit(){
-  G.lives--;sfx(250,60,0.4,'sawtooth');
-  P.stam=60;P.y=H*0.6;P.vy=0;
-  document.getElementById('lives').textContent='❤️'.repeat(G.lives)+'🖤'.repeat(3-G.lives);
-  if(G.lives<=0)gameOver();
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
 }
-function gameOver(){
-  G.state='dead';
-  otitle.textContent='🌊 WASHED OUT!';
-  obody.innerHTML='<p>You swam '+Math.floor(G.dist)+'m! Score: '+G.score+'</p>';
-  olesson.textContent='🔥 Fire Safety: Never swim alone — and never near hot springs or lava flows!';
-  obtn.textContent='↻ SWIM AGAIN';
-  obtn.onclick=()=>{overlay.classList.add('hidden');G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';reset();G.state='play';};
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
+function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
 function render(){
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#0e1e2a');g.addColorStop(0.6,'#14344a');g.addColorStop(1,'#1e4a3a');
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  // current lines
-  ctx.strokeStyle='rgba(255,120,40,0.25)';ctx.lineWidth=3;
-  const off=(G.time*G.speed)%80;
-  for(let y=0;y<H;y+=80){ctx.beginPath();for(let x=-80;x<W+80;x+=40)ctx.lineTo(x+off,y+Math.sin(x*0.05+G.time*3)*8);ctx.stroke();}
-  // lava glow at bottom
-  ctx.fillStyle='rgba(255,90,26,0.35)';ctx.fillRect(0,H-24,W,24);
-  for(const b of bubbles){ctx.strokeStyle='rgba(174,226,255,0.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y+Math.sin(b.ph)*4,b.r,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(174,226,255,0.25)';ctx.fill();}
-  for(const r of rocks){const rg=ctx.createRadialGradient(r.x-8,r.y-8,4,r.x,r.y,r.r);rg.addColorStop(0,'#777');rg.addColorStop(1,'#3a3a4a');ctx.fillStyle=rg;ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,Math.PI*2);ctx.fill();}
-  // player swimmer
-  const tilt=Math.max(-0.4,Math.min(0.4,P.vy/800));
-  ctx.save();ctx.translate(P.x,P.y);ctx.rotate(tilt);
-  const bg2=ctx.createRadialGradient(-4,-6,2,0,0,18);
-  bg2.addColorStop(0,'#ffd9a0');bg2.addColorStop(0.6,'#ff8a3d');bg2.addColorStop(1,'#d44a0a');
-  ctx.fillStyle=bg2;ctx.beginPath();ctx.ellipse(0,0,20,15,0,0,Math.PI*2);ctx.fill();
-  // swim cap
-  ctx.fillStyle='#4ae2ff';ctx.beginPath();ctx.arc(2,-4,13,Math.PI,0);ctx.fill();
-  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(6,0,2.6,0,Math.PI*2);ctx.fill();
-  // arms stroking
-  if(holding){const sw=Math.sin(G.time*14)*10;ctx.strokeStyle='#ff8a3d';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(-4,4);ctx.lineTo(-18,10+sw);ctx.stroke();}
-  ctx.restore();
-  for(const p of parts){ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle=p.c;
-    if(p.txt){ctx.font='bold 16px sans-serif';ctx.fillText(p.txt,p.x,p.y);}else{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();}}
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.7,'#2a0f08');bg.addColorStop(1,'#1a0803');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
+  const gy=GY();
+  // distant volcanoes
+  ctx.fillStyle='#140a08';
+  for(let i=0;i<3;i++){
+    const vx=((i*400-G.dist*30)%(W+300))-150;
+    ctx.beginPath();ctx.moveTo(vx-90,gy);ctx.lineTo(vx,gy-160);ctx.lineTo(vx+90,gy);ctx.closePath();ctx.fill();
+  }
+  // lava ground
+  const lg=ctx.createLinearGradient(0,gy,0,H);
+  lg.addColorStop(0,'#ff6a00');lg.addColorStop(0.3,'#c23a00');lg.addColorStop(1,'#5a1000');
+  ctx.fillStyle=lg;ctx.fillRect(0,gy,W,H-gy);
+  ctx.fillStyle='rgba(255,221,68,0.7)';
+  for(let i=0;i<20;i++){
+    const bx=(i*173+G.time*80)%W;
+    ctx.beginPath();ctx.arc(bx,gy+14+(i*37)%(H-gy-28),4+((i*7)%3),0,Math.PI*2);ctx.fill();
+  }
+  // safe path strip
+  ctx.fillStyle='#2a1e16';
+  ctx.fillRect(0,gy-6,W,12);
+  // obstacles
+  for(const o of G.obstacles){
+    if(o.type==='geyser'){
+      const erupting=o.t>o.warn;
+      // vent
+      ctx.fillStyle='#3a2a1a';
+      ctx.beginPath();ctx.ellipse(o.x,o.y,o.w/2,16,0,0,Math.PI*2);ctx.fill();
+      if(!erupting){
+        // warning bubbles
+        const wt=o.warn-o.t;
+        ctx.fillStyle=`rgba(255,210,63,${0.5+Math.sin(G.time*14)*0.4})`;
+        ctx.font='26px system-ui';ctx.textAlign='center';
+        ctx.fillText('❗',o.x,o.y-40);
+        ctx.fillText(Math.ceil(wt*2)/2+'',o.x,o.y-8);
+        ctx.textAlign='left';
+      }else{
+        // eruption
+        const eg=ctx.createLinearGradient(0,o.y-130,0,o.y);
+        eg.addColorStop(0,'rgba(255,210,63,0.95)');eg.addColorStop(0.5,'rgba(255,106,0,0.95)');eg.addColorStop(1,'rgba(200,40,0,0.9)');
+        ctx.fillStyle=eg;
+        const wob=Math.sin(o.t*24)*10;
+        ctx.beginPath();
+        ctx.moveTo(o.x-o.w/2,o.y);
+        ctx.quadraticCurveTo(o.x-o.w/2+wob,o.y-65,o.x-8,o.y-130);
+        ctx.quadraticCurveTo(o.x,o.y-145,o.x+8,o.y-130);
+        ctx.quadraticCurveTo(o.x+o.w/2+wob,o.y-65,o.x+o.w/2,o.y);
+        ctx.closePath();ctx.fill();
+      }
+    }else if(o.type==='rock'){
+      ctx.fillStyle='#4a3a32';
+      ctx.beginPath();
+      ctx.moveTo(o.x-o.w/2,o.y+o.h/2);ctx.lineTo(o.x,o.y-o.h/2);ctx.lineTo(o.x+o.w/2,o.y+o.h/2);
+      ctx.closePath();ctx.fill();
+      ctx.fillStyle='#6a5a4a';
+      ctx.beginPath();
+      ctx.moveTo(o.x-12,o.y+o.h/2);ctx.lineTo(o.x,o.y-20);ctx.lineTo(o.x+6,o.y+o.h/2);
+      ctx.closePath();ctx.fill();
+    }else{
+      // lowbar (overhead branch)
+      ctx.fillStyle='#3a2a1a';
+      ctx.fillRect(o.x-o.w/2,o.y-10,o.w,20);
+      ctx.fillStyle='#5a4a3a';
+      for(let b=0;b<4;b++)ctx.fillRect(o.x-o.w/2+6+b*10,o.y-14,4,28);
+      ctx.font='20px system-ui';ctx.textAlign='center';
+      ctx.fillText('⬇️ SLIDE',o.x,o.y-24);ctx.textAlign='left';
+    }
+  }
+  // stars
+  for(const s of G.stars){
+    const bob=Math.sin(s.t)*5;
+    ctx.save();ctx.translate(s.x,s.y+bob);
+    ctx.scale(Math.abs(Math.cos(s.t*0.5))*0.4+0.6,1);
+    const g=ctx.createRadialGradient(-4,-4,2,0,0,12);
+    g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,11,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+  // player
+  if(!G.dead){
+    const px=W*0.3,py=G.py;
+    ctx.save();ctx.translate(px,py);
+    if(G.sliding)ctx.scale(1.3,0.6);
+    else if(G.jumping)ctx.rotate(-0.15);
+    const lean=G.jumping?-0.1:Math.sin(G.time*14)*0.04;
+    ctx.rotate(G.sliding?0:lean);
+    const g=ctx.createRadialGradient(-7,-14,3,0,-22,20);
+    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,-22,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2b1a0e';
+    ctx.beginPath();ctx.arc(-6,-26,3.2,0,Math.PI*2);ctx.arc(6,-26,3.2,0,Math.PI*2);ctx.fill();
+    // run legs
+    if(!G.jumping&&!G.sliding){
+      ctx.strokeStyle='#a33c10';ctx.lineWidth=5;ctx.lineCap='round';
+      const l1=Math.sin(G.time*18)*8,l2=-Math.sin(G.time*18)*8;
+      ctx.beginPath();ctx.moveTo(-6,-6);ctx.lineTo(-6+l1,0);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(6,-6);ctx.lineTo(6+l2,0);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
   ctx.globalAlpha=1;
-  // hold hint
-  if(G.state==='play'&&G.time<3){ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.fillText('HOLD to swim up!',W/2,H*0.3);ctx.textAlign='left';}
-  document.getElementById('score').textContent='SCORE '+G.score;
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font='900 20px system-ui';ctx.fillStyle='#000';
+    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.restore();
+  if(G.state==='play'&&G.dist<8){
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 17px system-ui';ctx.textAlign='center';
+    ctx.fillText('TAP = JUMP • SWIPE DOWN = SLIDE',W/2,H*0.4);
+    ctx.textAlign='left';
+  }
 }
-function on(e){e.preventDefault();holding=true;}
-function off(e){e.preventDefault();holding=false;}
-canvas.addEventListener('touchstart',on,{passive:false});
-canvas.addEventListener('touchend',off,{passive:false});
-canvas.addEventListener('touchcancel',off,{passive:false});
-canvas.addEventListener('mousedown',on);addEventListener('mouseup',off);
-addEventListener('keydown',e=>{if(e.key===' ')holding=true;});
-addEventListener('keyup',e=>{if(e.key===' ')holding=false;});
 let lastT=0;
-function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
-function startGame(){audio();G.state='play';overlay.classList.add('hidden');}
-obtn.onclick=()=>{showGate();};
-reset();
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  render();
+  requestAnimationFrame(loop);
+}
+document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
 requestAnimationFrame(loop);
 </script>
 </body>
