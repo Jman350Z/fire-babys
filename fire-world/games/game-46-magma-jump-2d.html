@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Magma Jump 2D — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#140a06;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,8,4,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ff8a3d;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff8a3d;padding:6px;background:#2a1408;color:#fff}
+#gate button,#startBtn{background:#e65a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud">SCORE 0</div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>🌋 MAGMA JUMP 2D</h1>
+<p>Match-3 drop! Tap a column to drop an ember — match 3+ of the same color to blast them. Chain matches for combos!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Sorting and organizing keeps things safe — keep matches sorted away from kids!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.13,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const n1=3+Math.floor(Math.random()*5),n2=2+Math.floor(Math.random()*5);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
+const COLS=6,ROWS=8,COLS_C=['#ff6a00','#ffd23f','#ff3b2e','#7dff9a'];
+let grid=[],cur=null,parts=[],score=0,combo=0,shake=0,state='menu',dropT=0;
+const cw=()=>Math.min(W*0.85/COLS,52), ox=()=>W/2-cw()*COLS/2, oy=()=>H*0.16;
+function cellC(c){return COLS_C[c%4];}
+function start(){state='play';grid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));score=0;combo=0;parts=[];spawnCur();ov.classList.add('hidden');}
+function spawnCur(){cur={col:Math.floor(COLS/2),color:Math.floor(Math.random()*4),y:-1};}
+function end(){state='over';ov.innerHTML=`<h1>🌋 BOARD FULL!</h1><p>Score: <b>${score}</b></p><div class="lesson">🔥 Fire Safety: Sorting and organizing keeps things safe — keep matches sorted away from kids!</div><button onclick="location.reload()" style="background:#e65a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
+function boom(x,y,c){for(let i=0;i<12;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
+function findMatches(){
+  const m=new Set();
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const v=grid[r][c];if(v<0)continue;
+    if(c+2<COLS&&grid[r][c+1]===v&&grid[r][c+2]===v){m.add(r+','+c);m.add(r+','+(c+1));m.add(r+','+(c+2));}
+    if(r+2<ROWS&&grid[r+1][c]===v&&grid[r+2][c]===v){m.add(r+','+c);m.add((r+1)+','+c);m.add((r+2)+','+c);}
+  }
+  return [...m].map(s=>s.split(',').map(Number));
+}
+function clearMatches(){
+  const ms=findMatches();
+  if(ms.length===0){combo=0;return false;}
+  combo++;const pts=ms.length*25*combo;score+=pts;
+  ms.forEach(([r,c])=>{boom(ox()+c*cw()+cw()/2,oy()+r*cw()+cw()/2,cellC(grid[r][c]));grid[r][c]=-1;});
+  beep(400+combo*100,.15,'sine');shake=Math.max(shake,6+combo*2);
+  hud.textContent='SCORE '+score+(combo>1?' · COMBO x'+combo:'');
+  // gravity
+  for(let c=0;c<COLS;c++){let w=ROWS-1;for(let r=ROWS-1;r>=0;r--){if(grid[r][c]>=0){grid[w][c]=grid[r][c];if(w!==r)grid[r][c]=-1;w--;}}}
+  setTimeout(clearMatches,180);
+  return true;
+}
+function drop(){
+  let r=0;while(r+1<ROWS&&grid[r+1][cur.col]<0)r++;
+  if(r===0&&grid[0][cur.col]>=0){end();return;}
+  grid[r][cur.col]=cur.color;beep(300,.08,'square');
+  if(!clearMatches())combo=0;
+  spawnCur();
+}
+function update(dt){
+  if(state!=='play')return;shake*=.9;
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.5;});parts=parts.filter(p=>p.life>0);
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#140a06');g.addColorStop(1,'#2e1608');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  const s=cw();
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(ox()-8,oy()-8,s*COLS+16,s*ROWS+16);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const v=grid[r][c];if(v<0)continue;
+    ctx.fillStyle=cellC(v);ctx.beginPath();ctx.arc(ox()+c*s+s/2,oy()+r*s+s/2,s*.38,0,7);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(ox()+c*s+s/2-6,oy()+r*s+s/2-6,s*.14,0,7);ctx.fill();
+  }
+  // current piece + column highlight
+  if(cur&&state==='play'){
+    ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(ox()+cur.col*s,oy()-8,s,s*ROWS+16);
+    ctx.fillStyle=cellC(cur.color);ctx.beginPath();ctx.arc(ox()+cur.col*s+s/2,oy()-s*.7,s*.38,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('▼',ox()+cur.col*s+s/2,oy()-s*1.2);
+  }
+  // column tap zones
+  ctx.fillStyle='rgba(255,210,63,.15)';
+  for(let c=0;c<COLS;c++)ctx.fillRect(ox()+c*s,H-70,s,60);
+  ctx.fillStyle='#ffd23f';ctx.font='bold 14px sans-serif';ctx.textAlign='center';
+  for(let c=0;c<COLS;c++)ctx.fillText('TAP',ox()+c*s+s/2,H-34);
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{if(state!=='play'||!cur)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left;const c=Math.floor((x-ox())/cw());if(c>=0&&c<COLS){cur.col=c;drop();}});
+addEventListener('keydown',e=>{if(state!=='play'||!cur)return;if(e.key==='ArrowLeft')cur.col=Math.max(0,cur.col-1);if(e.key==='ArrowRight')cur.col=Math.min(COLS-1,cur.col+1);if(e.key===' '||e.key==='ArrowDown')drop();});
+</script>
+</body>
+</html>
