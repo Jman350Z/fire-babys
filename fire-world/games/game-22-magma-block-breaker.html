@@ -2,133 +2,103 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Magma Block Breaker — Fire Babys</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#140806;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-canvas{display:block}
-#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
-#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
-#score{font-size:26px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
-#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
-#overlay h1{font-size:34px;font-weight:900;color:#ff6a00;margin-bottom:10px}
-#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
-#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
-#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
-#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
-.hidden{display:none!important}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#160a04;touch-action:none;-webkit-user-select:none;user-select:none;font-family:system-ui,sans-serif}
+#cv{position:absolute;inset:0;display:block}
+#back{position:absolute;top:8px;left:8px;z-index:20;background:rgba(0,0,0,.55);color:#ffd166;border:1px solid #ffd166;border-radius:10px;padding:8px 12px;font-size:15px;text-decoration:none}
+.overlay{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(10,4,0,.92);color:#fff;padding:20px}
+.overlay h1{color:#ffb703;font-size:30px;margin-bottom:8px}
+.overlay .stars{color:#ffd166;font-size:15px;margin-bottom:10px}
+.lesson{background:#5b2d0b;border:2px solid #ffb703;border-radius:12px;padding:10px 14px;font-size:16px;margin:10px 0;max-width:420px;color:#ffe8c2}
+.gate{margin:12px 0;font-size:20px}
+.gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ffb703;background:#1c0f05;color:#fff;padding:6px}
+.gate button{font-size:20px;background:#fb8500;color:#fff;border:none;border-radius:10px;padding:10px 22px;margin-top:10px;cursor:pointer}
+.bigbtn{font-size:24px;background:#fb8500;color:#fff;border:none;border-radius:14px;padding:14px 40px;margin-top:14px;cursor:pointer}
+.score-line{font-size:26px;color:#ffd166;margin:8px 0}
+.hidden{display:none}
 </style>
 </head>
 <body>
-<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
-<div id="hud"><div id="score">SCORE 0</div><div id="combo"></div></div>
-<canvas id="c"></canvas>
-<div id="overlay">
-<h1>🧱 MAGMA BLOCK BREAKER</h1>
-<p>Tap groups of 2+ matching magma blocks to smash them! Bigger groups = bigger COMBO. Clear blocks before the stack reaches the top!</p>
-<div class="lesson">🔥 Fire Safety: Match the right tool to the job — water for small fires, but ALWAYS call 911 for big ones!</div>
-<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
-<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+<canvas id="cv"></canvas>
+<a id="back" href="/fire-world.html">← Fire World</a>
+<div id="titleScr" class="overlay">
+<h1>🔥 Magma Block Breaker</h1>
+<div class="stars">Starring Blaze &amp; Boulder</div>
+<div class="lesson">🔥 Fire Safety: Keep anything that can burn far away from heaters!</div>
+<div class="gate"><div>Grown-up check: <b id="q"></b> = ?</div>
+<div><input id="ans" type="number" inputmode="numeric" placeholder="?"></div>
+<div><button id="unlock">UNLOCK</button></div></div>
+<div style="font-size:13px;color:#caa">Tap to change Blaze's color — match the gate color to pass through!</div>
+</div>
+<div id="overScr" class="overlay hidden">
+<h1 id="overTitle">Game Over</h1>
+<div class="score-line">Score: <b id="finalScore">0</b></div>
+<div class="lesson">🔥 Fire Safety: Keep anything that can burn far away from heaters!</div>
+<button class="bigbtn" id="restart">TAP TO RESTART</button>
 </div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay');
-let W,H,COLS=8,ROWS=10,CS;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;CS=Math.min(W/COLS,(H-140)/ROWS);}addEventListener('resize',rs);rs();
-const a=3+Math.floor(Math.random()*6),b=3+Math.floor(Math.random()*4);
-document.getElementById('mq').textContent=a+' + '+b+' = ?';
-function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
-let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
-function beep(f,d,t){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.18,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
-const COLORS=['#ff6a00','#ffd23f','#ff3b2e','#7ae2ff','#b48aff'];
-let running=false,grid=[],parts=[],score=0,combo=0,moves=0,shake=0,gx,gy;
-function ox(){return (W-COLS*CS)/2;}function oy(){return 120;}
-function startGame(){
-  running=true;score=0;combo=0;moves=0;shake=0;parts=[];
-  grid=[];for(let r=0;r<4;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(Math.floor(Math.random()*5));}
-  for(let r=4;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(-1);}
-  overlay.classList.add('hidden');upd();
-}
-function upd(){scoreEl.textContent='SCORE '+score;}
-function burst(x,y,c,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-2,life:1,c,sz:3+Math.random()*5});}}
-function flood(r,c,col,seen){
-  if(r<0||r>=ROWS||c<0||c>=COLS||grid[r][c]!==col||seen[r+','+c])return[];
-  seen[r+','+c]=1;let out=[[r,c]];
-  out=out.concat(flood(r+1,c,col,seen),flood(r-1,c,col,seen),flood(r,c+1,col,seen),flood(r,c-1,col,seen));
-  return out;
-}
-function collapse(){
-  for(let c=0;c<COLS;c++){
-    const col=[];for(let r=ROWS-1;r>=0;r--)if(grid[r][c]>=0)col.push(grid[r][c]);
-    for(let r=ROWS-1;r>=0;r--)grid[r][c]=col[ROWS-1-r]!==undefined?col[ROWS-1-r]:-1;
-  }
-}
-function gameOver(win){
-  running=false;
-  overlay.querySelector('h1').textContent=win?'🏆 BOARD CLEARED!':'🧱 STACK OVERFLOW!';
-  overlay.querySelector('p').textContent='Score: '+score+' in '+moves+' moves';
-  document.getElementById('mathgate').classList.add('hidden');
-  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ PLAY AGAIN';
-  overlay.classList.remove('hidden');
-}
-function tapCell(r,c){
-  if(!running||grid[r][c]<0)return;
-  const group=flood(r,c,grid[r][c],{});
-  if(group.length<2){beep(150,0.1,'square');return;}
-  moves++;
-  const pts=group.length*group.length*10;score+=pts;
-  combo=moves;comboEl.textContent=group.length>=5?'💥 MEGA '+group.length+'! +'+pts:'+'+pts;
-  group.forEach(([gr,gc])=>{
-    const x=ox()+gc*CS+CS/2,y=oy()+gr*CS+CS/2;
-    burst(x,y,COLORS[grid[r][c]],8);grid[gr][gc]=-1;
-  });
-  shake=Math.max(shake,Math.min(16,group.length*2));beep(300+group.length*60,0.25,'triangle');upd();
-  collapse();
-  // add new row at top periodically
-  if(moves%4===0){
-    for(let r=ROWS-1;r>0;r--)for(let c=0;c<COLS;c++)grid[r][c]=grid[r-1][c];
-    for(let c=0;c<COLS;c++)grid[0][c]=Math.floor(Math.random()*5);
-  }
-  let empty=true,full=false;
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]>=0)empty=false;
-  for(let c=0;c<COLS;c++)if(grid[0][c]>=0)full=true;
-  if(empty)gameOver(true);else if(full&&moves>6)gameOver(false);
-}
+"use strict";
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=window.innerWidth;H=window.innerHeight;cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+window.addEventListener('resize',resize);resize();
+// AUDIO
+var AC=null;
+function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(type){var ac=audio();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime;
+var cfg={pop:[880,0.08,'sine'],click:[660,0.06,'square'],hit:[160,0.18,'sawtooth'],win:[1320,0.3,'sine'],lose:[110,0.5,'sawtooth']}[type]||[440,0.1,'sine'];
+o.type=cfg[2];o.frequency.setValueAtTime(cfg[0],t);g.gain.setValueAtTime(0.25,t);g.gain.exponentialRampToValueAtTime(0.001,t+cfg[1]);
+o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+cfg[1]);}
+// SHAKE + PARTICLES
+var shake=0,parts=[];
+function doShake(){shake=0.2;}
+function burst(x,y,color,n){for(var i=0;i<(n||14);i++){var a=Math.random()*6.283,s=60+Math.random()*220;parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.7+Math.random()*0.4,color:color});}}
+function updateFx(dt){if(shake>0)shake-=dt;for(var i=parts.length-1;i>=0;i--){var p=parts[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;if(p.life<=0)parts.splice(i,1);}}
+function drawFx(){for(var i=0;i<parts.length;i++){var p=parts[i];ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,6.283);ctx.fill();}ctx.globalAlpha=1;}
+// FIRE BABY (flame teardrop, happy face)
+function drawBaby(x,y,r,c1,c2){var g=ctx.createRadialGradient(x,y-r*0.4,r*0.1,x,y,r*1.4);g.addColorStop(0,c2);g.addColorStop(1,c1);
+ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y+r);ctx.bezierCurveTo(x-r,y+r*0.3,x-r*0.85,y-r*0.35,x,y-r*1.25);ctx.bezierCurveTo(x+r*0.85,y-r*0.35,x+r,y+r*0.3,x,y+r);ctx.fill();
+ctx.fillStyle='#3a1d00';ctx.beginPath();ctx.arc(x-r*0.32,y+r*0.1,r*0.11,0,6.283);ctx.arc(x+r*0.32,y+r*0.1,r*0.11,0,6.283);ctx.fill();
+ctx.strokeStyle='#3a1d00';ctx.lineWidth=r*0.08;ctx.beginPath();ctx.arc(x,y+r*0.28,r*0.28,0.3,Math.PI-0.3);ctx.stroke();}
+// PARENTAL GATE
+var A=1+Math.floor(Math.random()*9),B=1+Math.floor(Math.random()*9);
+document.getElementById('q').textContent=A+' + '+B;
+document.getElementById('unlock').addEventListener('click',function(){var v=parseInt(document.getElementById('ans').value,10);if(v===A+B){sfx('click');document.getElementById('titleScr').classList.add('hidden');startGame();}else{sfx('lose');alert('Try again!');}});
+// GAME STATE
+var COLORS=[['#e63946','#ff8fa3'],['#fb8500','#ffd166'],['#3a86ff','#90e0ef'],['#8338ec','#c77dff']];
+var ball,ci,gates,score,speed,playing,last;
+function startGame(){ball={x:W/2,y:H*0.5,vy:320,r:22};ci=0;gates=[];score=0;speed=170;playing=true;last=performance.now();requestAnimationFrame(loop);}
+function spawnGate(){var c=Math.floor(Math.random()*4);gates.push({y:-60,color:c,passed:false});}
+function cycle(){if(!playing)return;ci=(ci+1)%4;sfx('click');burst(ball.x,ball.y,'#ffffff',6);}
+function gameOver(){playing=false;doShake();burst(ball.x,ball.y,COLORS[ci][0],30);sfx('lose');setTimeout(function(){document.getElementById('finalScore').textContent=score;document.getElementById('overScr').classList.remove('hidden');},600);}
 function update(dt){
-  if(!running)return;
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life-=dt*1.4;});
-  parts=parts.filter(p=>p.life>0);
-  shake*=0.88;
-}
-function render(){
-  ctx.setTransform(1,0,0,1,0,0);
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#0d0505');g.addColorStop(1,'#2a1008');
-  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
-  const X=ox(),Y=oy();
-  ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(X-6,Y-6,COLS*CS+12,ROWS*CS+12);
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
-    const v=grid[r][c];if(v<0)continue;
-    const x=X+c*CS,y=Y+r*CS;
-    const bg=ctx.createLinearGradient(x,y,x,y+CS);
-    bg.addColorStop(0,COLORS[v]);bg.addColorStop(1,'rgba(0,0,0,0.35)');
-    ctx.fillStyle=bg;
-    const p=3;ctx.fillRect(x+p,y+p,CS-p*2,CS-p*2);
-    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=2;ctx.strokeRect(x+p,y+p,CS-p*2,CS-p*2);
-  }
-  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
-  ctx.globalAlpha=1;
-  ctx.restore();
-}
-let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-cv.addEventListener('pointerdown',e=>{
-  if(!running)return;
-  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
-  const c=Math.floor((mx-ox())/CS),rr=Math.floor((my-oy())/CS);
-  if(c>=0&&c<COLS&&rr>=0&&rr<ROWS)tapCell(rr,c);
-});
+  ball.vy=(ball.y>H*0.5)?-Math.abs(ball.vy):Math.abs(ball.vy);
+  if(ball.y<80)ball.vy=Math.abs(ball.vy);if(ball.y>H-110)ball.vy=-Math.abs(ball.vy);
+  ball.y+=ball.vy*dt;
+  speed+=dt*4;
+  if(gates.length===0||gates[gates.length-1].y>90)spawnGate();
+  for(var i=gates.length-1;i>=0;i--){var g=gates[i];g.y+=speed*dt;
+    if(!g.passed&&g.y>ball.y+44){g.passed=true;
+      if(g.color!==ci){gameOver();return;}
+      score++;sfx('pop');burst(ball.x,ball.y,COLORS[ci][1],10);}
+    if(g.y>H+80)gates.splice(i,1);}}
+function draw(){ctx.save();if(shake>0)ctx.translate((Math.random()-0.5)*14,(Math.random()-0.5)*14);
+var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#2a0e02');bg.addColorStop(1,'#120502');ctx.fillStyle=bg;ctx.fillRect(-20,-20,W+40,H+40);
+for(var i=0;i<gates.length;i++){var g=gates[i],c=COLORS[g.color];
+ctx.strokeStyle=c[0];ctx.lineWidth=14;ctx.beginPath();ctx.arc(ball.x,g.y,44,0,6.283);ctx.stroke();
+ctx.strokeStyle=c[1];ctx.lineWidth=5;ctx.beginPath();ctx.arc(ball.x,g.y,44,0,6.283);ctx.stroke();}
+drawBaby(ball.x,ball.y,ball.r,COLORS[ci][0],COLORS[ci][1]);
+drawFx();
+ctx.fillStyle='#ffd166';ctx.font='bold 26px system-ui';ctx.textAlign='left';ctx.fillText('Score: '+score,16,64);
+ctx.fillStyle='rgba(255,255,255,.6)';ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText('TAP = change color • match the ring!',W/2,H-24);
+ctx.restore();}
+var start=0;
+function loop(t){if(!playing)return;var dt=Math.min(0.05,(t-last)/1000);last=t;update(dt);draw();updateFx(dt);requestAnimationFrame(loop);}
+cv.addEventListener('touchstart',function(e){e.preventDefault();if(start===0){audio();start=1;}cycle();},{passive:false});
+window.addEventListener('keydown',function(e){if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();if(start===0){audio();start=1;}cycle();}});
+document.getElementById('restart').addEventListener('click',function(){document.getElementById('overScr').classList.add('hidden');sfx('click');startGame();});
 </script>
 </body>
 </html>
