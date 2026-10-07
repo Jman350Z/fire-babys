@@ -2,93 +2,156 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ash Heap Hero — Fire Babys</title>
+<meta name="description" content="Climb the ice shaft in Ash Heap Hero! A Fire Babys climbing game by Jman350Z & fire team.">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#14100a;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
-#c{display:block;width:100vw;height:100vh}
-#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,10,5,.93);color:#fff;text-align:center;padding:20px;z-index:10}
-#ov h1{font-size:clamp(26px,7vw,44px);color:#b0a090;margin-bottom:10px}
-#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
-#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
-#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #b0a090;padding:6px;background:#221a10;color:#fff}
-#gate button,#startBtn{background:#6a5a4a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
-#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:20px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
-#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
-#tapzone{position:fixed;bottom:0;left:0;right:0;height:34%;z-index:6;display:flex;align-items:center;justify-content:center}
-#tapbtn{background:rgba(255,106,0,.25);border:4px dashed #ff6a00;color:#ffd23f;font-size:26px;font-weight:900;border-radius:24px;padding:26px 50px;pointer-events:none}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0e1620;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,18,30,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,42px);font-weight:900;margin-bottom:12px;color:#aee2ff}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#2a6a8a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
 .hidden{display:none!important}
+#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
-<button id="back" onclick="location.href='/fire-world.html'">←</button>
-<div id="hud">TUG! <span id="rope">————🪢————</span></div>
+<div id="game">
+<div id="hud"><div id="depth">HEIGHT 0m</div><div id="lives">❤️❤️❤️</div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div id="tapzone" class="hidden"><div id="tapbtn">👆 TAP TAP TAP!</div></div>
-<div id="ov">
-<h1>🪢 ASH HEAP HERO</h1>
-<p>Tug-of-war! RAPIDLY TAP to pull the rope and drag the boulder over YOUR line before the rival team does. Fastest fingers win!</p>
-<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
-<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
-<div class="lesson">🔥 Fire Safety: Teamwork saves lives! In an emergency, help each other get to safety!</div>
+<div id="overlay">
+<h1 id="otitle">🧗 ASH HEAP<br>HERO</h1>
+<div id="obody"><p>Climb the frozen shaft to the top! <b>Tap an ice block</b> touching Boulder to crack it (2 taps breaks it), then <b>tap the empty space</b> to climb up.</p><p>Watch for <b style="color:#ff5a5a">falling icicles</b> — the red shadow warns you. Move out of the way!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Ice and snow never put out a real fire — call 911 instead!</div>
+<button id="obtn">▶ START CLIMBING</button>
+</div>
 </div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const ov=document.getElementById('ov'),tapzone=document.getElementById('tapzone'),ropeEl=document.getElementById('rope');
-let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
-let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.13,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const n1=2+Math.floor(Math.random()*6),n2=2+Math.floor(Math.random()*6);
-document.getElementById('q').textContent=n1+' + '+n2;
-function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
-let state='menu',pos=0,parts=[],shake=0,time=30,lastTap=0,tapPow=0;
-function start(){state='play';pos=0;parts=[];time=30;tapPow=0;ov.classList.add('hidden');tapzone.classList.remove('hidden');}
-function end(win){state='over';tapzone.classList.add('hidden');
-  ov.innerHTML=`<h1>${win?'🏆 YOU PULLED IT!':'💪 RIVALS WIN!'}</h1><p>${win?'Your team dragged the boulder home!':'The rival team was stronger this time.'}</p><div class="lesson">🔥 Fire Safety: Teamwork saves lives! In an emergency, help each other get to safety!</div><button onclick="location.reload()" style="background:#6a5a4a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
-function boom(x,y,c){for(let i=0;i<10;i++){const a=Math.random()*7,s=2+Math.random()*4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,life:1,c});}}
-function tap(){
-  if(state!=='play')return;
-  const now=performance.now(),dt=(now-lastTap)/1000;lastTap=now;
-  tapPow=Math.min(14,8+Math.max(0,(0.35-dt))*20);
-  pos-=tapPow;shake=Math.max(shake,7);boom(W/2+pos,H*.45,'#ffd23f');
-  beep(300+Math.random()*200,.08,'square');
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const COLS=7,GOAL=24;
+let cell=48,ox=0;
+const G={state:'title',lives:3,score:0,camY:0};
+let grid=[],px=3,py=1,icicles=[],parts=[];
+function build(){
+  grid=[];ox=(W-cell*COLS)/2;
+  for(let y=0;y<GOAL+8;y++){grid.push([]);for(let x=0;x<COLS;x++)grid[y].push(y<3?0:(Math.random()<0.55?2:0));}
+  let cx=3;for(let y=3;y<GOAL+8;y++){grid[y][cx]=0;if(Math.random()<0.5)cx=Math.max(0,Math.min(COLS-1,cx+(Math.random()<0.5?-1:1)));}
+  px=3;py=1;icicles=[];G.camY=0;
+}
+function wy(y){return H-140-(y*cell)+G.camY;}
+function tapCell(tx,ty){
+  if(G.state!=='play')return;
+  if(tx<0||ty<0||tx>=COLS||ty>=grid.length)return;
+  const adj=Math.abs(tx-px)+Math.abs(ty-py)===1;
+  if(grid[ty][tx]>0&&adj){
+    grid[ty][tx]--;sfx(800,400,0.08,'square');
+    parts.push({x:ox+tx*cell+cell/2,y:wy(ty),vx:(Math.random()-0.5)*200,vy:-100,life:0.4,c:'#aee2ff'});
+    if(grid[ty][tx]===0){sfx(500,900,0.15);G.score+=25;}
+  }else if(grid[ty][tx]===0&&adj&&ty>py){
+    px=tx;py=ty;sfx(300,500,0.1,'triangle');G.score+=10;
+    if(py>=GOAL){win();return;}
+  }
 }
 function update(dt){
-  if(state!=='play')return;time-=dt;shake*=.9;
-  pos+=dt*(26+Math.sin(time*2)*8); // rival pull
-  tapPow*=.94;
-  const L=W*.32;
-  if(pos<=-L){end(true);return;}
-  if(pos>=L){end(false);return;}
-  if(time<=0){end(pos<0);return;}
-  ropeEl.textContent='—'.repeat(Math.max(1,8-Math.round(pos/20)))+'🪨'+'—'.repeat(Math.max(1,8+Math.round(pos/20)));
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.life-=dt*1.5;});parts=parts.filter(p=>p.life>0);
+  const targetY=(py*cell)-(H*0.55);
+  G.camY+=(targetY-G.camY)*Math.min(1,dt*4);
+  if(Math.random()<dt*(0.5+py*0.03)){
+    icicles.push({x:Math.floor(Math.random()*COLS),y:py+8,warn:1.0,fall:0});
+  }
+  for(const ic of icicles){if(ic.warn>0)ic.warn-=dt;else ic.fall+=dt*900;}
+  for(let i=icicles.length-1;i>=0;i--){
+    const ic=icicles[i],iy=wy(ic.y)-ic.fall;
+    if(ic.warn<=0&&Math.abs(ic.x-px)<0.6&&Math.abs(iy-wy(py))<40){hit();}
+    if(iy<-50)icicles.splice(i,1);
+  }
+  for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+  for(let i=parts.length-1;i>=0;i--)if(parts[i].life<=0)parts.splice(i,1);
+  document.getElementById('depth').textContent='HEIGHT '+py+'m';
 }
-function baby(x,y,r,c1,c2){ctx.save();ctx.translate(x,y);const g=ctx.createRadialGradient(-r*.3,-r*.3,r*.2,0,0,r);g.addColorStop(0,c1);g.addColorStop(1,c2);ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*.3,-r*.1,r*.2,0,7);ctx.arc(r*.3,-r*.1,r*.2,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*.3,-r*.08,r*.09,0,7);ctx.arc(r*.3,-r*.08,r*.09,0,7);ctx.fill();ctx.restore();}
+function hit(){
+  G.lives--;sfx(250,60,0.4,'sawtooth');icicles=[];
+  document.getElementById('lives').textContent='❤️'.repeat(G.lives)+'🖤'.repeat(3-G.lives);
+  if(G.lives<=0)gameOver();
+}
+function gameOver(){
+  G.state='dead';
+  otitle.textContent='🥶 FROZEN OUT!';
+  obody.innerHTML='<p>Boulder reached '+py+'m! Score: '+G.score+'</p>';
+  olesson.textContent='🔥 Fire Safety: Ice and snow never put out a real fire — call 911 instead!';
+  obtn.textContent='↻ CLIMB AGAIN';
+  obtn.onclick=()=>{overlay.classList.add('hidden');G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';build();G.state='play';};
+  overlay.classList.remove('hidden');
+}
+function win(){
+  G.state='win';sfx(523,1047,0.5);
+  otitle.textContent='🏔️ SUMMIT HERO!';
+  obody.innerHTML='<p>Boulder conquered the ice shaft! Score: '+G.score+'</p>';
+  olesson.textContent='🔥 Fire Safety: Climbing is fun — but never climb on icy surfaces near roads!';
+  obtn.textContent='↻ CLIMB AGAIN';
+  obtn.onclick=()=>{overlay.classList.add('hidden');G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';build();G.state='play';};
+  overlay.classList.remove('hidden');
+}
 function render(){
-  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,0);
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#14100a');g.addColorStop(1,'#2a2015');
-  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
-  const cy=H*.45,L=W*.32;
-  // ground lines
-  ctx.strokeStyle='#ff3b2e';ctx.lineWidth=5;ctx.setLineDash([12,8]);
-  ctx.beginPath();ctx.moveTo(W/2-L,cy-70);ctx.lineTo(W/2-L,cy+70);ctx.stroke();
-  ctx.strokeStyle='#7dff9a';ctx.beginPath();ctx.moveTo(W/2+L,cy-70);ctx.lineTo(W/2+L,cy+70);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';
-  ctx.fillText('RIVALS',W/2-L,cy-84);ctx.fillText('YOU',W/2+L,cy-84);
-  // rope
-  ctx.strokeStyle='#c9a06a';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(W*.08,cy);ctx.lineTo(W*.92,cy);ctx.stroke();
-  // boulder
-  const bx=W/2+pos;
-  const bg2=ctx.createRadialGradient(bx-10,cy-10,5,bx,cy,34);bg2.addColorStop(0,'#a09a8a');bg2.addColorStop(1,'#4a443a');
-  ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(bx,cy,32,0,7);ctx.fill();ctx.strokeStyle='#2a2520';ctx.lineWidth=3;ctx.stroke();
-  // teams pulling
-  for(let i=0;i<3;i++){baby(W*.12+i*44,cy+(i%2?26:-26),20,'#7db4ff','#1e5ac4');baby(W*.88-i*44,cy+(i%2?-26:26),20,'#ffd23f','#e63900');}
-  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
-  ctx.fillStyle='#ffd23f';ctx.font='bold 20px sans-serif';ctx.textAlign='center';ctx.fillText('⏱ '+Math.ceil(time)+'s',W/2,40);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0e1620');g.addColorStop(1,'#1a2a3a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#1e2c40';ctx.fillRect(0,0,ox-8,H);ctx.fillRect(ox+COLS*cell+8,0,W,H);
+  const y0=Math.max(0,Math.floor(py-12)),y1=Math.min(grid.length-1,py+4);
+  for(let y=y0;y<=y1;y++)for(let x=0;x<COLS;x++){
+    const t=grid[y][x],cx=ox+x*cell,cy=wy(y)-cell;
+    if(t>0){
+      ctx.fillStyle=t===2?'#7ab8dd':'#aee2ff';
+      ctx.fillRect(cx+2,cy+2,cell-4,cell-4);
+      ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillRect(cx+5,cy+5,cell-10,5);
+      if(t===1){ctx.strokeStyle='#ff5a5a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(cx+8,cy+8);ctx.lineTo(cx+cell-8,cy+cell-8);ctx.moveTo(cx+cell-8,cy+8);ctx.lineTo(cx+8,cy+cell-8);ctx.stroke();}
+    }
+  }
+  const fy=wy(GOAL);
+  if(fy>-50&&fy<H+50){ctx.fillStyle='#ffd23f';ctx.font='30px sans-serif';ctx.textAlign='center';ctx.fillText('🏁',ox+COLS*cell/2,fy);ctx.textAlign='left';}
+  for(const ic of icicles){
+    const ix=ox+ic.x*cell+cell/2,iy=wy(ic.y)-ic.fall;
+    if(ic.warn>0){ctx.fillStyle='rgba(255,90,90,'+(0.4+0.3*Math.sin(Date.now()*0.02))+')';ctx.beginPath();ctx.ellipse(ix,wy(py)-10,18,8,0,0,Math.PI*2);ctx.fill();}
+    else{ctx.fillStyle='#cfeaff';ctx.beginPath();ctx.moveTo(ix-10,iy-30);ctx.lineTo(ix+10,iy-30);ctx.lineTo(ix,iy);ctx.fill();}
+  }
+  const pcx=ox+px*cell+cell/2,pcy=wy(py)-cell/2,r=cell/2-6;
+  const bg2=ctx.createRadialGradient(pcx-4,pcy-6,2,pcx,pcy,r);
+  bg2.addColorStop(0,'#ffd9a0');bg2.addColorStop(0.6,'#ff8a3d');bg2.addColorStop(1,'#d44a0a');
+  ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(pcx,pcy,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(pcx-6,pcy-3,2.6,0,Math.PI*2);ctx.arc(pcx+6,pcy-3,2.6,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#8a6a3a';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(pcx+10,pcy-6);ctx.lineTo(pcx+24,pcy-20);ctx.stroke();
+  for(const p of parts){ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
+  ctx.globalAlpha=1;
+  document.getElementById('score').textContent='SCORE '+G.score;
 }
-let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-tapzone.addEventListener('pointerdown',tap);
-addEventListener('keydown',e=>{if(e.key===' ')tap();});
+function pickRow(clientY){
+  let best=1,bd=1e9;
+  for(let y=Math.max(0,py-3);y<Math.min(grid.length,py+4);y++){const cy=wy(y)-cell/2,d=Math.abs(cy-clientY);if(d<bd){bd=d;best=y;}}
+  return best;
+}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapCell(Math.floor((t.clientX-ox)/cell),pickRow(t.clientY));},{passive:false});
+canvas.addEventListener('mousedown',e=>tapCell(Math.floor((e.clientX-ox)/cell),pickRow(e.clientY)));
+let lastT=0;
+function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+function startGame(){audio();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showGate();};
+resize();build();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>

@@ -2,78 +2,158 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pyra Prime Dash — Fire Babys</title>
+<meta name="description" content="Topple the domino chain in Pyra Prime Dash! A Fire Babys puzzle game by Jman350Z & fire team.">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0e0a16;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
-#c{display:block;width:100vw;height:100vh}
-#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,6,18,.93);color:#fff;text-align:center;padding:20px;z-index:10}
-#ov h1{font-size:clamp(26px,7vw,44px);color:#ff9a3d;margin-bottom:10px}
-#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
-#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
-#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff9a3d;padding:6px;background:#1c1028;color:#fff}
-#gate button,#startBtn{background:#b45a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
-#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
-#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#101826;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,16,30,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,40px);font-weight:900;margin-bottom:12px;color:#ffd23f}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#3a6ad4;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
 .hidden{display:none!important}
+#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#topple{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;background:#3a6ad4;color:#fff;border:3px solid #fff;font-size:20px;font-weight:900;padding:14px 44px;border-radius:999px}
+#clear{position:fixed;bottom:24px;right:16px;z-index:10;background:#555;color:#fff;border:2px solid #fff;font-size:15px;font-weight:800;padding:12px 20px;border-radius:999px}
 </style>
 </head>
 <body>
-<button id="back" onclick="location.href='/fire-world.html'">←</button>
-<div id="hud">0m · ⭐0</div>
+<div id="game">
+<div id="hud"><div id="lvl">LEVEL 1/3</div><div id="dom">🁫 14 left</div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div id="ov">
-<h1>🔥 PYRA PRIME DASH</h1>
-<p>Endless dodge & collect! Steer Pyra with touch or arrows — dodge smoke clouds, grab stars. Speed keeps rising!</p>
-<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
-<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
-<div class="lesson">🔥 Fire Safety: Smoke is dangerous — if you see smoke, get LOW under it and get OUT!</div>
+<button id="topple" class="hidden">🎬 TOPPLE!</button>
+<button id="clear" class="hidden">↺ Clear</button>
+<div id="overlay">
+<h1 id="otitle">🎬 PYRA PRIME<br>DASH</h1>
+<div id="obody"><p>Build a domino bridge from the <b style="color:#7dff7d">green START</b> to the <b style="color:#ffd23f">golden crystal</b>! <b>Tap empty tiles</b> to place dominoes — they must touch each other in a chain.</p><p>Rocks block the way. Use as few dominoes as you can, then hit <b>TOPPLE</b>!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Plan your escape route before you need it — just like planning dominoes!</div>
+<button id="obtn">▶ START BUILDING</button>
+</div>
 </div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const hud=document.getElementById('hud'),ov=document.getElementById('ov');
-let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
-let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.12,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const n1=2+Math.floor(Math.random()*6),n2=3+Math.floor(Math.random()*5);
-document.getElementById('q').textContent=n1+' + '+n2;
-function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
-let state='menu',px=0,py=0,foes=[],stars=[],parts=[],dist=0,starN=0,speed=0,time=0,shake=0,inv=0;
-function start(){state='play';px=W/2;py=H*.7;foes=[];stars=[];parts=[];dist=0;starN=0;speed=360;time=0;inv=0;ov.classList.add('hidden');}
-function end(){state='over';ov.innerHTML=`<h1>💨 SMOKED OUT!</h1><p>Distance: <b>${Math.floor(dist)}m</b> · Stars: <b>${starN}</b></p><div class="lesson">🔥 Fire Safety: Smoke is dangerous — if you see smoke, get LOW under it and get OUT!</div><button onclick="location.reload()" style="background:#b45a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
-function boom(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
-function update(dt){
-  if(state!=='play')return;time+=dt;dist+=speed*dt/45;speed=Math.min(850,360+time*12);shake*=.9;inv-=dt;
-  hud.textContent=Math.floor(dist)+'m · ⭐'+starN;
-  if(Math.random()<dt*(1.4+time*.02))foes.push({x:Math.random()*W,y:-40,r:20+Math.random()*16,vy:speed*(.5+Math.random()*.3)});
-  if(Math.random()<dt*1.4)stars.push({x:Math.random()*W,y:-30,r:13,vy:speed*.55});
-  foes.forEach(f=>f.y+=f.vy*dt);stars.forEach(s=>s.y+=s.vy*dt);
-  foes=foes.filter(f=>f.y<H+50);stars=stars.filter(s=>s.y<H+40);
-  if(inv<=0)foes.forEach(f=>{if(Math.hypot(f.x-px,f.y-py)<f.r+20){shake=16;boom(px,py,'#888',24);beep(110,.4,'sawtooth');end();}});
-  stars.forEach((s,i)=>{if(Math.hypot(s.x-px,s.y-py)<s.r+22){stars.splice(i,1);starN++;dist+=15;boom(s.x,s.y,'#ffd23f',10);beep(750,.1,'sine');}});
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.5;});parts=parts.filter(p=>p.life>0);
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate'),toppleBtn=document.getElementById('topple'),clearBtn=document.getElementById('clear');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;layout();}addEventListener('resize',resize);
+let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const COLS=10,ROWS=12;
+let cell=36,ox=0,oy=0;
+function layout(){cell=Math.min(W/COLS,(H-170)/ROWS);ox=(W-cell*COLS)/2;oy=80;}
+const G={state:'title',level:1,score:0,left:14,toppling:false,toppleT:0,fallOrder:[],fallIdx:0,hitTarget:false};
+let grid=[],start={x:0,y:0},target={x:0,y:0};
+const EMPTY=0,DOM=1,ROCKC=2;
+function buildLevel(n){
+  grid=[];for(let y=0;y<ROWS;y++){grid.push([]);for(let x=0;x<COLS;x++)grid[y].push(EMPTY);}
+  start={x:0,y:ROWS-1};target={x:COLS-1,y:0};
+  const nR=6+n*3;
+  for(let i=0;i<nR;i++){const x=Math.floor(Math.random()*COLS),y=Math.floor(Math.random()*ROWS);
+    if((x===start.x&&y===start.y)||(x===target.x&&y===target.y))continue;grid[y][x]=ROCKC;}
+  G.left=10+n*3;G.toppling=false;G.fallOrder=[];G.fallIdx=0;G.hitTarget=false;
+  document.getElementById('lvl').textContent='LEVEL '+n+'/3';
+  document.getElementById('dom').textContent='🁫 '+G.left+' left';
+}
+function tapCell(tx,ty){
+  if(G.state!=='play'||G.toppling)return;
+  if(tx<0||ty<0||tx>=COLS||ty>=ROWS)return;
+  if(grid[ty][tx]===DOM){grid[ty][tx]=EMPTY;G.left++;sfx(400,200,0.1);}
+  else if(grid[ty][tx]===EMPTY&&G.left>0){grid[ty][tx]=DOM;G.left--;sfx(500,800,0.1,'triangle');}
+  document.getElementById('dom').textContent='🁫 '+G.left+' left';
+}
+function topple(){
+  if(G.state!=='play'||G.toppling)return;
+  const seen={},q=[[start.x,start.y]],order=[];
+  seen[start.x+','+start.y]=1;
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+  while(q.length){
+    const [x,y]=q.shift();
+    for(const [dx,dy] of dirs){
+      const nx=x+dx,ny=y+dy,k=nx+','+ny;
+      if(nx<0||ny<0||nx>=COLS||ny>=ROWS||seen[k])continue;
+      if(nx===target.x&&ny===target.y){order.push([nx,ny,true]);seen[k]=1;continue;}
+      if(grid[ny][nx]===DOM){seen[k]=1;q.push([nx,ny]);order.push([nx,ny,false]);}
+    }
+  }
+  if(!order.length){sfx(200,100,0.3,'sawtooth');return;}
+  G.toppling=true;G.fallOrder=order;G.fallIdx=0;G.toppleT=0;
+  toppleBtn.classList.add('hidden');clearBtn.classList.add('hidden');
+}
+function updateTopple(dt){
+  G.toppleT+=dt;
+  if(G.toppleT>0.12){
+    G.toppleT=0;
+    const [x,y,isT]=G.fallOrder[G.fallIdx];
+    sfx(300+G.fallIdx*30,200,0.08,'square');
+    if(isT)G.hitTarget=true;
+    G.fallIdx++;
+    if(G.fallIdx>=G.fallOrder.length){
+      G.toppling='done';
+      setTimeout(()=>{
+        if(G.hitTarget){
+          const used=G.fallOrder.length;
+          G.score+=600+G.level*300+Math.max(0,(14-used))*40;sfx(600,1200,0.4);
+          if(G.level>=3){win();return;}
+          G.level++;buildLevel(G.level);
+        }else{
+          sfx(250,80,0.4,'sawtooth');G.toppling=false;
+          toppleBtn.classList.remove('hidden');clearBtn.classList.remove('hidden');
+        }
+        document.getElementById('score').textContent='SCORE '+G.score;
+      },400);
+    }
+  }
+}
+function win(){
+  G.state='win';
+  otitle.textContent='🎉 DOMINO MASTER!';
+  obody.innerHTML='<p>You chained every level! Final score: '+G.score+'</p>';
+  olesson.textContent='🔥 Fire Safety: Plan your escape route before you need it — just like planning dominoes!';
+  obtn.textContent='↻ PLAY AGAIN';
+  toppleBtn.classList.add('hidden');clearBtn.classList.add('hidden');
+  obtn.onclick=()=>{overlay.classList.add('hidden');G.level=1;G.score=0;buildLevel(1);G.state='play';toppleBtn.classList.remove('hidden');clearBtn.classList.remove('hidden');};
+  overlay.classList.remove('hidden');
 }
 function render(){
-  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0e0a16');g.addColorStop(1,'#1e1430');
-  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
-  // speed lines
-  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=2;
-  const off=(time*speed)%100;
-  for(let y=-100+off;y<H+100;y+=100){ctx.beginPath();ctx.moveTo(W*.1,y);ctx.lineTo(W*.1,y+40);ctx.stroke();ctx.beginPath();ctx.moveTo(W*.9,y+50);ctx.lineTo(W*.9,y+90);ctx.stroke();}
-  foes.forEach(f=>{ctx.fillStyle='rgba(90,90,90,.92)';ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();ctx.fillStyle='rgba(60,60,60,.9)';ctx.beginPath();ctx.arc(f.x-8,f.y-6,f.r*.5,0,7);ctx.fill();});
-  stars.forEach(s=>{ctx.fillStyle='#ffd23f';ctx.shadowColor='#ffb300';ctx.shadowBlur=14;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(time*3);ctx.fillRect(-s.r*.6,-s.r*.6,s.r*1.2,s.r*1.2);ctx.restore();ctx.shadowBlur=0;});
-  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
-  if(state==='play'){ctx.save();ctx.translate(px+Math.sin(time*7)*4,py);const bg=ctx.createRadialGradient(-9,-9,4,0,0,28);bg.addColorStop(0,'#ffd23f');bg.addColorStop(.6,'#ff8a00');bg.addColorStop(1,'#e63900');ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,26,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-8,-3,6,0,7);ctx.arc(8,-3,6,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-8,-2,3,0,7);ctx.arc(8,-2,3,0,7);ctx.fill();ctx.strokeStyle='#5a2000';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,8,8,.3,Math.PI-.3);ctx.stroke();ctx.restore();}
+  ctx.fillStyle='#101826';ctx.fillRect(0,0,W,H);
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    const cx=ox+x*cell,cy=oy+y*cell,t=grid[y][x];
+    ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(cx+1,cy+1,cell-2,cell-2);
+    if(t===DOM){
+      let fi=-1;for(let k=0;k<G.fallOrder.length;k++)if(G.fallOrder[k][0]===x&&G.fallOrder[k][1]===y){fi=k;break;}
+      const fallen=G.toppling&&fi>=0&&fi<G.fallIdx;
+      ctx.fillStyle=fallen?'#8a6a3a':'#e8d47a';
+      ctx.fillRect(cx+4,cy+4,cell-8,cell-8);
+      ctx.fillStyle='#fff';for(let d=0;d<4;d++)ctx.fillRect(cx+cell/2-2,cy+8+d*10,4,4);
+    }else if(t===ROCKC){ctx.fillStyle='#3a3a4a';ctx.beginPath();ctx.arc(cx+cell/2,cy+cell/2,cell/2-4,0,Math.PI*2);ctx.fill();}
+  }
+  ctx.fillStyle='#2a8a2a';ctx.fillRect(ox+start.x*cell+2,oy+start.y*cell+2,cell-4,cell-4);
+  ctx.fillStyle='#7dff7d';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText('S',ox+start.x*cell+cell/2,oy+start.y*cell+cell/2+7);
+  const pulse=0.7+0.3*Math.sin(Date.now()*0.005);
+  ctx.fillStyle='rgba(255,210,63,'+pulse+')';ctx.beginPath();ctx.arc(ox+target.x*cell+cell/2,oy+target.y*cell+cell/2,cell/2-2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillText('💎',ox+target.x*cell+cell/2,oy+target.y*cell+cell/2+8);ctx.textAlign='left';
+  document.getElementById('score').textContent='SCORE '+G.score;
 }
-let keys={l:0,r:0,u:0,d:0},last=0;
-function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;
-  if(state==='play'){const sp=520*dt;if(keys.l)px-=sp;if(keys.r)px+=sp;if(keys.u)py-=sp;if(keys.d)py+=sp;px=Math.max(26,Math.min(W-26,px));py=Math.max(H*.25,Math.min(H-40,py));}
-  update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.l=1;if(e.key==='ArrowRight')keys.r=1;if(e.key==='ArrowUp')keys.u=1;if(e.key==='ArrowDown')keys.d=1;});
-addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.l=0;if(e.key==='ArrowRight')keys.r=0;if(e.key==='ArrowUp')keys.u=0;if(e.key==='ArrowDown')keys.d=0;});
-let td=null;cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();td={x:e.clientX-r.left,y:e.clientY-r.top};cv.setPointerCapture(e.pointerId);});
-cv.addEventListener('pointermove',e=>{if(!td)return;const r=cv.getBoundingClientRect();px+=(e.clientX-r.left-td.x)*1.4;py+=(e.clientY-r.top-td.y)*1.4;td={x:e.clientX-r.left,y:e.clientY-r.top};px=Math.max(26,Math.min(W-26,px));py=Math.max(H*.25,Math.min(H-40,py));});
-cv.addEventListener('pointerup',()=>td=null);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapCell(Math.floor((t.clientX-ox)/cell),Math.floor((t.clientY-oy)/cell));},{passive:false});
+canvas.addEventListener('mousedown',e=>tapCell(Math.floor((e.clientX-ox)/cell),Math.floor((e.clientY-oy)/cell)));
+toppleBtn.addEventListener('click',e=>{e.stopPropagation();topple();});
+clearBtn.addEventListener('click',e=>{e.stopPropagation();if(!G.toppling)buildLevel(G.level);});
+let lastT=0;
+function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play'&&G.toppling&&G.toppling!=='done')updateTopple(dt);render();requestAnimationFrame(loop);}
+function startGame(){audio();G.state='play';overlay.classList.add('hidden');toppleBtn.classList.remove('hidden');clearBtn.classList.remove('hidden');}
+obtn.onclick=()=>{showGate();};
+resize();buildLevel(1);
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>

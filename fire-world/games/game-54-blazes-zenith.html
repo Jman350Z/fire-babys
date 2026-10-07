@@ -2,96 +2,168 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Zenith — Fire Babys</title>
+<meta name="description" content="Don't get caught with the ember in Blaze's Zenith! A Fire Babys hot potato game by Jman350Z & fire team.">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0c0a14;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
-#c{display:block;width:100vw;height:100vh}
-#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,6,16,.93);color:#fff;text-align:center;padding:20px;z-index:10}
-#ov h1{font-size:clamp(26px,7vw,44px);color:#ffd23f;margin-bottom:10px}
-#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
-#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
-#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ffd23f;padding:6px;background:#1c1410;color:#fff}
-#gate button,#startBtn{background:#8a6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
-#hud{position:fixed;top:8px;left:0;right:0;display:flex;justify-content:center;gap:20px;color:#ffd23f;font-weight:900;font-size:20px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
-#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1e1010;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(28,12,10,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,40px);font-weight:900;margin-bottom:12px;color:#ff8a3d}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#a04a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
 .hidden{display:none!important}
+#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#pass{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:10;background:#c46a1a;color:#fff;border:3px solid #fff;font-size:22px;font-weight:900;padding:16px 54px;border-radius:999px}
+#pass:active{transform:translateX(-50%) scale(0.94)}
+#pass:disabled{opacity:0.4}
 </style>
 </head>
 <body>
-<button id="back" onclick="location.href='/fire-world.html'">←</button>
-<div id="hud"><span id="s1">🟠 0</span><span id="s2">⚫ 0</span><span>⏱ <span id="tm">60</span></span></div>
+<div id="game">
+<div id="hud"><div id="round">ROUND 1</div><div id="lives">❤️❤️❤️</div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div id="ov">
-<h1>⚡ BLAZE'S ZENITH</h1>
-<p>Arena bumper! Ram the smoke puff rivals out of the ring. You vs 2 AI — most knockouts in 60 seconds takes the crown!</p>
-<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
-<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
-<div class="lesson">🔥 Fire Safety: Bumping is for games — in real life, keep your hands to yourself!</div>
+<button id="pass" class="hidden" disabled>🔥 PASS!</button>
+<div id="overlay">
+<h1 id="otitle">🔥 BLAZE'S<br>ZENITH</h1>
+<div id="obody"><p>Hot potato with fire babies! The burning ember is being passed around — when <b>YOU</b> hold it, tap <b>PASS</b> fast to get rid of it!</p><p>When the fuse burns out, whoever holds the ember loses a life. Last baby standing wins!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Real embers are NOT toys — never touch hot coals or fireworks!</div>
+<button id="obtn">▶ PLAY POTATO</button>
+</div>
 </div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const ov=document.getElementById('ov');
-let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
-let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.13,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const n1=3+Math.floor(Math.random()*4),n2=3+Math.floor(Math.random()*4);
-document.getElementById('q').textContent=n1+' + '+n2;
-function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
-let state='menu',me,foes=[],parts=[],time=60,shake=0,s1=0,s2=0;
-const R=()=>Math.min(W,H)*.36,CX=()=>W/2,CY=()=>H/2;
-function start(){state='play';time=60;s1=0;s2=0;parts=[];
-  me={x:CX()-70,y:CY(),vx:0,vy:0,r:28,me:true};
-  foes=[{x:CX()+70,y:CY()-50,vx:0,vy:0,r:28,t:0},{x:CX()+30,y:CY()+80,vx:0,vy:0,r:28,t:3}];
-  ov.classList.add('hidden');}
-function end(){state='over';const w=s1>s2?'🟠 YOU WIN THE CROWN!':s1<s2?'⚫ RIVALS WIN!':'🤝 TIE!';
-  ov.innerHTML=`<h1>${w}</h1><p>Knockouts — You: <b>${s1}</b> · Rivals: <b>${s2}</b></p><div class="lesson">🔥 Fire Safety: Bumping is for games — in real life, keep your hands to yourself!</div><button onclick="location.reload()" style="background:#8a6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
-function boom(x,y,c){for(let i=0;i<16;i++){const a=Math.random()*7,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
-function ko(b){
-  boom(b.x,b.y,'#ffd23f');beep(220,.3,'sawtooth');shake=14;
-  if(b.me){s2++;document.getElementById('s2').textContent='⚫ '+s2;b.x=CX()-70;b.y=CY();}
-  else{s1++;document.getElementById('s1').textContent='🟠 '+s1;b.x=CX()+60;b.y=CY();}
-  b.vx=b.vy=0;
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate'),passBtn=document.getElementById('pass');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const G={state:'title',lives:3,score:0,round:1};
+let players=[],holder=0,fuse=8,fuseMax=8,aiT=0,passing=false,passAnim=null;
+const NAMES=['YOU','Pip','Mimi','Zuzu','Kiki','Lulu'];
+function reset(){
+  players=[];
+  for(let i=0;i<6;i++)players.push({name:NAMES[i],alive:true,isYou:i===0,passSpd:0.8+Math.random()*1.2});
+  holder=0;newFuse();G.round=1;
+  document.getElementById('round').textContent='ROUND 1';
+}
+function newFuse(){fuseMax=fuse=5+Math.random()*6;}
+function circlePos(i,n){
+  const cx=W/2,cy=H*0.44,r=Math.min(W,H)*0.32;
+  const a=-Math.PI/2+i/n*Math.PI*2;
+  return {x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*0.85};
+}
+function aliveIdx(){return players.map((p,i)=>p.alive?i:-1).filter(i=>i>=0);}
+function passEmber(){
+  const alive=aliveIdx();
+  if(alive.length<2)return;
+  let ni=holder;
+  while(ni===holder)ni=alive[Math.floor(Math.random()*alive.length)];
+  passAnim={from:holder,to:ni,t:0};
+  holder=ni;passing=true;
+  sfx(500,900,0.12,'triangle');
 }
 function update(dt){
-  if(state!=='play')return;time-=dt;shake*=.9;
-  document.getElementById('tm').textContent=Math.ceil(time);
-  if(time<=0){end();return;}
-  const sp=950*dt;
-  if(k.l)me.vx-=sp;if(k.r)me.vx+=sp;if(k.u)me.vy-=sp;if(k.d)me.vy+=sp;
-  if(tc.x!==null){me.vx+=(tc.x-me.x)*7*dt;me.vy+=(tc.y-me.y)*7*dt;}
-  [me,...foes].forEach(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=.986;b.vy*=.986;
-    if(Math.hypot(b.x-CX(),b.y-CY())>R())ko(b);});
-  foes.forEach(f=>{f.t+=dt;const dx=me.x-f.x,dy=me.y-f.y,d=Math.hypot(dx,dy)||1;
-    f.vx+=dx/d*520*dt;f.vy+=dy/d*520*dt;
-    if(Math.hypot(f.x-CX(),f.y-CY())>R()*.82){f.vx+=(CX()-f.x)*4*dt;f.vy+=(CY()-f.y)*4*dt;}});
-  const all=[me,...foes];
-  for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
-    const a=all[i],b=all[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),mn=a.r+b.r;
-    if(d<mn&&d>0){const nx=dx/d,ny=dy/d,p=300;a.vx-=nx*p*dt*8;a.vy-=ny*p*dt*8;b.vx+=nx*p*dt*8;b.vy+=ny*p*dt*8;beep(320,.07,'square');boom((a.x+b.x)/2,(a.y+b.y)/2,'#fff');}
+  if(passing&&passAnim){
+    passAnim.t+=dt*3;
+    if(passAnim.t>=1){passing=false;passAnim=null;
+      if(holder===0){passBtn.disabled=false;sfx(700,700,0.1,'square');}
+      else{aiT=players[holder].passSpd*(0.6+Math.random());}
+    }
+    return;
   }
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.4;});parts=parts.filter(p=>p.life>0);
+  fuse-=dt;
+  if(holder!==0){
+    aiT-=dt;
+    if(aiT<=0)passEmber();
+  }
+  passBtn.disabled=holder!==0;
+  if(fuse<=0){
+    // holder loses
+    const h=players[holder];
+    sfx(300,60,0.5,'sawtooth');
+    if(h.isYou){
+      G.lives--;
+      document.getElementById('lives').textContent='❤️'.repeat(G.lives)+'🖤'.repeat(3-G.lives);
+      if(G.lives<=0){gameOver(false);return;}
+    }else{
+      h.alive=false;G.score+=300;
+      const alive=aliveIdx();
+      if(alive.length===1&&alive[0]===0){gameOver(true);return;}
+    }
+    G.round++;
+    document.getElementById('round').textContent='ROUND '+G.round;
+    // new holder among alive
+    const alive=aliveIdx();
+    holder=alive[Math.floor(Math.random()*alive.length)];
+    newFuse();
+    if(holder===0)passBtn.disabled=false;else aiT=players[holder].passSpd;
+  }
 }
-function drawB(x,y,r,smoke){ctx.save();ctx.translate(x,y);
-  if(smoke){ctx.fillStyle='rgba(100,100,100,.92)';ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.fillStyle='#ff3b2e';ctx.beginPath();ctx.arc(-8,-4,5,0,7);ctx.arc(8,-4,5,0,7);ctx.fill();}
-  else{const g=ctx.createRadialGradient(-r*.3,-r*.3,r*.2,0,0,r);g.addColorStop(0,'#ffd23f');g.addColorStop(1,'#e63900');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-8,-3,6,0,7);ctx.arc(8,-3,6,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-8,-2,3,0,7);ctx.arc(8,-2,3,0,7);ctx.fill();}
-  ctx.restore();}
+function gameOver(won){
+  G.state='dead';passBtn.classList.add('hidden');
+  otitle.textContent=won?'🏆 POTATO CHAMPION!':'🔥 BURNED OUT!';
+  obody.innerHTML='<p>'+(won?'You outlasted every fire baby!':'The ember caught you 3 times!')+'<br>Survived '+G.round+' rounds. Score: '+G.score+'</p>';
+  olesson.textContent='🔥 Fire Safety: Real embers are NOT toys — never touch hot coals or fireworks!';
+  obtn.textContent='↻ PLAY AGAIN';
+  obtn.onclick=()=>{overlay.classList.add('hidden');passBtn.classList.remove('hidden');G.lives=3;G.score=0;document.getElementById('lives').textContent='❤️❤️❤️';reset();G.state='play';};
+  overlay.classList.remove('hidden');
+}
 function render(){
-  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  ctx.fillStyle='#0c0a14';ctx.fillRect(-20,-20,W+40,H+40);
-  const g=ctx.createRadialGradient(CX(),CY(),R()*.3,CX(),CY(),R());
-  g.addColorStop(0,'#241a30');g.addColorStop(1,'#120c1c');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(CX(),CY(),R(),0,7);ctx.fill();
-  ctx.strokeStyle='#ffd23f';ctx.lineWidth=6;ctx.setLineDash([16,10]);ctx.beginPath();ctx.arc(CX(),CY(),R(),0,7);ctx.stroke();ctx.setLineDash([]);
-  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,6*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
-  foes.forEach(f=>drawB(f.x,f.y,f.r,true));drawB(me.x,me.y,me.r,false);
+  ctx.fillStyle='#1e1010';ctx.fillRect(0,0,W,H);
+  // campfire glow center
+  const cg=ctx.createRadialGradient(W/2,H*0.44,10,W/2,H*0.44,200);
+  cg.addColorStop(0,'rgba(255,106,26,0.25)');cg.addColorStop(1,'rgba(255,106,26,0)');
+  ctx.fillStyle=cg;ctx.fillRect(0,0,W,H);
+  const alive=players.filter(p=>p.alive);
+  const n=players.length;
+  players.forEach((p,i)=>{
+    if(!p.alive)return;
+    const pos=circlePos(i,n);
+    const isH=i===holder;
+    const r=isH?34:26;
+    if(isH){ctx.strokeStyle='#ff5a3a';ctx.lineWidth=4;ctx.beginPath();ctx.arc(pos.x,pos.y,r+8+Math.sin(Date.now()*0.01)*3,0,Math.PI*2);ctx.stroke();}
+    const g=ctx.createRadialGradient(pos.x-4,pos.y-6,2,pos.x,pos.y,r);
+    if(p.isYou){g.addColorStop(0,'#ffd9a0');g.addColorStop(0.6,'#ff8a3d');g.addColorStop(1,'#d44a0a');}
+    else{g.addColorStop(0,'#ffe0b0');g.addColorStop(0.6,'#ff9a4d');g.addColorStop(1,'#c45a1a');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(pos.x,pos.y,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(pos.x-6,pos.y-3,2.6,0,Math.PI*2);ctx.arc(pos.x+6,pos.y-3,2.6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(p.isYou?'YOU':p.name,pos.x,pos.y+r+16);ctx.textAlign='left';
+  });
+  // ember
+  let ex,ey;
+  if(passAnim){
+    const a=circlePos(passAnim.from,n),b=circlePos(passAnim.to,n),t=passAnim.t;
+    ex=a.x+(b.x-a.x)*t;ey=a.y+(b.y-a.y)*t-Math.sin(t*Math.PI)*60;
+  }else{const pos=circlePos(holder,n);ex=pos.x;ey=pos.y-44;}
+  const fuseFrac=fuse/fuseMax;
+  ctx.fillStyle=fuseFrac<0.3?'#ff3b2e':'#ff8a3d';
+  ctx.beginPath();ctx.arc(ex,ey,14,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(ex-3,ey-3,6,0,Math.PI*2);ctx.fill();
+  // fuse bar
+  ctx.fillStyle='#333';ctx.fillRect(W/2-100,70,200,12);
+  ctx.fillStyle=fuseFrac<0.3?'#ff3b2e':'#ffb43d';ctx.fillRect(W/2-100,70,200*fuseFrac,12);
+  if(fuseFrac<0.3&&Math.floor(Date.now()/200)%2===0){ctx.fillStyle='#ff3b2e';ctx.font='bold 22px sans-serif';ctx.textAlign='center';ctx.fillText('⚠️ HURRY!',W/2,110);ctx.textAlign='left';}
+  document.getElementById('score').textContent='SCORE '+G.score;
 }
-let k={l:0,r:0,u:0,d:0},tc={x:null,y:null},last=0;
-function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-addEventListener('keydown',e=>{if(e.key==='ArrowLeft')k.l=1;if(e.key==='ArrowRight')k.r=1;if(e.key==='ArrowUp')k.u=1;if(e.key==='ArrowDown')k.d=1;});
-addEventListener('keyup',e=>{if(e.key==='ArrowLeft')k.l=0;if(e.key==='ArrowRight')k.r=0;if(e.key==='ArrowUp')k.u=0;if(e.key==='ArrowDown')k.d=0;});
-cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();tc.x=e.clientX-r.left;tc.y=e.clientY-r.top;cv.setPointerCapture(e.pointerId);});
-cv.addEventListener('pointermove',e=>{if(tc.x===null)return;const r=cv.getBoundingClientRect();tc.x=e.clientX-r.left;tc.y=e.clientY-r.top;});
-cv.addEventListener('pointerup',()=>tc.x=null);
+passBtn.addEventListener('click',e=>{e.stopPropagation();if(holder===0&&!passing){passBtn.disabled=true;passEmber();}});
+let lastT=0;
+function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+function startGame(){audio();G.state='play';overlay.classList.add('hidden');passBtn.classList.remove('hidden');}
+obtn.onclick=()=>{showGate();};
+reset();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>

@@ -2,85 +2,147 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Volcanic Target — Fire Babys</title>
+<meta name="description" content="Hit the spinning volcano target in Volcanic Target! A Fire Babys darts game by Jman350Z & fire team.">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0f0806;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
-#c{display:block;width:100vw;height:100vh}
-#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,6,4,.93);color:#fff;text-align:center;padding:20px;z-index:10}
-#ov h1{font-size:clamp(26px,7vw,44px);color:#ff6a00;margin-bottom:10px}
-#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
-#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
-#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff6a00;padding:6px;background:#221008;color:#fff}
-#gate button,#startBtn{background:#8a3a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
-#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:20px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
-#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1c0e08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(26,12,6,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,40px);font-weight:900;margin-bottom:12px;color:#ffd23f}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#a06a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#222;border-radius:12px;padding:14px;margin:12px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
 .hidden{display:none!important}
+#back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#throw{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:10;background:#c46a1a;color:#fff;border:3px solid #fff;font-size:22px;font-weight:900;padding:16px 60px;border-radius:999px}
+#throw:active{transform:translateX(-50%) scale(0.94)}
 </style>
 </head>
 <body>
-<button id="back" onclick="location.href='/fire-world.html'">←</button>
-<div id="hud">TURN <span id="tn">1</span>/10 · SCORE <span id="sc">0</span></div>
+<div id="game">
+<div id="hud"><div id="darts">🎯 10</div><div id="last"></div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div id="ov">
-<h1>🎯 VOLCANIC TARGET</h1>
-<p>Grid tactics! You have 10 turns — TAP a tile to place a water drop. Splash 3+ connected lava tiles to cool them. Cool the most tiles to win!</p>
-<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
-<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
-<div class="lesson">🔥 Fire Safety: Water cools fire! But only grown-ups and firefighters should battle real flames!</div>
+<button id="throw" class="hidden">🎯 THROW!</button>
+<div id="overlay">
+<h1 id="otitle">🎯 VOLCANIC<br>TARGET</h1>
+<div id="obody"><p>Lord Inferno's volcano target is <b>spinning</b>! Your aim sight <b>sweeps back and forth</b> — tap <b>THROW</b> at the perfect moment to hit the bullseye.</p><p>Center = 100 pts. 10 darts. No flicking — pure timing!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: solve to continue</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Never throw anything at fires or fireworks — get away instead!</div>
+<button id="obtn">▶ AIM!</button>
+</div>
 </div>
 <script>
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-const ov=document.getElementById('ov');
-let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
-let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.13,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const n1=2+Math.floor(Math.random()*6),n2=4+Math.floor(Math.random()*3);
-document.getElementById('q').textContent=n1+' + '+n2;
-function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
-const N=6;let grid=[],turn=0,score=0,state='menu',parts=[],shake=0,sel=null;
-const gs=()=>Math.min(W,H*.62)/N, ox=()=>W/2-gs()*N/2, oy=()=>H*.2;
-function start(){state='play';turn=0;score=0;parts=[];grid=[];
-  for(let r=0;r<N;r++){grid.push([]);for(let c=0;c<N;c++)grid[r].push(Math.random()<.55?1:0);}
-  ov.classList.add('hidden');upd();}
-function upd(){document.getElementById('tn').textContent=Math.min(turn+1,10);document.getElementById('sc').textContent=score;}
-function boom(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
-function flood(r,c){
-  const seen=new Set(),q=[[r,c]],t=grid[r][c];
-  while(q.length){const[rr,cc]=q.pop(),k=rr+','+cc;if(seen.has(k)||rr<0||cc<0||rr>=N||cc>=N||grid[rr][cc]!==t)continue;seen.add(k);q.push([rr+1,cc],[rr-1,cc],[rr,cc+1],[rr,cc-1]);}
-  return[...seen].map(s=>s.split(',').map(Number));
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate'),throwBtn=document.getElementById('throw');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const ac=audio();if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathAns=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const G={state:'title',darts:10,score:0,rot:0,rotSpd:1.2,aimT:0,dartFly:null,shake:0};
+let stuck=[];
+function targetC(){return {x:W/2,y:H*0.42,r:Math.min(W,H)*0.32};}
+function ringAt(dx,dy,rot){
+  const d=Math.hypot(dx,dy),tc=targetC();
+  if(d>tc.r)return 0;
+  const frac=d/tc.r;
+  let base=frac<0.15?100:(frac<0.35?60:(frac<0.55?40:(frac<0.75?20:10)));
+  let ang=Math.atan2(dy,dx)-rot;
+  while(ang<0)ang+=Math.PI*2;
+  if(ang<Math.PI/4)base*=2;
+  return base;
 }
-function tap(r,c){
-  if(state!=='play'||grid[r][c]!==1)return;
-  const grp=flood(r,c);
-  if(grp.length>=3){
-    const pts=grp.length*50;score+=pts;
-    grp.forEach(([rr,cc])=>{grid[rr][cc]=2;boom(ox()+cc*gs()+gs()/2,oy()+rr*gs()+gs()/2,'#7db4ff');});
-    beep(600,.15,'sine');shake=Math.max(shake,8);
-  }else{beep(200,.15,'square');shake=Math.max(shake,3);}
-  turn++;upd();
-  if(turn>=10)end();
+function throwDart(){
+  if(G.state!=='play'||G.dartFly||G.darts<=0)return;
+  const tc=targetC();
+  const aimX=tc.x+Math.sin(G.aimT*2.2)*tc.r*0.85;
+  G.dartFly={x:W/2,y:H-60,tx:aimX,ty:tc.y+Math.cos(G.aimT*1.7)*tc.r*0.5,t:0};
+  G.darts--;sfx(400,900,0.15,'triangle');
+  document.getElementById('darts').textContent='🎯 '+G.darts;
 }
-function end(){state='over';const cooled=grid.flat().filter(v=>v===2).length;
-  ov.innerHTML=`<h1>🌊 COOLED DOWN!</h1><p>Tiles cooled: <b>${cooled}/${N*N}</b> · Score: <b>${score}</b></p><div class="lesson">🔥 Fire Safety: Water cools fire! But only grown-ups and firefighters should battle real flames!</div><button onclick="location.reload()" style="background:#8a3a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
-function render(){
-  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.9;
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0f0806');g.addColorStop(1,'#241008');
-  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
-  const s=gs();
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
-    const x=ox()+c*s,y=oy()+r*s,v=grid[r][c];
-    ctx.fillStyle=v===1?'#e65a00':v===2?'#2a6a8a':'#3a2a1a';
-    ctx.fillRect(x+2,y+2,s-4,s-4);
-    if(v===1){ctx.fillStyle='rgba(255,200,80,.5)';ctx.beginPath();ctx.arc(x+s/2,y+s/2,s*.18,0,7);ctx.fill();}
-    if(v===2){ctx.fillStyle='#7db4ff';ctx.font=`bold ${s*.4}px sans-serif`;ctx.textAlign='center';ctx.fillText('💧',x+s/2,y+s*.68);}
+function update(dt){
+  G.rot+=G.rotSpd*dt;G.aimT+=dt;
+  G.rotSpd=Math.min(3.2,1.2+G.score/1500);
+  if(G.dartFly){
+    const d=G.dartFly;d.t+=dt*2.2;
+    d.x+=(d.tx-d.x)*Math.min(1,dt*8);d.y+=(d.ty-d.y)*Math.min(1,dt*8);
+    if(d.t>0.55){
+      const tc=targetC();
+      const pts=ringAt(d.x-tc.x,d.y-tc.y,G.rot);
+      stuck.push({x:d.x,y:d.y});
+      if(pts>0){G.score+=pts;G.shake=0.25;
+        document.getElementById('last').textContent='+'+pts;
+        if(pts>=100)sfx(800,1400,0.25);else sfx(500,800,0.15);}
+      else{document.getElementById('last').textContent='MISS';sfx(200,100,0.25,'sawtooth');}
+      G.dartFly=null;
+      if(G.darts<=0)setTimeout(gameOver,700);
+    }
   }
-  ctx.strokeStyle='#ff6a00';ctx.lineWidth=3;ctx.strokeRect(ox(),oy(),s*N,s*N);
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=.03;ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
-  parts=parts.filter(p=>p.life>0);
-  if(state==='play'){ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';ctx.fillText('Tap lava tiles — splash 3+ connected!',W/2,oy()+s*N+34);}
+  if(G.shake>0)G.shake-=dt;
 }
-(function loop(){render();requestAnimationFrame(loop);})();
-cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const c=Math.floor((x-ox())/gs()),rr=Math.floor((y-oy())/gs());if(c>=0&&c<N&&rr>=0&&rr<N)tap(rr,c);});
+function gameOver(){
+  G.state='dead';throwBtn.classList.add('hidden');
+  const rank=G.score>=700?'🏆 VOLCANO CHAMPION!':(G.score>=400?'🥈 SHARP SHOOTER!':'🥉 KEEP PRACTICING!');
+  otitle.textContent=rank;
+  obody.innerHTML='<p>Final score: '+G.score+' / 1000</p>';
+  olesson.textContent='🔥 Fire Safety: Never throw anything at fires or fireworks — get away instead!';
+  obtn.textContent='↻ THROW AGAIN';
+  obtn.onclick=()=>{overlay.classList.add('hidden');throwBtn.classList.remove('hidden');G.darts=10;G.score=0;stuck=[];document.getElementById('darts').textContent='🎯 10';document.getElementById('last').textContent='';G.state='play';};
+  overlay.classList.remove('hidden');
+}
+function render(){
+  ctx.fillStyle='#1c0e08';ctx.fillRect(0,0,W,H);
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
+  const tc=targetC();
+  ctx.fillStyle='#3a2010';
+  ctx.beginPath();ctx.moveTo(tc.x-tc.r*1.5,H*0.75);ctx.lineTo(tc.x,tc.y-tc.r*1.2);ctx.lineTo(tc.x+tc.r*1.5,H*0.75);ctx.fill();
+  ctx.fillStyle='#ff5a1a';ctx.beginPath();ctx.ellipse(tc.x,tc.y-tc.r*1.2,30,12,0,0,Math.PI*2);ctx.fill();
+  const rings=[['#5a2010',1],['#e8e0c8',0.75],['#c46a1a',0.55],['#e8e0c8',0.35],['#ff3b2e',0.15]];
+  for(const [c,f] of rings){ctx.fillStyle=c;ctx.beginPath();ctx.arc(tc.x,tc.y,tc.r*f,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(255,210,63,0.75)';
+  ctx.beginPath();ctx.moveTo(tc.x,tc.y);ctx.arc(tc.x,tc.y,tc.r,G.rot,G.rot+Math.PI/4);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#7a2a0a';ctx.beginPath();ctx.arc(tc.x,tc.y,4,0,Math.PI*2);ctx.fill();
+  for(const s of stuck){
+    ctx.strokeStyle='#8a6a3a';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(s.x,s.y-26);ctx.lineTo(s.x,s.y);ctx.stroke();
+    ctx.fillStyle='#ff5a5a';ctx.beginPath();ctx.arc(s.x,s.y-28,5,0,Math.PI*2);ctx.fill();
+  }
+  if(G.dartFly){const d=G.dartFly;
+    ctx.strokeStyle='#c8a86a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(d.x,d.y-34);ctx.lineTo(d.x,d.y);ctx.stroke();
+    ctx.fillStyle='#ffea00';ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-6,d.y+12);ctx.lineTo(d.x+6,d.y+12);ctx.fill();}
+  if(G.state==='play'&&!G.dartFly){
+    const ax=tc.x+Math.sin(G.aimT*2.2)*tc.r*0.85,ay=tc.y+Math.cos(G.aimT*1.7)*tc.r*0.5;
+    ctx.strokeStyle='#7dff7d';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(ax,ay,16,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(ax-24,ay);ctx.lineTo(ax-8,ay);ctx.moveTo(ax+8,ay);ctx.lineTo(ax+24,ay);
+    ctx.moveTo(ax,ay-24);ctx.lineTo(ax,ay-8);ctx.moveTo(ax,ay+8);ctx.lineTo(ax,ay+24);ctx.stroke();
+  }
+  const bx=W/2,by=H-120;
+  const bg2=ctx.createRadialGradient(bx-5,by-7,2,bx,by,24);
+  bg2.addColorStop(0,'#ff9a8a');bg2.addColorStop(0.6,'#ff3b2e');bg2.addColorStop(1,'#a01508');
+  ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(bx,by,24,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(bx-24,by-16,48,9);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx-7,by+2,4,0,Math.PI*2);ctx.arc(bx+7,by+2,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(bx-7,by+2,2,0,Math.PI*2);ctx.arc(bx+7,by+2,2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  document.getElementById('score').textContent='SCORE '+G.score;
+}
+throwBtn.addEventListener('click',e=>{e.stopPropagation();throwDart();});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();throwDart();},{passive:false});
+let lastT=0;
+function loop(t){const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+function startGame(){audio();G.state='play';overlay.classList.add('hidden');throwBtn.classList.remove('hidden');}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
