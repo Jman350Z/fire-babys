@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trinity's Holy Lightning Rescue — Fire Babys</title>
+<meta name="description" content="Princess Trinity's quest to rescue Prince Tristan! A Fire Babys game by Jman350Z & fire team.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1020;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000}
+#stage{font-size:18px;color:#ffd23f}
+#hpbar,#mpbar{width:140px;height:12px;background:#333;border:2px solid #000;border-radius:7px;overflow:hidden;margin-top:4px}
+#hpfill{height:100%;width:100%;background:linear-gradient(90deg,#ff3b2e,#ff8a00);transition:width .2s}
+#mpfill{height:100%;width:100%;background:linear-gradient(90deg,#4aa8ff,#aee2ff);transition:width .2s}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,10,25,.92);color:#fff;text-align:center;padding:24px;overflow-y:auto}
+#overlay h1{font-size:clamp(26px,6vw,44px);font-weight:900;margin-bottom:14px;color:#ffd23f;text-shadow:0 0 20px #ffea00}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:480px;line-height:1.6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:460px}
+#overlay button{background:#d4a017;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#overlay button:active{transform:translateY(3px)}
+#mathgate{background:#222;border-radius:12px;padding:16px;margin:14px 0}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px}
+.hidden{display:none!important}
+#dpad{position:fixed;left:12px;bottom:20px;z-index:10;display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(3,64px);gap:4px;opacity:.75}
+.dbtn{background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.4);border-radius:14px;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center}
+.dbtn:active{background:rgba(255,255,255,.4)}
+#actions{position:fixed;right:12px;bottom:20px;z-index:10;display:flex;gap:12px;opacity:.85}
+.abtn{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.5);color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center}
+#btnZap{background:rgba(212,160,23,.6)}
+#btnJump{background:rgba(74,168,255,.55)}
+#btnShield{background:rgba(120,220,120,.5);width:64px;height:64px;font-size:12px}
+#back{position:fixed;top:64px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div><div id="mpbar"><div id="mpfill"></div></div></div><div id="score">SCORE 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="dpad">
+<div></div><div class="dbtn" id="dUp">▲</div><div></div>
+<div class="dbtn" id="dLeft">◀</div><div></div><div class="dbtn" id="dRight">▶</div>
+<div></div><div class="dbtn" id="dDown">▼</div><div></div>
+</div>
+<div id="actions">
+<div class="abtn" id="btnShield">🛡️</div>
+<div class="abtn" id="btnJump">JUMP</div>
+<div class="abtn" id="btnZap">⚡</div>
+</div>
+<div id="overlay">
+<h1 id="otitle">⚡ TRINITY'S<br>HOLY LIGHTNING RESCUE</h1>
+<div id="obody"></div>
+<div id="mathgate" class="hidden">
+<p>🔒 Parental Gate: solve to continue</p>
+<p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p>
+<button onclick="checkMath()">UNLOCK</button>
+</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: If you see fire, tell a grown-up right away — never try to fight it yourself!</div>
+<button id="obtn">▶ BEGIN QUEST</button>
+</div>
+</div>
+<script>
+'use strict';
+/* ============================================================
+   TRINITY'S HOLY LIGHTNING RESCUE — Game #57
+   15-stage action platformer. Princess Trinity rescues Prince Tristan.
+   COPPA: zero PII, zero trackers. Parental math gate on external links.
+   ============================================================ */
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),
+      olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+/* ---------- Web Audio synth ---------- */
+let AC=null;
+function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(type){
+  const ac=audio();if(!ac)return;
+  const t=ac.currentTime;
+  if(type==='win'){[523,659,784,1047,1319].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.2,t+i*0.1);g.gain.exponentialRampToValueAtTime(0.01,t+i*0.1+0.3);o.start(t+i*0.1);o.stop(t+i*0.1+0.35);});return;}
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  if(type==='zap'){o.type='sawtooth';o.frequency.setValueAtTime(2000,t);o.frequency.exponentialRampToValueAtTime(200,t+0.18);g.gain.setValueAtTime(0.22,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.2);}
+  else if(type==='hit'){o.type='square';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(70,t+0.14);g.gain.setValueAtTime(0.28,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.18);}
+  else if(type==='jump'){o.type='sine';o.frequency.setValueAtTime(350,t);o.frequency.exponentialRampToValueAtTime(700,t+0.12);g.gain.setValueAtTime(0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.15);}
+  else if(type==='coin'){o.type='sine';o.frequency.setValueAtTime(1047,t);o.frequency.setValueAtTime(1568,t+0.07);g.gain.setValueAtTime(0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.18);}
+  else if(type==='hurt'){o.type='sawtooth';o.frequency.setValueAtTime(350,t);o.frequency.exponentialRampToValueAtTime(90,t+0.25);g.gain.setValueAtTime(0.28,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.3);}
+  else if(type==='shield'){o.type='sine';o.frequency.setValueAtTime(600,t);o.frequency.exponentialRampToValueAtTime(900,t+0.2);g.gain.setValueAtTime(0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.25);}
+  else if(type==='boss'){o.type='sawtooth';o.frequency.setValueAtTime(100,t);o.frequency.exponentialRampToValueAtTime(50,t+0.5);g.gain.setValueAtTime(0.35,t);g.gain.exponentialRampToValueAtTime(0.01,t+0.6);}
+  o.start(t);o.stop(t+0.7);
+}
+
+/* ---------- Object pools ---------- */
+const POOL={
+  particles:[],bolts:[],floaters:[],
+  init(){for(let i=0;i<220;i++)this.particles.push({active:false});
+    for(let i=0;i<60;i++)this.bolts.push({active:false,chain:[]});
+    for(let i=0;i<20;i++)this.floaters.push({active:false});},
+  spawnP(x,y,vx,vy,life,color,size){const p=this.particles.find(p=>!p.active);if(!p)return;
+    p.active=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;},
+  spawnBolt(x,y,tx,ty){const b=this.bolts.find(b=>!b.active);if(!b)return null;
+    b.active=true;b.x=x;b.y=y;b.tx=tx;b.ty=ty;b.life=0.25;b.chain=[];return b;},
+  spawnText(x,y,txt,color){const f=this.floaters.find(f=>!f.active);if(!f)return;
+    f.active=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;}
+};
+POOL.init();
+
+/* ---------- Shake & hit-stop ---------- */
+let shakeX=0,shakeY=0,shakeT=0,shakeMag=0,hitStop=0;
+function addShake(mag,time){shakeT=Math.max(shakeT,time);shakeMag=Math.max(shakeMag,mag);}
+function addHitStop(t){hitStop=Math.max(hitStop,t);}
+
+/* ---------- Input ---------- */
+const keys={left:false,right:false,up:false,down:false,jump:false,zap:false,shield:false};
+function bindHold(el,prop){
+  const on=e=>{e.preventDefault();keys[prop]=true;};
+  const off=e=>{e.preventDefault();keys[prop]=false;};
+  el.addEventListener('touchstart',on,{passive:false});
+  el.addEventListener('touchend',off,{passive:false});
+  el.addEventListener('touchcancel',off,{passive:false});
+  el.addEventListener('mousedown',on);el.addEventListener('mouseup',off);el.addEventListener('mouseleave',off);
+}
+bindHold(document.getElementById('dLeft'),'left');
+bindHold(document.getElementById('dRight'),'right');
+bindHold(document.getElementById('dUp'),'up');
+bindHold(document.getElementById('dDown'),'down');
+bindHold(document.getElementById('btnJump'),'jump');
+bindHold(document.getElementById('btnZap'),'zap');
+bindHold(document.getElementById('btnShield'),'shield');
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=true;
+  if(e.key==='ArrowUp'||e.key==='w')keys.up=true;
+  if(e.key==='ArrowDown'||e.key==='s')keys.down=true;
+  if(e.key===' '||e.key==='z')keys.jump=true;
+  if(e.key==='x')keys.zap=true;
+  if(e.key==='c')keys.shield=true;
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=false;
+  if(e.key==='ArrowUp'||e.key==='w')keys.up=false;
+  if(e.key==='ArrowDown'||e.key==='s')keys.down=false;
+  if(e.key===' '||e.key==='z')keys.jump=false;
+  if(e.key==='x')keys.zap=false;
+  if(e.key==='c')keys.shield=false;
+});
+
+/* ---------- Parental math gate ---------- */
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;
+  document.getElementById('mq').textContent=a+' + '+b;
+  mathgate.classList.remove('hidden');
+}
+function checkMath(){
+  const v=parseInt(document.getElementById('ma').value,10);
+  if(v===mathAnswer){mathgate.classList.add('hidden');startGame();}
+  else{document.getElementById('ma').value='';}
+}
+
+/* ---------- Game state ---------- */
+const G={state:'title',stage:1,score:0,combo:0,comboT:0,camX:0,levelW:0,
+  platforms:[],enemies:[],hazards:[],coins:[],boss:null,doorX:0,time:0};
+const P={x:0,y:0,vx:0,vy:0,w:32,h:46,hp:100,maxHp:100,mp:100,maxMp:100,
+  facing:1,onGround:false,gliding:false,zapCd:0,shieldT:0,shieldCd:0,invuln:0,jumpBuf:0,coyote:0,jumps:0};
+const GRAV=2000,JUMP_V=750,MOVE_SPD=310;
+
+/* ---------- Level generation ---------- */
+function buildStage(n){
+  G.platforms=[];G.enemies=[];G.hazards=[];G.coins=[];G.boss=null;
+  const diff=Math.min(1,(n-1)/14);
+  G.levelW=2400+n*220;
+  const groundY=H-90;
+  let x=0;
+  while(x<G.levelW){
+    const segW=400+Math.random()*400;
+    const gap=n>3&&Math.random()<0.3+diff*0.3?110+Math.random()*110:0;
+    G.platforms.push({x:x,y:groundY,w:segW,h:90,brk:false});
+    x+=segW+gap;
+  }
+  const nPlat=4+Math.floor(n*0.5);
+  for(let i=0;i<nPlat;i++){
+    G.platforms.push({x:300+Math.random()*(G.levelW-600),y:groundY-120-Math.random()*240,
+      w:110+Math.random()*80,h:22,brk:n>6&&Math.random()<0.25,shake:0,gone:false});
+  }
+  // celestial guardians (storm wisps — NOT fire babies)
+  const nEn=3+Math.floor(n*0.7);
+  for(let i=0;i<nEn;i++){
+    const e={x:400+Math.random()*(G.levelW-700),y:groundY-160-Math.random()*120,
+      vx:(Math.random()<0.5?-1:1)*(50+diff*70),vy:0,w:34,h:34,
+      hp:2+Math.floor(diff*3),alive:true,hitT:0,float:true,
+      patrolMin:0,patrolMax:0,ph:Math.random()*6};
+    e.patrolMin=e.x-140;e.patrolMax=e.x+140;
+    G.enemies.push(e);
+  }
+  // rotating holy-fire orbs (stage 4+)
+  if(n>=4){
+    for(let i=0;i<1+Math.floor(diff*4);i++){
+      G.hazards.push({type:'orbiter',x:600+Math.random()*(G.levelW-1200),y:groundY-200,
+        r:90,ang:Math.random()*6,spd:1+diff*1.5,or:18});
+    }
+  }
+  for(let i=0;i<12+Math.floor(n*0.8);i++){
+    G.coins.push({x:200+Math.random()*(G.levelW-400),y:groundY-80-Math.random()*260,taken:false,ph:Math.random()*6});
+  }
+  if(n===15){
+    G.boss={x:G.levelW-400,y:groundY-140,w:100,h:130,hp:32,maxHp:32,vx:0,atkT:0,alive:true,hitT:0};
+    sfx('boss');
+  }
+  G.doorX=G.levelW-150;
+  P.x=80;P.y=groundY-200;P.vx=0;P.vy=0;P.hp=P.maxHp;P.mp=P.maxMp;P.invuln=0;P.shieldT=0;
+  G.camX=0;
+  document.getElementById('stage').textContent='STAGE '+n+'/15';
+}
+
+/* ---------- Chain lightning ---------- */
+function castLightning(){
+  if(P.mp<12)return;
+  P.mp-=12;
+  sfx('zap');addShake(4,0.12);
+  // find nearest enemy in range
+  let best=null,bestD=380;
+  const targets=[...G.enemies.filter(e=>e.alive)];
+  if(G.boss&&G.boss.alive)targets.push(G.boss);
+  for(const e of targets){
+    const d=Math.hypot(e.x-P.x,e.y-P.y);
+    if(d<bestD){bestD=d;best=e;}
+  }
+  const sx=P.x+P.facing*20,sy=P.y-10;
+  if(!best){
+    // wild bolt forward
+    const b=POOL.spawnBolt(sx,sy,sx+P.facing*300,sy-40);
+    for(let i=0;i<8;i++)POOL.spawnP(sx+P.facing*40,sy,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#aee2ff',3);
+    return;
+  }
+  // chain to up to 4 targets
+  let cx=sx,cy=sy;
+  const hitSet=new Set();
+  for(let c=0;c<4;c++){
+    let nb=null,nd=220;
+    for(const e of targets){
+      if(hitSet.has(e))continue;
+      const d=Math.hypot(e.x-cx,e.y-cy);
+      if(d<nd){nd=d;nb=e;}
+    }
+    if(!nb)break;
+    hitSet.add(nb);
+    POOL.spawnBolt(cx,cy,nb.x,nb.y);
+    cx=nb.x;cy=nb.y;
+    nb.hp-=2;nb.hitT=0.15;
+    G.combo++;G.comboT=1.5;
+    const pts=120*G.combo;G.score+=pts;
+    POOL.spawnText(nb.x,nb.y-40,'+'+pts,'#aee2ff');
+    for(let i=0;i<10;i++)POOL.spawnP(nb.x,nb.y,(Math.random()-0.5)*350,(Math.random()-0.5)*350,0.4,'#ffea00',4);
+    sfx('hit');
+    if(nb.hp<=0&&nb.alive!==false){
+      if(nb===G.boss){nb.alive=false;bossDefeated();}
+      else{nb.alive=false;G.score+=500;POOL.spawnText(nb.x,nb.y-40,'+500!','#ffd23f');
+        for(let i=0;i<18;i++)POOL.spawnP(nb.x,nb.y,(Math.random()-0.5)*450,(Math.random()-0.5)*450,0.6,'#8ab4ff',5);}
+    }
+  }
+  addHitStop(0.04);
+}
+
+/* ---------- Player update ---------- */
+function updatePlayer(dt){
+  const target=(keys.right?MOVE_SPD:0)-(keys.left?MOVE_SPD:0);
+  P.vx+=(target-P.vx)*Math.min(1,dt*10);
+  P.facing=target!==0?Math.sign(target):P.facing;
+  // glide: hold jump in air = slow fall
+  P.gliding=false;
+  if(!P.onGround&&keys.jump&&P.vy>0){
+    P.gliding=true;
+    P.vy=Math.min(P.vy,140);
+    if(Math.random()<0.3)POOL.spawnP(P.x+(Math.random()-0.5)*30,P.y+20,(Math.random()-0.5)*50,80,0.5,'#aee2ff',3);
+  }else{
+    P.vy+=GRAV*dt;
+  }
+  if(keys.jump)P.jumpBuf=0.12;else P.jumpBuf-=dt;
+  if(P.onGround){P.coyote=0.1;P.jumps=0;}else P.coyote-=dt;
+  // double jump
+  if(P.jumpBuf>0&&(P.onGround||P.coyote>0||P.jumps<1)){
+    if(!P.onGround&&P.coyote<=0)P.jumps++;
+    P.vy=-JUMP_V;P.onGround=false;P.coyote=0;P.jumpBuf=0;sfx('jump');
+    for(let i=0;i<8;i++)POOL.spawnP(P.x,P.y+P.h/2,(Math.random()-0.5)*200,Math.random()*-100,0.4,'#aee2ff',3);
+  }
+  if(!keys.jump&&P.vy<-300)P.vy=-300;
+  // zap
+  P.zapCd-=dt;
+  if(keys.zap&&P.zapCd<=0){P.zapCd=0.28;castLightning();}
+  // holy shield
+  P.shieldCd-=dt;
+  if(keys.shield&&P.shieldCd<=0&&P.mp>=20){
+    P.mp-=20;P.shieldT=2.5;P.shieldCd=4;sfx('shield');
+    for(let i=0;i<16;i++){const a=i/16*Math.PI*2;POOL.spawnP(P.x+Math.cos(a)*40,P.y+Math.sin(a)*40,-Math.cos(a)*60,-Math.sin(a)*60,0.5,'#aef2ae',4);}
+  }
+  P.shieldT-=dt;
+  // mp regen
+  P.mp=Math.min(P.maxMp,P.mp+dt*14);
+  // integrate
+  P.x+=P.vx*dt;P.y+=P.vy*dt;
+  P.x=Math.max(20,Math.min(G.levelW-20,P.x));
+  P.onGround=false;
+  for(const pl of G.platforms){
+    if(pl.gone)continue;
+    if(P.x+P.w/2>pl.x&&P.x-P.w/2<pl.x+pl.w&&P.y+P.h/2>pl.y&&P.y+P.h/2<pl.y+pl.h+P.vy*dt+4&&P.vy>=0){
+      if(pl.brk&&!pl.shake)pl.shake=0.5;
+      P.y=pl.y-P.h/2;P.vy=0;P.onGround=true;
+    }
+  }
+  for(const pl of G.platforms){
+    if(pl.brk&&pl.shake>0){pl.shake-=dt;if(pl.shake<=0)pl.gone=true;}
+  }
+  if(P.y>H+200){P.hp-=20;P.x=Math.max(80,P.x-200);P.y=H-300;P.vy=0;P.invuln=1;sfx('hurt');}
+  P.invuln-=dt;
+  G.comboT-=dt;if(G.comboT<=0)G.combo=0;
+  G.camX+=(P.x-W*0.4-G.camX)*Math.min(1,dt*5);
+  G.camX=Math.max(0,Math.min(G.levelW-W,G.camX));
+  document.getElementById('hpfill').style.width=(P.hp/P.maxHp*100)+'%';
+  document.getElementById('mpfill').style.width=(P.mp/P.maxMp*100)+'%';
+  document.getElementById('score').textContent='SCORE '+G.score;
+}
+
+function hurtPlayer(dmg){
+  if(P.invuln>0||P.shieldT>0){
+    if(P.shieldT>0){for(let i=0;i<6;i++)POOL.spawnP(P.x,P.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#aef2ae',3);}
+    return;
+  }
+  P.hp-=dmg;P.invuln=0.8;sfx('hurt');addShake(8,0.2);
+  for(let i=0;i<10;i++)POOL.spawnP(P.x,P.y,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.4,'#ff3b2e',4);
+  if(P.hp<=0)playerDie();
+}
+
+/* ---------- Enemies ---------- */
+function updateEnemies(dt){
+  for(const e of G.enemies){
+    if(!e.alive)continue;
+    e.hitT-=dt;e.ph+=dt*3;
+    // float toward player slowly
+    const dx=P.x-e.x;
+    e.vx+=(Math.sign(dx)*60-e.vx)*Math.min(1,dt*1.5);
+    e.x+=e.vx*dt;
+    if(e.x<e.patrolMin||e.x>e.patrolMax)e.vx*=-1;
+    e.y+=Math.sin(e.ph)*30*dt;
+    if(Math.abs(e.x-P.x)<40&&Math.abs(e.y-P.y)<40)hurtPlayer(8);
+  }
+  for(const hz of G.hazards){
+    if(hz.type==='orbiter'){
+      hz.ang+=hz.spd*dt;
+      const ox=hz.x+Math.cos(hz.ang)*hz.r,oy=hz.y+Math.sin(hz.ang)*hz.r*0.6;
+      hz.ox=ox;hz.oy=oy;
+      if(Math.hypot(ox-P.x,oy-P.y)<hz.or+14)hurtPlayer(12);
+    }
+  }
+  if(G.boss&&G.boss.alive){
+    const b=G.boss;b.hitT-=dt;b.atkT-=dt;
+    const dx=P.x-b.x;
+    b.vx+=(Math.sign(dx)*100-b.vx)*Math.min(1,dt*2);
+    b.x+=b.vx*dt;
+    if(b.atkT<=0&&Math.abs(dx)<300){
+      b.atkT=2.2;sfx('boss');addShake(10,0.3);
+      // radial crystal shards
+      for(let i=0;i<6;i++){
+        const a=Math.PI*(i/6)+Math.PI;
+        const pr=POOL.spawnBolt(b.x,b.y,b.x+Math.cos(a)*400,b.y+Math.sin(a)*200);
+      }
+      // direct shard at player
+      hurtPlayer(0); // shield check
+    }
+    if(Math.abs(b.x-P.x)<70&&Math.abs(b.y-P.y)<80)hurtPlayer(18);
+  }
+  // enemy bolts hit player
+  for(const b of POOL.bolts){
+    if(!b.active||b.friendly)continue;
+    // boss bolts are harmful — check proximity to player along the bolt
+    const mx=(b.x+b.tx)/2,my=(b.y+b.ty)/2;
+    if(Math.hypot(mx-P.x,my-P.y)<60)hurtPlayer(10);
+  }
+  for(const c of G.coins){
+    if(c.taken)continue;c.ph+=dt*4;
+    if(Math.hypot(c.x-P.x,c.y-P.y)<36){c.taken=true;G.score+=50;sfx('coin');POOL.spawnText(c.x,c.y-20,'+50','#ffd23f');}
+  }
+  if(P.x>G.doorX-30&&(!G.boss||!G.boss.alive))stageClear();
+}
+
+function playerDie(){
+  G.state='dead';
+  showOverlay('💔 DEFEATED',
+    '<p>Trinity falls... but the quest for Tristan continues!</p><p>Score: '+G.score+'</p>',
+    '🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!',
+    '↻ TRY AGAIN',()=>{buildStage(G.stage);G.state='play';});
+}
+function stageClear(){
+  sfx('win');G.score+=1000*G.stage;
+  if(G.stage>=15){victoryCutscene();return;}
+  G.state='stageclear';
+  let msg='<p>Stage '+G.stage+' cleared! Score: '+G.score+'</p>';
+  if(G.stage===7){
+    msg+='<p style="color:#aee2ff;font-weight:800">💬 "Trinity channels holy chain-lightning across the celestial bridge for Tristan!"</p>';
+  }
+  showOverlay('✅ STAGE '+G.stage+' CLEAR',msg,
+    '🔥 Fire Safety: Know two ways out of every room in case of fire!',
+    '▶ STAGE '+(G.stage+1),()=>{G.stage++;buildStage(G.stage);G.state='play';});
+}
+function bossDefeated(){
+  sfx('win');G.score+=5000;
+  for(let i=0;i<40;i++)POOL.spawnP(G.boss.x,G.boss.y,(Math.random()-0.5)*600,(Math.random()-0.5)*600,1,'#ffea00',6);
+  addShake(15,0.6);
+}
+function victoryCutscene(){
+  G.state='victory';sfx('win');
+  showOverlay('👑 VICTORY!',
+    '<p style="font-size:18px;color:#ffea00;font-weight:800">💖 "Prince Tristan is freed by Trinity from his crystal cage!"</p><p>Divine light floods the celestial tower. The kingdom is saved.</p><p>Final Score: '+G.score+'</p>',
+    '🔥 Fire Safety: You did it! Remember — in a real emergency, get out and call 911!',
+    '↻ PLAY AGAIN',()=>{G.stage=1;G.score=0;buildStage(1);G.state='play';});
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+
+/* ---------- Rendering ---------- */
+function drawTrinity(x,y,facing,gliding,shieldT){
+  ctx.save();ctx.translate(x,y);ctx.scale(facing,1);
+  // holy aura
+  const aura=ctx.createRadialGradient(0,0,10,0,0,60);
+  aura.addColorStop(0,'rgba(255,234,0,0.35)');aura.addColorStop(1,'rgba(255,234,0,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,0,60,0,Math.PI*2);ctx.fill();
+  // shield bubble
+  if(shieldT>0){
+    ctx.strokeStyle='rgba(174,242,174,0.9)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(0,0,44+Math.sin(G.time*6)*3,0,Math.PI*2);ctx.stroke();
+  }
+  // radiant gown (white/gold)
+  const gg=ctx.createLinearGradient(0,-20,0,26);
+  gg.addColorStop(0,'#fffbe8');gg.addColorStop(1,'#e8d47a');
+  ctx.fillStyle=gg;
+  ctx.beginPath();ctx.moveTo(-14,-18);ctx.lineTo(14,-18);ctx.lineTo(20,26);ctx.lineTo(-20,26);ctx.closePath();ctx.fill();
+  // fire baby head (golden flame)
+  const hg=ctx.createRadialGradient(-4,-32,3,0,-28,16);
+  hg.addColorStop(0,'#fff3b0');hg.addColorStop(0.6,'#ffd23f');hg.addColorStop(1,'#e8a00c');
+  ctx.fillStyle=hg;ctx.beginPath();ctx.arc(0,-28,15,0,Math.PI*2);ctx.fill();
+  // flame tip
+  ctx.fillStyle='#ffea00';
+  ctx.beginPath();ctx.moveTo(-7,-38);ctx.quadraticCurveTo(0,-54,7,-38);ctx.quadraticCurveTo(0,-44,-7,-38);ctx.fill();
+  // golden tiara
+  ctx.fillStyle='#d4a017';
+  ctx.fillRect(-12,-42,24,6);
+  ctx.beginPath();ctx.moveTo(-8,-42);ctx.lineTo(-4,-50);ctx.lineTo(0,-42);ctx.lineTo(4,-50);ctx.lineTo(8,-42);ctx.closePath();ctx.fill();
+  // happy eyes
+  ctx.fillStyle='#2b1a0e';
+  ctx.beginPath();ctx.arc(-5,-28,2.5,0,Math.PI*2);ctx.arc(5,-28,2.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(0,-22,5,0.2,Math.PI-0.2);ctx.stroke();
+  // holy staff
+  ctx.save();ctx.translate(18,-6);ctx.rotate(gliding?-0.4:0.25);
+  ctx.strokeStyle='#8a6a1a';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(0,24);ctx.lineTo(0,-24);ctx.stroke();
+  // staff crystal
+  const cg=ctx.createRadialGradient(0,-30,2,0,-30,12);
+  cg.addColorStop(0,'#fff');cg.addColorStop(0.5,'#aee2ff');cg.addColorStop(1,'#4aa8ff');
+  ctx.fillStyle=cg;ctx.beginPath();ctx.arc(0,-30,10+Math.sin(G.time*5)*2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  // glide wings of light
+  if(gliding){
+    ctx.fillStyle='rgba(174,226,255,0.6)';
+    ctx.beginPath();ctx.ellipse(-18,-8,22,8,-0.4,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+function drawWisp(e){
+  ctx.save();ctx.translate(e.x-G.camX,e.y+Math.sin(e.ph)*8);
+  if(e.hitT>0)ctx.globalAlpha=0.6;
+  // storm wisp (blue/purple cloud creature)
+  const g=ctx.createRadialGradient(0,0,4,0,0,22);
+  g.addColorStop(0,'#aab4ff');g.addColorStop(1,'#5a5aaa');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,17,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#8a8ac8';
+  ctx.beginPath();ctx.arc(-10,-6,10,0,Math.PI*2);ctx.arc(10,-6,10,0,Math.PI*2);ctx.fill();
+  // angry eyes
+  ctx.fillStyle='#2a1a3a';
+  ctx.beginPath();ctx.arc(-6,-2,3.5,0,Math.PI*2);ctx.arc(6,-2,3.5,0,Math.PI*2);ctx.fill();
+  // lightning sparks
+  ctx.strokeStyle='#ffea00';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-4,12);ctx.lineTo(-8,20);ctx.lineTo(-2,22);ctx.stroke();
+  ctx.restore();
+}
+function drawBoss(b){
+  ctx.save();ctx.translate(b.x-G.camX,b.y);
+  if(b.hitT>0)ctx.globalAlpha=0.6;
+  // storm titan
+  const g=ctx.createRadialGradient(-25,-30,10,0,0,80);
+  g.addColorStop(0,'#6a6aaa');g.addColorStop(1,'#2a2a5a');
+  ctx.fillStyle=g;
+  ctx.fillRect(-50,-130,100,130);
+  // crystal crown
+  ctx.fillStyle='#aee2ff';
+  for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*20-9,-130);ctx.lineTo(i*20,-165);ctx.lineTo(i*20+9,-130);ctx.closePath();ctx.fill();}
+  // eyes
+  ctx.fillStyle='#ffea00';ctx.fillRect(-28,-100,20,10);ctx.fillRect(8,-100,20,10);
+  // HP
+  ctx.fillStyle='#333';ctx.fillRect(-50,-180,100,10);
+  ctx.fillStyle='#aee2ff';ctx.fillRect(-50,-180,100*(b.hp/b.maxHp),10);
+  ctx.restore();
+}
+function render(){
+  // celestial tower bg
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1030');g.addColorStop(0.5,'#1a2450');g.addColorStop(1,'#2a3058');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // stars
+  ctx.fillStyle='#fff';
+  for(let i=0;i<60;i++){
+    const sx=(i*173-G.camX*0.1)%W,sy=(i*97)%(H*0.7);
+    ctx.globalAlpha=0.3+0.7*Math.abs(Math.sin(G.time*2+i));
+    ctx.fillRect(sx<0?sx+W:sx,sy,2,2);
+  }
+  ctx.globalAlpha=1;
+  // floating islands
+  ctx.fillStyle='#2a3a6a';
+  const par=G.camX*0.4;
+  for(let i=0;i<7;i++){
+    const ix=((i*600-par)%(W+500))-250,iy=120+(i*89)%(H*0.4);
+    ctx.beginPath();ctx.ellipse(ix,iy,90,22,0,0,Math.PI*2);ctx.fill();
+  }
+  // divine light beams
+  ctx.fillStyle='rgba(255,234,0,0.06)';
+  for(let i=0;i<4;i++){
+    const bx=((i*500-G.camX*0.7)%(W+300))-150;
+    ctx.fillRect(bx,0,60,H);
+  }
+  ctx.save();
+  if(shakeT>0)ctx.translate(shakeX,shakeY);
+  const cx=G.camX;
+  // platforms (marble/gold)
+  for(const pl of G.platforms){
+    if(pl.gone)continue;
+    const sx=pl.x-cx;
+    if(sx>W+100||sx+pl.w<-100)continue;
+    ctx.fillStyle=pl.brk?'#6a5a3a':'#e8e0c8';
+    if(pl.shake>0)ctx.fillStyle='#a08a5a';
+    ctx.fillRect(sx,pl.y,pl.w,pl.h);
+    ctx.fillStyle='#d4a017';ctx.fillRect(sx,pl.y,pl.w,5);
+  }
+  // coins (holy stars)
+  for(const c of G.coins){
+    if(c.taken)continue;
+    const sx=c.x-cx;if(sx<-50||sx>W+50)continue;
+    ctx.fillStyle='#ffea00';
+    ctx.save();ctx.translate(sx,c.y+Math.sin(c.ph)*4);ctx.rotate(c.ph*0.3);
+    ctx.fillRect(-8,-2,16,4);ctx.fillRect(-2,-8,4,16);
+    ctx.restore();
+  }
+  // orbiter hazards
+  for(const hz of G.hazards){
+    if(hz.type!=='orbiter'||hz.ox===undefined)continue;
+    ctx.strokeStyle='rgba(255,234,0,0.3)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(hz.x-cx,hz.y,hz.r,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#ff9a00';
+    ctx.beginPath();ctx.arc(hz.ox-cx,hz.oy,hz.or,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffea00';
+    ctx.beginPath();ctx.arc(hz.ox-cx,hz.oy,hz.or*0.5,0,Math.PI*2);ctx.fill();
+  }
+  for(const e of G.enemies)if(e.alive)drawWisp(e);
+  if(G.boss&&G.boss.alive)drawBoss(G.boss);
+  // exit portal
+  const dx=G.doorX-cx;
+  if(dx>-100&&dx<W+100){
+    const pg=ctx.createRadialGradient(dx,H-150,10,dx,H-150,70);
+    pg.addColorStop(0,'rgba(255,234,0,0.8)');pg.addColorStop(1,'rgba(255,234,0,0)');
+    ctx.fillStyle=pg;ctx.beginPath();ctx.arc(dx,H-150,70,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffea00';ctx.font='30px sans-serif';ctx.fillText('✨',dx-15,H-140);
+  }
+  // player
+  if(G.state==='play'||G.state==='stageclear'){
+    if(P.invuln<=0||Math.floor(G.time*10)%2===0)
+      drawTrinity(P.x-cx,P.y,P.facing,P.gliding,P.shieldT);
+  }
+  // lightning bolts (jagged)
+  for(const b of POOL.bolts){
+    if(!b.active)continue;
+    ctx.strokeStyle='#ffea00';ctx.lineWidth=4;ctx.globalAlpha=b.life/0.25;
+    ctx.beginPath();ctx.moveTo(b.x-cx,b.y);
+    const segs=5;
+    for(let i=1;i<=segs;i++){
+      const t=i/segs;
+      const jx=(i<segs)?(Math.random()-0.5)*24:0;
+      ctx.lineTo(b.x+(b.tx-b.x)*t-cx+jx,b.y+(b.ty-b.y)*t);
+    }
+    ctx.stroke();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // particles
+  for(const p of POOL.particles){
+    if(!p.active)continue;
+    ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-cx-p.size/2,p.y-p.size/2,p.size,p.size);
+  }
+  ctx.globalAlpha=1;
+  // floating text
+  ctx.font='bold 18px sans-serif';ctx.textAlign='center';
+  for(const f of POOL.floaters){
+    if(!f.active)continue;
+    ctx.globalAlpha=f.life;ctx.fillStyle=f.color;
+    ctx.fillText(f.txt,f.x-cx,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.restore();
+}
+
+/* ---------- Main loop ---------- */
+let lastT=0;
+function loop(t){
+  const rawDt=Math.min((t-lastT)/1000||0,0.05);lastT=t;
+  let dt=rawDt;
+  if(hitStop>0){hitStop-=rawDt;dt=rawDt*0.1;}
+  G.time+=dt;
+  if(shakeT>0){shakeT-=dt;
+    shakeX=(Math.random()-0.5)*shakeMag*2;shakeY=(Math.random()-0.5)*shakeMag*2;
+    if(shakeT<=0){shakeMag=0;shakeX=0;shakeY=0;}
+  }
+  if(G.state==='play'){
+    updatePlayer(dt);updateEnemies(dt);
+    for(const p of POOL.particles){
+      if(!p.active)continue;
+      p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=600*dt;p.life-=dt;
+      if(p.life<=0)p.active=false;
+    }
+    for(const b of POOL.bolts){
+      if(!b.active)continue;b.life-=dt;
+      if(b.life<=0)b.active=false;
+    }
+    for(const f of POOL.floaters){
+      if(!f.active)continue;f.y-=60*dt;f.life-=dt*1.2;
+      if(f.life<=0)f.active=false;
+    }
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- Start ---------- */
+function startGame(){
+  audio();
+  G.stage=1;G.score=0;G.combo=0;
+  buildStage(1);G.state='play';
+  overlay.classList.add('hidden');
+}
+function showIntro(){ // BEGINNING name placement #1
+  otitle.innerHTML='⚡ TRINITY\'S<br>HOLY LIGHTNING RESCUE';
+  obody.innerHTML='<p>A radiant fire baby invocation — <b style="color:#ffea00">Princess Trinity</b> summons her celestial gear and golden holy staff, lightning crackling at her command!</p><p style="color:#aee2ff;font-weight:800">💬 "Princess Trinity takes command of the divine spark to save Prince Tristan!"</p><p>🕹️ <b>Controls:</b> D-pad to move • JUMP to leap (hold in air to GLIDE, double-tap for double jump!) • ⚡ chain-lightning • 🛡️ holy shield</p><p>Battle through <b>15 celestial stages</b>. Free Prince Tristan from his crystal cage!</p>';
+  obtn.textContent='▶ BEGIN QUEST';
+  obtn.onclick=()=>{showMathGate();};
+  overlay.classList.remove('hidden');
+}
+obtn.onclick=()=>{showMathGate();};
+showIntro();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
