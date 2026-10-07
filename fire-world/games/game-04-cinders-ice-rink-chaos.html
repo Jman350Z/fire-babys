@@ -3,117 +3,408 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cinder's Ice Rink Chaos — Fire Babys</title>
+<title>Cinder's Ice Rink Chaos — by Jman350Z & fire team</title>
+<meta name="description" content="Flick ice blocks to smash every crystal! Cinder's Ice Rink Chaos — a Fire Babys physics puzzler.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#0a1628;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1628;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%}
-#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,10,25,.93);color:#fff;text-align:center;padding:24px}
-#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#aee2ff}
-#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,10,25,.9);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,44px);font-weight:900;margin-bottom:12px;background:linear-gradient(180deg,#aee2ff,#4a90d9);-webkit-background-clip:text;background-clip:text;color:transparent}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#d6e9ff}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
-#overlay button{background:#2a7ac4;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
-#mathgate{background:#1a2a44;border-radius:12px;padding:16px;margin:12px 0}
-#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
+#overlay button{background:linear-gradient(180deg,#aee2ff,#4a90d9);color:#0a1628;border:3px solid #aee2ff;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #2a5a89}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #2a5a89}
+#mathgate{background:#1a2a3a;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #4a90d9}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
-#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#levelSel{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;justify-content:center}
+.lvlBtn{width:52px;height:52px;border-radius:14px;border:3px solid #4a90d9;background:#1a2a3a;color:#aee2ff;font-size:18px;font-weight:900;cursor:pointer}
+.stars{color:#ffd23f;font-size:24px;letter-spacing:3px;margin:8px 0}
 </style>
 </head>
 <body>
-<div id="hud"><div id="lvl">LEVEL 1</div><div id="score">SCORE 0</div></div>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="level">LEVEL 1/5</div>
+<div class="pill" id="shots">🧊 3</div>
+</div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 <div id="overlay">
-<h1>⛸️ CINDER'S<br>ICE RINK CHAOS</h1>
-<div id="obody"><p><b style="color:#aee2ff">Blaze</b> & <b style="color:#aee2ff">Boulder</b> star in this frosty frenzy!</p><p>🖱️ <b>Flick</b> ice blocks to smash every crystal target! Drag back and release to launch. Clear all targets to advance!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
-<div class="lesson">🔥 Fire Safety: Ice on a hot stove? Never pour water on a grease fire — smother it with a lid!</div>
+<h1 id="otitle">🧊 CINDER'S ICE RINK CHAOS</h1>
+<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> star in this frosty frenzy!</p><p><b>Drag</b> an ice block back and <b>release</b> to flick it! Smash every crystal target. Ice is slippery — plan your angles!</p><div id="levelSel"></div></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Ice and water can help cool a burn — run cool water on it and tell a grown-up!</div>
 <button id="obtn">▶ PLAY</button>
+</div>
 </div>
 <script>
 'use strict';
+/* ============================================================
+   CINDER'S ICE RINK CHAOS v2 — AAA Rebuild
+   - Flick physics on slippery ice, 5 levels, star ratings
+   - Combo system, trauma shake, particle ice shards
+   - Parental gate, layered Web Audio
+   ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
-let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
-let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
-let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
-function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
-const G={state:'title',level:1,score:0,combo:0,blocks:[],targets:[],particles:[],shake:0};
-function spawnParticles(x,y,n,color){for(let i=0;i<n;i++)G.particles.push({x,y,vx:(Math.random()-0.5)*400,vy:(Math.random()-0.5)*400,life:0.6,max:0.6,color});}
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+/* audio */
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+function noise(dur,vol,delay=0,lp=3000){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
+  const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+const sfx={
+  flick(){noise(0.15,0.25,0,2000);tone(400,800,0.12,'sine',0.12);},
+  slideSfx(){noise(0.3,0.08,0,800);},
+  shatter(){noise(0.35,0.4,0,5000);tone(1400,300,0.3,'triangle',0.2);tone(2000,600,0.2,'sine',0.1,0.04);},
+  hit(){tone(200,80,0.1,'square',0.15);noise(0.1,0.2,0,1000);},
+  combo(n){[659,784,988,1175,1319].slice(0,Math.min(n,5)).forEach((f,i)=>tone(f,f,0.12,'sine',0.13,i*0.05));},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+
+/* pools */
+const particles=[],floaters=[];
+for(let i=0;i<250;i++)particles.push({a:false});
+for(let i=0;i<25;i++)floaters.push({a:false});
+function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p)return;
+  p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
+function spawnText(x,y,txt,color='#ffd23f',size=20){const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.size=size;f.life=1.2;}
+
+/* trauma */
+let trauma=0,hitStop=0,shakeX=0,shakeY=0;
+function addTrauma(t){trauma=Math.min(1,trauma+t);}
+
+/* state */
+const G={state:'title',level:1,score:0,shots:3,shotsUsed:0,combo:0,comboT:0,
+  blocks:[],targets:[],time:0,dragBlock:null,dragX:0,dragY:0};
+const ICE_FRICTION=0.995; // slippery!
+
 function buildLevel(n){
-  G.blocks=[];G.targets=[];G.particles=[];
-  const nb=2+Math.min(n,4);
-  for(let i=0;i<nb;i++)G.blocks.push({x:W*0.15+Math.random()*W*0.3,y:H*0.55+Math.random()*H*0.3,vx:0,vy:0,r:26,held:false,used:false});
-  const nt=2+Math.min(n,5);
-  for(let i=0;i<nt;i++)G.targets.push({x:W*0.55+Math.random()*W*0.35,y:H*0.15+Math.random()*H*0.6,r:22,alive:true});
-  document.getElementById('lvl').textContent='LEVEL '+n;
+  G.blocks=[];G.targets=[];G.shotsUsed=0;G.combo=0;
+  const cx=W/2,gy=H*0.82;
+  const T=(x,y)=>G.targets.push({x,y,r:22,dead:false,wob:Math.random()*6});
+  const B=(x,y)=>G.blocks.push({x,y,vx:0,vy:0,r:26,used:false,held:false,spin:0,vr:0});
+  if(n===1){
+    B(cx-120,gy-60);B(cx+120,gy-60);
+    T(cx-60,gy-200);T(cx+60,gy-200);T(cx,gy-280);
+    G.shots=3;
+  }else if(n===2){
+    B(cx-150,gy-60);B(cx,gy-60);B(cx+150,gy-60);
+    T(cx-100,gy-180);T(cx+100,gy-180);T(cx-50,gy-300);T(cx+50,gy-300);
+    G.shots=4;
+  }else if(n===3){
+    // diamond formation
+    B(cx-100,gy-60);B(cx+100,gy-60);B(cx,gy-140);
+    T(cx,gy-220);T(cx-80,gy-300);T(cx+80,gy-300);T(cx,gy-380);T(cx-40,gy-140);T(cx+40,gy-140);
+    G.shots=4;
+  }else if(n===4){
+    B(cx-140,gy-60);B(cx+140,gy-60);B(cx-70,gy-140);B(cx+70,gy-140);
+    for(let i=0;i<5;i++)T(cx-120+i*60,gy-240);
+    T(cx-60,gy-340);T(cx+60,gy-340);T(cx,gy-420);
+    G.shots=5;
+  }else{
+    B(cx-160,gy-60);B(cx+160,gy-60);B(cx-80,gy-120);B(cx+80,gy-120);B(cx,gy-60);
+    for(let i=0;i<6;i++)T(cx-150+i*60,gy-220);
+    for(let i=0;i<4;i++)T(cx-90+i*60,gy-330);
+    T(cx,gy-430);
+    G.shots=6;
+  }
+  document.getElementById('level').textContent=`LEVEL ${n}/5`;
+  document.getElementById('shots').textContent='🧊 '+(G.shots-G.shotsUsed);
 }
-let dragBlock=null,dragSX=0,dragSY=0;
-function startGame(){audio();G.level=1;G.score=0;G.combo=0;buildLevel(1);G.state='play';overlay.classList.add('hidden');}
+function updateScoreUI(){document.getElementById('score').textContent='⭐ '+G.score;}
+
+/* physics */
 function update(dt){
-  if(G.shake>0)G.shake-=dt*30;
+  G.time+=dt;
+  G.comboT-=dt;if(G.comboT<=0)G.combo=0;
   for(const b of G.blocks){
-    if(b.used||b.held)continue;
-    b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=0.985;b.vy*=0.985;
-    if(b.x<b.r){b.x=b.r;b.vx*=-0.7;sfx(200,100,0.1,'square',0.1);}
-    if(b.x>W-b.r){b.x=W-b.r;b.vx*=-0.7;sfx(200,100,0.1,'square',0.1);}
-    if(b.y<b.r){b.y=b.r;b.vy*=-0.7;}
-    if(b.y>H-b.r){b.y=H-b.r;b.vy*=-0.7;}
+    if(b.held)continue;
+    // ice physics: very low friction
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+    b.vx*=ICE_FRICTION;b.vy*=ICE_FRICTION;
+    b.spin+=b.vr*dt;b.vr*=0.99;
+    // walls
+    if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*0.8;sfx.hit();}
+    if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*0.8;sfx.hit();}
+    if(b.y<b.r){b.y=b.r;b.vy=Math.abs(b.vy)*0.8;}
+    if(b.y>H-b.r){b.y=H-b.r;b.vy=-Math.abs(b.vy)*0.8;sfx.hit();}
+    // target collisions
     for(const t of G.targets){
-      if(!t.alive)continue;
-      if(Math.hypot(b.x-t.x,b.y-t.y)<b.r+t.r){
-        t.alive=false;G.combo++;const pts=100*G.combo;G.score+=pts;spawnParticles(t.x,t.y,20,'#aee2ff');sfx(600,1200,0.2,'sine',0.25);G.shake=8;
-        document.getElementById('score').textContent='SCORE '+G.score;
+      if(t.dead)continue;
+      const d=Math.hypot(b.x-t.x,b.y-t.y);
+      if(d<b.r+t.r){
+        const speed=Math.hypot(b.vx,b.vy);
+        if(speed>120){
+          t.dead=true;
+          G.combo++;G.comboT=1.5;
+          const pts=Math.round(100*(1+G.combo*0.3));
+          G.score+=pts;updateScoreUI();
+          sfx.shatter();addTrauma(0.3);hitStop=Math.max(hitStop,0.04);
+          spawnText(t.x,t.y-20,'+'+pts);
+          if(G.combo>=2){spawnText(t.x,t.y-50,'COMBO x'+G.combo,'#7fd4ff',16);sfx.combo(G.combo);}
+          for(let i=0;i<14;i++){
+            const a=Math.random()*Math.PI*2,sp=100+Math.random()*250;
+            spawnP(t.x,t.y,Math.cos(a)*sp,Math.sin(a)*sp,0.6,'#aee2ff',3+Math.random()*4);
+          }
+          // bounce block
+          const nx=(b.x-t.x)/d,ny=(b.y-t.y)/d;
+          b.vx=nx*speed*0.5;b.vy=ny*speed*0.5;
+        }
+      }
+    }
+    // block-block collision
+    for(const o of G.blocks){
+      if(o===b||o.held)continue;
+      const d=Math.hypot(b.x-o.x,b.y-o.y);
+      if(d<b.r+o.r&&d>0){
+        const nx=(b.x-o.x)/d,ny=(b.y-o.y)/d;
+        const overlap=(b.r+o.r-d)/2;
+        b.x+=nx*overlap;b.y+=ny*overlap;o.x-=nx*overlap;o.y-=ny*overlap;
+        const rel=Math.hypot(b.vx-o.vx,b.vy-o.vy);
+        if(rel>80){sfx.hit();addTrauma(0.1);}
+        const tvx=b.vx,tvy=b.vy;
+        b.vx=o.vx*0.9;b.vy=o.vy*0.9;o.vx=tvx*0.9;o.vy=tvy*0.9;
       }
     }
   }
-  for(let i=G.particles.length-1;i>=0;i--){const p=G.particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.particles.splice(i,1);}
-  if(G.targets.every(t=>!t.alive)&&G.state==='play'){
-    G.state='clear';sfx(523,1047,0.4,'sine',0.25);
-    setTimeout(()=>{G.level++;G.combo=0;buildLevel(G.level);G.state='play';},1200);
-  }
-  if(G.blocks.every(b=>b.used)&&G.targets.some(t=>t.alive)&&G.state==='play'){
-    G.state='over';
-    obody.innerHTML='<p>Out of ice blocks! Final score: <b>'+G.score+'</b></p><p>Level reached: '+G.level+'</p>';
-    document.querySelector('#overlay h1').textContent='🧊 GAME OVER';
-    obtn.textContent='↻ TRY AGAIN';obtn.onclick=()=>{G.level=1;G.score=0;G.combo=0;document.getElementById('score').textContent='SCORE 0';buildLevel(1);G.state='play';overlay.classList.add('hidden');};
-    overlay.classList.remove('hidden');
-  }
+  // win check
+  if(G.state==='play'&&G.targets.every(t=>t.dead))levelComplete();
+  // fail check
+  const moving=G.blocks.some(b=>Math.hypot(b.vx,b.vy)>15);
+  if(G.state==='play'&&!moving&&!G.dragBlock&&(G.shots-G.shotsUsed)<=0&&!G.targets.every(t=>t.dead)){
+    G.failT=(G.failT||0)+dt;
+    if(G.failT>1.2)levelFailed();
+  }else G.failT=0;
 }
+function levelComplete(){
+  G.state='clear';sfx.win();
+  const left=G.shots-G.shotsUsed;
+  const stars=left>=2?3:left>=1?2:1;
+  const bonus=stars*400;G.score+=bonus;updateScoreUI();
+  for(let i=0;i<25;i++){const a=Math.random()*Math.PI*2;
+    spawnP(W/2,H/2,Math.cos(a)*300,Math.sin(a)*300,1,'#aee2ff',5);}
+  setTimeout(()=>{
+    if(G.level>=5){
+      showOverlay('🏆 ICE MASTER!',
+        `<div class="stars">★★★</div><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
+        '🔥 Fire Safety: You\'re a fire safety champion!',
+        '↻ PLAY AGAIN',()=>{G.level=1;G.score=0;updateScoreUI();buildLevel(1);G.state='play';});
+    }else{
+      showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
+        `<div class="stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>Score: ${G.score} (+${bonus} bonus)</p>`,
+        '🔥 Fire Safety: Ice and water can help cool a burn — tell a grown-up!',
+        '▶ NEXT LEVEL',()=>{G.level++;buildLevel(G.level);G.state='play';});
+    }
+  },1000);
+}
+function levelFailed(){
+  G.state='fail';
+  showOverlay('💥 OUT OF ICE BLOCKS',
+    `<p>So close! ${G.targets.filter(t=>!t.dead).length} targets remain.</p><p>Score: ${G.score}</p>`,
+    '🔥 Fire Safety: Never give up on safety — try again!',
+    '↻ TRY AGAIN',()=>{buildLevel(G.level);G.state='play';});
+}
+
+/* input */
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.dragBlock)return;
+  if((G.shots-G.shotsUsed)<=0)return;
+  for(const b of G.blocks){
+    if(b.used)continue;
+    if(Math.hypot(b.x-e.clientX,b.y-e.clientY)<b.r+25){
+      G.dragBlock=b;b.held=true;G.dragX=e.clientX;G.dragY=e.clientY;
+      canvas.setPointerCapture(e.pointerId);break;
+    }
+  }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!G.dragBlock)return;
+  let dx=e.clientX-G.dragBlock.x,dy=e.clientY-G.dragBlock.y;
+  const max=140,d=Math.hypot(dx,dy);
+  if(d>max){dx=dx/d*max;dy=dy/d*max;}
+  G.dragX=G.dragBlock.x+dx;G.dragY=G.dragBlock.y+dy;
+});
+canvas.addEventListener('pointerup',e=>{
+  const b=G.dragBlock;if(!b)return;
+  b.held=false;G.dragBlock=null;
+  const dx=b.x-G.dragX,dy=b.y-G.dragY;
+  const pow=Math.hypot(dx,dy);
+  if(pow<25)return;
+  b.vx=dx/pow*Math.min(pow,140)*9;
+  b.vy=dy/pow*Math.min(pow,140)*9;
+  b.vr=(Math.random()-0.5)*10;
+  b.used=true;G.shotsUsed++;G.combo=0;
+  document.getElementById('shots').textContent='🧊 '+(G.shots-G.shotsUsed);
+  sfx.flick();addTrauma(0.2);
+  for(let i=0;i<8;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#fff',3);
+});
+
+/* overlay */
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+function startGame(){audio();G.level=1;G.score=0;updateScoreUI();buildLevel(1);G.state='play';overlay.classList.add('hidden');}
+function selLevel(n){sfx.click();G.level=n;G.score=0;updateScoreUI();buildLevel(n);G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
+(function(){let h='';for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
+document.getElementById('levelSel').innerHTML=h;})();
+
+/* render */
 function render(){
-  ctx.fillStyle='#0a1628';ctx.fillRect(0,0,W,H);
-  // ice rink
-  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#16283f');g.addColorStop(1,'#0d1a2e');
-  ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(W/2,H/2,W*0.45,H*0.42,0,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle='rgba(174,226,255,0.4)';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(W/2,H/2,W*0.45,H*0.42,0,0,Math.PI*2);ctx.stroke();
-  ctx.save();if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
-  for(const t of G.targets){if(!t.alive)continue;
-    ctx.fillStyle='#7ac4ff';ctx.beginPath();
-    for(let i=0;i<6;i++){const a=i/6*Math.PI*2;ctx.lineTo(t.x+Math.cos(a)*t.r,t.y+Math.sin(a)*t.r);}ctx.closePath();ctx.fill();
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(t.x,t.y,t.r*0.4,0,Math.PI*2);ctx.fill();}
-  for(const b of G.blocks){if(b.used)continue;
-    ctx.fillStyle=b.held?'#cfeaff':'#9ad4ff';ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.arc(b.x-8,b.y-8,b.r*0.35,0,Math.PI*2);ctx.fill();}
-  if(dragBlock){ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.setLineDash([8,8]);
-    ctx.beginPath();ctx.moveTo(dragBlock.x,dragBlock.y);ctx.lineTo(dragSX,dragSY);ctx.stroke();ctx.setLineDash([]);}
-  for(const p of G.particles){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;ctx.fillRect(p.x-3,p.y-3,6,6);}
-  ctx.globalAlpha=1;ctx.restore();
+  // ice rink background
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0a1628');bg.addColorStop(0.6,'#12304a');bg.addColorStop(1,'#0d2036');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // rink markings
+  ctx.strokeStyle='rgba(174,226,255,0.15)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(W/2,H*0.5,Math.min(W,H)*0.3,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,H*0.5);ctx.lineTo(W,H*0.5);ctx.stroke();
+  // ice sparkles
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  for(let i=0;i<30;i++){
+    const sx=(i*173+G.time*8)%W,sy=(i*97)%H;
+    const tw=0.5+Math.sin(G.time*3+i)*0.5;
+    ctx.globalAlpha=0.06+tw*0.1;
+    ctx.fillRect(sx,sy,3,3);
+  }
+  ctx.globalAlpha=1;
+  // snowflakes falling
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  for(let i=0;i<20;i++){
+    const sx=(i*211+G.time*20)%W,sy=(i*137+G.time*40)%H;
+    ctx.beginPath();ctx.arc(sx,sy,2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.save();
+  if(trauma>0)ctx.translate(shakeX,shakeY);
+  // targets (crystals)
+  for(const t of G.targets){
+    if(t.dead)continue;
+    t.wob+=0.1;
+    const pulse=1+Math.sin(t.wob)*0.08;
+    ctx.save();ctx.translate(t.x,t.y);ctx.scale(pulse,pulse);
+    const g=ctx.createLinearGradient(-t.r,-t.r,t.r,t.r);
+    g.addColorStop(0,'#d6f0ff');g.addColorStop(0.5,'#5ab8e8');g.addColorStop(1,'#2a78b8');
+    ctx.fillStyle=g;
+    ctx.beginPath();
+    ctx.moveTo(0,-t.r);ctx.lineTo(t.r*0.7,-t.r*0.3);ctx.lineTo(t.r*0.7,t.r*0.3);
+    ctx.lineTo(0,t.r);ctx.lineTo(-t.r*0.7,t.r*0.3);ctx.lineTo(-t.r*0.7,-t.r*0.3);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillRect(-6,-12,5,5);
+    ctx.restore();
+  }
+  // drag line
+  if(G.dragBlock){
+    ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=3;ctx.setLineDash([10,8]);
+    ctx.beginPath();ctx.moveTo(G.dragBlock.x,G.dragBlock.y);ctx.lineTo(G.dragX,G.dragY);ctx.stroke();
+    ctx.setLineDash([]);
+    // power indicator
+    const pow=Math.hypot(G.dragBlock.x-G.dragX,G.dragBlock.y-G.dragY);
+    ctx.fillStyle=pow>100?'#ff4a00':pow>50?'#ffd23f':'#7fd4ff';
+    ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText(Math.round(pow/140*100)+'%',G.dragBlock.x,G.dragBlock.y-40);
+    ctx.textAlign='left';
+  }
+  // ice blocks
+  for(const b of G.blocks){
+    ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.spin);
+    if(b.held){ctx.shadowColor='#aee2ff';ctx.shadowBlur=20;}
+    const g=ctx.createLinearGradient(-b.r,-b.r,b.r,b.r);
+    g.addColorStop(0,'rgba(220,240,255,0.95)');g.addColorStop(0.5,'rgba(140,200,240,0.9)');g.addColorStop(1,'rgba(90,140,190,0.9)');
+    ctx.fillStyle=g;
+    // rounded ice cube
+    const r=b.r,cr=10;
+    ctx.beginPath();
+    ctx.moveTo(-r+cr,-r);ctx.lineTo(r-cr,-r);ctx.arcTo(r,-r,r,-r+cr,cr);
+    ctx.lineTo(r,r-cr);ctx.arcTo(r,r,r-cr,r,cr);
+    ctx.lineTo(-r+cr,r);ctx.arcTo(-r,r,-r,r-cr,cr);
+    ctx.lineTo(-r,-r+cr);ctx.arcTo(-r,-r,-r+cr,-r,cr);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.stroke();
+    // inner shine
+    ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.beginPath();ctx.ellipse(-r*0.3,-r*0.35,r*0.35,r*0.2,-0.5,0,Math.PI*2);ctx.fill();
+    // Cinder face on ice
+    ctx.fillStyle='#1a2a3a';
+    ctx.beginPath();ctx.arc(-8,-4,4,0,Math.PI*2);ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#1a2a3a';ctx.lineWidth=2.5;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(0,6,8,0.4,Math.PI-0.4);ctx.stroke();
+    ctx.restore();
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size*(p.life/p.max),0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  // floaters
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font=`900 ${f.size}px system-ui`;ctx.fillStyle='#000';
+    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.restore();
 }
-canvas.addEventListener('touchstart',e=>{e.preventDefault();if(G.state!=='play')return;const t=e.touches[0];
-  for(const b of G.blocks){if(b.used)continue;if(Math.hypot(b.x-t.clientX,b.y-t.clientY)<b.r+20){dragBlock=b;b.held=true;dragSX=t.clientX;dragSY=t.clientY;break;}}},{passive:false});
-canvas.addEventListener('touchmove',e=>{e.preventDefault();if(dragBlock){dragSX=e.touches[0].clientX;dragSY=e.touches[0].clientY;}},{passive:false});
-canvas.addEventListener('touchend',e=>{e.preventDefault();if(dragBlock){const dx=dragBlock.x-dragSX,dy=dragBlock.y-dragSY;const pow=Math.min(Math.hypot(dx,dy),300);
-  if(pow>30){dragBlock.vx=dx/Math.hypot(dx,dy)*pow*4;dragBlock.vy=dy/Math.hypot(dx,dy)*pow*4;dragBlock.used=true;sfx(300,600,0.15,'sine',0.2);}
-  dragBlock.held=false;dragBlock=null;}},{passive:false});
-canvas.addEventListener('mousedown',e=>{if(G.state!=='play')return;for(const b of G.blocks){if(b.used)continue;if(Math.hypot(b.x-e.clientX,b.y-e.clientY)<b.r+20){dragBlock=b;b.held=true;dragSX=e.clientX;dragSY=e.clientY;break;}}});
-canvas.addEventListener('mousemove',e=>{if(dragBlock){dragSX=e.clientX;dragSY=e.clientY;}});
-canvas.addEventListener('mouseup',e=>{if(dragBlock){const dx=dragBlock.x-dragSX,dy=dragBlock.y-dragSY;const pow=Math.min(Math.hypot(dx,dy),300);
-  if(pow>30){dragBlock.vx=dx/(Math.hypot(dx,dy)||1)*pow*4;dragBlock.vy=dy/(Math.hypot(dx,dy)||1)*pow*4;dragBlock.used=true;sfx(300,600,0.15,'sine',0.2);}
-  dragBlock.held=false;dragBlock=null;}});
-let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;if(G.state==='play'||G.state==='clear')update(dt);render();requestAnimationFrame(loop);}
-obtn.onclick=()=>{showGate();};
+
+/* loop */
+let lastT=0;
+function loop(t){
+  const rawDt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  let dt=rawDt;
+  if(hitStop>0){hitStop-=rawDt;dt=rawDt*0.1;}
+  trauma=Math.max(0,trauma-dt*1.8);
+  const sh=trauma*trauma*18;
+  shakeX=(Math.random()-0.5)*sh*2;shakeY=(Math.random()-0.5)*sh*2;
+  if(G.state==='play')update(dt);else G.time+=dt;
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=60*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  render();
+  requestAnimationFrame(loop);
+}
+updateScoreUI();
 requestAnimationFrame(loop);
 </script>
 </body>
