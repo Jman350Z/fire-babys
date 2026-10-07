@@ -7121,6 +7121,30 @@ function mpSpawnLocal(){
 }
 function mpSpawnRemote(p){
   if(remotePlayers[p.id] || !p) return;
+  // TEAM BALANCE: if this is a CATCH/SPLASH game and all existing players are on
+  // team 0, assign this newcomer to team 1 (alternating) so we always have enemies.
+  // This runs on every join, so late-joining and rejoining bots get balanced.
+  try{
+    if(mpInGame && (mpGameMode === 'catch' || mpGameMode === 'versus') && p){
+      var _c0 = 0, _c1 = 0;
+      if(net && net.playerId){
+        if((typeof mpMyTeam === 'number' ? mpMyTeam : 0) === 0) _c0++; else _c1++;
+      }
+      for(var _rid in remotePlayers){
+        var _rr = remotePlayers[_rid];
+        if(!_rr) continue;
+        if((typeof _rr.team === 'number' ? _rr.team : 0) === 0) _c0++; else _c1++;
+      }
+      // count the newcomer as team 0 for now (server default)
+      _c0++;
+      if(_c1 === 0 && (_c0 + _c1) >= 2){
+        // nobody on team 1 yet: put this bot on team 1 if it keeps balance
+        // (alternate: even-numbered joins go to team 1)
+        var _total = _c0 + _c1;
+        if(_total % 2 === 0) p.team = 1;
+      }
+    }
+  }catch(_e){}
   var isVersus = mpGameMode !== 'coop';
   var colorIdx = isVersus ? (p.team || 0) : (Object.keys(remotePlayers).length % COOP_COLORS.length);
   var spec;
@@ -7974,26 +7998,33 @@ function mpUpdateExplore(dt, t){
 /* ---------- init ---------- */
 function mpInit(){
   window._mpInitDone = true;
-  mpPatchGameLoop();
-  mpCombatInit();
-  spPatchDealDamage();   // block negates damage in single-player
-  spPatchBattleLoops();  // jump/anim in battle + rescue loops
+  // Set FBMultiplayer FIRST so deep-link flow never waits forever,
+  // even if a patch step below throws.
+  try{
+    window.FBMultiplayer = {
+      start: startMultiplayer, leave: mpLeaveLobby,
+      sendExtinguish: mpSendExtinguish, net: function(){ return net; }
+    };
+  }catch(e){}
+  try{ mpPatchGameLoop(); }catch(e){ try{ console.warn('mpPatchGameLoop failed:', e); }catch(ee){} }
+  try{ mpCombatInit(); }catch(e){ try{ console.warn('mpCombatInit failed:', e); }catch(ee){} }
+  try{ spPatchDealDamage(); }catch(e){}   // block negates damage in single-player
+  try{ spPatchBattleLoops(); }catch(e){}  // jump/anim in battle + rescue loops
   // Patch renderHub to add our button after each render
-  if(typeof renderHub === 'function' && !renderHub._mpPatched){
-    var _origRenderHub = renderHub;
-    renderHub = function(){ _origRenderHub(); mpAddHubButton(); };
-    renderHub._mpPatched = true;
-  }
+  try{
+    if(typeof renderHub === 'function' && !renderHub._mpPatched){
+      var _origRenderHub = renderHub;
+      renderHub = function(){ _origRenderHub(); mpAddHubButton(); };
+      renderHub._mpPatched = true;
+    }
+  }catch(e){}
   // Combat buttons visibility: every 250ms, show in ANY active gameplay mode
-  if(!window._spCombatUITimer){
-    window._spCombatUITimer = true;
-    setInterval(function(){ try { spRefreshUI(); } catch(e){} }, 250);
-  }
-  // expose for debugging
-  window.FBMultiplayer = {
-    start: startMultiplayer, leave: mpLeaveLobby,
-    sendExtinguish: mpSendExtinguish, net: function(){ return net; }
-  };
+  try{
+    if(!window._spCombatUITimer){
+      window._spCombatUITimer = true;
+      setInterval(function(){ try { spRefreshUI(); } catch(e){} }, 250);
+    }
+  }catch(e){}
 }
 
 // Auto-init when game scripts are ready (init() has run)
