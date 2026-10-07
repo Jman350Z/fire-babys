@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ember Bounce 2D — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#120604;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
+#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
+#score{font-size:24px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:32px;font-weight:900;color:#ff6a00;margin-bottom:10px}
+#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
+#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="hud"><div id="score">YOU 0 · CPU 0</div><div id="combo"></div></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>♟️ EMBER BOUNCE 2D</h1>
+<p>Grid tactics! Tap YOUR embers, then tap a glowing square to bounce-move. Capture CPU embers by landing on them. Most embers wins!</p>
+<div class="lesson">🔥 Fire Safety: Think before you act! A good plan keeps everyone safe — in games and in fire drills!</div>
+<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
+<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay');
+const N=6;let W,H,CS,OX,OY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;CS=Math.min((W-40)/N,(H-180)/N);OX=(W-CS*N)/2;OY=120;}addEventListener('resize',rs);rs();
+const a=5+Math.floor(Math.random()*4),b=5+Math.floor(Math.random()*4);
+document.getElementById('mq').textContent=a+' + '+b+' = ?';
+function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.16,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+let running=false,grid=[],sel=null,moves=[],turn='you',parts=[],shake=0,combo=0;
+function startGame(){
+  running=true;sel=null;parts=[];shake=0;combo=0;turn='you';
+  grid=[];
+  for(let r=0;r<N;r++){grid.push([]);for(let c=0;c<N;c++)grid[r].push(null);}
+  // place embers: you bottom 2 rows, cpu top 2 rows
+  for(let c=0;c<N;c++){grid[N-1][c]={me:true};grid[N-2][c]={me:true};grid[0][c]={me:false};grid[1][c]={me:false};}
+  overlay.classList.add('hidden');upd();comboEl.textContent='Your turn — tap an ember!';
+}
+function upd(){
+  let y=0,c=0;for(let r=0;r<N;r++)for(let cc=0;cc<N;cc++){if(grid[r][cc]){grid[r][cc].me?y++:c++;}}
+  scoreEl.textContent='YOU '+y+' · CPU '+c;
+}
+function burst(x,y,cl,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-2,life:1,c:cl,sz:3+Math.random()*5});}}
+function cellXY(r,c){return{x:OX+c*CS+CS/2,y:OY+r*CS+CS/2};}
+function validMoves(r,c){
+  const out=[];
+  [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([dr,dc])=>{
+    const nr=r+dr,nc=c+dc;
+    if(nr<0||nr>=N||nc<0||nc>=N)return;
+    if(!grid[nr][nc])out.push([nr,nc]);
+    else{ // bounce over
+      const jr=r+dr*2,jc=c+dc*2;
+      if(jr>=0&&jr<N&&jc>=0&&jc<N&&!grid[jr][jc])out.push([jr,jc,true]);
+    }
+  });
+  return out;
+}
+function doMove(fr,fc,tr,tc,jump){
+  const p=grid[fr][fc];grid[fr][fc]=null;
+  if(grid[tr][tc]){ // capture
+    const v=cellXY(tr,tc);burst(v.x,v.y,'#ff3b2e',18);shake=12;beep(300,0.25,'sawtooth');
+    combo++;comboEl.textContent=combo>1?'⚔️ CAPTURE COMBO x'+combo:'⚔️ CAPTURED!';
+  }
+  grid[tr][tc]=p;
+  const v=cellXY(tr,tc);burst(v.x,v.y,p.me?'#ffd23f':'#7ae2ff',8);
+  beep(p.me?520:380,0.12,'triangle');
+  sel=null;moves=[];
+  upd();
+  const yc=count(true),cc=count(false);
+  if(cc===0){endGame(true);return;}
+  if(yc===0){endGame(false);return;}
+  if(turn==='you'){turn='cpu';comboEl.textContent='CPU thinking…';setTimeout(cpuMove,700);}
+  else{turn='you';combo=0;comboEl.textContent='Your turn!';}
+}
+function count(me){let n=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(grid[r][c]&&grid[r][c].me===me)n++;return n;}
+function cpuMove(){
+  if(!running||turn!=='cpu')return;
+  const opts=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const p=grid[r][c];if(!p||p.me)continue;
+    validMoves(r,c).forEach(([tr,tc,jump])=>{
+      let s=Math.random()*10+(jump?25:0);
+      if(grid[tr][tc])s+=40; // capture bonus... (grid empty check above means jump captures)
+      if(tr>N-3)s+=8; // advance
+      opts.push({fr:r,fc:c,tr,tc,jump,s});
+    });
+  }
+  if(!opts.length){endGame(count(true)>count(false));return;}
+  opts.sort((x,y)=>y.s-x.s);
+  const m=opts[0];doMove(m.fr,m.fc,m.tr,m.tc,m.jump);
+}
+function endGame(win){
+  running=false;
+  const y=count(true),c=count(false);
+  overlay.querySelector('h1').textContent=win?'🏆 TACTICAL VICTORY!':'🤖 CPU OUTPLAYED YOU';
+  overlay.querySelector('p').textContent='Final: You '+y+' — CPU '+c;
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ NEW BATTLE';
+  overlay.classList.remove('hidden');
+}
+function update(dt){
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.4;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function drawEmber(x,y,me,sel2){
+  ctx.save();ctx.translate(x,y);
+  if(sel2){ctx.strokeStyle='#ffd23f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(0,0,CS*0.42,0,6.29);ctx.stroke();}
+  const g=ctx.createRadialGradient(-4,-5,3,0,0,CS*0.32);
+  if(me){g.addColorStop(0,'#ffe27a');g.addColorStop(0.6,'#ff9a1f');g.addColorStop(1,'#e63900');}
+  else{g.addColorStop(0,'#bfefff');g.addColorStop(0.6,'#4db8ff');g.addColorStop(1,'#1e5ac4');}
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,CS*0.32,0,6.29);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-5,-3,3.5,0,6.29);ctx.arc(5,-3,3.5,0,6.29);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-5,-2,1.8,0,6.29);ctx.arc(5,-2,1.8,0,6.29);ctx.fill();
+  ctx.restore();
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0505');g.addColorStop(1,'#241108');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const x=OX+c*CS,y=OY+r*CS;
+    ctx.fillStyle=(r+c)%2?'rgba(255,150,50,0.08)':'rgba(255,150,50,0.16)';
+    ctx.fillRect(x,y,CS,CS);
+    ctx.strokeStyle='rgba(255,106,0,0.3)';ctx.lineWidth=1;ctx.strokeRect(x,y,CS,CS);
+  }
+  moves.forEach(([r,c])=>{const v=cellXY(r,c);ctx.fillStyle='rgba(125,255,154,0.5)';ctx.beginPath();ctx.arc(v.x,v.y,CS*0.18,0,6.29);ctx.fill();});
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const p=grid[r][c];if(!p)continue;
+    const v=cellXY(r,c);
+    drawEmber(v.x,v.y,p.me,sel&&sel[0]===r&&sel[1]===c);
+  }
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#fff';ctx.font='bold 15px sans-serif';ctx.textAlign='center';
+  ctx.fillText(turn==='you'?'🟠 YOUR MOVE':'🔵 CPU TURN',W/2,OY+N*CS+34);ctx.textAlign='left';
+  ctx.restore();
+}
+let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{
+  if(!running||turn!=='you')return;
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const c=Math.floor((mx-OX)/CS),rr=Math.floor((my-OY)/CS);
+  if(c<0||c>=N||rr<0||rr>=N)return;
+  const p=grid[rr][c];
+  if(sel){
+    const mv=moves.find(([mr,mc])=>mr===rr&&mc===c);
+    if(mv){doMove(sel[0],sel[1],rr,c,mv[2]);return;}
+  }
+  if(p&&p.me){sel=[rr,c];moves=validMoves(rr,c);beep(600,0.08,'sine');}
+  else{sel=null;moves=[];}
+});
+</script>
+</body>
+</html>

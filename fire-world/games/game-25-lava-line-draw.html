@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lava Line Draw — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140806;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
+#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
+#score{font-size:26px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:34px;font-weight:900;color:#ff6a00;margin-bottom:10px}
+#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
+#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="hud"><div id="score">LEVEL 1</div><div id="combo"></div></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>✏️ LAVA LINE DRAW</h1>
+<p>Draw a path with your finger and Sizzle follows it! Reach the water pool before time runs out. Avoid the lava pits!</p>
+<div class="lesson">🔥 Fire Safety: Plan your escape route BEFORE there's an emergency — draw your family's fire escape map today!</div>
+<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
+<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const a=2+Math.floor(Math.random()*7),b=3+Math.floor(Math.random()*6);
+document.getElementById('mq').textContent=a+' + '+b+' = ?';
+function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.18,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+let running=false,level=1,path=[],drawing=false,sx,sy,tx,ty,pits=[],parts=[],time=30,sizzleT=0,done=false,shake=0;
+function buildLevel(){
+  path=[];drawing=false;pits=[];time=30;sizzleT=0;done=false;
+  sx=60;sy=H-120;tx=W-60;ty=120;
+  const n=2+level;
+  for(let i=0;i<n;i++)pits.push({x:80+Math.random()*(W-160),y:140+Math.random()*(H-280),r:34+Math.random()*20});
+  upd();
+}
+function startGame(){running=true;level=1;buildLevel();overlay.classList.add('hidden');}
+function upd(){scoreEl.textContent='LEVEL '+level+' · ⏱️ '+Math.ceil(time)+'s';}
+function burst(x,y,c,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-2,life:1,c,sz:3+Math.random()*5});}}
+function levelDone(){
+  done=true;burst(tx,ty,'#7ae2ff',30);beep(800,0.4,'sine');
+  comboEl.textContent='🎉 LEVEL CLEAR!';
+  setTimeout(()=>{if(!running)return;level++;if(level>5){win();}else{buildLevel();}},1200);
+}
+function win(){
+  running=false;
+  overlay.querySelector('h1').textContent='🏆 PATH MASTER!';
+  overlay.querySelector('p').textContent='Sizzle finished all 5 levels!';
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ DRAW AGAIN';
+  overlay.classList.remove('hidden');
+}
+function fail(){
+  running=false;
+  overlay.querySelector('h1').textContent='🌋 LAVA OOPS!';
+  overlay.querySelector('p').textContent='Sizzle reached level '+level;
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ TRY AGAIN';
+  overlay.classList.remove('hidden');beep(140,0.4,'sawtooth');
+}
+function toXY(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+cv.addEventListener('pointerdown',e=>{if(!running||done)return;drawing=true;path=[toXY(e)];});
+cv.addEventListener('pointermove',e=>{if(drawing&&running&&!done){const p=toXY(e);const last=path[path.length-1];if(Math.hypot(p.x-last.x,p.y-last.y)>8)path.push(p);}});
+addEventListener('pointerup',()=>{drawing=false;});
+function update(dt){
+  if(!running||done)return;
+  time-=dt;if(time<=0){fail();return;}
+  if(path.length>3){
+    sizzleT+=dt*260;
+    let acc=0,idx=0;
+    for(let i=1;i<path.length;i++){const d=Math.hypot(path[i].x-path[i-1].x,path[i].y-path[i-1].y);acc+=d;if(acc>sizzleT*0.6){idx=i;break;}idx=i;}
+    const sp=path[Math.min(idx,path.length-1)];
+    // pit check
+    for(const p of pits){if(Math.hypot(sp.x-p.x,sp.y-p.y)<p.r){shake=12;burst(sp.x,sp.y,'#ff3b2e',16);fail();return;}}
+    // goal check
+    if(Math.hypot(sp.x-tx,sp.y-ty)<44){levelDone();return;}
+    if(sizzleT*0.6>=acc&&idx>=path.length-1){/* waiting for more drawing */}
+    window._sp=sp;
+  }
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.4;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;upd();
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0505');g.addColorStop(1,'#2a1008');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  // lava pits
+  pits.forEach(p=>{
+    ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.ellipse(p.x,p.y,p.r,p.r*0.7,0,0,6.29);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.ellipse(p.x,p.y,p.r*0.5,p.r*0.35,0,0,6.29);ctx.fill();
+  });
+  // start + goal
+  ctx.fillStyle='#7dff9a';ctx.beginPath();ctx.arc(sx,sy,20,0,6.29);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('GO',sx,sy+5);
+  ctx.fillStyle='#4db8ff';ctx.beginPath();ctx.arc(tx,ty,30,0,6.29);ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillText('💧',tx,ty+8);ctx.textAlign='left';
+  // drawn path
+  if(path.length>1){
+    ctx.strokeStyle='#ffd23f';ctx.lineWidth=6;ctx.lineCap='round';ctx.setLineDash([2,10]);
+    ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+    path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();ctx.setLineDash([]);
+  }
+  // Sizzle on path
+  if(window._sp&&!done){
+    const sp=window._sp;
+    ctx.save();ctx.translate(sp.x,sp.y);
+    const sg=ctx.createRadialGradient(-5,-6,3,0,0,22);
+    sg.addColorStop(0,'#ffe27a');sg.addColorStop(0.5,'#ffb300');sg.addColorStop(1,'#e63900');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.arc(0,0,20,0,6.29);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-6,-2,4,0,6.29);ctx.arc(6,-2,4,0,6.29);ctx.fill();
+    ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-6,-1,2,0,6.29);ctx.arc(6,-1,2,0,6.29);ctx.fill();
+    ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,6,5,0.3,2.8);ctx.stroke();
+    ctx.restore();
+  }
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

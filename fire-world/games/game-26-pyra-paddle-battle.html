@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pyra Paddle Battle — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#100804;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
+#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
+#score{font-size:26px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:32px;font-weight:900;color:#ff6a00;margin-bottom:10px}
+#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
+#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="hud"><div id="score">YOU 0 : 0 CPU</div><div id="combo"></div></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🏓 PYRA PADDLE BATTLE</h1>
+<p>Grapple-paddle showdown! Drag your paddle to smack the ember ball past the CPU. First to 7 wins! Grapple shots curve!</p>
+<div class="lesson">🔥 Fire Safety: Paddles are for ping-pong, not for hitting! Play safe and take turns!</div>
+<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
+<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const a=8+Math.floor(Math.random()*2),b=2+Math.floor(Math.random()*3);
+document.getElementById('mq').textContent=a+' + '+b+' = ?';
+function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.16,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+let running=false,py,cy,ball,ps,cs,parts=[],shake=0,rally=0;
+const PW=110,PH=16;
+function startGame(){
+  running=true;ps=0;cs=0;rally=0;parts=[];shake=0;
+  py=H-80;cy=80;resetBall(1);
+  overlay.classList.add('hidden');upd();
+}
+function resetBall(dir){
+  ball={x:W/2,y:H/2,vx:(Math.random()<0.5?-1:1)*300,vy:dir*380,r:14,curve:0};
+  rally=0;
+}
+function upd(){scoreEl.textContent='YOU '+ps+' : '+cs+' CPU';}
+function burst(x,y,c,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-2,life:1,c,sz:3+Math.random()*5});}}
+function endGame(win){
+  running=false;
+  overlay.querySelector('h1').textContent=win?'🏆 PADDLE CHAMPION!':'🤖 CPU WINS!';
+  overlay.querySelector('p').textContent='Final: You '+ps+' — CPU '+cs;
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ REMATCH';
+  overlay.classList.remove('hidden');
+}
+let dragX=null;
+function update(dt){
+  if(!running)return;
+  if(dragX!==null)py+=(dragX-py)*Math.min(1,dt*18);
+  py=Math.max(H/2+20,Math.min(H-40,py));
+  // CPU AI
+  const target=ball.vy<0?ball.x+ball.vx*0.25:W/2;
+  cy+=(target-cy)*Math.min(1,dt*(2.5+ps*0.2));
+  cy=Math.max(40,Math.min(H/2-20,cy));
+  // ball physics + curve (grapple)
+  ball.vy+=ball.curve*dt;ball.curve*=0.98;
+  ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+  const spd=Math.hypot(ball.vx,ball.vy),max=900;
+  if(spd>max){ball.vx*=max/spd;ball.vy*=max/spd;}
+  if(ball.x<ball.r){ball.x=ball.r;ball.vx*=-1;beep(300,0.08,'square');}
+  if(ball.x>W-ball.r){ball.x=W-ball.r;ball.vx*=-1;beep(300,0.08,'square');}
+  // player paddle
+  if(ball.vy>0&&ball.y+ball.r>py-PH/2&&ball.y-ball.r<py+PH/2&&Math.abs(ball.x-py)<PW/2+ball.r){
+    const rel=(ball.x-py)/(PW/2);
+    ball.vy*=-1.06;ball.vx=rel*420;ball.curve=rel*300;
+    ball.y=py-PH/2-ball.r;rally++;
+    burst(ball.x,ball.y,'#ffd23f',10);shake=Math.max(shake,6);beep(500+rally*30,0.12,'triangle');
+    if(rally>=4)comboEl.textContent='🌀 RALLY x'+rally+'!';
+  }
+  // cpu paddle
+  if(ball.vy<0&&ball.y-ball.r<cy+PH/2&&ball.y+ball.r>cy-PH/2&&Math.abs(ball.x-cy)<PW/2+ball.r){
+    const rel=(ball.x-cy)/(PW/2);
+    ball.vy*=-1.04;ball.vx=rel*380;ball.curve=-rel*260;
+    ball.y=cy+PH/2+ball.r;rally++;
+    burst(ball.x,ball.y,'#7ae2ff',8);beep(400,0.1,'square');
+  }
+  // score
+  if(ball.y<-30){ps++;burst(W/2,40,'#ffd23f',20);shake=10;beep(700,0.3,'sine');upd();
+    if(ps>=7){endGame(true);return;}resetBall(1);}
+  if(ball.y>H+30){cs++;burst(W/2,H-40,'#ff3b2e',20);shake=10;beep(200,0.3,'sawtooth');upd();comboEl.textContent='';
+    if(cs>=7){endGame(false);return;}resetBall(-1);}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.4;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function drawPaddle(x,y,me){
+  ctx.save();ctx.translate(x,y);
+  ctx.fillStyle=me?'#ff9a1f':'#4db8ff';
+  ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=12;
+  ctx.beginPath();ctx.ellipse(0,0,PW/2,PH/2,0,0,6.29);ctx.fill();ctx.shadowBlur=0;
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(me?-20:20,-2,5,0,6.29);ctx.arc(me?20:-20,-2,5,0,6.29);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(me?-20:20,-1,2.5,0,6.29);ctx.arc(me?20:-20,-1,2.5,0,6.29);ctx.fill();
+  ctx.restore();
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1a2a');g.addColorStop(0.5,'#100804');g.addColorStop(1,'#2a1408');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=4;ctx.setLineDash([16,12]);
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();ctx.setLineDash([]);
+  drawPaddle(cy,cy,false);
+  drawPaddle(py,py,true);
+  // ember ball with trail
+  ctx.fillStyle='rgba(255,150,30,0.3)';ctx.beginPath();ctx.arc(ball.x-ball.vx*0.03,ball.y-ball.vy*0.03,ball.r*1.6,0,6.29);ctx.fill();
+  const bg=ctx.createRadialGradient(ball.x-4,ball.y-5,3,ball.x,ball.y,ball.r);
+  bg.addColorStop(0,'#ffe27a');bg.addColorStop(0.6,'#ff9a1f');bg.addColorStop(1,'#e63900');
+  ctx.fillStyle=bg;ctx.shadowColor='#ff9a1f';ctx.shadowBlur=16;
+  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,6.29);ctx.fill();ctx.shadowBlur=0;
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();dragX=e.clientX-r.left;});
+addEventListener('pointermove',e=>{if(dragX!==null){const r=cv.getBoundingClientRect();dragX=e.clientX-r.left;}});
+addEventListener('pointerup',()=>dragX=null);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')py=Math.max(H/2+20,py-30);if(e.key==='ArrowRight')py=Math.min(H-40,py+30);});
+</script>
+</body>
+</html>

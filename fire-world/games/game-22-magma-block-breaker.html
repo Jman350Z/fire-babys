@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Magma Block Breaker — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140806;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
+#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
+#score{font-size:26px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:34px;font-weight:900;color:#ff6a00;margin-bottom:10px}
+#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
+#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="hud"><div id="score">SCORE 0</div><div id="combo"></div></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🧱 MAGMA BLOCK BREAKER</h1>
+<p>Tap groups of 2+ matching magma blocks to smash them! Bigger groups = bigger COMBO. Clear blocks before the stack reaches the top!</p>
+<div class="lesson">🔥 Fire Safety: Match the right tool to the job — water for small fires, but ALWAYS call 911 for big ones!</div>
+<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
+<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay');
+let W,H,COLS=8,ROWS=10,CS;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;CS=Math.min(W/COLS,(H-140)/ROWS);}addEventListener('resize',rs);rs();
+const a=3+Math.floor(Math.random()*6),b=3+Math.floor(Math.random()*4);
+document.getElementById('mq').textContent=a+' + '+b+' = ?';
+function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.18,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d);}catch(e){}}
+const COLORS=['#ff6a00','#ffd23f','#ff3b2e','#7ae2ff','#b48aff'];
+let running=false,grid=[],parts=[],score=0,combo=0,moves=0,shake=0,gx,gy;
+function ox(){return (W-COLS*CS)/2;}function oy(){return 120;}
+function startGame(){
+  running=true;score=0;combo=0;moves=0;shake=0;parts=[];
+  grid=[];for(let r=0;r<4;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(Math.floor(Math.random()*5));}
+  for(let r=4;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++)grid[r].push(-1);}
+  overlay.classList.add('hidden');upd();
+}
+function upd(){scoreEl.textContent='SCORE '+score;}
+function burst(x,y,c,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-2,life:1,c,sz:3+Math.random()*5});}}
+function flood(r,c,col,seen){
+  if(r<0||r>=ROWS||c<0||c>=COLS||grid[r][c]!==col||seen[r+','+c])return[];
+  seen[r+','+c]=1;let out=[[r,c]];
+  out=out.concat(flood(r+1,c,col,seen),flood(r-1,c,col,seen),flood(r,c+1,col,seen),flood(r,c-1,col,seen));
+  return out;
+}
+function collapse(){
+  for(let c=0;c<COLS;c++){
+    const col=[];for(let r=ROWS-1;r>=0;r--)if(grid[r][c]>=0)col.push(grid[r][c]);
+    for(let r=ROWS-1;r>=0;r--)grid[r][c]=col[ROWS-1-r]!==undefined?col[ROWS-1-r]:-1;
+  }
+}
+function gameOver(win){
+  running=false;
+  overlay.querySelector('h1').textContent=win?'🏆 BOARD CLEARED!':'🧱 STACK OVERFLOW!';
+  overlay.querySelector('p').textContent='Score: '+score+' in '+moves+' moves';
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ PLAY AGAIN';
+  overlay.classList.remove('hidden');
+}
+function tapCell(r,c){
+  if(!running||grid[r][c]<0)return;
+  const group=flood(r,c,grid[r][c],{});
+  if(group.length<2){beep(150,0.1,'square');return;}
+  moves++;
+  const pts=group.length*group.length*10;score+=pts;
+  combo=moves;comboEl.textContent=group.length>=5?'💥 MEGA '+group.length+'! +'+pts:'+'+pts;
+  group.forEach(([gr,gc])=>{
+    const x=ox()+gc*CS+CS/2,y=oy()+gr*CS+CS/2;
+    burst(x,y,COLORS[grid[r][c]],8);grid[gr][gc]=-1;
+  });
+  shake=Math.max(shake,Math.min(16,group.length*2));beep(300+group.length*60,0.25,'triangle');upd();
+  collapse();
+  // add new row at top periodically
+  if(moves%4===0){
+    for(let r=ROWS-1;r>0;r--)for(let c=0;c<COLS;c++)grid[r][c]=grid[r-1][c];
+    for(let c=0;c<COLS;c++)grid[0][c]=Math.floor(Math.random()*5);
+  }
+  let empty=true,full=false;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(grid[r][c]>=0)empty=false;
+  for(let c=0;c<COLS;c++)if(grid[0][c]>=0)full=true;
+  if(empty)gameOver(true);else if(full&&moves>6)gameOver(false);
+}
+function update(dt){
+  if(!running)return;
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life-=dt*1.4;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0505');g.addColorStop(1,'#2a1008');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  const X=ox(),Y=oy();
+  ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fillRect(X-6,Y-6,COLS*CS+12,ROWS*CS+12);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const v=grid[r][c];if(v<0)continue;
+    const x=X+c*CS,y=Y+r*CS;
+    const bg=ctx.createLinearGradient(x,y,x,y+CS);
+    bg.addColorStop(0,COLORS[v]);bg.addColorStop(1,'rgba(0,0,0,0.35)');
+    ctx.fillStyle=bg;
+    const p=3;ctx.fillRect(x+p,y+p,CS-p*2,CS-p*2);
+    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=2;ctx.strokeRect(x+p,y+p,CS-p*2,CS-p*2);
+  }
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{
+  if(!running)return;
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const c=Math.floor((mx-ox())/CS),rr=Math.floor((my-oy())/CS);
+  if(c>=0&&c<COLS&&rr>=0&&rr<ROWS)tapCell(rr,c);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Thermal Tug-of-War — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(28px,7vw,48px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:16px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;right:14px;color:#ffd23f;font-weight:900;font-size:22px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">SCORE 0</span><span id="lvl">LVL 1/5</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>🔥 THERMAL<br>TUG-OF-WAR</h1>
+<p><b>Starring Blaze &amp; Boulder</b></p>
+<p>Drag Blaze back on the launcher and release! His heat <b>melts ice blocks</b> instantly, but <b>rock blocks</b> need hard hits. Knock every crystal orb off its perch!</p>
+<div class="lesson">🔥 Fire Safety: Hot things melt ice and burn skin! Never touch stoves, ovens, or hot pans.</div>
+<div id="mathgate"><p>A grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">YOU WIN!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+// ===== AUDIO =====
+let AC=null;
+function sfx(f,d,type='sine',v=0.15){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function thud(){sfx(90,.25,'triangle',.25)} function melt(){sfx(600,.3,'sine',.12);sfx(900,.25,'sine',.08)} function win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>sfx(f,.25,'triangle',.2),i*120))}
+// ===== MATH GATE =====
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+// ===== GAME =====
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),lvlEl=document.getElementById('lvl'),comboEl=document.getElementById('combo'),overEl=document.getElementById('over');
+let running=false,level=0,score=0,combo=0,comboT=0,shake=0;
+let blaze=null,aiming=false,aimPt=null,blocks=[],orbs=[],parts=[];
+const GRAV=0.5,LAUNCH={x:0,y:0};
+// 5 levels: [type,x,y,w,h] type: ice|rock|orb
+const LVLS=[
+ [['ice',.62,.55,.09,.03],['ice',.70,.55,.09,.03],['ice',.66,.48,.12,.03],['orb',.66,.42]],
+ [['rock',.60,.60,.07,.10],['rock',.74,.60,.07,.10],['ice',.67,.50,.20,.03],['ice',.67,.44,.10,.03],['orb',.63,.39],['orb',.71,.39]],
+ [['ice',.58,.62,.06,.08],['ice',.76,.62,.06,.08],['rock',.67,.52,.22,.04],['ice',.62,.46,.06,.06],['ice',.72,.46,.06,.06],['ice',.67,.38,.14,.03],['orb',.67,.32]],
+ [['rock',.60,.58,.08,.12],['rock',.75,.58,.08,.12],['rock',.675,.46,.24,.04],['ice',.63,.40,.07,.05],['ice',.72,.40,.07,.05],['orb',.675,.33],['orb',.60,.38],['orb',.75,.38]],
+ [['ice',.56,.64,.05,.07],['ice',.78,.64,.05,.07],['rock',.67,.56,.28,.04],['ice',.60,.50,.06,.06],['ice',.74,.50,.06,.06],['rock',.67,.42,.18,.04],['ice',.67,.35,.10,.03],['orb',.67,.28],['orb',.60,.33],['orb',.74,.33]],
+];
+function loadLevel(){
+  blocks=[];orbs=[];blaze=null;aiming=false;
+  LAUNCH.x=W*0.16;LAUNCH.y=H*0.72;
+  LVLS[level].forEach(([t,fx,fy,fw,fh])=>{
+    if(t==='orb'){orbs.push({x:W*fx,y:H*fy,r:Math.min(W,H)*0.028,vy:0,vx:0,dead:false});}
+    else{blocks.push({t,x:W*fx-w2(fw)/1,y:H*fy,w:W*fw,h:H*(fh||0.03),hp:t==='ice'?1:3,dead:false,vx:0,vy:0,ang:0,va:0});}
+  });
+  function w2(fw){return W*fw;}
+  lvlEl.textContent='LVL '+(level+1)+'/5';
+}
+function startGame(){running=true;loadLevel();requestAnimationFrame(loop);}
+function rectHit(bx,by,br,b){
+  const cx=Math.max(b.x,Math.min(bx,b.x+b.w)),cy=Math.max(b.y,Math.min(by,b.y+b.h));
+  return Math.hypot(bx-cx,by-cy)<br;
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,life:1,col,sz:3+Math.random()*5});}}
+function addShake(n){shake=Math.min(20,shake+n);}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  comboT-=dt;if(comboT<=0){combo=0;comboEl.style.opacity=0;}
+  // blaze physics
+  if(blaze&&blaze.flying){
+    blaze.vy+=GRAV;blaze.x+=blaze.vx;blaze.y+=blaze.vy;
+    blaze.trail-=dt;
+    if(blaze.trail<=0){blaze.trail=0.03;parts.push({x:blaze.x,y:blaze.y,vx:(Math.random()-.5)*2,vy:-1-Math.random()*2,life:.5,col:'#ff8a00',sz:5});}
+    // ground
+    if(blaze.y>H-20){blaze.y=H-20;blaze.vy*=-0.4;blaze.vx*=0.7;if(Math.abs(blaze.vy)<1){blaze.flying=false;setTimeout(()=>{if(!orbs.some(o=>!o.dead)&&!wonCheck())checkWin();blaze=null;},600);}}
+    if(blaze.x>W+50||blaze.x<-50){blaze.flying=false;blaze=null;checkWin();}
+    // block collisions
+    const spd=Math.hypot(blaze.vx,blaze.vy);
+    blocks.forEach(b=>{
+      if(b.dead)return;
+      if(rectHit(blaze.x,blaze.y,26,b)){
+        if(b.t==='ice'){ // thermal: melts instantly
+          b.dead=true;melt();explode(b.x+b.w/2,b.y+b.h/2,14,'#7fd4ff');addScore(150);addShake(4);
+        }else{
+          b.hp--;thud();explode(blaze.x,blaze.y,8,'#ffb300');addShake(6);
+          b.vx=blaze.vx*0.15;b.vy=blaze.vy*0.1;b.va=(Math.random()-.5)*0.2;
+          if(b.hp<=0){b.dead=true;explode(b.x+b.w/2,b.y+b.h/2,16,'#a08060');addScore(100);}
+        }
+        blaze.vx*=-0.35;blaze.vy*=-0.35;
+        combo++;comboT=1.5;
+        if(combo>=3){comboEl.textContent='🔥 COMBO x'+combo+'!';comboEl.style.opacity=1;addScore(combo*50);sfx(300+combo*80,.15,'square',.1);}
+      }
+    });
+    // orb collisions
+    orbs.forEach(o=>{
+      if(o.dead)return;
+      if(Math.hypot(blaze.x-o.x,blaze.y-o.y)<26+o.r){
+        o.dead=true;explode(o.x,o.y,20,'#7ff');sfx(880,.3,'sine',.15);addScore(500);addShake(5);
+        checkWin();
+      }
+    });
+  }
+  // falling blocks physics (simple)
+  blocks.forEach(b=>{
+    if(b.dead||b.t!=='rock')return;
+    b.vy+=GRAV*0.6;b.x+=b.vx;b.y+=b.vy;b.ang+=b.va;
+    if(b.y+b.h>H-14){b.y=H-14-b.h;b.vy*=-0.3;b.vx*=0.8;b.va*=0.7;}
+  });
+  // orbs fall if unsupported (simplified: they stay unless hit)
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.25;p.life-=dt*1.6;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+}
+function wonCheck(){return orbs.length>0&&orbs.every(o=>o.dead);}
+function checkWin(){
+  if(wonCheck()){
+    win();
+    if(level<4){level++;setTimeout(()=>{if(running)loadLevel();},900);}
+    else{running=false;showOver(true);}
+  }else if(!blaze){
+    // check if orbs remain but no blaze to fire = still playing (player aims again)
+  }
+}
+function addScore(n){score+=n;scoreEl.textContent='SCORE '+score;}
+function showOver(won){
+  document.getElementById('ot').textContent=won?'🏆 ALL LEVELS CLEAR!':'GAME OVER';
+  document.getElementById('od').textContent='Final score: '+score+'. Blaze melted every ice block with thermal power!';
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Hot things melt ice and burn skin! Never touch stoves, ovens, or hot pans.';
+  overEl.classList.remove('hide');
+}
+// input
+function pos(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
+cv.addEventListener('pointerdown',e=>{
+  if(!running||blaze)return;
+  const p=pos(e);
+  if(Math.hypot(p.x-LAUNCH.x,p.y-LAUNCH.y)<80){aiming=true;aimPt=p;e.preventDefault();}
+});
+cv.addEventListener('pointermove',e=>{if(aiming)aimPt=pos(e);});
+cv.addEventListener('pointerup',e=>{
+  if(!aiming)return;aiming=false;
+  const p=aimPt||pos(e);
+  const dx=LAUNCH.x-p.x,dy=LAUNCH.y-p.y;
+  if(Math.hypot(dx,dy)>25){
+    blaze={x:LAUNCH.x,y:LAUNCH.y,vx:dx*0.22,vy:dy*0.22,flying:true,trail:0};
+    sfx(200,.2,'sawtooth',.15);
+  }
+});
+function drawBaby(x,y,r,hot){
+  ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+  g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,hot?'#ff8a00':'#ffb300');g.addColorStop(1,hot?'#e63900':'#e67e00');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(0,-r*1.5);ctx.quadraticCurveTo(r*0.9,-r*0.6,r*0.7,r*0.4);ctx.quadraticCurveTo(r*0.4,r,r*0.1,r);
+  ctx.quadraticCurveTo(-r*0.4,r,-r*0.7,r*0.4);ctx.quadraticCurveTo(-r*0.9,-r*0.6,0,-r*1.5);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.28,r*0.05,r*0.16,0,7);ctx.arc(r*0.28,r*0.05,r*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.28,r*0.08,r*0.08,0,7);ctx.arc(r*0.28,r*0.08,r*0.08,0,7);ctx.fill();
+  ctx.strokeStyle='#7a2d00';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*0.35,r*0.25,0.3,Math.PI-0.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  // bg
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2a1508');g.addColorStop(0.6,'#1a0d08');g.addColorStop(1,'#0d0505');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // lava glow bottom
+  ctx.fillStyle='#ff5a00';ctx.fillRect(-20,H-14,W+40,34);
+  ctx.fillStyle='rgba(255,150,0,.4)';ctx.fillRect(-20,H-26,W+40,14);
+  // launcher
+  ctx.strokeStyle='#5a3a20';ctx.lineWidth=14;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(LAUNCH.x-24,LAUNCH.y+40);ctx.lineTo(LAUNCH.x,LAUNCH.y+10);ctx.lineTo(LAUNCH.x+24,LAUNCH.y+40);ctx.stroke();
+  // aim
+  if(aiming&&aimPt){
+    const dx=LAUNCH.x-aimPt.x,dy=LAUNCH.y-aimPt.y;
+    ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=4;ctx.setLineDash([10,8]);
+    ctx.beginPath();ctx.moveTo(LAUNCH.x,LAUNCH.y);
+    ctx.quadraticCurveTo(LAUNCH.x+dx*1.5,LAUNCH.y+dy*1.5-40,LAUNCH.x+dx*2.5,LAUNCH.y+dy*2.5+120);ctx.stroke();
+    ctx.setLineDash([]);
+    drawBaby(aimPt.x,aimPt.y,24,true);
+  }else if(!blaze){
+    drawBaby(LAUNCH.x,LAUNCH.y,24,true);
+  }
+  // blocks
+  blocks.forEach(b=>{
+    if(b.dead)return;
+    ctx.save();ctx.translate(b.x+b.w/2,b.y+b.h/2);ctx.rotate(b.ang||0);
+    if(b.t==='ice'){ctx.fillStyle='rgba(150,220,255,.85)';ctx.strokeStyle='#fff';}
+    else{const d=1-b.hp/3;ctx.fillStyle=`rgb(${120+d*60},${90+d*30},${70})`;ctx.strokeStyle='#3a2415';}
+    ctx.lineWidth=3;
+    ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h);ctx.strokeRect(-b.w/2,-b.h/2,b.w,b.h);
+    if(b.t==='ice'){ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-b.w/4,-b.h/2);ctx.lineTo(0,b.h/2);ctx.moveTo(b.w/4,-b.h/2);ctx.lineTo(b.w/8,b.h/2);ctx.stroke();}
+    ctx.restore();
+  });
+  // orbs
+  orbs.forEach(o=>{
+    if(o.dead)return;
+    ctx.save();ctx.shadowColor='#7ff';ctx.shadowBlur=18;
+    ctx.fillStyle='#4de';ctx.beginPath();ctx.arc(o.x,o.y,o.r,0,7);ctx.fill();
+    ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,.7)';ctx.beginPath();ctx.arc(o.x-o.r*0.3,o.y-o.r*0.3,o.r*0.3,0,7);ctx.fill();
+    ctx.restore();
+  });
+  // blaze
+  if(blaze&&blaze.flying)drawBaby(blaze.x,blaze.y,26,true);
+  // particles
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  // boulder buddy
+  ctx.font='40px serif';ctx.fillText('🪨',W-70,H-60);
+  ctx.restore();
+}
+</script>
+</body>
+</html>
