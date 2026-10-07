@@ -3,150 +3,295 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Inferno Drop — Fire Babys</title>
+<title>Inferno Drop — by Jman350Z & fire team</title>
+<meta name="description" content="Bonk the rock moles! Fast-tap whack-a-mole action. A Fire Babys game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#160b06;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
 canvas{display:block;width:100%;height:100%}
-#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
-#tbar{position:fixed;top:52px;left:16px;right:16px;height:10px;background:#333;border-radius:5px;overflow:hidden;z-index:5;pointer-events:none}
-#tfill{height:100%;width:100%;background:linear-gradient(90deg,#ffd23f,#ff8a00)}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(22,10,5,.94);color:#fff;text-align:center;padding:24px}
-#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#ff6a00}
-#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#timerbar{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:min(320px,70vw);height:12px;background:rgba(0,0,0,.5);border-radius:6px;z-index:5;pointer-events:none;overflow:hidden}
+#timerfill{height:100%;width:100%;background:linear-gradient(90deg,#ff6a00,#ffd23f);border-radius:6px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,0,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;background:linear-gradient(180deg,#ffd76a,#ff6a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
-#overlay button{background:#c44a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
-#mathgate{background:#2a1a10;border-radius:12px;padding:16px;margin:12px 0}
-#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#2a1a0e;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
-#back{position:fixed;top:70px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
-<div id="hud"><div id="score">SCORE 0</div><div id="combo"></div></div>
-<div id="tbar"><div id="tfill"></div></div>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="combo">🔥 x1</div>
+<div class="pill" id="best">🏆 0</div>
+</div>
+<div id="timerbar"><div id="timerfill"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 <div id="overlay">
-<h1>🔨 INFERNO<br>DROP</h1>
-<div id="obody"><p><b style="color:#ff6a00">Blaze</b> & <b style="color:#ff6a00">Boulder</b> need fast fingers!</p><p>🔨 <b>TAP</b> rock moles as they pop from lava holes! Bonk golden moles for bonus points. Don't tap fire babies — they're friends! 60 seconds!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
-<div class="lesson">🔥 Fire Safety: Hot lava holes are like hot grills — stay back and let grown-ups handle them!</div>
+<h1 id="otitle">🔨 INFERNO DROP</h1>
+<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> need fast fingers!</p><p><b>TAP</b> rock moles as they pop from lava holes! Bonk <b>golden</b> moles for bonus. <b>Don't tap fire babies</b> — they're friends! 60 seconds on the clock!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Fast reactions save lives — practice your fire drill!</div>
 <button id="obtn">▶ PLAY</button>
+</div>
 </div>
 <script>
 'use strict';
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
-const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
-let W,H,holes=[];
-function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;
-  holes=[];const cols=3,rows=3;
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR,HOLES=[];
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layoutHoles();}
+function layoutHoles(){
+  HOLES=[];
+  const cols=3,rows=3;
+  const gw=Math.min(W*0.86,420),gh=Math.min(H*0.6,420);
+  const ox=(W-gw)/2,oy=(H-gh)/2+40;
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
-    holes.push({x:W*(0.2+c*0.3),y:H*(0.32+r*0.2),mole:null});}
-addEventListener('resize',resize);resize();
-let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
-let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
-function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
-const G={state:'title',score:0,time:60,combo:0,best:0,parts:[],shake:0,spawnT:0};
-const DURATION=60;
-function startGame(){audio();G.score=0;G.time=DURATION;G.combo=0;G.parts=[];G.spawnT=0.5;
-  for(const h of holes)h.mole=null;
-  G.state='play';overlay.classList.add('hidden');
-  document.getElementById('score').textContent='SCORE 0';document.getElementById('combo').textContent='';}
+    HOLES.push({x:ox+gw*(c+0.5)/cols,y:oy+gh*(r+0.5)/rows,r:Math.min(gw,gw)/cols*0.32,
+      mole:null});
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',resize);
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+function noise(dur,vol,delay=0,lp=1200){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
+  const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+const sfx={
+  bonk(){noise(0.1,0.3,0,800);tone(300,150,0.1,'square',0.15);},
+  golden(){tone(900,1800,0.15,'sine',0.15);tone(1400,2200,0.12,'sine',0.1,0.06);},
+  ouch(){tone(400,150,0.2,'sawtooth',0.15);},
+  pop(){tone(500,800,0.06,'sine',0.08);},
+  end(){[659,523,392,523].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.12));},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+const G={state:'title',score:0,best:0,time:60,combo:1,comboT:0,spawnT:0.5,hits:0,miss:0,time:0};
+try{G.best=parseInt(localStorage.getItem('whack_best')||'0',10)||0;}catch(e){}
+function reset(){
+  G.score=0;G.time=60;G.combo=1;G.comboT=0;G.spawnT=0.3;G.hits=0;G.miss=0;
+  for(const h of HOLES)h.mole=null;
+  updateHUD();
+  document.getElementById('best').textContent='🏆 '+G.best;
+}
+function updateHUD(){
+  document.getElementById('score').textContent='⭐ '+G.score;
+  document.getElementById('combo').textContent='🔥 x'+G.combo;
+  document.getElementById('timerfill').style.width=(G.time/60*100)+'%';
+}
 function spawnMole(){
-  const empty=holes.filter(h=>!h.mole);
+  const empty=HOLES.filter(h=>!h.mole);
   if(!empty.length)return;
   const h=empty[Math.floor(Math.random()*empty.length)];
-  const roll=Math.random();
-  h.mole={type:roll<0.12?'gold':roll<0.82?'rock':'baby',t:0,life:1.1-Math.min(G.score/5000,0.5),pop:0,bonked:false};
-  sfx(300,500,0.08,'sine',0.06);
+  const r=Math.random();
+  let type='rock';
+  if(r<0.12)type='golden';
+  else if(r<0.3)type='baby'; // don't hit!
+  const speedMul=1+(60-G.time)/60; // faster over time
+  h.mole={type,pop:0,up:1,life:(type==='baby'?1.4:1.1)/speedMul,bonked:false,wob:Math.random()*6};
+  sfx.pop();
 }
-function boom(x,y,n,c){for(let i=0;i<n;i++)G.parts.push({x,y,vx:(Math.random()-0.5)*350,vy:(Math.random()-0.5)*350-80,life:0.5,max:0.5,c});}
-function tapAt(x,y){
+canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
-  for(const h of holes){
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  let hit=false;
+  for(const h of HOLES){
     if(!h.mole||h.mole.bonked||h.mole.pop<0.6)continue;
-    if(Math.hypot(h.x-x,h.y-50-y)<55){
-      h.mole.bonked=true;
-      const m=h.mole;
-      if(m.type==='baby'){
-        // DON'T bonk fire babies!
-        G.combo=0;G.score=Math.max(0,G.score-100);
-        boom(h.x,h.y-50,14,'#ff3b2e');sfx(300,120,0.25,'sawtooth',0.2);G.shake=8;
-        document.getElementById('combo').textContent='OUCH! FRIEND!';
+    if(Math.hypot(x-h.x,y-h.y-h.r*0.4)<h.r*1.15){
+      hit=true;h.mole.bonked=true;h.mole.pop=1.2;
+      if(h.mole.type==='baby'){
+        // oops! penalty
+        G.score=Math.max(0,G.score-50);G.combo=1;
+        sfx.ouch();G.miss++;
+        spawnText(h.x,h.y-h.r,'-50 😢','#ff4a5a');
       }else{
-        G.combo++;
-        const pts=(m.type==='gold'?300:100)*Math.min(G.combo,5);
-        G.score+=pts;boom(h.x,h.y-50,16,m.type==='gold'?'#ffd23f':'#888');
-        sfx(m.type==='gold'?900:500,m.type==='gold'?1500:800,0.12,'sine',0.2);G.shake=4;
-        document.getElementById('combo').textContent=G.combo>1?'COMBO x'+G.combo:'';
+        const pts=(h.mole.type==='golden'?50:10)*G.combo;
+        G.score+=pts;G.hits++;
+        G.combo=Math.min(8,G.combo+1);G.comboT=2.5;
+        if(h.mole.type==='golden')sfx.golden();else sfx.bonk();
+        spawnText(h.x,h.y-h.r,'+'+pts,h.mole.type==='golden'?'#ffd23f':'#fff');
+        burst(h.x,h.y-h.r*0.5,h.mole.type==='golden'?'#ffd23f':'#ffb347');
       }
-      document.getElementById('score').textContent='SCORE '+G.score;
-      setTimeout(()=>{h.mole=null;},200);
+      updateHUD();
       break;
     }
   }
+  if(!hit){G.combo=Math.max(1,G.combo-1);updateHUD();}
+});
+const particles=[],floaters=[];
+for(let i=0;i<100;i++)particles.push({a:false});
+for(let i=0;i<12;i++)floaters.push({a:false});
+function burst(x,y,color){
+  for(let i=0;i<10;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    const a=Math.random()*Math.PI*2;
+    p.a=true;p.x=x;p.y=y;p.vx=Math.cos(a)*200;p.vy=Math.sin(a)*200-100;
+    p.life=0.4;p.max=0.4;p.color=color;p.size=3+Math.random()*4;}
+}
+function spawnText(x,y,txt,color){
+  const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
 }
 function update(dt){
-  if(G.shake>0)G.shake-=dt*30;
-  G.time-=dt;
-  document.getElementById('tfill').style.width=(G.time/DURATION*100)+'%';
+  G.time-=dt;G.comboT-=dt;
+  if(G.comboT<=0)G.combo=Math.max(1,G.combo-1);
   if(G.time<=0){endGame();return;}
+  // spawn rate increases
   G.spawnT-=dt;
-  if(G.spawnT<=0){G.spawnT=Math.max(0.35,0.9-G.score/8000);spawnMole();if(Math.random()<0.3)spawnMole();}
-  for(const h of holes){
-    if(!h.mole)continue;
-    const m=h.mole;m.t+=dt;
-    m.pop=Math.min(1,m.pop+dt*5);
-    if(m.t>m.life&&!m.bonked){if(m.type!=='baby')G.combo=0;h.mole=null;}
+  if(G.spawnT<=0){
+    spawnMole();
+    const base=Math.max(0.25,0.8-(60-G.time)/60*0.5);
+    G.spawnT=base+Math.random()*0.3;
+    // sometimes double
+    if(Math.random()<0.3)spawnMole();
   }
-  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
-}
-function endGame(){G.state='over';G.best=Math.max(G.best,G.score);
-  obody.innerHTML='<p>Time\'s up! Score: <b>'+G.score+'</b> • Best: '+G.best+'</p>';
-  document.querySelector('#overlay h1').textContent='🔨 TIME UP!';
-  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');}
-function render(){
-  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0e0806');bg.addColorStop(1,'#2e1208');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  ctx.save();if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
-  for(const h of holes){
-    // lava hole
-    ctx.fillStyle='#3a1a0a';ctx.beginPath();ctx.ellipse(h.x,h.y,52,22,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ff3b2e';ctx.beginPath();ctx.ellipse(h.x,h.y,44,17,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ff8a00';ctx.beginPath();ctx.ellipse(h.x,h.y,30,11,0,0,Math.PI*2);ctx.fill();
-    if(h.mole){
-      const m=h.mole,py=h.y-50*m.pop,ease=m.pop<1?m.pop:1;
-      ctx.save();ctx.globalAlpha=ease;
-      if(m.bonked){ctx.globalAlpha=0.4;ctx.translate((Math.random()-0.5)*8,0);}
-      if(m.type==='baby'){
-        const g=ctx.createRadialGradient(h.x-4,py-5,3,h.x,py,26);
-        g.addColorStop(0,'#fff3b0');g.addColorStop(0.5,'#ff8a2e');g.addColorStop(1,'#e63900');
-        ctx.fillStyle=g;ctx.beginPath();ctx.arc(h.x,py,26,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(h.x-7,py-3,3.5,0,Math.PI*2);ctx.arc(h.x+7,py-3,3.5,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(h.x,py+8,7,0.2,Math.PI-0.2);ctx.stroke();
-      }else{
-        ctx.fillStyle=m.type==='gold'?'#d4a017':'#777';
-        ctx.beginPath();ctx.arc(h.x,py,26,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle=m.type==='gold'?'#ffd23f':'#999';
-        ctx.beginPath();ctx.arc(h.x-8,py-8,8,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle=m.type==='gold'?'#fff':'#ff2a2a';
-        ctx.beginPath();ctx.arc(h.x-8,py-3,4,0,Math.PI*2);ctx.arc(h.x+8,py-3,4,0,Math.PI*2);ctx.fill();
-        if(m.type==='gold'){ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('★',h.x,py+22);ctx.textAlign='left';}
-      }
-      ctx.restore();
+  for(const h of HOLES){
+    const m=h.mole;
+    if(!m)continue;
+    m.wob+=dt*8;
+    if(m.pop<1)m.pop=Math.min(1,m.pop+dt*5);
+    else{
+      m.life-=dt;
+      if(m.life<=0){m.pop-=dt*6;if(m.pop<=0)h.mole=null;}
     }
+    if(m.bonked){m.pop+=dt*8;if(m.pop>=1.6)h.mole=null;}
   }
-  for(const p of G.parts){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
-  ctx.globalAlpha=1;
-  ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.textAlign='center';
-  ctx.fillText('⏱️ '+Math.ceil(Math.max(G.time,0))+'s',W/2,44);ctx.textAlign='left';
+  updateHUD();
+}
+function endGame(){
+  G.state='over';sfx.end();
+  for(const h of HOLES)h.mole=null;
+  const isBest=G.score>G.best;
+  if(isBest){G.best=G.score;try{localStorage.setItem('whack_best',String(G.best));}catch(e){}}
+  const acc=G.hits+G.miss?Math.round(G.hits/(G.hits+G.miss)*100):100;
+  setTimeout(()=>{
+    showOverlay('⏰ TIME UP!',
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Score: ${G.score}</p><p>Bonks: ${G.hits} | Oops: ${G.miss} | Accuracy: ${acc}%</p><p>Best: ${G.best}</p>`,
+      '🔥 Fire Safety: Fast reactions save lives — practice your fire drill!',
+      '↻ PLAY AGAIN',()=>{reset();G.state='play';});
+  },500);
+}
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
+function drawMole(h,m){
+  const popE=m.pop<1?m.pop:Math.max(0,2-m.pop); // 0→1 up, 1→2 bonk squash
+  const y=h.y-h.r*0.9*popE;
+  const squash=m.bonked?0.4:0;
+  ctx.save();ctx.translate(h.x,y);ctx.scale(1+squash,1-squash);
+  const wob=Math.sin(m.wob)*0.08;
+  ctx.rotate(wob);
+  if(m.type==='baby'){
+    // fire baby: DON'T HIT
+    const g=ctx.createRadialGradient(-8,-10,4,0,0,h.r);
+    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,h.r*0.85,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2b1a0e';
+    ctx.beginPath();ctx.arc(-8,-4,4,0,Math.PI*2);ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(0,4,8,0.3,Math.PI-0.3);ctx.stroke();
+    // "friend" indicator
+    ctx.fillStyle='#4caf50';ctx.font=`900 ${h.r*0.4}px system-ui`;ctx.textAlign='center';
+    ctx.fillText('💚',0,-h.r-6);ctx.textAlign='left';
+  }else{
+    const g=ctx.createRadialGradient(-8,-8,4,0,0,h.r);
+    if(m.type==='golden'){g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');}
+    else{g.addColorStop(0,'#9a8a7a');g.addColorStop(1,'#4a3a2a');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,h.r*0.85,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2a1a0a';ctx.lineWidth=2;ctx.stroke();
+    // angry eyes
+    ctx.fillStyle=m.type==='golden'?'#7a5a00':'#ff4a00';
+    ctx.beginPath();ctx.arc(-9,-6,5,0,Math.PI*2);ctx.arc(9,-6,5,0,Math.PI*2);ctx.fill();
+    // hard hat
+    ctx.fillStyle='#ffd23f';
+    ctx.beginPath();ctx.arc(0,-h.r*0.5,h.r*0.5,Math.PI,0);ctx.fill();
+    ctx.fillRect(-h.r*0.7,-h.r*0.55,h.r*1.4,6);
+  }
   ctx.restore();
 }
-canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapAt(t.clientX,t.clientY);},{passive:false});
-canvas.addEventListener('mousedown',e=>{tapAt(e.clientX,e.clientY);});
-let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
-obtn.onclick=()=>{showGate();};
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#1a0d08');bg.addColorStop(1,'#3a1a0a');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // lava glow behind
+  for(const h of HOLES){
+    const lg=ctx.createRadialGradient(h.x,h.y,5,h.x,h.y,h.r*2);
+    lg.addColorStop(0,'rgba(255,74,0,0.25)');lg.addColorStop(1,'rgba(255,74,0,0)');
+    ctx.fillStyle=lg;ctx.beginPath();ctx.arc(h.x,h.y,h.r*2,0,Math.PI*2);ctx.fill();
+    // hole
+    ctx.fillStyle='#0a0505';
+    ctx.beginPath();ctx.ellipse(h.x,h.y,h.r*1.1,h.r*0.45,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#ff4a00';ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(h.x,h.y,h.r*1.1,h.r*0.45,0,0,Math.PI*2);ctx.stroke();
+    // lava inside
+    ctx.fillStyle='#ff4a00';ctx.globalAlpha=0.5+Math.sin(G.time*5+h.x)*0.2;
+    ctx.beginPath();ctx.ellipse(h.x,h.y+2,h.r*0.85,h.r*0.3,0,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+  // moles (behind holes drawn after for pop effect)
+  for(const h of HOLES)if(h.mole)drawMole(h,h.mole);
+  // hammer cursor hint
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font='900 22px system-ui';ctx.fillStyle='#000';
+    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt*0; // time handled in update
+  if(G.state==='play')update(dt);
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=600*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  render();
+  requestAnimationFrame(loop);
+}
+resize();
+document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
 </script>
 </body>
