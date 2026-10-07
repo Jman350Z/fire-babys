@@ -6943,7 +6943,9 @@ function mpOnHostChange(){
 
 /* ---------- game start ---------- */
 function mpOnGameStart(msg){
-  mpGameMode = (msg && msg.mode) || 'coop';
+  // SPLASH ONLY: force 'catch' mode. The server may not echo the mode back,
+  // and the old 'coop' default disables the score pill, timer, and team logic.
+  mpGameMode = 'catch';
   document.getElementById('mplobbyov').style.display = 'none';
   mpEnterGame();
 }
