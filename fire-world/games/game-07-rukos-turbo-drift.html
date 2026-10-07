@@ -2,143 +2,105 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruko's Turbo Drift — Fire Babys</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#101018;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-canvas{display:block}
-.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(16,16,24,.94);color:#fff;text-align:center;padding:20px}
-.ov h1{font-size:32px;font-weight:900;margin-bottom:10px;color:#ff3b2e}
-.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
-.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
-.ov button{background:#ff3b2e;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
-.ov button:active{transform:translateY(3px)}
-#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
-#gate .opts{display:flex;gap:12px}
-#gate .opts button{font-size:26px;padding:10px 22px}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0d1a;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,10,25,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#ff2a6d}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#a01850;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#221a2e;border-radius:12px;padding:16px;margin:12px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
 .hidden{display:none!important}
-#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
+<div id="hud"><div id="score">SCORE 0</div><div id="combo"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div class="ov" id="gate">
-<h1>🔥 Grown-Up Check</h1>
-<p>Ask a grown-up to help you answer:</p>
-<div class="math" id="mathq"></div>
-<div class="opts" id="mathopts"></div>
-</div>
-<div class="ov hidden" id="title">
-<h1>🏎️ RUKO'S TURBO DRIFT</h1>
-<p><b>Starring Sizzle &amp; Lord Inferno</b></p>
-<p>Tap the drums in rhythm! Notes drift down 4 lanes — tap when they hit the glowing zone. PERFECT hits build your COMBO multiplier. Don't let the beat drop!</p>
-<div class="lesson">🔥 Fire Safety: Rhythm keeps you calm — in an emergency, slow breaths help you think clearly!</div>
-<button onclick="startGame()">▶ PLAY</button>
-</div>
-<div class="ov hidden" id="over">
-<h1 id="ot">🏁 DRIFT COMPLETE!</h1>
-<p id="od"></p>
-<div class="lesson">🔥 Fire Safety: Rhythm keeps you calm — in an emergency, slow breaths help you think clearly!</div>
-<button onclick="startGame()">↻ PLAY AGAIN</button>
+<div id="overlay">
+<h1>🎵 RUKO'S<br>TURBO DRIFT</h1>
+<div id="obody"><p><b style="color:#ff2a6d">Sizzle</b> & <b style="color:#ff2a6d">Lord Inferno</b> drop the beat!</p><p>🎵 Notes fall down 4 lanes — <b>TAP</b> each lane when the note hits the target zone! Perfect timing = bigger combos!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Smoke alarms save lives — test yours every month with a grown-up!</div>
+<button id="obtn">▶ PLAY</button>
 </div>
 <script>
-"use strict";
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H,lanes=[];function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;lanes=[W*.2,W*.4,W*.6,W*.8];}addEventListener('resize',rs);rs();
-let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
-function beep(f,d,type,vol){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;g.gain.value=vol||.14;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const LANE_F=[262,330,392,494];
-const sHit=i=>beep(LANE_F[i],.15,'square',.14),sMiss=()=>beep(120,.25,'sawtooth',.14),sWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square',.12),i*130));};
-let ma,mb,mans;
-(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
-document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
-const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
-const box=document.getElementById('mathopts');
-[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
-b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
-let notes,parts,shake,score,combo,maxCombo,state,t,nextNote,perfects,goods,misses,judge,judgeT,hitZoneY,songLen;
-function startGame(){
- document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
- notes=[];parts=[];shake=0;score=0;combo=0;maxCombo=0;perfects=0;goods=0;misses=0;t=0;nextNote=0;judge='';judgeT=0;
- hitZoneY=H-160;songLen=45;state='play';beep(600,.07,'square',.1);
-}
-function spawnNote(){
- const lane=Math.floor(Math.random()*4);
- notes.push({lane,y:-40,hit:false});
-}
-function tapLane(l){
- if(state!=='play')return;
- let best=null,bd=1e9;
- notes.forEach(n=>{if(!n.hit&&n.lane===l){const d=Math.abs(n.y-hitZoneY);if(d<bd){bd=d;best=n;}}});
- if(best&&bd<70){
-  best.hit=true;
-  if(bd<28){score+=300*(1+combo*.1);perfects++;judge='PERFECT!';beep(LANE_F[l]*2,.12,'square',.13);}
-  else{score+=100*(1+combo*.1);goods++;judge='GOOD';beep(LANE_F[l],.12,'square',.12);}
-  combo++;maxCombo=Math.max(maxCombo,combo);judgeT=.7;
-  burst(lanes[l],hitZoneY,judge==='PERFECT!'?'#ffd23f':'#7fd4ff',14);
-  shake=Math.max(shake,4);
- }else{sMiss();combo=0;judge='MISS';judgeT=.5;shake=Math.max(shake,3);}
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+let W,H,lanes=[];function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;lanes=[W*0.2,W*0.4,W*0.6,W*0.8];}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function tone(f,dur,vol,type){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(vol||0.2,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const G={state:'title',score:0,combo:0,maxCombo:0,notes:[],parts:[],time:0,spawnT:0,bpm:132,perfect:0,good:0,miss:0,shake:0,judge:'',judgeT:0};
+const TARGET_Y=()=>H-140,NOTE_SPD=()=>H*0.55;
+const SCALE=[262,294,330,392,440,523,587,659];
+function startGame(){audio();G.score=0;G.combo=0;G.maxCombo=0;G.notes=[];G.parts=[];G.time=0;G.spawnT=1;G.perfect=0;G.good=0;G.miss=0;G.state='play';overlay.classList.add('hidden');document.getElementById('score').textContent='SCORE 0';}
+function spawnNote(){const lane=Math.floor(Math.random()*4);G.notes.push({lane,y:-40,hit:false,f:SCALE[Math.floor(Math.random()*SCALE.length)]});}
+function hitLane(lane){
+  if(G.state!=='play')return;
+  let best=null,bestD=1e9;
+  for(const n of G.notes){if(n.lane!==lane||n.hit)continue;const d=Math.abs(n.y-TARGET_Y());if(d<bestD){bestD=d;best=n;}}
+  const tol=H*0.09;
+  if(best&&bestD<tol){
+    best.hit=true;
+    const perfect=bestD<H*0.035;
+    if(perfect){G.perfect++;G.combo++;G.score+=300*G.combo;tone(best.f*2,0.25,0.25,'sine');G.judge='PERFECT!';}
+    else{G.good++;G.combo++;G.score+=100*G.combo;tone(best.f,0.2,0.2,'triangle');G.judge='GOOD';}
+    G.judgeT=0.5;G.maxCombo=Math.max(G.maxCombo,G.combo);G.shake=perfect?6:3;
+    for(let i=0;i<12;i++)G.parts.push({x:lanes[lane],y:TARGET_Y(),vx:(Math.random()-0.5)*300,vy:(Math.random()-0.5)*300,life:0.5,max:0.5,c:perfect?'#ffd23f':'#aee2ff'});
+    document.getElementById('score').textContent='SCORE '+G.score;
+    document.getElementById('combo').textContent=G.combo>1?'COMBO x'+G.combo:'';
+  }else{G.miss++;G.combo=0;tone(150,0.2,0.15,'sawtooth');G.judge='MISS';G.judgeT=0.5;document.getElementById('combo').textContent='';}
 }
 function update(dt){
- if(state!=='play')return;
- t+=dt;judgeT-=dt;
- const speed=320+t*4;
- nextNote-=dt;
- if(nextNote<=0&&t<songLen){spawnNote();nextNote=Math.max(.28,.62-t*.008);if(Math.random()<.25)spawnNote();}
- notes.forEach(n=>n.y+=speed*dt);
- notes.forEach(n=>{if(!n.hit&&n.y>hitZoneY+80){n.hit=true;misses++;combo=0;judge='MISS';judgeT=.5;sMiss();}});
- notes=notes.filter(n=>n.y<H+60&&!(n.hit&&n.y>hitZoneY+40));
- parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.6;});
- parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);
- if(t>=songLen+2){state='over';sWin();
-  document.getElementById('od').textContent=`Score: ${Math.round(score)} • Max combo: ${maxCombo} • Perfect: ${perfects} Good: ${goods} Miss: ${misses}`;
-  document.getElementById('over').classList.remove('hidden');}
+  if(G.shake>0)G.shake-=dt*30;
+  G.time+=dt;G.judgeT-=dt;
+  G.spawnT-=dt;if(G.spawnT<=0){G.spawnT=60/G.bpm*(Math.random()<0.3?0.5:1);spawnNote();}
+  for(let i=G.notes.length-1;i>=0;i--){const n=G.notes[i];
+    if(!n.hit)n.y+=NOTE_SPD()*dt;
+    else{n.y+=NOTE_SPD()*dt*0.3;}
+    if(n.y>H+60){if(!n.hit){G.miss++;G.combo=0;document.getElementById('combo').textContent='';}G.notes.splice(i,1);}}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.time>60){endGame();}
 }
-function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
- parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
-function draw(){
- ctx.fillStyle='#101018';ctx.fillRect(0,0,W,H);
- ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
- // road
- ctx.fillStyle='#1a1a26';lanes.forEach(x=>ctx.fillRect(x-34,0,68,H));
- lanes.forEach((x,i)=>{ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(x-34,0);ctx.lineTo(x-34,H);ctx.moveTo(x+34,0);ctx.lineTo(x+34,H);ctx.stroke();});
- // hit zone
- const pulse=1+Math.sin(t*8)*.06;
- lanes.forEach((x,i)=>{ctx.save();ctx.translate(x,hitZoneY);ctx.scale(pulse,pulse);
-  ctx.strokeStyle='rgba(255,210,63,.9)';ctx.lineWidth=4;
-  ctx.beginPath();ctx.arc(0,0,34,0,7);ctx.stroke();ctx.restore();});
- // notes
- notes.forEach(n=>{if(n.hit&&n.y>hitZoneY)return;
-  const x=lanes[n.lane];
-  ctx.save();ctx.translate(x,n.y);ctx.shadowColor='#ff6a00';ctx.shadowBlur=14;
-  const g=ctx.createRadialGradient(-5,-6,3,0,0,26);
-  g.addColorStop(0,'#ffcf5a');g.addColorStop(1,'#ff6a00');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,26,0,7);ctx.fill();
-  ctx.shadowBlur=0;ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-7,-3,3.4,0,7);ctx.arc(7,-3,3.4,0,7);ctx.fill();
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.2;ctx.beginPath();ctx.arc(0,5,8,.3,Math.PI-.3);ctx.stroke();
-  ctx.restore();});
- parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
- ctx.globalAlpha=1;ctx.restore();
- // HUD
- ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,W,54);
- ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
- ctx.fillText('SCORE '+Math.round(score),14,34);
- ctx.textAlign='center';
- if(combo>1){ctx.fillStyle='#ff9f1a';ctx.fillText('COMBO x'+combo,W/2,34);}
- const left=Math.max(0,Math.ceil(songLen-t));
- ctx.fillStyle='#fff';ctx.textAlign='right';ctx.fillText(left+'s',W-14,34);ctx.textAlign='left';
- if(judgeT>0){ctx.fillStyle=judge==='PERFECT!'?'#ffd23f':judge==='GOOD'?'#7fd4ff':'#ff6b6b';
-  ctx.font='bold 30px sans-serif';ctx.textAlign='center';ctx.globalAlpha=Math.min(1,judgeT*2);
-  ctx.fillText(judge,W/2,H/2-40);ctx.globalAlpha=1;ctx.textAlign='left';}
+function endGame(){G.state='over';
+  const acc=G.perfect+G.good+G.miss>0?Math.round((G.perfect+G.good*0.5)/(G.perfect+G.good+G.miss)*100):0;
+  obody.innerHTML='<p>Song complete! Score: <b>'+G.score+'</b></p><p>Perfect: '+G.perfect+' • Good: '+G.good+' • Miss: '+G.miss+'</p><p>Max combo: x'+G.maxCombo+' • Accuracy: '+acc+'%</p>';
+  document.querySelector('#overlay h1').textContent='🎵 FINISH!';
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');}
+function render(){
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+  ctx.save();if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  for(let i=0;i<4;i++){ctx.fillStyle=i%2?'#151528':'#121222';ctx.fillRect(lanes[i]-W*0.09,0,W*0.18,H);}
+  ctx.strokeStyle='#ff2a6d';ctx.lineWidth=4;
+  for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(lanes[i],TARGET_Y(),34,0,Math.PI*2);ctx.stroke();}
+  for(const n of G.notes){if(n.hit)continue;
+    const g=ctx.createRadialGradient(n.x||lanes[n.lane],n.y,4,lanes[n.lane],n.y,26);
+    g.addColorStop(0,'#ffd23f');g.addColorStop(1,'#ff2a6d');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(lanes[n.lane],n.y,26,0,Math.PI*2);ctx.fill();}
+  for(const p of G.parts){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=1;
+  if(G.judgeT>0){ctx.fillStyle=G.judge==='PERFECT!'?'#ffd23f':G.judge==='GOOD'?'#aee2ff':'#ff6a6a';ctx.font='bold 36px sans-serif';ctx.textAlign='center';ctx.fillText(G.judge,W/2,H*0.35);ctx.textAlign='left';}
+  // lane tap zones
+  for(let i=0;i<4;i++){ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fillRect(lanes[i]-W*0.09,H-220,W*0.18,220);}
+  ctx.restore();
 }
-let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left};}
-cv.addEventListener('pointerdown',e=>{if(state!=='play')return;const x=pos(e).x;
- let l=0,bd=1e9;lanes.forEach((lx,i)=>{const d=Math.abs(lx-x);if(d<bd){bd=d;l=i;}});tapLane(l);});
-addEventListener('keydown',e=>{const m={d:0,f:1,j:2,k:3};if(m[e.key]!==undefined)tapLane(m[e.key]);});
+function laneAt(x){let best=0,bd=1e9;lanes.forEach((l,i)=>{const d=Math.abs(l-x);if(d<bd){bd=d;best=i;}});return best;}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();for(const t of e.changedTouches)hitLane(laneAt(t.clientX));},{passive:false});
+canvas.addEventListener('mousedown',e=>{hitLane(laneAt(e.clientX));});
+addEventListener('keydown',e=>{const m={d:0,f:1,j:2,k:3};if(m[e.key.toLowerCase()]!==undefined)hitLane(m[e.key.toLowerCase()]);});
+let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>

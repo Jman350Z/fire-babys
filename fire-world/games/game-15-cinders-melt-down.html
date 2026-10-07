@@ -2,197 +2,131 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cinder's Melt-Down — Fire Babys</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#0c1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-canvas{display:block}
-.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,20,32,.94);color:#fff;text-align:center;padding:20px}
-.ov h1{font-size:30px;font-weight:900;margin-bottom:10px;color:#7fd4ff}
-.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
-.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
-.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
-.ov button:active{transform:translateY(3px)}
-#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
-#gate .opts{display:flex;gap:12px}
-#gate .opts button{font-size:26px;padding:10px 22px}
+html,body{width:100%;height:100%;overflow:hidden;background:#141020;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,14,30,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#e2a0ff}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#7a3aa0;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#221a30;border-radius:12px;padding:16px;margin:12px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
 .hidden{display:none!important}
-#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
+<div id="hud"><div id="score">PAIRS 0/8</div><div id="moves">FLIPS 0</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div class="ov" id="gate">
-<h1>🔥 Grown-Up Check</h1>
-<p>Ask a grown-up to help you answer:</p>
-<div class="math" id="mathq"></div>
-<div class="opts" id="mathopts"></div>
-</div>
-<div class="ov hidden" id="title">
-<h1>❄️ CINDER'S MELT-DOWN</h1>
-<p><b>Starring Lord Inferno &amp; Ruko</b></p>
-<p>Turn-based tactics! Tap one of your 3 fire babies, then tap a glowing tile to move (or tap an adjacent rock golem to MELT it). Golems shuffle closer every turn. Melt them all to win!</p>
-<div class="lesson">🔥 Fire Safety: Think before you act — having a plan keeps everyone safe, just like a fire escape plan!</div>
-<button onclick="startGame()">▶ PLAY</button>
-</div>
-<div class="ov hidden" id="over">
-<h1 id="ot">🏆 MELT-DOWN!</h1>
-<p id="od"></p>
-<div class="lesson">🔥 Fire Safety: Think before you act — having a plan keeps everyone safe, just like a fire escape plan!</div>
-<button onclick="startGame()">↻ PLAY AGAIN</button>
+<div id="overlay">
+<h1>🃏 CINDER'S<br>MELT-DOWN</h1>
+<div id="obody"><p><b style="color:#e2a0ff">Lord Inferno</b> & <b style="color:#e2a0ff">Ruko</b> test your memory!</p><p>🖱️ <b>Flip</b> two cards at a time — find all 8 matching fire baby pairs! Fewer flips = higher score!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Remember your family's fire escape plan — practice it twice a year!</div>
+<button id="obtn">▶ PLAY</button>
 </div>
 <script>
-"use strict";
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H,N=6,cell,gx,gy;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
- cell=Math.min((W-40)/N,(H-200)/N);gx=(W-cell*N)/2;gy=120;}addEventListener('resize',rs);rs();
-let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
-function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const sMove=()=>beep(440,.08,'square',.09,120),sMelt=()=>{beep(900,.2,'sine',.12,-500);beep(300,.15,'square',.1);},sHurt=()=>beep(140,.3,'sawtooth',.15,-80),sWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square',.12),i*130));};
-let ma,mb,mans;
-(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
-document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
-const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
-const box=document.getElementById('mathopts');
-[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
-b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
-let babies,foes,sel,parts,shake,score,combo,state,turn,movesLeft,msg,msgT;
-function startGame(){
- document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
- babies=[{r:5,c:1,hp:2},{r:5,c:2,hp:2},{r:5,c:4,hp:2}];
- foes=[{r:0,c:0,hp:2},{r:0,c:2,hp:2},{r:0,c:5,hp:2},{r:1,c:3,hp:2}];
- sel=null;parts=[];shake=0;score=0;combo=0;state='play';turn=1;movesLeft=2;msg='Tap a fire baby!';msgT=0;
- beep(600,.07,'square',.1);
-}
-function cellXY(r,c){return{x:gx+c*cell+cell/2,y:gy+r*cell+cell/2};}
-function adj(a,b){return Math.abs(a.r-b.r)+Math.abs(a.c-b.c)===1;}
-function occupied(r,c){
- if(babies.some(b=>b.r===r&&b.c===c))return 'baby';
- if(foes.some(f=>f.r===r&&f.c===c))return 'foe';
- return null;
-}
-function tapCell(r,c){
- if(state!=='play')return;
- if(r<0||r>=N||c<0||c>=N)return;
- const occ=occupied(r,c);
- if(sel===null){
-  const b=babies.find(b=>b.r===r&&b.c===c);
-  if(b){sel=b;sMove();msg='Move (glowing tiles) or melt adjacent golem!';}
-  return;
- }
- // attack?
- const f=foes.find(f=>f.r===r&&f.c===c);
- if(f&&adj(sel,f)){
-  f.hp--;combo++;score+=150*(1+combo*.5);sMelt();shake=Math.max(shake,9);
-  const p=cellXY(r,c);burst(p.x,p.y,'#7fd4ff',22);
-  if(f.hp<=0)foes.splice(foes.indexOf(f),1);
-  msg='Golem melted! 💧';endAction();checkEnd();return;
- }
- // move?
- if(!occ&&adj(sel,{r,c})){
-  sel.r=r;sel.c=c;sMove();msg='Moved!';endAction();checkEnd();return;
- }
- // reselect
- const b=babies.find(b=>b.r===r&&b.c===c);
- sel=b||null;if(b)msg='Move (glowing tiles) or melt adjacent golem!';
-}
-function endAction(){
- movesLeft--;
- if(movesLeft<=0){enemyTurn();}
-}
-function enemyTurn(){
- // each foe shuffles toward nearest baby
- foes.forEach(f=>{
-  let best=null,bd=1e9;
-  babies.forEach(b=>{const d=Math.abs(b.r-f.r)+Math.abs(b.c-f.c);if(d<bd){bd=d;best=b;}});
-  if(!best)return;
-  if(bd===1){
-   // attack baby
-   best.hp--;sHurt();shake=Math.max(shake,8);
-   const p=cellXY(best.r,best.c);burst(p.x,p.y,'#f44',14);
-   msg='A golem bonked your baby! 🪨';
-   if(best.hp<=0){babies.splice(babies.indexOf(best),1);if(sel===best)sel=null;}
-  }else{
-   const dr=Math.sign(best.r-f.r),dc=Math.sign(best.c-f.c);
-   const opts=[];
-   if(dr&&!occupied(f.r+dr,f.c))opts.push([f.r+dr,f.c]);
-   if(dc&&!occupied(f.r,f.c+dc))opts.push([f.r,f.c+dc]);
-   if(!opts.length){if(!occupied(f.r+dr,f.c)&&f.r+dr>=0&&f.r+dr<N)opts.push([f.r+dr,f.c]);}
-   if(opts.length){const [nr,nc]=opts[Math.floor(Math.random()*opts.length)];f.r=nr;f.c=nc;}
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+let W,H,CW,CH,OX,OY;const COLS=4,ROWS=4;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;
+  CW=Math.min(W*0.22,H*0.13);CH=CW*1.25;OX=(W-CW*COLS)/2;OY=H*0.18;}
+addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+// 8 fire baby faces (color + expression combos)
+const FACES=[
+  {c:'#ff8a2e',e:'happy'},{c:'#ff3b2e',e:'angry'},{c:'#ffd23f',e:'happy'},{c:'#ff2a6d',e:'silly'},
+  {c:'#ff6a00',e:'happy'},{c:'#c4a0ff',e:'calm'},{c:'#7ac4ff',e:'happy'},{c:'#e63900',e:'brave'}
+];
+const G={state:'title',cards:[],first:null,lock:false,pairs:0,flips:0,parts:[],shake:0,combo:0};
+function startGame(){audio();G.pairs=0;G.flips=0;G.first=null;G.lock=false;G.parts=[];G.combo=0;
+  const deck=[];for(let i=0;i<8;i++){deck.push(i,i);}
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  G.cards=deck.map((v,i)=>({v,flipped:false,matched:false,flip:0}));
+  G.state='play';updHud();overlay.classList.add('hidden');}
+function updHud(){document.getElementById('score').textContent='PAIRS '+G.pairs+'/8';document.getElementById('moves').textContent='FLIPS '+G.flips;}
+function boom(x,y,n,c){for(let i=0;i<n;i++)G.parts.push({x,y,vx:(Math.random()-0.5)*300,vy:(Math.random()-0.5)*300,life:0.6,max:0.6,c});}
+function flipCard(i){
+  if(G.state!=='play'||G.lock)return;
+  const c=G.cards[i];
+  if(c.flipped||c.matched)return;
+  c.flipped=true;G.flips++;sfx(500,700,0.1,'sine',0.15);updHud();
+  if(!G.first){G.first=i;}
+  else{
+    const a=G.cards[G.first],b=c;
+    if(a.v===b.v){
+      G.lock=true;
+      setTimeout(()=>{a.matched=true;b.matched=true;G.pairs++;G.combo++;
+        const cx=OX+(i%COLS)*CW+CW/2,cy=OY+Math.floor(i/COLS)*CH+CH/2;
+        boom(cx,cy,20,FACES[a.v].c);sfx(600,1200,0.25,'sine',0.2);G.shake=6;
+        G.first=null;G.lock=false;updHud();
+        if(G.pairs>=8)endGame();},400);
+    }else{
+      G.lock=true;G.combo=0;
+      const f=G.first;
+      setTimeout(()=>{a.flipped=false;b.flipped=false;G.first=null;G.lock=false;sfx(300,200,0.15,'square',0.12);},800);
+    }
   }
- });
- movesLeft=2;turn++;msgT=1.2;
- checkEnd();
 }
-function checkEnd(){
- if(!foes.length){state='over';sWin();score+=turn<8?500:200;
-  document.getElementById('ot').textContent='🏆 MELT-DOWN!';
-  document.getElementById('od').textContent=`All golems melted in ${turn} turns! Score: ${Math.round(score)}`;
-  document.getElementById('over').classList.remove('hidden');}
- else if(!babies.length){state='over';
-  document.getElementById('ot').textContent='🪨 OUTNUMBERED!';
-  document.getElementById('od').textContent=`The golems win this round. Score: ${Math.round(score)}`;
-  document.getElementById('over').classList.remove('hidden');}
+function endGame(){G.state='over';
+  const score=Math.max(100,1000-G.flips*10+G.combo*50);
+  obody.innerHTML='<p>🎉 All pairs found in <b>'+G.flips+'</b> flips! Score: <b>'+score+'</b></p>';
+  document.querySelector('#overlay h1').textContent='🏆 YOU WIN!';
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');
+  sfx(523,1047,0.5,'sine',0.25);}
+function drawFace(x,y,r,face,alpha){
+  ctx.save();ctx.globalAlpha=alpha;
+  const g=ctx.createRadialGradient(x-4,y-5,3,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(0.4,face.c);g.addColorStop(1,face.c);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(x-r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.7,x+r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.1,x-r*0.4,y-r*0.7);ctx.fill();
+  ctx.fillStyle='#2b1a0e';
+  if(face.e==='angry'){ctx.fillRect(x-11,y-8,9,3);ctx.fillRect(x+2,y-8,9,3);}
+  ctx.beginPath();ctx.arc(x-5,y-1,3,0,Math.PI*2);ctx.arc(x+5,y-1,3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();
+  if(face.e==='silly'){ctx.moveTo(x-7,y+8);ctx.lineTo(x+7,y+4);}
+  else ctx.arc(x,y+5,6,0.2,Math.PI-0.2);
+  ctx.stroke();ctx.restore();
 }
-function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
- parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
-function update(dt){
- parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.4;});
- parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);msgT-=dt;
+function render(){
+  ctx.fillStyle='#141020';ctx.fillRect(0,0,W,H);
+  ctx.save();if(G.shake>0){ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);G.shake*=0.9;}
+  G.cards.forEach((c,i)=>{
+    const x=OX+(i%COLS)*CW+4,y=OY+Math.floor(i/COLS)*CH+4,w=CW-8,h=CH-8;
+    if(c.matched){
+      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],0.35);
+    }else if(c.flipped){
+      ctx.fillStyle='#2a2040';ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
+      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],1);
+    }else{
+      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#4a3a6a');g.addColorStop(1,'#2a2040');
+      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
+      ctx.fillStyle='#e2a0ff';ctx.font='bold '+Math.floor(h*0.3)+'px sans-serif';ctx.textAlign='center';ctx.fillText('🔥',x+w/2,y+h/2+h*0.1);ctx.textAlign='left';}
+  });
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*0.016;p.y+=p.vy*0.016;p.life-=0.016;if(p.life<=0){G.parts.splice(i,1);continue;}ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
+  ctx.globalAlpha=1;ctx.restore();
 }
-function drawBaby(x,y,r,hp,sel2){
- const g=ctx.createRadialGradient(x-5,y-7,3,x,y,r);
- g.addColorStop(0,'#ffcf5a');g.addColorStop(1,'#ff6a00');
- ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
- if(sel2){ctx.strokeStyle='#ffd23f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,r+5,0,7);ctx.stroke();}
- ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(x-r*.3,y-2,2.6,0,7);ctx.arc(x+r*.3,y-2,2.6,0,7);ctx.fill();
- ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+4,r*.35,.3,Math.PI-.3);ctx.stroke();
- for(let i=0;i<hp;i++){ctx.fillStyle='#f44';ctx.beginPath();ctx.arc(x-r*.5+i*10,y-r-6,3.4,0,7);ctx.fill();}
+function tapAt(x,y){
+  if(G.state!=='play')return;
+  const c=Math.floor((x-OX)/CW),r=Math.floor((y-OY)/CH);
+  if(c>=0&&c<COLS&&r>=0&&r<ROWS)flipCard(r*COLS+c);
 }
-function draw(){
- ctx.fillStyle='#0c1420';ctx.fillRect(0,0,W,H);
- ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
- // board
- for(let r=0;r<N;r++)for(let c=0;c<N;c++){
-  ctx.fillStyle=(r+c)%2?'#16202f':'#1b2740';
-  ctx.fillRect(gx+c*cell,gy+r*cell,cell,cell);
-  ctx.strokeStyle='rgba(127,212,255,.15)';ctx.lineWidth=1;
-  ctx.strokeRect(gx+c*cell,gy+r*cell,cell,cell);
- }
- // move hints
- if(sel){[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
-  const r=sel.r+dr,c=sel.c+dc;
-  if(r<0||r>=N||c<0||c>=N)return;
-  const o=occupied(r,c),p=cellXY(r,c);
-  if(!o){ctx.fillStyle='rgba(127,212,255,.35)';ctx.beginPath();ctx.arc(p.x,p.y,cell*.18,0,7);ctx.fill();}
-  else if(o==='foe'){ctx.strokeStyle='#ff6b6b';ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,cell*.42,0,7);ctx.stroke();}
- });}
- foes.forEach(f=>{const p=cellXY(f.r,f.c);
-  ctx.save();ctx.translate(p.x,p.y);
-  ctx.fillStyle='#6a6a7a';ctx.beginPath();
-  const fr=cell*.34;
-  for(let i=0;i<8;i++){const a=i/8*6.283;ctx.lineTo(Math.cos(a)*fr,Math.sin(a)*fr);}ctx.closePath();ctx.fill();
-  ctx.fillStyle='#ff3b2e';ctx.beginPath();ctx.arc(-7,-3,4,0,7);ctx.arc(7,-3,4,0,7);ctx.fill();
-  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(-8,7);ctx.lineTo(8,7);ctx.stroke();
-  for(let i=0;i<f.hp;i++){ctx.fillStyle='#888';ctx.fillRect(-12+i*12,fr+2,9,5);}
-  ctx.restore();});
- babies.forEach(b=>{const p=cellXY(b.r,b.c);drawBaby(p.x,p.y,cell*.32,b.hp,sel===b);});
- parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
- ctx.globalAlpha=1;ctx.restore();
- ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
- ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
- ctx.fillText('SCORE '+Math.round(score),14,34);
- ctx.fillText('TURN '+turn,W/2-30,34);
- ctx.fillText('MOVES '+movesLeft,W-130,34);ctx.textAlign='left';
- ctx.fillStyle='#fff';ctx.font='bold 17px sans-serif';ctx.textAlign='center';
- ctx.fillText(msg,W/2,gy+N*cell+34);ctx.textAlign='left';
-}
-let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-cv.addEventListener('pointerdown',e=>{
- const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
- tapCell(Math.floor((y-gy)/cell),Math.floor((x-gx)/cell));});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapAt(t.clientX,t.clientY);},{passive:false});
+canvas.addEventListener('mousedown',e=>{tapAt(e.clientX,e.clientY);});
+let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  render();requestAnimationFrame(loop);}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>

@@ -2,161 +2,111 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sizzle's Spark Jump — Fire Babys</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#0d1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
-canvas{display:block}
-.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,20,32,.93);color:#fff;text-align:center;padding:20px}
-.ov h1{font-size:32px;font-weight:900;margin-bottom:10px;color:#ffd23f}
-.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
-.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
-.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
-.ov button:active{transform:translateY(3px)}
-#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
-#gate .opts{display:flex;gap:12px}
-#gate .opts button{font-size:26px;padding:10px 22px}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0f2e;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,8,30,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#c4a0ff}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#6a3ac4;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#1e1638;border-radius:12px;padding:16px;margin:12px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
 .hidden{display:none!important}
-#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
+<div id="hud"><div id="score">0m</div><div id="best">BEST 0m</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div class="ov" id="gate">
-<h1>🔥 Grown-Up Check</h1>
-<p>Ask a grown-up to help you answer:</p>
-<div class="math" id="mathq"></div>
-<div class="opts" id="mathopts"></div>
-</div>
-<div class="ov hidden" id="title">
-<h1>⚡ SIZZLE'S SPARK JUMP</h1>
-<p><b>Starring Cinder &amp; Blaze</b></p>
-<p>Bounce Sizzle ever HIGHER! Land on glowing platforms — tilt or tap left/right to steer. Grab stars for bonus points. Don't fall into the clouds below!</p>
-<div class="lesson">🔥 Fire Safety: Always look where you're going — climbing high places needs a grown-up nearby!</div>
-<button onclick="startGame()">▶ PLAY</button>
-</div>
-<div class="ov hidden" id="over">
-<h1 id="ot">☁️ TUMBLE DOWN!</h1>
-<p id="od"></p>
-<div class="lesson">🔥 Fire Safety: Always look where you're going — climbing high places needs a grown-up nearby!</div>
-<button onclick="startGame()">↻ PLAY AGAIN</button>
+<div id="overlay">
+<h1>🦘 SIZZLE'S<br>SPARK JUMP</h1>
+<div id="obody"><p><b style="color:#c4a0ff">Cinder</b> & <b style="color:#c4a0ff">Blaze</b> bounce to the stars!</p><p>📱 <b>Tilt or tap sides</b> to steer — Sizzle auto-bounces on platforms! Climb as high as you can. Grab stars for bonus points!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Climbing high? Always have a grown-up nearby to spot you!</div>
+<button id="obtn">▶ PLAY</button>
 </div>
 <script>
-"use strict";
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
-let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
-function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
-const sJump=()=>beep(400,.1,'square',.09,300),sStar=()=>{beep(1200,.12,'sine',.1,600);},sFall=()=>beep(300,.5,'sawtooth',.12,-220);
-let ma,mb,mans;
-(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
-document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
-const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
-const box=document.getElementById('mathopts');
-[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
-b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
-let px,py,vy,plats,stars,parts,camY,maxY,score,combo,comboT,state,best,dirL,dirR;
-function startGame(){
- document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
- px=W/2;py=H-160;vy=0;plats=[];stars=[];parts=[];camY=0;maxY=0;score=0;combo=0;comboT=0;state='play';dirL=dirR=false;
- plats.push({x:W/2-60,y:H-100,w:120,broken:false});
- for(let i=1;i<14;i++)addPlat(H-100-i*90);
- try{best=parseInt(localStorage.getItem('sparkjump_best')||'0');}catch(e){best=0;}
- beep(600,.07,'square',.1);
-}
-function addPlat(y){
- const w=70+Math.random()*60;
- plats.push({x:Math.random()*(W-w),y,w,broken:Math.random()<.18&&y<H-400});
- if(Math.random()<.3)stars.push({x:Math.random()*W,y:y-50,r:14,taken:false});
-}
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.15,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const G={state:'title',score:0,best:0,px:0,py:0,vx:0,vy:0,plats:[],stars:[],parts:[],camY:0,maxY:0,shake:0};
+function startGame(){audio();G.score=0;G.px=W/2;G.py=H-100;G.vx=0;G.vy=-900;G.plats=[];G.stars=[];G.parts=[];G.camY=0;G.maxY=0;
+  for(let i=0;i<14;i++)G.plats.push({x:Math.random()*(W-90),y:H-60-i*110,w:90,brk:Math.random()<0.15,mv:Math.random()<0.2?1:0,ph:Math.random()*6});
+  G.state='play';overlay.classList.add('hidden');}
+let tilt=0,leftHeld=false,rightHeld=false;
+addEventListener('deviceorientation',e=>{if(e.gamma!==null)tilt=e.gamma/30;});
 function update(dt){
- if(state!=='play')return;
- comboT-=dt;if(comboT<=0)combo=0;
- const GRAV=2200;
- vy+=GRAV*dt;py+=vy*dt;
- if(dirL)px-=380*dt;if(dirR)px+=380*dt;
- if(px<0)px=W;if(px>W)px=0;
- // platform collision (falling only)
- if(vy>0){
-  for(const p of plats){
-   if(px+20>p.x&&px-20<p.x+p.w&&py+24>p.y&&py+24<p.y+22){
-    if(p.broken){p.gone=true;beep(200,.15,'sawtooth',.1,-100);}
-    else{vy=-1050;sJump();burst(px,py+20,'#ffd23f',8);
-     combo++;comboT=1.2;score+=10*(1+combo*.1);}
-    break;
-   }
+  if(G.shake>0)G.shake-=dt*30;
+  // steering
+  let ax=tilt*900;
+  if(leftHeld)ax-=900;if(rightHeld)ax+=900;
+  G.vx+=(ax-G.vx)*Math.min(1,dt*6);
+  G.vy+=2000*dt;
+  G.px+=G.vx*dt;G.py+=G.vy*dt;
+  if(G.px<0)G.px=W;if(G.px>W)G.px=0;
+  // bounce on platforms (falling only)
+  if(G.vy>0){
+    for(const p of G.plats){
+      if(G.px>p.x-15&&G.px<p.x+p.w+15&&G.py+18>p.y&&G.py+18<p.y+22){
+        if(p.brk){p.gone=true;sfx(200,80,0.2,'square',0.15);}
+        else{G.vy=-950-Math.min(G.score*0.02,200);sfx(400,700,0.1,'sine',0.15);
+          for(let i=0;i<6;i++)G.parts.push({x:G.px,y:G.py+18,vx:(Math.random()-0.5)*200,vy:Math.random()*100,life:0.4,max:0.4,c:'#c4a0ff'});}
+        break;
+      }
+    }
   }
-  plats=plats.filter(p=>!p.gone);
- }
- // camera
- const target=py-H*.55;
- if(target<camY){camY=target;}
- maxY=Math.max(maxY,-camY);score=Math.max(score,Math.floor(maxY/10));
- // spawn above
- while(plats.length&&plats[plats.length-1].y>camY-100){addPlat(plats[plats.length-1].y-70-Math.random()*60);}
- plats=plats.filter(p=>p.y<camY+H+100);
- stars=stars.filter(s=>!s.taken&&s.y<camY+H+100);
- // stars
- stars.forEach(s=>{if(!s.taken&&Math.hypot(s.x-px,s.y-py)<34){s.taken=true;score+=50;sStar();burst(s.x,s.y,'#ffd23f',14);}});
- // fall
- if(py>camY+H+60){state='over';sFall();
-  if(score>best){best=score;try{localStorage.setItem('sparkjump_best',best);}catch(e){}}
-  document.getElementById('od').textContent=`Height: ${Math.floor(maxY/10)}m • Score: ${Math.round(score)} • Best: ${best}`;
-  document.getElementById('over').classList.remove('hidden');}
- parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.5;});
- parts=parts.filter(p=>p.life>0);
+  // moving platforms
+  for(const p of G.plats){if(p.mv&&!p.gone){p.ph+=dt*2;p.x+=Math.sin(p.ph)*60*dt;if(p.x<0)p.x=0;if(p.x>W-p.w)p.x=W-p.w;}}
+  // camera follows up
+  const targetY=G.py-H*0.45;
+  if(targetY<G.camY){G.camY=targetY;G.maxY=Math.max(G.maxY,-G.camY);G.score=Math.floor(G.maxY/10);}
+  // spawn new platforms above
+  let topY=Math.min(...G.plats.filter(p=>!p.gone).map(p=>p.y));
+  while(topY>G.camY-100){topY-=90+Math.random()*60;
+    G.plats.push({x:Math.random()*(W-90),y:topY,w:90,brk:Math.random()<Math.min(0.35,G.score/3000),mv:Math.random()<0.25,ph:Math.random()*6});
+    if(Math.random()<0.2)G.stars.push({x:Math.random()*W,y:topY-40,taken:false});}
+  // remove below
+  G.plats=G.plats.filter(p=>p.y<G.camY+H+100&&!p.gone);
+  // stars
+  for(const s of G.stars){if(!s.taken&&Math.hypot(s.x-G.px,s.y-G.py)<36){s.taken=true;G.score+=50;sfx(880,1320,0.2,'sine',0.2);G.shake=4;}}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  document.getElementById('score').textContent=G.score+'m';
+  if(G.py>G.camY+H+60){gameOver();}
 }
-function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*5;
- parts.push({x,y:y-camY,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*4});}}
-function draw(){
- const g=ctx.createLinearGradient(0,0,0,H);
- g.addColorStop(0,'#0d1420');g.addColorStop(1,'#1a2a45');
- ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
- // stars bg
- ctx.fillStyle='rgba(255,255,255,.5)';
- for(let i=0;i<40;i++){const sx=(i*97)%W,sy=((i*61)-camY*.3)%H;ctx.fillRect(sx,sy<0?sy+H:sy,2,2);}
- ctx.save();ctx.translate(0,-camY);
- plats.forEach(p=>{if(p.gone)return;
-  ctx.fillStyle=p.broken?'rgba(255,120,60,.75)':'#3fae4a';
-  ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,18,9);ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(p.x+6,p.y+3,p.w-12,5);});
- stars.forEach(s=>{if(s.taken)return;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(Date.now()/600);
-  ctx.fillStyle='#ffd23f';ctx.beginPath();
-  for(let i=0;i<5;i++){const a=i/5*6.283-Math.PI/2,a2=a+6.283/10;
-   ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);ctx.lineTo(Math.cos(a2)*s.r*.45,Math.sin(a2)*s.r*.45);}
-  ctx.closePath();ctx.fill();ctx.restore();});
- // Sizzle (yellow spark baby)
- const yy=py;
- ctx.save();ctx.translate(px,yy);
- const bg2=ctx.createRadialGradient(-6,-8,4,0,0,26);
- bg2.addColorStop(0,'#fff3a0');bg2.addColorStop(.5,'#ffd23f');bg2.addColorStop(1,'#ff9f1a');
- ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(0,0,24,0,7);ctx.fill();
- ctx.fillStyle='#ff9f1a';
- for(let i=0;i<6;i++){const a=i/6*6.283;ctx.beginPath();
-  ctx.moveTo(Math.cos(a)*20,Math.sin(a)*20);ctx.lineTo(Math.cos(a)*32,Math.sin(a)*32);ctx.lineTo(Math.cos(a+.3)*20,Math.sin(a+.3)*20);ctx.fill();}
- ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-7,-3,3.2,0,7);ctx.arc(7,-3,3.2,0,7);ctx.fill();
- ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.2;ctx.beginPath();ctx.arc(0,5,8,.3,Math.PI-.3);ctx.stroke();
- ctx.restore();
- parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y+camY,p.sz*p.life,0,7);ctx.fill();});
- ctx.globalAlpha=1;ctx.restore();
- ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
- ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
- ctx.fillText('SCORE '+Math.round(score),14,34);
- ctx.fillText('BEST '+best,W-110,34);ctx.textAlign='left';
- if(combo>2){ctx.fillStyle='#ff9f1a';ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillText('COMBO x'+combo,W/2,34);ctx.textAlign='left';}
- // touch zones hint
- ctx.fillStyle='rgba(255,255,255,.15)';ctx.font='bold 40px sans-serif';ctx.textAlign='center';
- ctx.fillText('◀',50,H-60);ctx.fillText('▶',W-50,H-60);ctx.textAlign='left';
+function gameOver(){G.state='over';G.best=Math.max(G.best,G.score);document.getElementById('best').textContent='BEST '+G.best+'m';
+  obody.innerHTML='<p>Sizzle tumbled! Height: <b>'+G.score+'m</b> — Best: '+G.best+'m</p>';
+  document.querySelector('#overlay h1').textContent='🦘 GAME OVER';
+  obtn.textContent='↻ JUMP AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');}
+function drawBaby(x,y){const r=20;const g=ctx.createRadialGradient(x-5,y-6,4,x,y,r);g.addColorStop(0,'#fff3b0');g.addColorStop(0.5,'#ff8a2e');g.addColorStop(1,'#e63900');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(x-r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.7,x+r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.1,x-r*0.4,y-r*0.7);ctx.fill();ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(x-6,y-2,3,0,Math.PI*2);ctx.arc(x+6,y-2,3,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+6,6,0.2,Math.PI-0.2);ctx.stroke();}
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0d0d2a');bg.addColorStop(1,'#2a1a4a');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';for(let i=0;i<40;i++){const sx=(i*167)%W,sy=((i*89-G.camY*0.3)%(H+40)+H+40)%(H+40)-20;ctx.fillRect(sx,sy,2,2);}
+  ctx.save();if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  ctx.save();ctx.translate(0,-G.camY);
+  for(const p of G.plats){ctx.fillStyle=p.brk?'#8a5a3a':'#4a6a8a';ctx.fillRect(p.x,p.y,p.w,16);ctx.fillStyle=p.brk?'#a06a4a':'#6a8aaa';ctx.fillRect(p.x,p.y,p.w,5);}
+  for(const s of G.stars){if(s.taken)continue;ctx.fillStyle='#ffd23f';ctx.save();ctx.translate(s.x,s.y);ctx.rotate(G.score*0.01);ctx.fillRect(-10,-3,20,6);ctx.fillRect(-3,-10,6,20);ctx.restore();}
+  drawBaby(G.px,G.py);
+  for(const p of G.parts){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=1;ctx.restore();ctx.restore();
 }
-let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
-cv.addEventListener('pointerdown',e=>{if(state!=='play')return;
- const r=cv.getBoundingClientRect(),x=e.clientX-r.left;x<W/2?dirL=true:dirR=true;});
-cv.addEventListener('pointerup',()=>{dirL=dirR=false;});
-cv.addEventListener('pointercancel',()=>{dirL=dirR=false;});
-addEventListener('keydown',e=>{if(e.key==='ArrowLeft')dirL=true;if(e.key==='ArrowRight')dirR=true;});
-addEventListener('keyup',e=>{if(e.key==='ArrowLeft')dirL=false;if(e.key==='ArrowRight')dirR=false;});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];if(t.clientX<W/2)leftHeld=true;else rightHeld=true;},{passive:false});
+canvas.addEventListener('touchend',e=>{e.preventDefault();leftHeld=false;rightHeld=false;},{passive:false});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')leftHeld=true;if(e.key==='ArrowRight')rightHeld=true;});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft')leftHeld=false;if(e.key==='ArrowRight')rightHeld=false;});
+let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
