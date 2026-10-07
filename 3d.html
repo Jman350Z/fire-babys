@@ -7364,7 +7364,7 @@ function updateMpScoreboard(){
   if(!mpInGame || mpGameMode === 'coop') return;
   var pill = document.getElementById('foepill');
   if(pill){
-    pill.style.display = '';
+    pill.style.display = 'block'; // must override #foepill{display:none} in CSS
     if(mpGameMode === 'catch' && mpCatch){
       var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
       var tsec = Math.max(0, Math.ceil(mpCatch.timer));
