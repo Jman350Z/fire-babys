@@ -14,6 +14,10 @@ canvas{display:block;width:100%;height:100%}
 #stage{font-size:18px;color:#ff6a00}
 #hpbar{width:140px;height:14px;background:#333;border:2px solid #000;border-radius:7px;overflow:hidden;margin-top:4px}
 #hpfill{height:100%;width:100%;background:linear-gradient(90deg,#ff3b2e,#ff8a00);transition:width .2s}
+#bosshpwrap{margin-top:6px}
+#bosslabel{font-size:12px;color:#ff8a8a;font-weight:800}
+#bosshpbar{width:180px;height:12px;background:#222;border:2px solid #a3121f;border-radius:6px;overflow:hidden;margin-top:2px}
+#bosshpfill{height:100%;width:100%;background:linear-gradient(90deg,#ff4a5a,#a3121f);transition:width .2s}
 #overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,5,15,.92);color:#fff;text-align:center;padding:24px;overflow-y:auto}
 #overlay h1{font-size:clamp(26px,6vw,44px);font-weight:900;margin-bottom:14px;color:#c41e7a;text-shadow:0 0 20px #ff2a6d}
 #overlay h1.gold{color:#ffd23f;text-shadow:0 0 20px #ff8a00}
@@ -36,7 +40,7 @@ canvas{display:block;width:100%;height:100%}
 </head>
 <body>
 <div id="game">
-<div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div></div><div id="score">SCORE 0</div></div>
+<div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div><div id="bosshpwrap" class="hidden"><div id="bosslabel">👹 FORTRESS BOSS</div><div id="bosshpbar"><div id="bosshpfill"></div></div></div></div><div id="score">SCORE 0</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 <div id="dpad">
@@ -180,6 +184,7 @@ const GRAV=2200,JUMP_V=780,MOVE_SPD=320;
 /* ---------- Level generation (15 stages) ---------- */
 function buildStage(n){
   G.platforms=[];G.enemies=[];G.hazards=[];G.coins=[];G.boss=null;G.bossActive=false;
+  document.getElementById('bosshpwrap').classList.add('hidden');
   const diff=Math.min(1,(n-1)/14); // 0..1 difficulty
   G.levelW=2400+n*220;
   const groundY=H-90;
@@ -237,6 +242,7 @@ function buildStage(n){
   if(n===15){
     G.boss={x:G.levelW-400,y:groundY-120,w:90,h:120,hp:30,maxHp:30,
       vx:0,vy:0,atkT:0,alive:true,hitT:0,phase:1};
+    document.getElementById('bosshpwrap').classList.remove('hidden');
     sfx('boss');
   }
   G.doorX=G.levelW-150;
@@ -300,12 +306,10 @@ function updatePlayer(dt){
       if(pl.brk&&!pl.shake){pl.shake=0.5;}
       P.y=pl.y-P.h/2;P.vy=0;P.onGround=true;
     }
-    // wall collision
-    if(P.y>P.y-0){ // side check
-      if(P.x+P.w/2>pl.x&&P.x-P.w/2<pl.x+pl.w&&P.y+P.h/2>pl.y+10&&P.y-P.h/2<pl.y+pl.h){
-        if(P.x<pl.x)P.x=pl.x-P.w/2;else P.x=pl.x+pl.w+P.w/2;
-        if(!P.onGround&&Math.abs(P.vx)>50){P.wallSliding=true;P.vy=Math.min(P.vy,120);}
-      }
+    // wall collision (side check)
+    if(P.x+P.w/2>pl.x&&P.x-P.w/2<pl.x+pl.w&&P.y+P.h/2>pl.y+10&&P.y-P.h/2<pl.y+pl.h){
+      if(P.x<pl.x)P.x=pl.x-P.w/2;else P.x=pl.x+pl.w+P.w/2;
+      if(!P.onGround&&Math.abs(P.vx)>50){P.wallSliding=true;P.vy=Math.min(P.vy,120);}
     }
   }
   // wall jump
@@ -356,9 +360,7 @@ function updateEnemies(dt){
   // pendulums
   for(const hz of G.hazards){
     if(hz.type==='pendulum'){
-      hz.ang+=hz.spd*dt*Math.cos(G.time*0.5)>0?hz.spd*dt:-hz.spd*dt;
-      // simpler: oscillate
-      hz.phase=(hz.phase||0)+hz.spd*dt;
+      hz.phase=(hz.phase||0)+hz.spd*dt; // smooth pendulum oscillation
       const px=hz.x+Math.sin(hz.phase)*hz.len*0.7;
       const py=hz.y+Math.cos(hz.phase)*hz.len*0.4+hz.len*0.6;
       hz.bx=px;hz.by=py;
@@ -371,6 +373,7 @@ function updateEnemies(dt){
   // boss
   if(G.boss&&G.boss.alive){
     const b=G.boss;b.hitT-=dt;b.atkT-=dt;
+    document.getElementById('bosshpfill').style.width=(b.hp/b.maxHp*100)+'%';
     // chase player slowly
     const dx=P.x-b.x;
     b.vx+=(Math.sign(dx)*120-b.vx)*Math.min(1,dt*2);
@@ -432,6 +435,7 @@ function victoryCutscene(){ // END name placement #3
 
 /* ---------- Overlay ---------- */
 function showOverlay(title,body,lesson,btn,cb){
+  otitle.classList.remove('gold');
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
