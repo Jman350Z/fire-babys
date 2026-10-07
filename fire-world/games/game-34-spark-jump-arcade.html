@@ -6,200 +6,130 @@
 <title>Spark Jump Arcade — Fire Babys</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#160d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
-#wrap{position:relative;width:100%;height:100%}
+html,body{width:100%;height:100%;overflow:hidden;background:#141008;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
 canvas{display:block}
-.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
-.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
-.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
-.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
-.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
-.btn:active{transform:translateY(2px)}
-#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
-.hide{display:none!important}
-#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
-#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
-#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,16,8,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ffd23f}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#d4a017;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#mash{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:10;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#ff8a00,#c41e12);border:6px solid #fff;color:#fff;font-size:24px;font-weight:900;display:none;align-items:center;justify-content:center;box-shadow:0 0 30px #ff6a00}
+#mash:active{transform:translateX(-50%) scale(0.93)}
 </style>
 </head>
 <body>
-<div id="wrap">
-<div id="hud"><span id="score">SCORE 0</span><span id="moves">MOVES 30</span></div>
-<div id="combo"></div>
-<canvas id="c"></canvas>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
-<div class="ov" id="gate">
-<h1>⚡ SPARK JUMP<br>ARCADE</h1>
-<p><b>Starring Blaze &amp; Boulder</b></p>
-<p>Match-3 with physics! Tap two adjacent embers to <b>swap</b> them. Match 3+ of a color and they <b>pop with bouncy physics</b>! 30 moves — score big!</p>
-<div class="lesson">🔥 Fire Safety: Sparks fly! Keep a safe distance from campfires and fireworks.</div>
-<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
-</div>
-<div class="ov hide" id="over">
-<h1 id="ot">TIME'S UP!</h1>
-<p id="od"></p>
-<div class="lesson" id="ol"></div>
-<button class="btn" onclick="location.reload()">↻ PLAY AGAIN</button>
-</div>
+<canvas id="c"></canvas>
+<div id="mash">TAP!<br>👊</div>
+<div id="overlay">
+<h1>💪 SPARK JUMP ARCADE</h1>
+<div id="obody"><p>TUG-OF-WAR against the Rock Golem! <b>Mash the big button</b> as fast as you can!</p><p>Pull the flag to YOUR side to win the round. Best of 3 rounds!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: In an emergency, work TOGETHER — teamwork keeps everyone safe!</div>
+<button id="obtn">▶ START</button>
 </div>
 <script>
-let AC=null;
-function sfx(f,d,type='sine',v=0.1){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
-function popS(n){sfx(500+n*100,.15,'triangle',.12)} function swapS(){sfx(300,.08,'square',.08)} function badS(){sfx(180,.15,'sawtooth',.1)}
-const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
-document.getElementById('mq').textContent=_a+' + '+_b;
-function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
-const cv=document.getElementById('c'),ctx=cv.getContext('2d');
-let W,H,GS,GOX,GOY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;GS=Math.min(W*0.11,64);const bw=GS*6;GOX=(W-bw)/2;GOY=(H-GS*7)/2+20;}addEventListener('resize',rs);rs();
-const scoreEl=document.getElementById('score'),movesEl=document.getElementById('moves'),comboEl=document.getElementById('combo');
-const COLS=6,ROWS=7,COLORS=['#ff6a00','#ffd23f','#ff3b5e','#4da6ff','#3fae4a'];
-let running=false,grid,sel,parts,shake,score,moves,combo,comboChain,falling;
-function startGame(){
-  running=true;sel=null;parts=[];shake=0;score=0;moves=30;combo=0;comboChain=0;falling=false;
-  grid=[];
-  for(let r=0;r<ROWS;r++){grid.push([]);for(let c=0;c<COLS;c++){grid[r].push(newGem(r,c));}}
-  // ensure no starting matches
-  while(findMatches().length>0){grid.forEach((row,r)=>row.forEach((g,c)=>{g.color=Math.floor(Math.random()*5);}));}
-  scoreEl.textContent='SCORE 0';movesEl.textContent='MOVES 30';
-  requestAnimationFrame(loop);
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate'),mash=document.getElementById('mash');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.2,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',round:1,wins:0,losses:0,pos:0,golemPow:0,parts:[],shake:0,roundT:0};
+function startRound(){
+  G.pos=0;G.roundT=20;G.golemPow=30+G.round*14;
+  mash.style.display='flex';
 }
-function newGem(r,c){return{r,c,color:Math.floor(Math.random()*COLORS.length),x:GOX+c*GS+GS/2,y:GOY+r*GS+GS/2,vy:0,scale:1,pop:0};}
-function cellX(c){return GOX+c*GS+GS/2;} function cellY(r){return GOY+r*GS+GS/2;}
-function findMatches(){
-  const matched=new Set();
-  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS-2;c++){
-    const col=grid[r][c].color;
-    if(grid[r][c+1].color===col&&grid[r][c+2].color===col){
-      let cc=c;while(cc<COLS&&grid[r][cc].color===col){matched.add(r+','+cc);cc++;}
-    }
-  }
-  for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-2;r++){
-    const col=grid[r][c].color;
-    if(grid[r+1][c].color===col&&grid[r+2][c].color===col){
-      let rr=r;while(rr<ROWS&&grid[rr][c].color===col){matched.add(rr+','+c);rr++;}
-    }
-  }
-  return [...matched].map(s=>s.split(',').map(Number));
+function start(){ac();G.state='play';G.round=1;G.wins=0;G.losses=0;G.parts=[];overlay.classList.add('hidden');startRound();}
+function endRound(won){
+  mash.style.display='none';
+  if(won){G.wins++;sfx(523,1047,0.4,'sine');}else{G.losses++;sfx(300,100,0.4,'sawtooth');}
+  G.shake=8;
+  if(G.wins>=2||G.losses>=2||G.round>=3){gameOver();return;}
+  G.round++;G.state='break';
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent=won?'🎉 ROUND WON!':'😤 ROUND LOST';
+  obody.innerHTML='<p>Score: You '+G.wins+' — Golem '+G.losses+'</p><p>Round '+G.round+' — the golem pulls HARDER!</p>';
+  obtn.textContent='▶ NEXT ROUND';obtn.onclick=()=>{overlay.classList.add('hidden');G.state='play';startRound();};
 }
-function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*7;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,life:1,col,sz:3+Math.random()*5});}}
-function resolveMatches(){
-  const m=findMatches();
-  if(m.length===0){
-    if(comboChain>0){combo=0;comboEl.style.opacity=0;}
-    comboChain=0;falling=false;checkMoves();return;
-  }
-  comboChain++;
-  const pts=m.length*10*comboChain;
-  score+=pts;scoreEl.textContent='SCORE '+score;
-  popS(comboChain);shake=Math.min(10,shake+4);
-  if(comboChain>=2){comboEl.textContent='⚡ CHAIN x'+comboChain+' +'+pts;comboEl.style.opacity=1;}
-  m.forEach(([r,c])=>{
-    const g=grid[r][c];
-    explode(g.x,g.y,10,COLORS[g.color]);
-    grid[r][c]=null;
-  });
-  // gravity
-  for(let c=0;c<COLS;c++){
-    let write=ROWS-1;
-    for(let r=ROWS-1;r>=0;r--){
-      if(grid[r][c]){if(write!==r){grid[write][c]=grid[r][c];grid[r][c].r=write;}write--;}
-    }
-    for(let r=write;r>=0;r--){const g=newGem(r,c);g.y=cellY(r)-GS*3;grid[r][c]=g;}
-  }
-  falling=true;
-  setTimeout(()=>{if(running)resolveMatches();},350);
+function gameOver(){
+  G.state='over';overlay.classList.remove('hidden');
+  const won=G.wins>G.losses;
+  document.querySelector('#overlay h1').textContent=won?'🏆 YOU WIN!':'🪨 GOLEM WINS';
+  obody.innerHTML='<p>Final: You '+G.wins+' — Golem '+G.losses+'</p><p>'+(won?'Blaze cheers for you! 🔥':'The golem is strong... train those fingers!')+'</p>';
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{start();};
 }
-function checkMoves(){
-  if(moves<=0){running=false;showOver();}
-}
-function trySwap(r1,c1,r2,c2){
-  if(falling||!running)return;
-  if(Math.abs(r1-r2)+Math.abs(c1-c2)!==1)return;
-  const a=grid[r1][c1],b=grid[r2][c2];
-  grid[r1][c1]=b;grid[r2][c2]=a;
-  a.r=r2;a.c=c2;b.r=r1;b.c=c1;
-  swapS();
-  if(findMatches().length>0){
-    moves--;movesEl.textContent='MOVES '+moves;
-    falling=true;
-    setTimeout(()=>{if(running)resolveMatches();},250);
-  }else{
-    // swap back
-    grid[r1][c1]=a;grid[r2][c2]=b;a.r=r1;a.c=c1;b.r=r2;b.c=c2;
-    badS();
-  }
-}
-function showOver(){
-  document.getElementById('od').textContent='Final score: '+score+'! Spark-tacular matching!';
-  document.getElementById('ol').innerHTML='🔥 Fire Safety: Sparks fly! Keep a safe distance from campfires and fireworks.';
-  document.getElementById('over').classList.remove('hide');
-  [523,659,784].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle',.12),i*100));
-}
-let last=0;
-function loop(t){
-  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
-  update(dt);render();
-  if(running)requestAnimationFrame(loop);
-}
-function update(dt){
-  // gem physics: ease toward cell
-  grid.forEach(row=>row.forEach(g=>{
-    if(!g)return;
-    const tx=cellX(g.c),ty=cellY(g.r);
-    g.vy+=900*dt;
-    g.y+=g.vy*dt;g.x+=(tx-g.x)*Math.min(1,dt*10);
-    if(g.y>ty){g.y=ty;g.vy*=-0.3;if(Math.abs(g.vy)<30)g.vy=0;}
-    if(g.pop>0)g.pop-=dt*3;
-  }));
-  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.4;p.life-=dt*1.6;});
-  parts=parts.filter(p=>p.life>0);
-  shake*=0.88;
-}
-cv.addEventListener('pointerdown',e=>{
-  if(!running||falling)return;
-  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  const c=Math.floor((x-GOX)/GS),rr=Math.floor((y-GOY)/GS);
-  if(c<0||c>=COLS||rr<0||rr>=ROWS)return;
-  if(!sel){sel={r:rr,c};sfx(400,.06,'sine',.06);}
-  else{
-    trySwap(sel.r,sel.c,rr,c);
-    sel=null;
-  }
+mash.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  if(G.state!=='play')return;
+  G.pos-=9+Math.random()*5;
+  sfx(200+Math.random()*300,500,0.08,'square');G.shake=4;
+  for(let i=0;i<4;i++)G.parts.push({x:W/2+(Math.random()-0.5)*200,y:H*0.45,vx:(Math.random()-0.5)*200,vy:-Math.random()*200,life:0.4,color:'#ffd23f',s:5});
+  if(G.pos<=-160)endRound(true);
 });
-function render(){
-  ctx.save();
-  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#241209');g.addColorStop(1,'#120806');
-  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
-  // board
-  ctx.fillStyle='rgba(0,0,0,.35)';
-  roundRect(GOX-10,GOY-10,GS*COLS+20,GS*ROWS+20,16);ctx.fill();
-  grid.forEach(row=>row.forEach(gm=>{
-    if(!gm)return;
-    const s=GS*0.4*(gm.pop>0?1+gm.pop*0.5:1);
-    ctx.save();
-    if(sel&&sel.r===gm.r&&sel.c===gm.c){ctx.shadowColor='#fff';ctx.shadowBlur=16;}
-    const rg=ctx.createRadialGradient(gm.x-s*0.3,gm.y-s*0.3,s*0.2,gm.x,gm.y,s);
-    rg.addColorStop(0,'#fff');rg.addColorStop(0.3,COLORS[gm.color]);rg.addColorStop(1,shade(COLORS[gm.color]));
-    ctx.fillStyle=rg;
-    ctx.beginPath();ctx.arc(gm.x,gm.y,s,0,7);ctx.fill();
-    ctx.restore();
-  }));
-  // selection ring
-  if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(cellX(sel.c),cellY(sel.r),GS*0.48,0,7);ctx.stroke();}
-  // Blaze & Boulder buddies
-  ctx.font='36px serif';ctx.fillText('🔥',GOX-56,GOY+40);ctx.fillText('🪨',GOX+GS*COLS+16,GOY+40);
-  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
-  ctx.globalAlpha=1;
+function update(dt){
+  if(G.state!=='play')return;
+  G.roundT-=dt;
+  const burst=1+Math.sin(Date.now()/700+G.round)*0.6;
+  G.pos+=G.golemPow*burst*dt*0.55;
+  if(G.pos>=160)endRound(false);
+  if(G.roundT<=0)endRound(G.pos<0);
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.shake>0)G.shake-=dt*30;
+}
+function drawFighter(x,y,flip,rocky){
+  ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);
+  if(rocky){
+    const g=ctx.createRadialGradient(-8,-10,4,0,0,30);
+    g.addColorStop(0,'#888');g.addColorStop(1,'#444');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,26,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff3b2e';ctx.beginPath();ctx.arc(-8,-4,4,0,Math.PI*2);ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#222';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(44,0);ctx.stroke();
+  }else{
+    const g=ctx.createRadialGradient(-5,-8,3,0,0,24);
+    g.addColorStop(0,'#fff3b0');g.addColorStop(0.6,'#ffb300');g.addColorStop(1,'#e8640c');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(-9,-15);ctx.quadraticCurveTo(0,-34,9,-15);ctx.quadraticCurveTo(0,-22,-9,-15);ctx.fill();
+    ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(-7,0,3,0,Math.PI*2);ctx.arc(7,0,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,8,6,0.3,Math.PI-0.3);ctx.stroke();
+    ctx.strokeStyle='#7a4a2a';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-18,0);ctx.lineTo(-44,0);ctx.stroke();
+  }
   ctx.restore();
 }
-function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function shade(hex){
-  const n=parseInt(hex.slice(1),16);
-  const r=Math.max(0,((n>>16)&255)-60),gg=Math.max(0,((n>>8)&255)-60),b=Math.max(0,(n&255)-60);
-  return `rgb(${r},${gg},${b})`;
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#241a10');g.addColorStop(1,'#0d0a05');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  if(G.state==='title'){ctx.restore();return;}
+  const cy=H*0.42;
+  ctx.fillStyle='#3a2e1e';ctx.fillRect(0,cy+40,W,H-cy);
+  const cx=W/2+G.pos;
+  ctx.strokeStyle='#c8a86a';ctx.lineWidth=8;
+  ctx.beginPath();ctx.moveTo(W*0.15,cy);ctx.lineTo(W*0.85,cy);ctx.stroke();
+  ctx.fillStyle='#ff3b2e';
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+24,cy-12);ctx.lineTo(cx,cy-24);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillRect(W/2-3,cy-40,6,80);
+  ctx.fillStyle='rgba(122,255,168,0.15)';ctx.fillRect(0,cy-40,W*0.15,80);
+  ctx.fillStyle='rgba(255,60,60,0.15)';ctx.fillRect(W*0.85,cy-40,W*0.15,80);
+  drawFighter(W*0.15-70,cy,false,false);
+  drawFighter(W*0.85+70,cy,true,true);
+  ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.textAlign='center';
+  ctx.fillText('ROUND '+G.round+'/3  •  '+Math.ceil(G.roundT)+'s',W/2,60);
+  ctx.fillText('YOU '+G.wins+' — '+G.losses+' GOLEM',W/2,90);
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*2.5,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
 }
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
 </script>
 </body>
 </html>
