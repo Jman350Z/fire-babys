@@ -1,1 +1,199 @@
-<!-- placeholder - real file will be uploaded -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruko's Panic Dash — Fire Babys</title>
+<meta name="description" content="Dodge magma boulders and oil slicks in Ruko's Panic Dash! A Fire Babys game by Jman350Z & fire team.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0a08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:relative;width:100%;height:100%}
+canvas{display:block;width:100%;height:100%}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700;cursor:pointer}
+#ui{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;text-align:center;padding-top:12px}
+#score{font-size:28px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#hearts{font-size:24px;margin-top:4px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.85);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:42px;font-weight:900;margin-bottom:12px;color:#ff6a00}
+#overlay p{font-size:18px;margin-bottom:8px;max-width:400px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:16px 0;font-size:15px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:22px;font-weight:800;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px}
+#overlay button:active{transform:translateY(3px)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="game">
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ui"><div id="score">0m</div><div id="hearts">❤️❤️❤️</div></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1 id="otitle">🔥 RUKO'S<br>PANIC DASH</h1>
+<p id="odesc">Ruko's running for his life! Swipe or tap LEFT / RIGHT to dodge falling magma boulders. Watch out for slippery oil slicks!</p>
+<div class="lesson">🔥 Fire Safety: In a real emergency, stay calm and move quickly to safety — panic makes things worse!</div>
+<button id="obtn" onclick="startGame()">▶ START</button>
+</div>
+</div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score'),heartsEl=document.getElementById('hearts');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),odesc=document.getElementById('odesc'),obtn=document.getElementById('obtn');
+let W,H,lanes=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;lanes=[W*0.25,W*0.5,W*0.75];}
+addEventListener('resize',resize);resize();
+let running=false,lane=1,targetX=0,rukoX=0,rukoY=0;
+let obstacles=[],distance=0,speed=0,hearts=3,slide=0,slideDir=0;
+let steam=[],lastSpawn=0,gameTime=0;
+function startGame(){
+  running=true;lane=1;obstacles=[];distance=0;speed=400;hearts=3;slide=0;gameTime=0;lastSpawn=0;
+  rukoY=H*0.72;targetX=lanes[1];rukoX=targetX;
+  overlay.classList.add('hidden');
+  updateHearts();
+}
+function updateHearts(){heartsEl.textContent='❤️'.repeat(hearts)+'🖤'.repeat(3-hearts);}
+function gameOver(){
+  running=false;
+  otitle.innerHTML='💥 GAME OVER!';
+  odesc.textContent=`Ruko dashed ${Math.floor(distance)} meters! Can you beat it?`;
+  obtn.textContent='↻ TAP TO RESTART';
+  overlay.classList.remove('hidden');
+}
+function spawnObstacle(){
+  const type=Math.random()<0.65?'boulder':'slick';
+  const l=Math.floor(Math.random()*3);
+  obstacles.push({type,lane:l,y:-60,vy:speed*(0.5+Math.random()*0.3),w:type==='boulder'?50:70,h:type==='boulder'?50:24});
+}
+function drawRuko(x,y,angry){
+  ctx.save();ctx.translate(x,y);
+  if(slide>0){ctx.translate(slideDir*slide*30,0);ctx.rotate(slideDir*0.3);}
+  // body - bright red sphere
+  const g=ctx.createRadialGradient(-8,-10,5,0,0,36);
+  g.addColorStop(0,'#ff8a7a');g.addColorStop(0.5,'#ff3b2e');g.addColorStop(1,'#c41e12');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,32,0,Math.PI*2);ctx.fill();
+  // flame tip
+  ctx.fillStyle='#ff6a00';ctx.beginPath();
+  ctx.moveTo(-14,-24);ctx.quadraticCurveTo(0,-52,14,-24);ctx.quadraticCurveTo(0,-34,-14,-24);ctx.fill();
+  // combat headband
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(-32,-14,64,12);
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(28,-12,18,6);ctx.fillRect(32,-12,6,20);
+  // angry eyes
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-20,-2);ctx.lineTo(-6,4);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(20,-2);ctx.lineTo(6,4);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-12,10,6,0,Math.PI*2);ctx.arc(12,10,6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-12,11,3,0,Math.PI*2);ctx.arc(12,11,3,0,Math.PI*2);ctx.fill();
+  // angry mouth
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(-10,24);ctx.lineTo(10,20);ctx.stroke();
+  ctx.restore();
+}
+function drawBoulder(o){
+  ctx.save();ctx.translate(lanes[o.lane],o.y);
+  const g=ctx.createRadialGradient(-10,-10,5,0,0,30);
+  g.addColorStop(0,'#999');g.addColorStop(1,'#555');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,25,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.arc(-8,-8,6,0,Math.PI*2);ctx.arc(10,5,4,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#333';ctx.lineWidth=2;ctx.stroke();
+  ctx.restore();
+}
+function drawSlick(o){
+  ctx.save();ctx.translate(lanes[o.lane],o.y);
+  ctx.fillStyle='rgba(80,160,255,0.85)';
+  ctx.beginPath();ctx.ellipse(0,0,35,12,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.beginPath();ctx.ellipse(-10,-3,12,4,-0.3,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+let bgY=0;
+function update(dt){
+  if(!running)return;
+  gameTime+=dt;distance+=speed*dt/50;speed=Math.min(900,400+gameTime*8);
+  scoreEl.textContent=Math.floor(distance)+'m';
+  // smooth lane change
+  targetX=lanes[lane];
+  rukoX+=(targetX-rukoX)*Math.min(1,dt*12);
+  // slide decay
+  if(slide>0)slide-=dt*3;
+  // spawn
+  lastSpawn+=dt;
+  const interval=Math.max(0.35,0.9-gameTime*0.01);
+  if(lastSpawn>interval){lastSpawn=0;spawnObstacle();}
+  // steam plumes
+  if(Math.random()<0.1)steam.push({x:Math.random()*W,y:H+20,vy:-100-Math.random()*100,r:10+Math.random()*20,life:1});
+  steam.forEach(s=>{s.y+=s.vy*dt;s.life-=dt*0.4;});
+  steam=steam.filter(s=>s.life>0);
+  bgY=(bgY+speed*dt*0.3)%80;
+  // obstacles
+  for(let i=obstacles.length-1;i>=0;i--){
+    const o=obstacles[i];
+    o.y+=o.vy*dt;
+    if(o.y>H+80){obstacles.splice(i,1);continue;}
+    // collision with Ruko
+    const rx=rukoX,ry=rukoY;
+    const dx=Math.abs(lanes[o.lane]-rx),dy=Math.abs(o.y-ry);
+    if(dx<40&&dy<45){
+      if(o.type==='boulder'){
+        hearts--;updateHearts();obstacles.splice(i,1);
+        // screen flash
+        ctx.fillStyle='rgba(255,0,0,0.3)';ctx.fillRect(0,0,W,H);
+        if(hearts<=0){gameOver();return;}
+      }else if(slide<=0){
+        slide=1;slideDir=Math.random()<0.5?-1:1;
+        obstacles.splice(i,1);
+      }
+    }
+  }
+}
+function render(){
+  // dark cavern bg
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0505');g.addColorStop(0.5,'#1a0a08');g.addColorStop(1,'#2a1008');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // lava edges
+  ctx.fillStyle='#ff6a00';
+  for(let y=-80+bgY;y<H;y+=80){
+    ctx.beginPath();ctx.arc(0,y,14+Math.sin(y*0.05+bgY)*4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(W,y+40,14+Math.cos(y*0.05)*4,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle='rgba(255,106,0,0.3)';ctx.fillRect(0,0,18,H);ctx.fillRect(W-18,0,18,H);
+  // lane guides
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=3;
+  lanes.forEach(x=>{ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+  // steam
+  steam.forEach(s=>{ctx.globalAlpha=s.life*0.3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();});
+  ctx.globalAlpha=1;
+  // obstacles
+  obstacles.forEach(o=>{o.type==='boulder'?drawBoulder(o):drawSlick(o);});
+  // Ruko
+  if(running||hearts>0)drawRuko(rukoX,rukoY,true);
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,0.05);lastT=t;
+  update(dt);render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+// controls
+function moveLeft(){if(lane>0){lane--;}}
+function moveRight(){if(lane<2){lane++;}}
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')moveLeft();
+  if(e.key==='ArrowRight'||e.key==='d')moveRight();
+  if((e.key===' '||e.key==='Enter')&&!running)startGame();
+});
+let tx=0;
+canvas.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+canvas.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>24){dx>0?moveRight():moveLeft();}
+  else{const r=canvas.getBoundingClientRect(),x=e.changedTouches[0].clientX-r.left;x<W/2?moveLeft():moveRight();}
+},{passive:true});
+canvas.addEventListener('mousedown',e=>{
+  const r=canvas.getBoundingClientRect(),x=e.clientX-r.left;
+  x<W/2?moveLeft():moveRight();
+});
+</script>
+</body>
+</html>
