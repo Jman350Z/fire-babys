@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Caldera Climb — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0e0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(14,10,20,.94);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:32px;font-weight:900;margin-bottom:10px;color:#ff9f1a}
+.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>🌋 CALDERA CLIMB</h1>
+<p><b>Starring Blaze &amp; Boulder</b></p>
+<p>Tap a column to drop an ember block! Match 3 or more of the same color (touching up/down/left/right) to blast them away. Don't let the stack reach the top!</p>
+<div class="lesson">🔥 Fire Safety: Stacked things can topple — keep heavy items low and away from heat!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">🌋 CALDERA FULL!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Stacked things can topple — keep heavy items low and away from heat!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,COLS=7,ROWS=10,cell,gx,gy;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+ cell=Math.min(W/(COLS+1),(H-160)/(ROWS+2));gx=(W-cell*COLS)/2;gy=110;}addEventListener('resize',rs);rs();
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sDrop=()=>beep(300,.08,'square',.09,150),sPop=()=>{beep(700,.14,'square',.12,500);},sBad=()=>beep(150,.3,'sawtooth',.13),sWin=()=>{[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.2,'square',.12),i*120));};
+const COLORS=['#ff6a00','#ffd23f','#ff3b6b','#7fd4ff'];
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+let grid,nextCol,parts,shake,score,combo,state,dropAnim;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ grid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));
+ nextCol=Math.floor(Math.random()*4);parts=[];shake=0;score=0;combo=0;state='play';dropAnim=null;
+ beep(600,.07,'square',.1);
+}
+function colHeight(c){let h=0;for(let r=ROWS-1;r>=0;r--){if(grid[r][c]>=0)h++;else break;}return h;}
+function dropBlock(c){
+ if(state!=='play'||dropAnim)return;
+ const h=colHeight(c);
+ if(h>=ROWS){state='over';sBad();showOver();return;}
+ grid[ROWS-1-h][c]=nextCol;sDrop();
+ dropAnim={c,r:ROWS-1-h,t:0};
+ nextCol=Math.floor(Math.random()*4);
+ setTimeout(()=>{dropAnim=null;checkMatches();},160);
+}
+function checkMatches(){
+ let found=true,totalCleared=0;
+ while(found){
+  found=false;
+  const seen=Array.from({length:ROWS},()=>Array(COLS).fill(false));
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+   if(grid[r][c]<0||seen[r][c])continue;
+   const col=grid[r][c],stack=[[r,c]],group=[];
+   seen[r][c]=true;
+   while(stack.length){const [rr,cc]=stack.pop();group.push([rr,cc]);
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{const nr=rr+dr,nc=cc+dc;
+     if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!seen[nr][nc]&&grid[nr][nc]===col){seen[nr][nc]=true;stack.push([nr,nc]);}});}
+   if(group.length>=3){found=true;totalCleared+=group.length;
+    group.forEach(([rr,cc])=>{burst(gx+cc*cell+cell/2,gy+rr*cell+cell/2,COLORS[col],8);grid[rr][cc]=-1;});
+   }
+  }
+  // gravity
+  for(let c=0;c<COLS;c++){let w=ROWS-1;
+   for(let r=ROWS-1;r>=0;r--){if(grid[r][c]>=0){grid[w][c]=grid[r][c];if(w!==r)grid[r][c]=-1;w--;}}}
+ }
+ if(totalCleared>0){combo++;score+=totalCleared*50*(1+combo*.5);sPop();shake=Math.max(shake,7);}
+ else combo=0;
+ // check top-out
+ for(let c=0;c<COLS;c++)if(grid[0][c]>=0&&colHeight(c)>=ROWS){state='over';sBad();showOver();return;}
+}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
+ parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+function showOver(){
+ document.getElementById('od').textContent='Final score: '+Math.round(score);
+ document.getElementById('over').classList.remove('hidden');
+}
+function update(dt){
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.5;});
+ parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);
+}
+function draw(){
+ ctx.fillStyle='#0e0a14';ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ // well
+ ctx.fillStyle='#1a1428';ctx.beginPath();ctx.roundRect(gx-8,gy-8,cell*COLS+16,cell*ROWS+16,12);ctx.fill();
+ ctx.strokeStyle='#ff6a00';ctx.lineWidth=3;ctx.stroke();
+ // danger line
+ ctx.strokeStyle='rgba(255,60,60,.7)';ctx.setLineDash([10,8]);ctx.lineWidth=2;
+ ctx.beginPath();ctx.moveTo(gx,gy+4);ctx.lineTo(gx+cell*COLS,gy+4);ctx.stroke();ctx.setLineDash([]);
+ for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+  const v=grid[r][c];if(v<0)continue;
+  const x=gx+c*cell,y=gy+r*cell,dy=dropAnim&&dropAnim.c===c&&dropAnim.r===r?-30:0;
+  ctx.save();ctx.translate(x+cell/2,y+cell/2+dy);
+  const g=ctx.createRadialGradient(-6,-8,4,0,0,cell/2);
+  g.addColorStop(0,'#fff8');g.addColorStop(.4,COLORS[v]);g.addColorStop(1,'#0006');
+  ctx.fillStyle=COLORS[v];ctx.beginPath();ctx.roundRect(-cell/2+3,-cell/2+3,cell-6,cell-6,10);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(-cell/6,-cell/6,cell/7,0,7);ctx.fill();
+  // face
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-cell/8,0,cell/16,0,7);ctx.arc(cell/8,0,cell/16,0,7);ctx.fill();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,cell/10,cell/8,.3,Math.PI-.3);ctx.stroke();
+  ctx.restore();
+ }
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ // next preview
+ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,34);
+ if(combo>0){ctx.fillStyle='#ff9f1a';ctx.textAlign='center';ctx.fillText('COMBO x'+(1+combo*.5).toFixed(1),W/2,34);}
+ ctx.fillStyle='#fff';ctx.textAlign='right';ctx.font='18px sans-serif';
+ ctx.fillText('NEXT:',W-70,34);
+ ctx.fillStyle=COLORS[nextCol];ctx.beginPath();ctx.arc(W-34,26,14,0,7);ctx.fill();
+ ctx.textAlign='left';
+ ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='15px sans-serif';ctx.textAlign='center';
+ ctx.fillText('TAP A COLUMN to drop',W/2,H-16);ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{if(state!=='play')return;
+ const r=cv.getBoundingClientRect(),x=e.clientX-r.left;
+ const c=Math.floor((x-gx)/cell);
+ if(c>=0&&c<COLS)dropBlock(c);});
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Sizzle's Spark Jump — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,20,32,.93);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:32px;font-weight:900;margin-bottom:10px;color:#ffd23f}
+.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>⚡ SIZZLE'S SPARK JUMP</h1>
+<p><b>Starring Cinder &amp; Blaze</b></p>
+<p>Bounce Sizzle ever HIGHER! Land on glowing platforms — tilt or tap left/right to steer. Grab stars for bonus points. Don't fall into the clouds below!</p>
+<div class="lesson">🔥 Fire Safety: Always look where you're going — climbing high places needs a grown-up nearby!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">☁️ TUMBLE DOWN!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Always look where you're going — climbing high places needs a grown-up nearby!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sJump=()=>beep(400,.1,'square',.09,300),sStar=()=>{beep(1200,.12,'sine',.1,600);},sFall=()=>beep(300,.5,'sawtooth',.12,-220);
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+let px,py,vy,plats,stars,parts,camY,maxY,score,combo,comboT,state,best,dirL,dirR;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ px=W/2;py=H-160;vy=0;plats=[];stars=[];parts=[];camY=0;maxY=0;score=0;combo=0;comboT=0;state='play';dirL=dirR=false;
+ plats.push({x:W/2-60,y:H-100,w:120,broken:false});
+ for(let i=1;i<14;i++)addPlat(H-100-i*90);
+ try{best=parseInt(localStorage.getItem('sparkjump_best')||'0');}catch(e){best=0;}
+ beep(600,.07,'square',.1);
+}
+function addPlat(y){
+ const w=70+Math.random()*60;
+ plats.push({x:Math.random()*(W-w),y,w,broken:Math.random()<.18&&y<H-400});
+ if(Math.random()<.3)stars.push({x:Math.random()*W,y:y-50,r:14,taken:false});
+}
+function update(dt){
+ if(state!=='play')return;
+ comboT-=dt;if(comboT<=0)combo=0;
+ const GRAV=2200;
+ vy+=GRAV*dt;py+=vy*dt;
+ if(dirL)px-=380*dt;if(dirR)px+=380*dt;
+ if(px<0)px=W;if(px>W)px=0;
+ // platform collision (falling only)
+ if(vy>0){
+  for(const p of plats){
+   if(px+20>p.x&&px-20<p.x+p.w&&py+24>p.y&&py+24<p.y+22){
+    if(p.broken){p.gone=true;beep(200,.15,'sawtooth',.1,-100);}
+    else{vy=-1050;sJump();burst(px,py+20,'#ffd23f',8);
+     combo++;comboT=1.2;score+=10*(1+combo*.1);}
+    break;
+   }
+  }
+  plats=plats.filter(p=>!p.gone);
+ }
+ // camera
+ const target=py-H*.55;
+ if(target<camY){camY=target;}
+ maxY=Math.max(maxY,-camY);score=Math.max(score,Math.floor(maxY/10));
+ // spawn above
+ while(plats.length&&plats[plats.length-1].y>camY-100){addPlat(plats[plats.length-1].y-70-Math.random()*60);}
+ plats=plats.filter(p=>p.y<camY+H+100);
+ stars=stars.filter(s=>!s.taken&&s.y<camY+H+100);
+ // stars
+ stars.forEach(s=>{if(!s.taken&&Math.hypot(s.x-px,s.y-py)<34){s.taken=true;score+=50;sStar();burst(s.x,s.y,'#ffd23f',14);}});
+ // fall
+ if(py>camY+H+60){state='over';sFall();
+  if(score>best){best=score;try{localStorage.setItem('sparkjump_best',best);}catch(e){}}
+  document.getElementById('od').textContent=`Height: ${Math.floor(maxY/10)}m • Score: ${Math.round(score)} • Best: ${best}`;
+  document.getElementById('over').classList.remove('hidden');}
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.5;});
+ parts=parts.filter(p=>p.life>0);
+}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*5;
+ parts.push({x,y:y-camY,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*4});}}
+function draw(){
+ const g=ctx.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,'#0d1420');g.addColorStop(1,'#1a2a45');
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ // stars bg
+ ctx.fillStyle='rgba(255,255,255,.5)';
+ for(let i=0;i<40;i++){const sx=(i*97)%W,sy=((i*61)-camY*.3)%H;ctx.fillRect(sx,sy<0?sy+H:sy,2,2);}
+ ctx.save();ctx.translate(0,-camY);
+ plats.forEach(p=>{if(p.gone)return;
+  ctx.fillStyle=p.broken?'rgba(255,120,60,.75)':'#3fae4a';
+  ctx.beginPath();ctx.roundRect(p.x,p.y,p.w,18,9);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(p.x+6,p.y+3,p.w-12,5);});
+ stars.forEach(s=>{if(s.taken)return;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(Date.now()/600);
+  ctx.fillStyle='#ffd23f';ctx.beginPath();
+  for(let i=0;i<5;i++){const a=i/5*6.283-Math.PI/2,a2=a+6.283/10;
+   ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);ctx.lineTo(Math.cos(a2)*s.r*.45,Math.sin(a2)*s.r*.45);}
+  ctx.closePath();ctx.fill();ctx.restore();});
+ // Sizzle (yellow spark baby)
+ const yy=py;
+ ctx.save();ctx.translate(px,yy);
+ const bg2=ctx.createRadialGradient(-6,-8,4,0,0,26);
+ bg2.addColorStop(0,'#fff3a0');bg2.addColorStop(.5,'#ffd23f');bg2.addColorStop(1,'#ff9f1a');
+ ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(0,0,24,0,7);ctx.fill();
+ ctx.fillStyle='#ff9f1a';
+ for(let i=0;i<6;i++){const a=i/6*6.283;ctx.beginPath();
+  ctx.moveTo(Math.cos(a)*20,Math.sin(a)*20);ctx.lineTo(Math.cos(a)*32,Math.sin(a)*32);ctx.lineTo(Math.cos(a+.3)*20,Math.sin(a+.3)*20);ctx.fill();}
+ ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-7,-3,3.2,0,7);ctx.arc(7,-3,3.2,0,7);ctx.fill();
+ ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.2;ctx.beginPath();ctx.arc(0,5,8,.3,Math.PI-.3);ctx.stroke();
+ ctx.restore();
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y+camY,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,34);
+ ctx.fillText('BEST '+best,W-110,34);ctx.textAlign='left';
+ if(combo>2){ctx.fillStyle='#ff9f1a';ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillText('COMBO x'+combo,W/2,34);ctx.textAlign='left';}
+ // touch zones hint
+ ctx.fillStyle='rgba(255,255,255,.15)';ctx.font='bold 40px sans-serif';ctx.textAlign='center';
+ ctx.fillText('◀',50,H-60);ctx.fillText('▶',W-50,H-60);ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{if(state!=='play')return;
+ const r=cv.getBoundingClientRect(),x=e.clientX-r.left;x<W/2?dirL=true:dirR=true;});
+cv.addEventListener('pointerup',()=>{dirL=dirR=false;});
+cv.addEventListener('pointercancel',()=>{dirL=dirR=false;});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')dirL=true;if(e.key==='ArrowRight')dirR=true;});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft')dirL=false;if(e.key==='ArrowRight')dirR=false;});
+</script>
+</body>
+</html>

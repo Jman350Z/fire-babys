@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cinder's Melt-Down — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0c1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,20,32,.94);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:30px;font-weight:900;margin-bottom:10px;color:#7fd4ff}
+.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>❄️ CINDER'S MELT-DOWN</h1>
+<p><b>Starring Lord Inferno &amp; Ruko</b></p>
+<p>Turn-based tactics! Tap one of your 3 fire babies, then tap a glowing tile to move (or tap an adjacent rock golem to MELT it). Golems shuffle closer every turn. Melt them all to win!</p>
+<div class="lesson">🔥 Fire Safety: Think before you act — having a plan keeps everyone safe, just like a fire escape plan!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">🏆 MELT-DOWN!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Think before you act — having a plan keeps everyone safe, just like a fire escape plan!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,N=6,cell,gx,gy;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+ cell=Math.min((W-40)/N,(H-200)/N);gx=(W-cell*N)/2;gy=120;}addEventListener('resize',rs);rs();
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sMove=()=>beep(440,.08,'square',.09,120),sMelt=()=>{beep(900,.2,'sine',.12,-500);beep(300,.15,'square',.1);},sHurt=()=>beep(140,.3,'sawtooth',.15,-80),sWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square',.12),i*130));};
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+let babies,foes,sel,parts,shake,score,combo,state,turn,movesLeft,msg,msgT;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ babies=[{r:5,c:1,hp:2},{r:5,c:2,hp:2},{r:5,c:4,hp:2}];
+ foes=[{r:0,c:0,hp:2},{r:0,c:2,hp:2},{r:0,c:5,hp:2},{r:1,c:3,hp:2}];
+ sel=null;parts=[];shake=0;score=0;combo=0;state='play';turn=1;movesLeft=2;msg='Tap a fire baby!';msgT=0;
+ beep(600,.07,'square',.1);
+}
+function cellXY(r,c){return{x:gx+c*cell+cell/2,y:gy+r*cell+cell/2};}
+function adj(a,b){return Math.abs(a.r-b.r)+Math.abs(a.c-b.c)===1;}
+function occupied(r,c){
+ if(babies.some(b=>b.r===r&&b.c===c))return 'baby';
+ if(foes.some(f=>f.r===r&&f.c===c))return 'foe';
+ return null;
+}
+function tapCell(r,c){
+ if(state!=='play')return;
+ if(r<0||r>=N||c<0||c>=N)return;
+ const occ=occupied(r,c);
+ if(sel===null){
+  const b=babies.find(b=>b.r===r&&b.c===c);
+  if(b){sel=b;sMove();msg='Move (glowing tiles) or melt adjacent golem!';}
+  return;
+ }
+ // attack?
+ const f=foes.find(f=>f.r===r&&f.c===c);
+ if(f&&adj(sel,f)){
+  f.hp--;combo++;score+=150*(1+combo*.5);sMelt();shake=Math.max(shake,9);
+  const p=cellXY(r,c);burst(p.x,p.y,'#7fd4ff',22);
+  if(f.hp<=0)foes.splice(foes.indexOf(f),1);
+  msg='Golem melted! 💧';endAction();checkEnd();return;
+ }
+ // move?
+ if(!occ&&adj(sel,{r,c})){
+  sel.r=r;sel.c=c;sMove();msg='Moved!';endAction();checkEnd();return;
+ }
+ // reselect
+ const b=babies.find(b=>b.r===r&&b.c===c);
+ sel=b||null;if(b)msg='Move (glowing tiles) or melt adjacent golem!';
+}
+function endAction(){
+ movesLeft--;
+ if(movesLeft<=0){enemyTurn();}
+}
+function enemyTurn(){
+ // each foe shuffles toward nearest baby
+ foes.forEach(f=>{
+  let best=null,bd=1e9;
+  babies.forEach(b=>{const d=Math.abs(b.r-f.r)+Math.abs(b.c-f.c);if(d<bd){bd=d;best=b;}});
+  if(!best)return;
+  if(bd===1){
+   // attack baby
+   best.hp--;sHurt();shake=Math.max(shake,8);
+   const p=cellXY(best.r,best.c);burst(p.x,p.y,'#f44',14);
+   msg='A golem bonked your baby! 🪨';
+   if(best.hp<=0){babies.splice(babies.indexOf(best),1);if(sel===best)sel=null;}
+  }else{
+   const dr=Math.sign(best.r-f.r),dc=Math.sign(best.c-f.c);
+   const opts=[];
+   if(dr&&!occupied(f.r+dr,f.c))opts.push([f.r+dr,f.c]);
+   if(dc&&!occupied(f.r,f.c+dc))opts.push([f.r,f.c+dc]);
+   if(!opts.length){if(!occupied(f.r+dr,f.c)&&f.r+dr>=0&&f.r+dr<N)opts.push([f.r+dr,f.c]);}
+   if(opts.length){const [nr,nc]=opts[Math.floor(Math.random()*opts.length)];f.r=nr;f.c=nc;}
+  }
+ });
+ movesLeft=2;turn++;msgT=1.2;
+ checkEnd();
+}
+function checkEnd(){
+ if(!foes.length){state='over';sWin();score+=turn<8?500:200;
+  document.getElementById('ot').textContent='🏆 MELT-DOWN!';
+  document.getElementById('od').textContent=`All golems melted in ${turn} turns! Score: ${Math.round(score)}`;
+  document.getElementById('over').classList.remove('hidden');}
+ else if(!babies.length){state='over';
+  document.getElementById('ot').textContent='🪨 OUTNUMBERED!';
+  document.getElementById('od').textContent=`The golems win this round. Score: ${Math.round(score)}`;
+  document.getElementById('over').classList.remove('hidden');}
+}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
+ parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+function update(dt){
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.4;});
+ parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);msgT-=dt;
+}
+function drawBaby(x,y,r,hp,sel2){
+ const g=ctx.createRadialGradient(x-5,y-7,3,x,y,r);
+ g.addColorStop(0,'#ffcf5a');g.addColorStop(1,'#ff6a00');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+ if(sel2){ctx.strokeStyle='#ffd23f';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,r+5,0,7);ctx.stroke();}
+ ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(x-r*.3,y-2,2.6,0,7);ctx.arc(x+r*.3,y-2,2.6,0,7);ctx.fill();
+ ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+4,r*.35,.3,Math.PI-.3);ctx.stroke();
+ for(let i=0;i<hp;i++){ctx.fillStyle='#f44';ctx.beginPath();ctx.arc(x-r*.5+i*10,y-r-6,3.4,0,7);ctx.fill();}
+}
+function draw(){
+ ctx.fillStyle='#0c1420';ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ // board
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+  ctx.fillStyle=(r+c)%2?'#16202f':'#1b2740';
+  ctx.fillRect(gx+c*cell,gy+r*cell,cell,cell);
+  ctx.strokeStyle='rgba(127,212,255,.15)';ctx.lineWidth=1;
+  ctx.strokeRect(gx+c*cell,gy+r*cell,cell,cell);
+ }
+ // move hints
+ if(sel){[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
+  const r=sel.r+dr,c=sel.c+dc;
+  if(r<0||r>=N||c<0||c>=N)return;
+  const o=occupied(r,c),p=cellXY(r,c);
+  if(!o){ctx.fillStyle='rgba(127,212,255,.35)';ctx.beginPath();ctx.arc(p.x,p.y,cell*.18,0,7);ctx.fill();}
+  else if(o==='foe'){ctx.strokeStyle='#ff6b6b';ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,cell*.42,0,7);ctx.stroke();}
+ });}
+ foes.forEach(f=>{const p=cellXY(f.r,f.c);
+  ctx.save();ctx.translate(p.x,p.y);
+  ctx.fillStyle='#6a6a7a';ctx.beginPath();
+  const fr=cell*.34;
+  for(let i=0;i<8;i++){const a=i/8*6.283;ctx.lineTo(Math.cos(a)*fr,Math.sin(a)*fr);}ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff3b2e';ctx.beginPath();ctx.arc(-7,-3,4,0,7);ctx.arc(7,-3,4,0,7);ctx.fill();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.4;ctx.beginPath();ctx.moveTo(-8,7);ctx.lineTo(8,7);ctx.stroke();
+  for(let i=0;i<f.hp;i++){ctx.fillStyle='#888';ctx.fillRect(-12+i*12,fr+2,9,5);}
+  ctx.restore();});
+ babies.forEach(b=>{const p=cellXY(b.r,b.c);drawBaby(p.x,p.y,cell*.32,b.hp,sel===b);});
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,34);
+ ctx.fillText('TURN '+turn,W/2-30,34);
+ ctx.fillText('MOVES '+movesLeft,W-130,34);ctx.textAlign='left';
+ ctx.fillStyle='#fff';ctx.font='bold 17px sans-serif';ctx.textAlign='center';
+ ctx.fillText(msg,W/2,gy+N*cell+34);ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{
+ const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+ tapCell(Math.floor((y-gy)/cell),Math.floor((x-gx)/cell));});
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cinder's Ice Rink Chaos — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a1628;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,12,25,.92);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:34px;font-weight:900;margin-bottom:10px;color:#7fd4ff}
+.ov p{font-size:16px;max-width:420px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>🧊 CINDER'S ICE RINK CHAOS</h1>
+<p><b>Starring Blaze &amp; Boulder</b></p>
+<p>Flick the ice blocks to slide them across the rink and SMASH every crystal target! Fewer flicks = bigger bonus. Chain smashes for COMBO points!</p>
+<div class="lesson">🔥 Fire Safety: Ice and water cool things down — but NEVER touch ice on a real frozen lake without a grown-up!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">🏆 RINK CLEARED!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Ice and water cool things down — but NEVER touch ice on a real frozen lake without a grown-up!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+// AUDIO
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sClick=()=>beep(600,.07,'square',.1),sSmash=()=>{beep(300,.18,'sawtooth',.16,-220);beep(1200,.1,'square',.08);},sWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square',.12),i*130));},sFlick=()=>beep(250,.12,'sine',.1,300);
+// MATH GATE
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(mans-3+Math.floor(Math.random()*7));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){sClick();document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+// GAME
+let blocks,crystals,parts,shake,combo,comboT,score,flicks,state,drag,level;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ level=1;score=0;flicks=6;combo=0;comboT=0;shake=0;parts=[];state='play';drag=null;buildLevel();sClick();
+}
+function buildLevel(){
+ blocks=[];crystals=[];
+ const n=Math.min(2+level,5);
+ for(let i=0;i<n;i++)blocks.push({x:W*(0.2+0.6*Math.random()),y:H*(0.55+0.3*Math.random()),vx:0,vy:0,r:26+Math.random()*10,ice:true});
+ const cn=2+level;
+ for(let i=0;i<cn;i++)crystals.push({x:60+Math.random()*(W-120),y:80+Math.random()*(H*0.35),r:20,dead:false});
+}
+function smash(c){
+ c.dead=true;score+=100*(1+combo*0.5);combo++;comboT=1.6;shake=Math.max(shake,9);sSmash();
+ for(let i=0;i<22;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
+  parts.push({x:c.x,y:c.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col:Math.random()<.5?'#7fd4ff':'#ffffff',sz:3+Math.random()*5});}
+}
+function update(dt){
+ if(state!=='play')return;
+ comboT-=dt;if(comboT<=0)combo=0;
+ blocks.forEach(b=>{
+  b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.35,dt);b.vy*=Math.pow(.35,dt);
+  if(b.x<b.r){b.x=b.r;b.vx*=-.7;}if(b.x>W-b.r){b.x=W-b.r;b.vx*=-.7;}
+  if(b.y<b.r){b.y=b.r;b.vy*=-.7;}if(b.y>H-b.r){b.y=H-b.r;b.vy*=-.7;}
+ });
+ // block-crystal collisions
+ blocks.forEach(b=>{crystals.forEach(c=>{if(!c.dead){const dx=b.x-c.x,dy=b.y-c.y;
+  if(Math.hypot(dx,dy)<b.r+c.r){smash(c);}}});});
+ // block-block
+ for(let i=0;i<blocks.length;i++)for(let j=i+1;j<blocks.length;j++){
+  const a=blocks[i],b=blocks[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+  if(d<a.r+b.r&&d>0){const nx=dx/d,ny=dy/d,ov=(a.r+b.r-d)/2;a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;
+   const t=a.vx;a.vx=b.vx*.8;b.vx=t*.8;const t2=a.vy;a.vy=b.vy*.8;b.vy=t2*.8;}}
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.6;});
+ parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);
+ if(crystals.every(c=>c.dead)){state='won';score+=flicks*250;sWin();showOver(true);}
+}
+function showOver(won){
+ document.getElementById('ot').textContent=won?'🏆 RINK CLEARED!':'🧊 OUT OF FLICKS!';
+ document.getElementById('od').textContent='Final score: '+Math.round(score)+(won?'  Next rink gets trickier!':'');
+ document.getElementById('over').classList.remove('hidden');
+ if(won)setTimeout(()=>{if(state==='won'){level++;flicks=6;buildLevel();state='play';document.getElementById('over').classList.add('hidden');}},2200);
+}
+function draw(){
+ ctx.fillStyle='#0a1628';ctx.fillRect(0,0,W,H);
+ // ice rink
+ const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#123');g.addColorStop(1,'#0a1628');
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.strokeStyle='rgba(127,212,255,.25)';ctx.lineWidth=3;
+ ctx.beginPath();ctx.ellipse(W/2,H/2,Math.min(W,H)*.32,Math.min(W,H)*.22,0,0,7);ctx.stroke();
+ ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+ ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ crystals.forEach(c=>{if(c.dead)return;
+  ctx.save();ctx.translate(c.x,c.y);ctx.shadowColor='#7fd4ff';ctx.shadowBlur=18;
+  ctx.fillStyle='#4de';ctx.beginPath();
+  for(let i=0;i<6;i++){const a=i/6*6.283;ctx.lineTo(Math.cos(a)*c.r,Math.sin(a)*c.r);}ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;ctx.strokeStyle='#123';ctx.lineWidth=2;ctx.stroke();ctx.restore();});
+ blocks.forEach(b=>{
+  ctx.save();ctx.translate(b.x,b.y);ctx.shadowColor='#9ef';ctx.shadowBlur=12;
+  const bg=ctx.createLinearGradient(-b.r,-b.r,b.r,b.r);bg.addColorStop(0,'#dff4ff');bg.addColorStop(1,'#9fd4f5');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.roundRect(-b.r,-b.r,b.r*2,b.r*2,10);ctx.fill();
+  ctx.shadowBlur=0;ctx.strokeStyle='#5aa';ctx.lineWidth=2;ctx.stroke();
+  // Blaze face on ice block
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.arc(0,-4,11,0,7);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-4,-6,2.4,0,7);ctx.arc(4,-6,2.4,0,7);ctx.fill();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(0,0,6,.3,Math.PI-.3);ctx.stroke();
+  ctx.restore();});
+ if(drag){ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.setLineDash([8,8]);
+  ctx.beginPath();ctx.moveTo(drag.x0,drag.y0);ctx.lineTo(drag.x1,drag.y1);ctx.stroke();ctx.setLineDash([]);}
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ // HUD
+ ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 24px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,36);
+ ctx.textAlign='center';ctx.fillText('🧊 '+flicks+' flicks',W/2,36);
+ if(combo>1){ctx.fillStyle='#ff9f1a';ctx.font='bold 24px sans-serif';ctx.textAlign='right';ctx.fillText('COMBO x'+(1+combo*0.5).toFixed(1),W-14,36);}
+ ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+// input: flick a block
+function pos(e){const r=cv.getBoundingClientRect();const p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left,y:p.clientY-r.top};}
+cv.addEventListener('pointerdown',e=>{if(state!=='play')return;const p=pos(e);
+ const b=blocks.find(b=>Math.hypot(b.x-p.x,b.y-p.y)<b.r+14);
+ if(b&&flicks>0)drag={b,x0:p.x,y0:p.y,x1:p.x,y1:p.y};});
+cv.addEventListener('pointermove',e=>{if(drag){const p=pos(e);drag.x1=p.x;drag.y1=p.y;}});
+cv.addEventListener('pointerup',()=>{if(drag){const dx=drag.x0-drag.x1,dy=drag.y0-drag.y1;
+ if(Math.hypot(dx,dy)>20&&flicks>0){drag.b.vx=dx*6;drag.b.vy=dy*6;flicks--;sFlick();
+  if(flicks<=0&&!crystals.every(c=>c.dead))setTimeout(()=>{if(state==='play'&&!crystals.every(c=>c.dead)){state='lost';showOver(false);}},1500);}}
+ drag=null;});
+</script>
+</body>
+</html>
