@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Play All 56 Fire Babys Games!</title>
-<meta name="description" content="Play all 56 FREE Fire Babys games in one place! By Jman350Z & fire team.">
+<title>🔥 Play All 57 Fire Babys Games!</title>
+<meta name="description" content="Play all 57 FREE Fire Babys games in one place! By Jman350Z & fire team.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--flame:#ff6a00;--ember:#e63900;--gold:#ffc93c;--cream:#fff7ec;--ink:#2b1a0e}
@@ -51,7 +51,7 @@ footer{background:var(--ink);color:#fff;text-align:center;padding:24px;margin-to
 <div class="navlinks"><a href="/">Home</a><a href="/fire-world.html">Fire World</a><a href="/history.html">History</a></div>
 </div></div>
 <div class="hero">
-<h1>🎮 PLAY ALL 56 GAMES 🎮</h1>
+<h1>🎮 PLAY ALL 57 GAMES 🎮</h1>
 <p>Every Fire Babys game in one place. Tap any card to play instantly!</p>
 <div class="searchbar">
 <input type="text" id="search" placeholder="Search games..." oninput="filterGames()">
@@ -72,6 +72,7 @@ footer{background:var(--ink);color:#fff;text-align:center;padding:24px;margin-to
 const GAMES=[
 {n:1,t:"Fire Babys Slingshot Cascade",m:"Slingshot physics",s:"Blaze & Sizzle",u:"/fire-world/slingshot-cascade/",e:"🎯",c:"action"},
 {n:2,t:"Ruko's Panic Dash",m:"3-lane endless runner",s:"Ruko & Sizzle",u:"/fire-world/rukos-panic-dash/",e:"😡",c:"action"},
+{n:3,t:"Blaze Runner",m:"Endless runner — jump lava gaps",s:"Blaze",u:"/fire-world/game-02-blaze-runner.html",e:"🏃",c:"action"},
 {n:4,t:"Cinder's Ice Rink Chaos",m:"Flick ice blocks",s:"Blaze & Boulder",u:"/fire-world/games/game-04-cinders-ice-rink-chaos.html",e:"🧊",c:"puzzle"},
 {n:5,t:"Lord Inferno's Ballista Siege",m:"Vertical shooter",s:"Ruko & Sizzle",u:"/fire-world/games/game-05-lord-infernos-ballista-siege.html",e:"🏹",c:"action"},
 {n:6,t:"Blaze's Magma Bounce",m:"Sumo arena bumper",s:"Boulder & Cinder",u:"/fire-world/games/game-06-blazes-magma-bounce.html",e:"💥",c:"action"},
@@ -127,7 +128,7 @@ const GAMES=[
 {n:56,t:"Tristan's Dark Knight Rescue",m:"15-stage melee platformer",s:"Prince Tristan",u:"/fire-world/tristans-dark-knight-rescue/",e:"⚔️",c:"action"},
 {n:57,t:"Trinity's Holy Lightning Rescue",m:"15-stage lightning platformer",s:"Princess Trinity",u:"/fire-world/trinitys-holy-lightning-rescue/",e:"⚡",c:"action"}
 ];
-const CATS={all:"🌟 All 56",action:"💥 Action",puzzle:"🧩 Puzzle",strategy:"♟️ Strategy",music:"🎵 Music"};
+const CATS={all:"🌟 All 57",action:"💥 Action",puzzle:"🧩 Puzzle",strategy:"♟️ Strategy",music:"🎵 Music"};
 let activeCat='all';
 function renderFilters(){document.getElementById('filters').innerHTML=Object.entries(CATS).map(([k,v])=>`<div class="filter${k===activeCat?' active':''}" onclick="setCat('${k}')">${v}</div>`).join('');}
 function setCat(c){activeCat=c;renderFilters();filterGames();}
@@ -135,7 +136,7 @@ function filterGames(){
 const q=document.getElementById('search').value.toLowerCase();
 const f=GAMES.filter(g=>(activeCat==='all'||g.c===activeCat)&&(g.t.toLowerCase().includes(q)||g.m.toLowerCase().includes(q)));
 document.getElementById('noResults').classList.toggle('hidden',f.length>0);
-document.getElementById('count').textContent=`Showing ${f.length} of 56 games`;
+document.getElementById('count').textContent=`Showing ${f.length} of 57 games`;
 document.getElementById('grid').innerHTML=f.map(g=>`<div class="card" onclick="playGame('${g.u}','${g.t.replace(/'/g,"\\'")}')"><div class="thumb">${g.e}</div><div class="body"><span class="num">GAME #${g.n}</span><h3>${g.t}</h3><div class="mechanic">${g.m}</div><div class="stars">⭐ ${g.s}</div><a class="play" href="${g.u}">▶ Play</a></div></div>`).join('');
 }
 function playGame(url,title){document.getElementById('frameTitle').textContent='🎮 '+title;document.getElementById('gameIframe').src=url;document.getElementById('gameFrame').classList.add('active');document.body.style.overflow='hidden';}
