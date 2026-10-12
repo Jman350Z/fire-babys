@@ -862,7 +862,7 @@ function makeBaby(spec, faceKind, scale){
   var g = new THREE.Group();
   var R = 1.0*scale;
 
-  var bodyMat = new THREE.MeshStandardMaterial({ map: bodyTexture(spec, faceKind), roughness:0.35, metalness:0.0 });
+  var bodyMat = new THREE.MeshStandardMaterial({ map: bodyTexture(spec, faceKind), roughness:0.28, metalness:0.0 });
   var body = new THREE.Mesh(new THREE.SphereGeometry(R, 22, 16), bodyMat);
   body.rotation.y = -Math.PI/2;
   body.castShadow=true;
@@ -870,7 +870,7 @@ function makeBaby(spec, faceKind, scale){
 
   var glow = new THREE.Sprite(new THREE.SpriteMaterial({
     map:GLOW_TEX, blending:THREE.AdditiveBlending, depthWrite:false, transparent:true, opacity:0.85 }));
-  glow.scale.set(R*4.2, R*4.2, 1);
+  glow.scale.set(R*4.5, R*4.5, 1);
   g.add(glow);
 
   var licks=[];
@@ -948,7 +948,7 @@ function updateBaby(g, t, dt){
     var hx=L.userData.hsx||1, hy=L.userData.hsy||1, hz=L.userData.hsz||1;
     L.scale.set(s*hx, s*(1+0.25*Math.sin(t*11+L.userData.phase*2))*hy, s*hz);
   }
-  u.glow.material.opacity = 0.7+0.2*Math.sin(t*7+u.bobPhase);
+  u.glow.material.opacity = 0.78+0.2*Math.sin(t*7+u.bobPhase);
   if(u.flash>0){ u.flash-=dt*4; u.body.material.emissive.setRGB(Math.max(0,u.flash)*0.9, Math.max(0,u.flash)*0.35, Math.max(0,u.flash)*0.1); }
   // limb walk-swing from real displacement (chunky toy waddle)
   var lpx=(u.lastPX===undefined)?g.position.x:u.lastPX, lpz=(u.lastPZ===undefined)?g.position.z:u.lastPZ;
@@ -1064,19 +1064,19 @@ var stronghold=null, strongMats=[], strongFire=null;
 
 /* biome ground: painted bands on one canvas, v=1 (canvas top) = far -Z */
 var BIOMES = [
-  { id:'ember',   z0:52,  z1:18,  base:'#8a6a52', fog:0x2a140c },
-  { id:'grease',  z0:18,  z1:-2,  base:'#7a7458', fog:0x2a2010 },
-  { id:'volt',    z0:-2,  z1:-22, base:'#46587e', fog:0x101a2a },
-  { id:'slag',    z0:-22, z1:-42, base:'#8a6238', fog:0x2a1a10 },
-  { id:'smoke',   z0:-42, z1:-62, base:'#5e5e6a', fog:0x1a1a20 },
-  { id:'volcano', z0:-62, z1:-118,base:'#6e3a26', fog:0x300c08 }
+  { id:'ember',   z0:52,  z1:18,  base:'#9a7858', fog:0x47261a },
+  { id:'grease',  z0:18,  z1:-2,  base:'#8a815f', fog:0x473a1e },
+  { id:'volt',    z0:-2,  z1:-22, base:'#54689a', fog:0x1e3050 },
+  { id:'slag',    z0:-22, z1:-42, base:'#9c703c', fog:0x472c18 },
+  { id:'smoke',   z0:-42, z1:-62, base:'#6e6e7c', fog:0x2c2c36 },
+  { id:'volcano', z0:-62, z1:-118,base:'#7e452c', fog:0x4d1810 }
 ];
 function skyTexture(){
   var S=512, c=cnv(256,S), x=c.getContext('2d');
   var g=x.createLinearGradient(0,0,0,S);
-  g.addColorStop(0,'#2f66c9');
-  g.addColorStop(0.34,'#7ab8f2');
-  g.addColorStop(0.52,'#ffd9a3');
+  g.addColorStop(0,'#2f7fe0');
+  g.addColorStop(0.34,'#8fd0ff');
+  g.addColorStop(0.52,'#ffe3b3');
   g.addColorStop(0.64,'#ff9a52');
   g.addColorStop(0.74,'#c65a28');
   g.addColorStop(0.86,'#5a2818');
@@ -3402,16 +3402,16 @@ function init(){
   renderer.shadowMap.type=FBQ.shadowSoft?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
   if(THREE.ACESFilmicToneMapping!==undefined){
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.12;
+    renderer.toneMappingExposure=1.2;
   }
 
   scene=new THREE.Scene();
-  scene.fog=new THREE.Fog(0x53301a, 34, 125);
+  scene.fog=new THREE.Fog(0x7a4a2a, 38, 135);
   camera=new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 400);
   camera.position.set(0,10.5,53); camera.lookAt(0,1.5,34);
 
-  scene.add(new THREE.HemisphereLight(0xffc490, 0x3a1c10, 0.9));
-  var dir=new THREE.DirectionalLight(0xffe0b0, 1.1); dir.position.set(-14,26,52);
+  scene.add(new THREE.HemisphereLight(0xffd9a8, 0x6a4028, 1.05));
+  var dir=new THREE.DirectionalLight(0xffe0b0, 1.25); dir.position.set(-14,26,52);
   dir.castShadow=true;
   dir.shadow.mapSize.set(FBQ.shadowSize,FBQ.shadowSize);
   dir.shadow.camera.near=4; dir.shadow.camera.far=80;
@@ -3419,7 +3419,7 @@ function init(){
   dir.shadow.camera.top=30; dir.shadow.camera.bottom=-30;
   dir.shadow.bias=-0.0004; dir.shadow.normalBias=0.5;
   scene.add(dir); scene.add(dir.target); window.__sun=dir;
-  var fill=new THREE.DirectionalLight(0x7aa8ff, 0.35); fill.position.set(12,16,-14); scene.add(fill);
+  var fill=new THREE.DirectionalLight(0x7aa8ff, 0.45); fill.position.set(12,16,-14); scene.add(fill);
 
   FLAME_TEX=flameTexture(); GLOW_TEX=glowTexture();
   buildOpenWorld();
@@ -8864,7 +8864,7 @@ var FB_ARMOR = [
   { id:'rainbow_aura',  n:'Rainbow Aura',  p:100, cur:'gems',  e:'🌈', d:'Cycling rainbow glow' },
   { id:'phoenix_wings', n:'Phoenix Wings', p:150, cur:'gems',  e:'🔥', d:'Blazing wing pair' }
 ];
-var FB_WEAPONS = [
+var FB_STORE_WEAPONS = [
   { id:'stick',         n:'Stick',         p:0,   cur:'coins', e:'🌿', d:'A trusty twig',      col:'#8a5a2e' },
   { id:'wooden_sword',  n:'Wooden Sword',  p:75,  cur:'coins', e:'🪵', d:'Practice blade',     col:'#a06a35' },
   { id:'stone_club',    n:'Stone Club',    p:100, cur:'coins', e:'🪨', d:'Heavy rock basher',  col:'#8a8a92' },
@@ -8876,7 +8876,8 @@ var FB_WEAPONS = [
   { id:'ice_axe',       n:'Ice Axe',       p:30,  cur:'gems',  e:'❄', d:'Frosty chopper',     col:'#aee2ff' },
   { id:'thunder_hammer',n:'Thunder Hammer',p:45,  cur:'gems',  e:'⚡', d:'Storm crusher',      col:'#ffe95c' },
   { id:'plasma_blaster',n:'Plasma Blaster',p:60,  cur:'gems',  e:'🔫', d:'Zappy space gun',    col:'#b79aff' },
-  { id:'void_blade',    n:'Void Blade',    p:100, cur:'gems',  e:'🌌', d:'Dark energy edge',   col:'#4a4a6a' }
+  { id:'void_blade',    n:'Void Blade',    p:100, cur:'gems',  e:'🌌', d:'Dark energy edge',   col:'#4a4a6a' },
+  { id:'bubble_hose',   n:'Bubble Blast Hose', p:25,  cur:'gems',  e:'🫧', d:'Rainbow bubble splash!', col:'#ff9ff3' }
 ];
 var FB_EMOTES = [
   { id:'wave',      n:'Wave',        p:0,   cur:'coins', e:'👋', dur:1.2 },
@@ -8905,7 +8906,7 @@ var FB_GEM_PACKS = [
   { gems:500, usd:'$24.99', tag:'WHALE',   link:'https://buy.stripe.com/REPLACE_ME_500_GEMS' }
 ];
 function emoteById(id){ for(var i=0;i<FB_EMOTES.length;i++) if(FB_EMOTES[i].id===id) return FB_EMOTES[i]; return FB_EMOTES[0]; }
-function weaponById(id){ for(var i=0;i<FB_WEAPONS.length;i++) if(FB_WEAPONS[i].id===id) return FB_WEAPONS[i]; return FB_WEAPONS[0]; }
+function weaponById(id){ for(var i=0;i<FB_STORE_WEAPONS.length;i++) if(FB_STORE_WEAPONS[i].id===id) return FB_STORE_WEAPONS[i]; return FB_STORE_WEAPONS[0]; }
 function armorById(id){ for(var i=0;i<FB_ARMOR.length;i++) if(FB_ARMOR[i].id===id) return FB_ARMOR[i]; return null; }
 
 /* ---------------- helpers ---------------- */
@@ -9193,6 +9194,17 @@ function fbBuildWeaponMesh(weaponId, Rin){
       tb.rotation.z = Math.PI/2; grp.add(tb);
       var tip = new THREE.Mesh(new THREE.ConeGeometry(R*0.14,R*0.3,10), m);
       tip.rotation.z = -Math.PI/2; tip.position.x = R*0.5; grp.add(tip);
+    } else if(weaponId==='bubble_hose'){
+      var bh = new THREE.Mesh(new THREE.CylinderGeometry(R*0.13,R*0.16,R*0.65,10), m);
+      bh.rotation.z = Math.PI/2; grp.add(bh);
+      var bn = new THREE.Mesh(new THREE.CylinderGeometry(R*0.06,R*0.09,R*0.3,8), m);
+      bn.rotation.z = Math.PI/2; bn.position.x = R*0.45; grp.add(bn);
+      var bb2 = new THREE.Mesh(new THREE.SphereGeometry(R*0.17,10,8),
+        new THREE.MeshBasicMaterial({ color:0xcfeeff }));
+      bb2.position.set(R*0.62, R*0.14, 0); grp.add(bb2);
+      var bb3 = new THREE.Mesh(new THREE.SphereGeometry(R*0.11,10,8),
+        new THREE.MeshBasicMaterial({ color:0xffd7f4 }));
+      bb3.position.set(R*0.55, -R*0.12, R*0.1); grp.add(bb3);
     } else if(weaponId==='void_blade'){
       var vb = new THREE.Mesh(new THREE.BoxGeometry(R*0.12,R*1.35,R*0.05),
         new THREE.MeshLambertMaterial({ color:0x2a2a3a, emissive:0x6a3aa0 }));
@@ -9704,7 +9716,7 @@ function fbCloseStore(){
 }
 function fbStoreItems(tab){
   if(tab==='armor') return FB_ARMOR;
-  if(tab==='weapons') return FB_WEAPONS;
+  if(tab==='weapons') return FB_STORE_WEAPONS;
   if(tab==='emotes') return FB_EMOTES;
   return [];
 }
