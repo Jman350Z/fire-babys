@@ -96,6 +96,15 @@ function initPuzzle(n){
     G.grid[m.r][m.c]=0;
     G.empty=m;
   }
+  // Guarantee the dealt board is not already solved (a random-walk shuffle can land back on solved).
+  let _guard=0;
+  while(checkWin()&&_guard++<12){
+    const{r,c}=G.empty;const opts=[];
+    if(r>0)opts.push({r:r-1,c});if(r<n-1)opts.push({r:r+1,c});
+    if(c>0)opts.push({r,c:c-1});if(c<n-1)opts.push({r,c:c+1});
+    const m=opts[Math.floor(Math.random()*opts.length)];
+    G.grid[G.empty.r][G.empty.c]=G.grid[m.r][m.c];G.grid[m.r][m.c]=0;G.empty=m;
+  }
   document.getElementById('level').textContent=`${n}×${n}`;
   document.getElementById('moves').textContent='👆 0';
   updateHUD();
@@ -122,15 +131,17 @@ function drawTileArt(hr,hc,px,py,ts){
   ctx.fillStyle='#ff4a00';
   ctx.beginPath();ctx.ellipse(S*0.5,S*0.27,S*0.06,S*0.02,0,0,Math.PI*2);ctx.fill();
   // fire baby
-  const bg=ctx.createRadialGradient(S*0.5-8,S*0.6-10,4,S*0.5,S*0.6,26);
+  const babyR=S*0.075;
+  const bg=ctx.createRadialGradient(S*0.5-babyR*0.3,S*0.6-babyR*0.4,babyR*0.15,S*0.5,S*0.6,babyR*1.1);
   bg.addColorStop(0,'#ffe9a0');bg.addColorStop(0.5,'#ff7a2a');bg.addColorStop(1,'#d42a1a');
-  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(S*0.5,S*0.6,24,0,Math.PI*2);ctx.fill();
+  ctx.shadowColor='#ff7a2a';ctx.shadowBlur=14;
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(S*0.5,S*0.6,babyR,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
   ctx.fillStyle='#2b1a0e';
-  ctx.beginPath();ctx.arc(S*0.5-8,S*0.6-4,4,0,Math.PI*2);ctx.arc(S*0.5+8,S*0.6-4,4,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(S*0.5-babyR*0.33,S*0.6-babyR*0.17,babyR*0.17,0,Math.PI*2);ctx.arc(S*0.5+babyR*0.33,S*0.6-babyR*0.17,babyR*0.17,0,Math.PI*2);ctx.fill();
   // tile number (subtle)
   ctx.restore();
   ctx.fillStyle='rgba(255,255,255,0.75)';ctx.font=`900 ${ts*0.18}px system-ui`;ctx.textAlign='left';
-  const home=tileHome(G._drawV||1);
   ctx.fillText(G._drawV||'',px+6,py+ts*0.22);
 }
 canvas.addEventListener('pointerdown',e=>{
@@ -204,8 +215,27 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
-  ctx.fillStyle='#160d08';ctx.fillRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#2a1408');bg.addColorStop(1,'#160d08');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   if(!G.grid.length)return;
   // board bg
   ctx.fillStyle='rgba(255,255,255,0.04)';

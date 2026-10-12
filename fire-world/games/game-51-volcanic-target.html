@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 VOLCANIC TARGET</h1>
-<div id="obody"><p>Hit every target!</p><p><b>TAP</b> targets before they vanish! Bullseyes = big points, golden = jackpot. Watch out — decoys cost you! 60 seconds, targets get faster!</p></div>
+<div id="obody"><p>Hit every target!</p><p><b>TAP</b> targets before they vanish! Bullseyes = big points, golden = jackpot. Watch out — decoys cost you! Rare 💣 <b>Magma Bombs</b> clear every other target on screen for base points! 60 seconds, targets get faster!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Aim for safety — hit the right target!</div>
 <button id="obtn">▶ PLAY</button>
@@ -64,6 +64,7 @@ const sfx={
   hit(){tone(600,900,0.08,'triangle',0.11);},
   gold(){tone(1000,1800,0.14,'sine',0.13);},
   bad(){tone(300,150,0.18,'sawtooth',0.12);},
+  boom(){tone(160,40,0.4,'sawtooth',0.16);tone(90,30,0.5,'square',0.1,0.02);},
   tick(){tone(800,800,0.05,'square',0.07);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
@@ -85,7 +86,7 @@ function updateHUD(){
 function spawnTarget(){
   const r=Math.random();
   let type='normal';
-  if(r<0.08)type='gold';else if(r<0.2)type='decoy';else if(r<0.32)type='small';
+  if(r<0.05)type='bomb';else if(r<0.13)type='gold';else if(r<0.25)type='decoy';else if(r<0.37)type='small';
   const margin=70;
   G.targets.push({
     x:margin+Math.random()*(W-margin*2),
@@ -109,7 +110,14 @@ canvas.addEventListener('pointerdown',e=>{
     if(Math.hypot(x-t.x,y-t.y)<t.r*Math.max(0.6,t.scale)){
       hitAny=true;
       G.targets.splice(i,1);
-      if(t.type==='decoy'){
+      if(t.type==='bomb'){
+        G.hits++;sfx.boom();G.shake=0.5;
+        let ptsSum=0,cleared=0;
+        for(let j=G.targets.length-1;j>=0;j--){const o=G.targets[j];
+          if(o.type!=='decoy'&&o.type!=='bomb'){ptsSum+=(o.type==='gold'?100:o.type==='small'?30:15);burst(o.x,o.y,'#ff8a3a',6);G.targets.splice(j,1);cleared++;}}
+        G.score+=ptsSum;
+        spawnText(t.x,t.y,'MAGMA BOMB! +'+ptsSum,'#ffd23f');burst(t.x,t.y,'#ffd23f',18);
+      }else if(t.type==='decoy'){
         G.score=Math.max(0,G.score-20);G.combo=1;sfx.bad();
         spawnText(t.x,t.y,'DECOY! -20','#ff4a5a');G.shake=0.25;
       }else{
@@ -128,6 +136,23 @@ canvas.addEventListener('pointerdown',e=>{
 const particles=[],floaters=[];
 for(let i=0;i<100;i++)particles.push({a:false});
 for(let i=0;i<10;i++)floaters.push({a:false});
+// [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
+const amb=[];
+for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of amb){
+    if(!e.on){e.on=true;e.x=Math.random()*W;e.y=Math.random()*H;}
+    e.y-=e.v/60;e.x+=Math.sin(G.time*1.3+e.ph)*0.18;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
+    ctx.globalAlpha=0.10+0.14*tw;
+    ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+
 function burst(x,y,color,n){
   for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;
     const a=Math.random()*Math.PI*2;
@@ -140,7 +165,7 @@ function spawnText(x,y,txt,color){
 }
 function update(dt){
   G.elapsed+=dt;G.time-=dt;G.shake=Math.max(0,G.shake-dt*3);
-  G.comboT-=dt;if(G.comboT<=0)G.combo=1;
+  G.comboT-=dt;if(G.comboT<=0&&G.combo!==1){G.combo=1;updateHUD();}
   if(G.time<=10&&Math.floor(G.time)!==Math.floor(G.time+dt))sfx.tick();
   if(G.time<=0){gameOver();return;}
   G.spawnT-=dt;
@@ -151,7 +176,7 @@ function update(dt){
   for(let i=G.targets.length-1;i>=0;i--){
     const t=G.targets[i];
     t.t+=dt*5;t.life-=dt;t.scale=Math.min(1,t.scale+dt*5);
-    if(t.life<=0){G.targets.splice(i,1);if(t.type!=='decoy')G.combo=1;}
+    if(t.life<=0){G.targets.splice(i,1);if(t.type!=='decoy'){G.combo=1;updateHUD();}}
   }
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
@@ -194,6 +219,7 @@ function render(){
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
+  drawEmbers();
   // targets
   for(const t of G.targets){
     const s=t.scale,ease=1-Math.pow(1-s,3);
@@ -202,7 +228,14 @@ function render(){
     const fade=Math.min(1,t.life/(t.maxLife*0.35));
     ctx.globalAlpha=fade;
     ctx.save();ctx.translate(t.x,t.y);
-    if(t.type==='decoy'){
+    if(t.type==='bomb'){
+      ctx.shadowColor='#ff4a5a';ctx.shadowBlur=18;
+      ctx.fillStyle='#2a2a3a';ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.fillStyle='#4a4a5e';ctx.beginPath();ctx.arc(-r*0.25,-r*0.25,r*0.45,0,Math.PI*2);ctx.fill();
+      ctx.font=Math.round(r*1.05)+'px system-ui';ctx.textAlign='center';
+      ctx.fillText('💣',0,r*0.38);ctx.textAlign='left';
+    }else if(t.type==='decoy'){
       // gray decoy with X
       ctx.fillStyle='#5a5a6a';
       ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
@@ -213,9 +246,11 @@ function render(){
       const cols=t.type==='gold'?['#fff2c8','#ffd23f','#a37a00']:['#fff','#ff8a3a','#a33c10'];
       const pulse=1+Math.sin(t.t)*0.06;
       ctx.scale(pulse,pulse);
+      ctx.shadowColor=t.type==='gold'?'#ffd23f':'#ff8a3a';ctx.shadowBlur=t.type==='gold'?20:12;
       ctx.fillStyle=cols[2];ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=cols[1];ctx.beginPath();ctx.arc(0,0,r*0.66,0,Math.PI*2);ctx.fill();
       ctx.fillStyle=cols[0];ctx.beginPath();ctx.arc(0,0,r*0.33,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
     }
     ctx.restore();
     ctx.globalAlpha=1;

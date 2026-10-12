@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🔨 INFERNO DROP</h1>
-<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> need fast fingers!</p><p><b>TAP</b> rock moles as they pop from lava holes! Bonk <b>golden</b> moles for bonus. <b>Don't tap fire babies</b> — they're friends! 60 seconds on the clock!</p></div>
+<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> need fast fingers!</p><p><b>TAP</b> rock moles as they pop from lava holes! Bonk <b>golden</b> moles for bonus. <b>Don't tap fire babies</b> — they're friends! 60 seconds on the clock! Tap the 🔨 mole to grab the <b>Golden Mallet</b> — 5s of +25% points &amp; bigger bonks!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Fast reactions save lives — practice your fire drill!</div>
 <button id="obtn">▶ PLAY</button>
@@ -59,7 +59,7 @@ function layoutHoles(){
   const gw=Math.min(W*0.86,420),gh=Math.min(H*0.6,420);
   const ox=(W-gw)/2,oy=(H-gh)/2+40;
   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
-    HOLES.push({x:ox+gw*(c+0.5)/cols,y:oy+gh*(r+0.5)/rows,r:Math.min(gw,gw)/cols*0.32,
+    HOLES.push({x:ox+gw*(c+0.5)/cols,y:oy+gh*(r+0.5)/rows,r:Math.min(gw,gh)/cols*0.32,
       mole:null});
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
 }
@@ -78,23 +78,24 @@ function noise(dur,vol,delay=0,lp=1200){const ac=audio();if(!ac)return;const t=a
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
 const sfx={
   bonk(){noise(0.1,0.3,0,800);tone(300,150,0.1,'square',0.15);},
+  mallet(){tone(700,1400,0.12,'triangle',0.16);tone(1050,1750,0.12,'triangle',0.12,0.07);noise(0.08,0.15,0,600);},
   golden(){tone(900,1800,0.15,'sine',0.15);tone(1400,2200,0.12,'sine',0.1,0.06);},
   ouch(){tone(400,150,0.2,'sawtooth',0.15);},
   pop(){tone(500,800,0.06,'sine',0.08);},
   end(){[659,523,392,523].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.12));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
-const G={state:'title',score:0,best:0,time:60,combo:1,comboT:0,spawnT:0.5,hits:0,miss:0,time:0};
+const G={state:'title',score:0,best:0,time:60,combo:1,comboT:0,spawnT:0.5,hits:0,miss:0,anim:0,malletT:0};
 try{G.best=parseInt(localStorage.getItem('whack_best')||'0',10)||0;}catch(e){}
 function reset(){
-  G.score=0;G.time=60;G.combo=1;G.comboT=0;G.spawnT=0.3;G.hits=0;G.miss=0;
+  G.score=0;G.time=60;G.combo=1;G.comboT=0;G.spawnT=0.3;G.hits=0;G.miss=0;G.malletT=0;
   for(const h of HOLES)h.mole=null;
   updateHUD();
   document.getElementById('best').textContent='🏆 '+G.best;
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
-  document.getElementById('combo').textContent='🔥 x'+G.combo;
+  document.getElementById('combo').textContent='🔥 x'+G.combo+(G.malletT>0?' 🔨':'');
   document.getElementById('timerfill').style.width=(G.time/60*100)+'%';
 }
 function spawnMole(){
@@ -103,10 +104,11 @@ function spawnMole(){
   const h=empty[Math.floor(Math.random()*empty.length)];
   const r=Math.random();
   let type='rock';
-  if(r<0.12)type='golden';
-  else if(r<0.3)type='baby'; // don't hit!
+  if(r<0.06&&G.malletT<=0)type='mallet'; // Golden Mallet pickup!
+  else if(r<0.17)type='golden';
+  else if(r<0.35)type='baby'; // don't hit!
   const speedMul=1+(60-G.time)/60; // faster over time
-  h.mole={type,pop:0,up:1,life:(type==='baby'?1.4:1.1)/speedMul,bonked:false,wob:Math.random()*6};
+  h.mole={type,pop:0,up:1,life:(type==='baby'?1.4:type==='mallet'?1.3:1.1)/speedMul,bonked:false,wob:Math.random()*6};
   sfx.pop();
 }
 canvas.addEventListener('pointerdown',e=>{
@@ -116,15 +118,20 @@ canvas.addEventListener('pointerdown',e=>{
   let hit=false;
   for(const h of HOLES){
     if(!h.mole||h.mole.bonked||h.mole.pop<0.6)continue;
-    if(Math.hypot(x-h.x,y-h.y-h.r*0.4)<h.r*1.15){
+    if(Math.hypot(x-h.x,y-h.y-h.r*0.4)<h.r*(G.malletT>0?1.4:1.15)){
       hit=true;h.mole.bonked=true;h.mole.pop=1.2;
-      if(h.mole.type==='baby'){
+      if(h.mole.type==='mallet'){
+        // Golden Mallet: +25% points & bigger bonk radius for 5s
+        G.malletT=5;G.hits++;sfx.mallet();
+        spawnText(h.x,h.y-h.r,'🔨 GOLDEN MALLET!','#ffd23f');
+        burst(h.x,h.y-h.r*0.5,'#ffd23f');
+      }else if(h.mole.type==='baby'){
         // oops! penalty
         G.score=Math.max(0,G.score-50);G.combo=1;
         sfx.ouch();G.miss++;
         spawnText(h.x,h.y-h.r,'-50 😢','#ff4a5a');
       }else{
-        const pts=(h.mole.type==='golden'?50:10)*G.combo;
+        const pts=Math.round((h.mole.type==='golden'?50:10)*G.combo*(G.malletT>0?1.25:1));
         G.score+=pts;G.hits++;
         G.combo=Math.min(8,G.combo+1);G.comboT=2.5;
         if(h.mole.type==='golden')sfx.golden();else sfx.bonk();
@@ -138,6 +145,11 @@ canvas.addEventListener('pointerdown',e=>{
   if(!hit){G.combo=Math.max(1,G.combo-1);updateHUD();}
 });
 const particles=[],floaters=[];
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
+function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.anim*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.anim*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+
 for(let i=0;i<100;i++)particles.push({a:false});
 for(let i=0;i<12;i++)floaters.push({a:false});
 function burst(x,y,color){
@@ -151,8 +163,8 @@ function spawnText(x,y,txt,color){
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
 }
 function update(dt){
-  G.time-=dt;G.comboT-=dt;
-  if(G.comboT<=0)G.combo=Math.max(1,G.combo-1);
+  G.time-=dt;G.comboT-=dt;G.malletT=Math.max(0,G.malletT-dt);
+  if(G.comboT<=0&&G.combo>1){G.combo--;G.comboT=0.8;} // step down gradually, not instantly
   if(G.time<=0){endGame();return;}
   // spawn rate increases
   G.spawnT-=dt;
@@ -214,6 +226,8 @@ function drawMole(h,m){
   ctx.save();ctx.translate(h.x,y);ctx.scale(1+squash,1-squash);
   const wob=Math.sin(m.wob)*0.08;
   ctx.rotate(wob);
+  ctx.shadowColor=m.type==='baby'?'#ff7a2a':(m.type==='golden'||m.type==='mallet')?'#ffd23f':'rgba(0,0,0,0)';
+  ctx.shadowBlur=(m.type==='baby'||m.type==='golden'||m.type==='mallet')?16:0;
   if(m.type==='baby'){
     // fire baby: DON'T HIT
     const g=ctx.createRadialGradient(-8,-10,4,0,0,h.r);
@@ -228,7 +242,7 @@ function drawMole(h,m){
     ctx.fillText('💚',0,-h.r-6);ctx.textAlign='left';
   }else{
     const g=ctx.createRadialGradient(-8,-8,4,0,0,h.r);
-    if(m.type==='golden'){g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');}
+    if(m.type==='golden'||m.type==='mallet'){g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');}
     else{g.addColorStop(0,'#9a8a7a');g.addColorStop(1,'#4a3a2a');}
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,h.r*0.85,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#2a1a0a';ctx.lineWidth=2;ctx.stroke();
@@ -239,6 +253,7 @@ function drawMole(h,m){
     ctx.fillStyle='#ffd23f';
     ctx.beginPath();ctx.arc(0,-h.r*0.5,h.r*0.5,Math.PI,0);ctx.fill();
     ctx.fillRect(-h.r*0.7,-h.r*0.55,h.r*1.4,6);
+    if(m.type==='mallet'){ctx.shadowBlur=0;ctx.font=`900 ${h.r*0.55}px system-ui`;ctx.textAlign='center';ctx.fillText('🔨',0,-h.r-4);ctx.textAlign='left';}
   }
   ctx.restore();
 }
@@ -246,6 +261,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#1a0d08');bg.addColorStop(1,'#3a1a0a');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // lava glow behind
   for(const h of HOLES){
     const lg=ctx.createRadialGradient(h.x,h.y,5,h.x,h.y,h.r*2);
@@ -257,7 +273,7 @@ function render(){
     ctx.strokeStyle='#ff4a00';ctx.lineWidth=3;
     ctx.beginPath();ctx.ellipse(h.x,h.y,h.r*1.1,h.r*0.45,0,0,Math.PI*2);ctx.stroke();
     // lava inside
-    ctx.fillStyle='#ff4a00';ctx.globalAlpha=0.5+Math.sin(G.time*5+h.x)*0.2;
+    ctx.fillStyle='#ff4a00';ctx.globalAlpha=0.5+Math.sin(G.anim*5+h.x)*0.2;
     ctx.beginPath();ctx.ellipse(h.x,h.y+2,h.r*0.85,h.r*0.3,0,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha=1;
   }
@@ -282,7 +298,7 @@ function render(){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt*0; // time handled in update
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.anim+=dt;updateEmbers(dt); // countdown handled in update()
   if(G.state==='play')update(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=600*dt;p.life-=dt;if(p.life<=0)p.a=false;}

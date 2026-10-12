@@ -38,7 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧱 PYRA PRIME DEFENSE</h1>
-<div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> smash the rock wall!</p><p><b>Drag</b> or move your <b>mouse</b> to slide the paddle! Bounce the fireball, break every brick. Grab falling power-ups!</p><div id="lvlSel"></div></div>
+<div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> smash the rock wall!</p><p><b>Drag</b> or move your <b>mouse</b> to slide the paddle! Bounce the fireball, break every brick. Grab falling power-ups — including the new <b>💥 Nova Burst</b>, which blasts the 5 bricks nearest your paddle!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Breaking through barriers is fun in games — in real fires, stay low and get out!</div>
 <button id="obtn">▶ PLAY</button>
@@ -86,12 +86,12 @@ const sfx={
 
 const G={state:'title',level:1,score:0,lives:3,
   px:0,pw:110,balls:[],bricks:[],powerups:[],lasers:[],
-  time:0,shake:0,sticky:false,laserT:0};
+  time:0,shake:0,stickyT:0,slowT:0,laserT:0};
 const BALL_R=10;
 
 function buildLevel(n){
   G.bricks=[];G.balls=[];G.powerups=[];G.lasers=[];
-  G.pw=110;G.sticky=false;G.laserT=0;
+  G.pw=110;G.stickyT=0;G.slowT=0;G.laserT=0;
   G.px=W/2;
   const cols=Math.max(6,Math.floor(W/70));
   const bw=(W*0.92)/cols,bh=28,gap=4;
@@ -146,6 +146,8 @@ function spawnText(x,y,txt,color='#ffd23f'){const f=floaters.find(f=>!f.a);if(!f
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
   if(G.laserT>0)G.laserT-=dt;
+  if(G.slowT>0)G.slowT-=dt;
+  if(G.stickyT>0)G.stickyT-=dt;
   const py=H*0.82;
   // paddle auto-follow for stuck balls
   for(const b of G.balls)if(b.stuck){b.x=G.px;b.y=py-16;}
@@ -171,7 +173,7 @@ function update(dt){
     if(b.stuck)continue;
     b.x+=b.vx*dt;b.y+=b.vy*dt;
     // speed clamp
-    const sp=Math.hypot(b.vx,b.vy),min=380,max=720;
+    const sp=Math.hypot(b.vx,b.vy),min=G.slowT>0?250:380,max=720;
     if(sp<min){b.vx*=min/sp;b.vy*=min/sp;}
     if(sp>max){b.vx*=max/sp;b.vy*=max/sp;}
     // walls
@@ -186,7 +188,7 @@ function update(dt){
       b.vx=Math.sin(ang)*spd;b.vy=-Math.cos(ang)*spd;
       b.y=py-10-BALL_R;
       sfx.paddle();
-      if(G.sticky){b.stuck=true;}
+      if(G.stickyT>0){b.stuck=true;}
       for(let i=0;i<4;i++)spawnP(b.x,py,(Math.random()-0.5)*150,-Math.random()*100,0.25,'#ffd23f',3);
     }
     // bricks
@@ -237,7 +239,7 @@ function hitBrick(br,dmg,b){
     // powerup drop
     const r=Math.random();
     if(r<0.22){
-      const types=['multi','wide','laser','slow','life','sticky'];
+      const types=['multi','wide','laser','slow','life','sticky','nova'];
       G.powerups.push({x:br.x+br.w/2,y:br.y,type:types[Math.floor(Math.random()*types.length)],spin:0});
     }
   }else{sfx.tough();}
@@ -255,9 +257,16 @@ function applyPower(type){
     spawnText(G.px,py-40,'MULTI-BALL!','#7fd4ff');
   }else if(type==='wide'){G.pw=Math.min(220,G.pw+50);spawnText(G.px,py-40,'WIDE!','#4caf50');}
   else if(type==='laser'){G.laserT=12;spawnText(G.px,py-40,'LASERS!','#ff4a5a');}
-  else if(type==='slow'){for(const b of G.balls){b.vx*=0.7;b.vy*=0.7;}spawnText(G.px,py-40,'SLOW-MO!','#9a7fd4');}
+  else if(type==='slow'){G.slowT=8;for(const b of G.balls){b.vx*=0.65;b.vy*=0.65;}spawnText(G.px,py-40,'SLOW-MO!','#9a7fd4');}
   else if(type==='life'){G.lives++;document.getElementById('lives').textContent='❤️ '+G.lives;spawnText(G.px,py-40,'+1 LIFE!','#ff6a8a');}
-  else{G.sticky=true;setTimeout(()=>G.sticky=false,15000);spawnText(G.px,py-40,'STICKY!','#ffd23f');}
+  else if(type==='nova'){
+    const alive=G.bricks.filter(br=>!br.dead);
+    alive.sort((a,b2)=>Math.hypot(a.x+a.w/2-G.px,a.y-py)-Math.hypot(b2.x+b2.w/2-G.px,b2.y-py));
+    alive.slice(0,5).forEach(br=>hitBrick(br,2));
+    noise(0.25,0.2,0,1200);G.shake=Math.max(G.shake,0.3);
+    spawnText(G.px,py-40,'💥 NOVA BURST!','#ff9a3a');
+  }
+  else{G.stickyT=15;spawnText(G.px,py-40,'STICKY!','#ffd23f');}
 }
 function levelComplete(){
   if(G.state!=='play')return;
@@ -317,10 +326,18 @@ function showOverlay(title,body,lesson,btn,cb){
 obtn.onclick=()=>{showMathGate();};
 
 /* render */
+/* living embers (overhaul) */
+const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
+function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
+  for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#140a08');bg.addColorStop(1,'#2a1408');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers(W,H);
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   // bricks
@@ -347,8 +364,8 @@ function render(){
   // paddle
   const pg=ctx.createLinearGradient(0,py-10,0,py+10);
   pg.addColorStop(0,'#ffd76a');pg.addColorStop(0.5,'#ff8a00');pg.addColorStop(1,'#a33c10');
-  ctx.fillStyle=pg;
-  ctx.beginPath();ctx.roundRect(G.px-G.pw/2,py-10,G.pw,20,10);ctx.fill();
+  ctx.fillStyle=pg;ctx.shadowColor='#ff8a00';ctx.shadowBlur=G.laserT>0?18:10;
+  ctx.beginPath();ctx.roundRect(G.px-G.pw/2,py-10,G.pw,20,10);ctx.fill();ctx.shadowBlur=0;
   ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
   if(G.laserT>0){
     ctx.fillStyle='#ff4a5a';
@@ -361,15 +378,16 @@ function render(){
   for(const b of G.balls){
     const g=ctx.createRadialGradient(b.x-3,b.y-3,2,b.x,b.y,BALL_R);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,BALL_R,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff8a00';ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(b.x,b.y,BALL_R,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(b.x-3,b.y-2,2.2,0,Math.PI*2);ctx.arc(b.x+3,b.y-2,2.2,0,Math.PI*2);ctx.fill();
   }
   // powerups
   for(const p of G.powerups){
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.spin)*0.2);
-    const icons={multi:'✦',wide:'↔',laser:'🔫',slow:'⏳',life:'❤️',sticky:'🍯'};
-    const cols={multi:'#7fd4ff',wide:'#4caf50',laser:'#ff4a5a',slow:'#9a7fd4',life:'#ff6a8a',sticky:'#ffd23f'};
+    const icons={multi:'✦',wide:'↔',laser:'🔫',slow:'⏳',life:'❤️',sticky:'🍯',nova:'💥'};
+    const cols={multi:'#7fd4ff',wide:'#4caf50',laser:'#ff4a5a',slow:'#9a7fd4',life:'#ff6a8a',sticky:'#ffd23f',nova:'#ff9a3a'};
     ctx.fillStyle=cols[p.type];
     ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();

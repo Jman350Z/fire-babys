@@ -108,6 +108,11 @@ canvas.addEventListener('pointerup',()=>{
   G.charging=false;
   doJump();
 });
+canvas.addEventListener('pointercancel',()=>{
+  // BUGFIX: without this, a cancelled touch left G.charging stuck true
+  // (charge pinned at max and a stale jump fired on the next pointerup).
+  G.charging=false;G.charge=0;
+});
 function doJump(){
   if(G.jumping)return;
   G.jumping=true;
@@ -129,6 +134,9 @@ function doJump(){
 }
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+// Living background: 24 rising ember motes (positions derived from G.time — cheap, no per-frame state)
+const EMBERS=[];
+for(let i=0;i<24;i++)EMBERS.push({x:Math.random(),o:Math.random()*1200,s:26+Math.random()*38,r:1.4+Math.random()*2.2,ph:Math.random()*6.28});
 function update(dt){
   G.time+=dt;
   if(G.charging){G.charge=Math.min(1,G.charge+dt*1.8);}
@@ -220,6 +228,16 @@ function render(){
   const hue=(200+G.score*2)%360;
   bg.addColorStop(0,`hsl(${hue},30%,10%)`);bg.addColorStop(1,'#140d08');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // living embers behind gameplay (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of EMBERS){
+    const ey=H-((G.time*e.s+e.o)%(H+30));
+    const ex=e.x*W+Math.sin(G.time*0.9+e.ph)*10;
+    ctx.globalAlpha=0.16+0.12*Math.sin(G.time*2+e.ph);
+    ctx.fillStyle='#ff9a3c';
+    ctx.beginPath();ctx.arc(ex,ey,e.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   // platforms
   for(const p of G.plats){
     const g=ctx.createLinearGradient(0,p.y,0,p.y+18);
@@ -239,7 +257,10 @@ function render(){
     ctx.save();ctx.translate(G.px,G.py-14);ctx.scale(1/squash,squash);
     const g=ctx.createRadialGradient(-6,-7,3,0,0,18);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;
+    ctx.shadowColor='#ff8c2e';ctx.shadowBlur=18; // hero glow halo
+    ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-5,-3,3,0,Math.PI*2);ctx.arc(5,-3,3,0,Math.PI*2);ctx.fill();
     ctx.restore();

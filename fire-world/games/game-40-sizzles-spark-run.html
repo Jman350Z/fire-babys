@@ -107,6 +107,7 @@ function spawnRow(){
   }
 }
 function moveLane(d){
+  if(G.state!=='play'||G.dead)return;
   const nl=Math.max(0,Math.min(2,G.lane+d));
   if(nl!==G.lane){G.lane=nl;sfx.swipe();}
 }
@@ -173,7 +174,7 @@ function update(dt){
       // obstacle
       const hitW=it.type==='firewall'?70:54;
       const hitH=it.type==='firewall'?(it.low?40:90):60;
-      const oy=H*0.75-hitH;
+      const oy=it.y+28-hitH; // obstacle top follows its falling y (was fixed ground line = instant kill on spawn)
       if(dx<hitW/2+16&&py+20>oy&&py-20<oy+hitH){
         die();return;
       }
@@ -214,10 +215,27 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0d1420');bg.addColorStop(1,'#141a2a');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   const gy=GY();
@@ -249,24 +267,26 @@ function render(){
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,13,0,Math.PI*2);ctx.fill();
       ctx.restore();
     }else if(it.type==='rock'){
+      const baseY=it.y+28;
       ctx.fillStyle='#4a4a5a';
       ctx.beginPath();
-      ctx.moveTo(it.x-27,gy);ctx.lineTo(it.x,gy-60);ctx.lineTo(it.x+27,gy);ctx.closePath();ctx.fill();
+      ctx.moveTo(it.x-27,baseY);ctx.lineTo(it.x,baseY-60);ctx.lineTo(it.x+27,baseY);ctx.closePath();ctx.fill();
       ctx.fillStyle='#6a6a7a';
       ctx.beginPath();
-      ctx.moveTo(it.x-14,gy);ctx.lineTo(it.x,gy-44);ctx.lineTo(it.x+6,gy);ctx.closePath();ctx.fill();
+      ctx.moveTo(it.x-14,baseY);ctx.lineTo(it.x,baseY-44);ctx.lineTo(it.x+6,baseY);ctx.closePath();ctx.fill();
     }else{
       // firewall
       const fh=it.low?40:90;
-      const fg=ctx.createLinearGradient(0,gy-fh,0,gy);
+      const baseY=it.y+28;
+      const fg=ctx.createLinearGradient(0,baseY-fh,0,baseY);
       fg.addColorStop(0,'rgba(255,210,63,0.9)');fg.addColorStop(0.5,'rgba(255,106,0,0.9)');fg.addColorStop(1,'rgba(200,40,0,0.9)');
       ctx.fillStyle=fg;
       const wob=Math.sin(it.t*2)*6;
       ctx.beginPath();
-      ctx.moveTo(it.x-35,gy);
-      ctx.quadraticCurveTo(it.x-35+wob,gy-fh/2,it.x-20,gy-fh);
-      ctx.quadraticCurveTo(it.x,gy-fh*1.2,it.x+20,gy-fh);
-      ctx.quadraticCurveTo(it.x+35+wob,gy-fh/2,it.x+35,gy);
+      ctx.moveTo(it.x-35,baseY);
+      ctx.quadraticCurveTo(it.x-35+wob,baseY-fh/2,it.x-20,baseY-fh);
+      ctx.quadraticCurveTo(it.x,baseY-fh*1.2,it.x+20,baseY-fh);
+      ctx.quadraticCurveTo(it.x+35+wob,baseY-fh/2,it.x+35,baseY);
       ctx.closePath();ctx.fill();
     }
   }
@@ -277,7 +297,9 @@ function render(){
     ctx.save();ctx.translate(px,py);ctx.scale(1,squash);
     const g=ctx.createRadialGradient(-7,-30,4,0,-24,20);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,-24,20,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-6,-28,3.5,0,Math.PI*2);ctx.arc(6,-28,3.5,0,Math.PI*2);ctx.fill();
     // spark trail

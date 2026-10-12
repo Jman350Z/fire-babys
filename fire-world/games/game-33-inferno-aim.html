@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 INFERNO AIM</h1>
-<div id="obody"><p>How sharp is your aim?</p><p><b>TAP</b> targets to blast them! <b>Don't hit</b> the 💣 bombs (-50 pts)! Golden targets are worth 5x. You have 60 seconds — bullseyes give bonus time!</p></div>
+<div id="obody"><p>How sharp is your aim?</p><p><b>TAP</b> targets to blast them! <b>Don't hit</b> the 💣 bombs (-50 pts)! Golden targets are worth 5x. You have 60 seconds — bullseyes give bonus time! Rare 💥 <b>Nova Stars</b> burst every other target on screen for bonus points!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Aim for safety — always point away from fires!</div>
 <button id="obtn">▶ PLAY</button>
@@ -72,10 +72,11 @@ const sfx={
   bomb(){noise(0.3,0.3,0,400);tone(200,60,0.3,'sawtooth',0.16);},
   miss(){tone(300,200,0.06,'sine',0.05);},
   tick(){tone(800,800,0.05,'square',0.08);},
-  click(){tone(600,600,0.06,'square',0.1);}
+  click(){tone(600,600,0.06,'square',0.1);},
+  nova(){noise(0.25,0.28,0,900);tone(500,1500,0.22,'triangle',0.14);}
 };
 const G={state:'title',score:0,best:0,time:60,hits:0,shots:0,
-  targets:[],spawnT:0.5,combo:1,comboT:0,time:0,shake:0,streak:0};
+  targets:[],spawnT:0.5,combo:1,comboT:0,shake:0,streak:0};
 try{G.best=parseInt(localStorage.getItem('aim_best')||'0',10)||0;}catch(e){}
 const DUR=60;
 function reset(){
@@ -93,9 +94,10 @@ function updateHUD(){
 function spawnTarget(){
   const r=Math.random();
   let type='normal';
-  if(r<0.14)type='bomb';
-  else if(r<0.24)type='golden';
-  else if(r<0.34)type='bullseye';
+  if(r<0.06)type='nova';
+  else if(r<0.20)type='bomb';
+  else if(r<0.30)type='golden';
+  else if(r<0.40)type='bullseye';
   const size=type==='bullseye'?30:38+Math.random()*22;
   G.targets.push({
     x:60+Math.random()*(W-120),y:120+Math.random()*(H-260),
@@ -122,15 +124,27 @@ canvas.addEventListener('pointerdown',e=>{
         burst(t.x,t.y,'#ff4a5a',14);
       }else{
         G.hits++;G.streak++;
-        const base=t.type==='golden'?50:t.type==='bullseye'?30:10;
+        const base=t.type==='golden'?50:t.type==='bullseye'?30:t.type==='nova'?20:10;
         const pts=base*G.combo;
         G.score+=pts;
         G.combo=Math.min(8,G.combo+1);G.comboT=2;
         if(t.type==='golden'){sfx.golden();G.time=Math.min(DUR,G.time+2);}
         else if(t.type==='bullseye'){sfx.hit();G.time=Math.min(DUR,G.time+3);}
         else sfx.hit();
+        if(t.type==='nova'){
+          sfx.nova();G.shake=Math.max(G.shake,0.3);
+          let extra=0;
+          for(const o of [...G.targets]){
+            if(o.type!=='bomb'){extra+=5;burst(o.x,o.y,'#ff8a3a',6);}
+          }
+          G.targets=G.targets.filter(o=>o.type==='bomb');
+          G.score+=extra;
+          spawnText(t.x,t.y,'💥 NOVA +'+(pts+extra),'#ff8a3a');
+          burst(t.x,t.y,'#ff8a3a',18);
+        }else{
         spawnText(t.x,t.y,'+'+pts,t.type==='golden'?'#ffd23f':t.type==='bullseye'?'#7fd4ff':'#fff');
         burst(t.x,t.y,t.type==='golden'?'#ffd23f':t.type==='bullseye'?'#7fd4ff':'#ff8a3a',10);
+        }
       }
       updateHUD();
       break;
@@ -139,6 +153,14 @@ canvas.addEventListener('pointerdown',e=>{
   if(!hit){sfx.miss();G.combo=Math.max(1,G.combo-1);G.streak=0;updateHUD();}
 });
 const particles=[],floaters=[],crosshairs=[];
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*2200,y:Math.random()*1200,s:1+Math.random()*2.5,v:14+Math.random()*26,ph:Math.random()*6.28});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){e.y-=e.v*0.016;e.x+=Math.sin(performance.now()*0.0009+e.ph)*0.3;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.5+0.5*Math.sin(performance.now()*0.002+e.ph);
+    ctx.globalAlpha=0.13+0.22*tw;ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x%(W+12),e.y,e.s,0,6.29);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;}
 for(let i=0;i<120;i++)particles.push({a:false});
 for(let i=0;i<14;i++)floaters.push({a:false});
 function burst(x,y,color,n){
@@ -212,6 +234,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#1e1206');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   // targets
@@ -220,7 +243,18 @@ function render(){
     ctx.globalAlpha=Math.max(0,fade);
     const pulse=1+Math.sin(t.pulse)*0.06;
     ctx.save();ctx.translate(t.x,t.y);ctx.scale(pulse,pulse);
-    if(t.type==='bomb'){
+    if(t.type==='nova'){
+      const g=ctx.createRadialGradient(-t.r*0.3,-t.r*0.3,3,0,0,t.r);
+      g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ff8a3a');g.addColorStop(1,'#a33c10');
+      ctx.fillStyle=g;ctx.shadowColor='#ff6a1a';ctx.shadowBlur=20;
+      ctx.beginPath();
+      for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?t.r*0.45:t.r;
+        const vx=Math.cos(a)*rr,vy=Math.sin(a)*rr;
+        if(i===0)ctx.moveTo(vx,vy);else ctx.lineTo(vx,vy);}
+      ctx.closePath();ctx.fill();ctx.shadowBlur=0;
+      ctx.fillStyle='#fff';ctx.font=`900 ${t.r*0.5}px system-ui`;ctx.textAlign='center';
+      ctx.fillText('💥',0,t.r*0.18);ctx.textAlign='left';
+    }else if(t.type==='bomb'){
       ctx.fillStyle='#2a2a2a';
       ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#ff4a5a';ctx.font=`${t.r}px system-ui`;ctx.textAlign='center';
@@ -231,7 +265,8 @@ function render(){
     }else if(t.type==='golden'){
       const g=ctx.createRadialGradient(-t.r*0.3,-t.r*0.3,3,0,0,t.r);
       g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=g;ctx.shadowColor='#ffd23f';ctx.shadowBlur=16;
+      ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
       ctx.fillStyle='#7a5a00';ctx.font=`900 ${t.r*0.8}px system-ui`;ctx.textAlign='center';
       ctx.fillText('5x',0,t.r*0.28);ctx.textAlign='left';
     }else if(t.type==='bullseye'){
@@ -245,7 +280,8 @@ function render(){
     }else{
       const g=ctx.createRadialGradient(-t.r*0.3,-t.r*0.3,3,0,0,t.r);
       g.addColorStop(0,'#ffb347');g.addColorStop(0.5,'#ff6a1a');g.addColorStop(1,'#a33c10');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=g;ctx.shadowColor='#ff6a1a';ctx.shadowBlur=14;
+      ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
       ctx.strokeStyle='#fff';ctx.lineWidth=3;
       ctx.beginPath();ctx.arc(0,0,t.r*0.55,0,Math.PI*2);ctx.stroke();
       ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,t.r*0.18,0,Math.PI*2);ctx.fill();

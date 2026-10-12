@@ -93,7 +93,7 @@ const MAZES=[
     "10111110101111",
     "10302010001031",
     "10111011101011",
-    "10000000100001",
+    "10000000000001",
     "11111111111111"],
   [ // 5: lava maze
     "111111111111111",
@@ -103,15 +103,15 @@ const MAZES=[
     "111011111110101",
     "100010200000101",
     "101010111111101",
-    "101030100000301",
+    "101030000000301",
     "111111111111111"],
   [ // 6: final
     "1111111111111111",
     "1400002000200051",
     "1110111110111101",
-    "1000100000100001",
+    "1000100000000001",
     "1011101110101111",
-    "1030001010201001",
+    "1030000010201001",
     "1111111011111101",
     "1000001000000301",
     "1111111111111111"],
@@ -193,12 +193,12 @@ function update(dt){
   // X collision
   const cx=OX+(nx+0.5)*CELL,cy=OY+(G.by+0.5)*CELL;
   if(isWall(cx-R,OY+(G.by+0.5)*CELL)||isWall(cx+R,OY+(G.by+0.5)*CELL)){
-    G.bvx*=-0.4;sfx.bump();nx=G.bx;
+    if(Math.abs(G.bvx)>70)sfx.bump();G.bvx*=-0.4;nx=G.bx;
   }else G.bx=nx;
   // Y collision
   const cx2=OX+(G.bx+0.5)*CELL,cy2=OY+(ny+0.5)*CELL;
   if(isWall(cx2,cy2-R)||isWall(cx2,cy2+R)){
-    G.bvy*=-0.4;sfx.bump();ny=G.by;
+    if(Math.abs(G.bvy)>70)sfx.bump();G.bvy*=-0.4;ny=G.by;
   }else G.by=ny;
   const px=OX+(G.bx+0.5)*CELL,py=OY+(G.by+0.5)*CELL;
   // lava check
@@ -286,8 +286,27 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
-  ctx.fillStyle='#140d08';ctx.fillRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#241209');bg.addColorStop(0.6,'#140d08');bg.addColorStop(1,'#1c0a04');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   if(!G.grid.length){ctx.restore();return;}
@@ -345,7 +364,9 @@ function render(){
     const R=CELL*0.28;
     const g=ctx.createRadialGradient(fx-R*0.3,fy-R*0.3,2,fx,fy,R);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff6a1a');g.addColorStop(1,'#a32a10');
+    ctx.shadowColor='#ff6a1a';ctx.shadowBlur=18;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(fx,fy,R,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=2;ctx.stroke();
   }
   // particles

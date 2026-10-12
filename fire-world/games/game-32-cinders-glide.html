@@ -65,10 +65,10 @@ const sfx={
 };
 const G={state:'title',score:0,best:0,dist:0,speed:300,
   py:0,vy:0,holding:false,rot:0,
-  walls:[],gems:[],spawnX:0,time:0,shake:0,dead:false,ceiling:[],floor:[]};
+  walls:[],gems:[],spawnX:0,time:0,shake:0,dead:false,ceiling:[],floor:[],terr:[],bonus:0};
 try{G.best=parseInt(localStorage.getItem('glide_best')||'0',10)||0;}catch(e){}
 function reset(){
-  G.score=0;G.dist=0;G.speed=300;G.py=H/2;G.vy=0;
+  G.score=0;G.bonus=0;G.dist=0;G.speed=300;G.py=H/2;G.vy=0;
   G.walls=[];G.gems=[];G.time=0;G.shake=0;G.dead=false;
   // init terrain
   G.terr=[];
@@ -109,14 +109,24 @@ function extendTerrain(){
 }
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();G.holding=true;});
 canvas.addEventListener('pointerup',()=>G.holding=false);
+addEventListener('pointerup',()=>G.holding=false);
 canvas.addEventListener('pointercancel',()=>G.holding=false);
 addEventListener('keydown',e=>{if(e.key===' ')G.holding=true;});
 addEventListener('keyup',e=>{if(e.key===' ')G.holding=false;});
 const particles=[];
 for(let i=0;i<70;i++)particles.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*2200,y:Math.random()*1200,s:1+Math.random()*2.5,v:14+Math.random()*26,ph:Math.random()*6.28});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){e.y-=e.v*0.016;e.x+=Math.sin(G.time*0.9+e.ph)*0.3;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.5+0.5*Math.sin(G.time*2+e.ph);
+    ctx.globalAlpha=0.13+0.22*tw;ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x%(W+12),e.y,e.s,0,6.29);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;}
 function terrainY(x,isTop){
   // interpolate
-  const t=G.terr;
+  const t=G.terr||[];
+  if(!t.length)return isTop?0:H;
   for(let i=0;i<t.length-1;i++){
     if(x>=t[i].x&&x<=t[i+1].x){
       const f=(x-t[i].x)/40;
@@ -128,7 +138,7 @@ function terrainY(x,isTop){
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
   G.speed=Math.min(650,300+G.dist*0.3);
-  G.dist+=G.speed*dt/50;G.score=Math.floor(G.dist);
+  G.dist+=G.speed*dt/50;G.score=Math.floor(G.dist)+G.bonus;
   // glide physics
   if(G.holding)G.vy-=1600*dt;else G.vy+=1100*dt;
   G.vy=Math.max(-520,Math.min(620,G.vy));
@@ -148,7 +158,7 @@ function update(dt){
   for(const g of G.gems){
     g.t+=dt*4;
     if(!g.taken&&Math.hypot(px-g.x,G.py-g.y)<34){
-      g.taken=true;G.score+=25;sfx.gem();updateHUD();
+      g.taken=true;G.bonus+=25;G.score=Math.floor(G.dist)+G.bonus;sfx.gem();updateHUD();
       for(let i=0;i<6;i++){const p=particles.find(p=>!p.a);if(!p)break;
         p.a=true;p.x=g.x;p.y=g.y;p.vx=(Math.random()-0.5)*200;p.vy=(Math.random()-0.5)*200;
         p.life=0.35;p.max=0.35;p.color='#7fd4ff';p.size=3;}
@@ -199,6 +209,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0a1428');bg.addColorStop(0.5,'#0d1a30');bg.addColorStop(1,'#0a1428');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // bg crystals
   ctx.fillStyle='rgba(127,212,255,0.06)';
   for(let i=0;i<10;i++){
@@ -209,7 +220,7 @@ function render(){
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   // terrain
-  const t=G.terr;
+  const t=G.terr||[];
   if(t.length>1){
     // top (stalactites)
     ctx.fillStyle='#2a3a5a';
@@ -245,9 +256,9 @@ function render(){
   for(const g of G.gems){
     const bob=Math.sin(g.t)*4;
     ctx.save();ctx.translate(g.x,g.y+bob);ctx.rotate(g.t*0.5);
-    ctx.fillStyle='#7fd4ff';
+    ctx.fillStyle='#7fd4ff';ctx.shadowColor='#4ab8ff';ctx.shadowBlur=12;
     ctx.beginPath();
-    ctx.moveTo(0,-12);ctx.lineTo(9,0);ctx.lineTo(0,12);ctx.lineTo(-9,0);ctx.closePath();ctx.fill();
+    ctx.moveTo(0,-12);ctx.lineTo(9,0);ctx.lineTo(0,12);ctx.lineTo(-9,0);ctx.closePath();ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='rgba(255,255,255,0.6)';
     ctx.beginPath();ctx.moveTo(0,-12);ctx.lineTo(4,-2);ctx.lineTo(-4,-2);ctx.closePath();ctx.fill();
     ctx.restore();
@@ -265,7 +276,8 @@ function render(){
     // body
     const g=ctx.createRadialGradient(-6,-7,3,0,0,18);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(5,-3,3,0,Math.PI*2);ctx.fill();
     ctx.restore();

@@ -106,7 +106,7 @@ function drawPuzzleArt(px,py,pz,level){
   ctx.fillStyle=bg;ctx.beginPath();ctx.arc(bx,by,16,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
-const G={state:'title',level:1,pieces:[],score:0,startT:0,time:0,drag:null};
+const G={state:'title',level:1,pieces:[],score:0,startT:0,time:0,drag:null,lastSec:-1};
 function initLevel(n){
   G.level=n;layout();
   G.pieces=[];G.drag=null;G.startT=performance.now();
@@ -122,16 +122,13 @@ function initLevel(n){
     else if(side===1){sx=Math.random()*W;sy=H*0.88+Math.random()*H*0.06;}
     else if(side===2){sx=Math.random()*W*0.12;sy=H*0.25+Math.random()*H*0.5;}
     else{sx=W*0.88+Math.random()*W*0.1;sy=H*0.25+Math.random()*H*0.5;}
-    G.pieces.push({hr:Math.floor(i/GRID),hc:i%GRID, // home
-      tr:pos.r,tc:pos.c, // target (shuffled for variety, actually home=target)
+    // home IS the target: a piece's picture fragment belongs in its home slot.
+    // (Targets used to be re-shuffled after creation, so the finished picture
+    // could never assemble and no slot visually matched its piece.)
+    G.pieces.push({hr:Math.floor(i/GRID),hc:i%GRID,
+      tr:Math.floor(i/GRID),tc:i%GRID,
       x:sx,y:sy,placed:false,snap:0});
-    // fix: home IS the target
-    const p=G.pieces[G.pieces.length-1];
-    p.tr=p.hr;p.tc=p.hc;
   });
-  // reassign targets shuffled
-  const targets=idx;
-  G.pieces.forEach((p,i)=>{p.tr=targets[i].r;p.tc=targets[i].c;});
   document.getElementById('level').textContent=`PUZZLE ${n}/3`;
   updateHUD();
 }
@@ -175,6 +172,7 @@ canvas.addEventListener('pointerup',e=>{
   }
 });
 function levelComplete(){
+  G.state='clear'; // freeze play/timer while the completion overlay is pending
   const elapsed=(performance.now()-G.startT)/1000;
   const bonus=Math.max(0,Math.round((180-elapsed)*5));
   G.score+=bonus;updateHUD();sfx.win();
@@ -221,7 +219,10 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  ctx.fillStyle='#160d08';ctx.fillRect(0,0,W,H);
+  const bg21=ctx.createLinearGradient(0,0,0,H);
+  bg21.addColorStop(0,'#160d08');bg21.addColorStop(1,'#2e1608');
+  ctx.fillStyle=bg21;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   if(!G.pieces.length)return;
   // target slots (glowing)
   for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
@@ -263,8 +264,8 @@ function render(){
   }
   // timer
   if(G.state==='play'){
-    const el=(performance.now()-G.startT)/1000;
-    document.getElementById('timer').textContent='⏱️ '+el.toFixed(0)+'s';
+    const el=Math.floor((performance.now()-G.startT)/1000);
+    if(el!==G.lastSec){G.lastSec=el;document.getElementById('timer').textContent='⏱️ '+el+'s';} // was a DOM write every frame
   }
 }
 function drawPieceArt(hr,hc,px,py){
@@ -276,10 +277,16 @@ function drawPieceArt(hr,hc,px,py){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;updateEmbers(dt);
   render();
   requestAnimationFrame(loop);
 }
+
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
+function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+
 resize();
 requestAnimationFrame(loop);
 </script>

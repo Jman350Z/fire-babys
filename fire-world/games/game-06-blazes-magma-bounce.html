@@ -38,7 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💥 BLAZE'S MAGMA BOUNCE</h1>
-<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> enter the sumo ring!</p><p><b>Fling</b> Blaze to BUMP rock golems out of the arena! Drag back and release. Last one in the ring wins!</p></div>
+<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> enter the sumo ring!</p><p><b>Fling</b> Blaze to BUMP rock golems out of the arena! Drag back and release. Last one in the ring wins!</p><p>🌋 Grab the <b>Magma Surge</b> orb — Blaze's bumps hit 25% harder for 8 seconds!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Hot lava is like a real fire — never touch, always stay back!</div>
 <button id="obtn">▶ PLAY</button>
@@ -73,6 +73,16 @@ function noise(dur,vol,delay=0,lp=1000){const ac=audio();if(!ac)return;const t=a
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
   const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+
+/* living ember backdrop (overhaul) */
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
+function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
+  if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
   fling(){noise(0.15,0.25,0,1500);tone(300,700,0.12,'sine',0.12);},
   bump(){noise(0.15,0.35,0,600);tone(150,60,0.12,'square',0.2);},
@@ -87,15 +97,14 @@ for(let i=0;i<250;i++)particles.push({a:false});
 for(let i=0;i<20;i++)floaters.push({a:false});
 function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p)return;
   p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
-function spawnText(x,y,txt,color='#ffd23f'){const f=floaters.find(f=>!f.a);if(!f)return;
-  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1.2;}
+function spawnText(x,y,txt,color='#ffd23f',size=20){const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.size=size;f.life=1.2;}
 let trauma=0,shakeX=0,shakeY=0;
 function addTrauma(t){trauma=Math.min(1,trauma+t);}
 
 /* state */
-const G={state:'title',round:1,score:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0};
+const G={state:'title',round:1,score:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0,surgeT:0,pickup:null,pickupT:8};
 function makeFighter(x,y,isPlayer,round){
-  const hp=isPlayer?1:1;
   return{x,y,vx:0,vy:0,r:isPlayer?26:24+round*2,isPlayer,
     aiT:Math.random()*2,target:null,dead:false,outT:0,
     squash:0,flash:0,
@@ -103,7 +112,7 @@ function makeFighter(x,y,isPlayer,round){
     aggro:0.5+round*0.12};
 }
 function startRound(n){
-  G.round=n;G.foes=[];G.roundT=0;
+  G.round=n;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
   G.player=makeFighter(CX,CY-60,true,n);
   const count=2+Math.min(n,3);
   for(let i=0;i<count;i++){
@@ -184,6 +193,18 @@ function update(dt){
       }
     }else f.outT=Math.max(0,f.outT-dt*2);
   }
+  // Magma Surge power-up orb
+  if(G.surgeT>0)G.surgeT-=dt;
+  if(!G.pickup){G.pickupT-=dt;
+    if(G.pickupT<=0){const a=Math.random()*Math.PI*2,rr=RING_R*0.45*Math.random();
+      G.pickup={x:CX+Math.cos(a)*rr,y:CY+Math.sin(a)*rr,r:16,t:0};}}
+  else{G.pickup.t+=dt;
+    if(G.player&&!G.player.dead&&Math.hypot(G.player.x-G.pickup.x,G.player.y-G.pickup.y)<G.player.r+G.pickup.r){
+      G.pickup=null;G.pickupT=10+Math.random()*4;G.surgeT=8;
+      tone(500,1400,0.25,'sine',0.16);tone(750,1800,0.2,'sine',0.1,0.07);
+      spawnText(G.player.x,G.player.y-40,'🌋 MAGMA SURGE!','#ff9a3a',20);
+      for(let i=0;i<12;i++)spawnP(G.player.x,G.player.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#ff9a3a',4);
+    }}
   // collisions: bump!
   for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
     const a=all[i],b=all[j];
@@ -197,8 +218,10 @@ function update(dt){
       const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
       if(rel<0){
         const imp=-rel*1.4;
-        a.vx-=nx*imp*(b.r/total);a.vy-=ny*imp*(b.r/total);
-        b.vx+=nx*imp*(a.r/total);b.vy+=ny*imp*(a.r/total);
+        // Magma Surge: Blaze's bumps hit foes 25% harder while surging
+        const aFac=(a.isPlayer&&G.surgeT>0)?1.25:1, bFac=(b.isPlayer&&G.surgeT>0)?1.25:1;
+        a.vx-=nx*imp*(b.r/total)*bFac;a.vy-=ny*imp*(b.r/total)*bFac;
+        b.vx+=nx*imp*(a.r/total)*aFac;b.vy+=ny*imp*(a.r/total)*aFac;
         a.squash=0.3;b.squash=0.3;a.flash=1;b.flash=1;
         if(imp>150){sfx.bump();addTrauma(Math.min(0.35,imp/2000));
           const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
@@ -255,7 +278,7 @@ canvas.addEventListener('pointermove',e=>{
   if(d>max){dx=dx/d*max;dy=dy/d*max;}
   G.dragX=p.x+dx;G.dragY=p.y+dy;
 });
-canvas.addEventListener('pointerup',()=>{
+function releaseFling(){
   const p=G.player;if(!p||!G.dragging)return;
   p.held=false;G.dragging=false;
   const dx=p.x-G.dragX,dy=p.y-G.dragY,pow=Math.hypot(dx,dy);
@@ -264,7 +287,9 @@ canvas.addEventListener('pointerup',()=>{
   p.vy=dy/pow*Math.min(pow,120)*8;
   p.squash=0.35;
   sfx.fling();addTrauma(0.2);
-});
+}
+canvas.addEventListener('pointerup',releaseFling);
+canvas.addEventListener('pointercancel',releaseFling);
 
 /* overlay */
 let mathAnswer=0;
@@ -291,7 +316,8 @@ function drawFighter(f){
   ctx.save();ctx.translate(f.x,f.y);
   ctx.scale(1+f.squash,1-f.squash);
   if(f.isPlayer){
-    // Blaze
+    // Blaze (hero glow)
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
     const g=ctx.createRadialGradient(-8,-10,5,0,0,f.r);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();
@@ -333,6 +359,7 @@ function render(){
   const bg=ctx.createRadialGradient(CX,CY,50,CX,CY,Math.max(W,H));
   bg.addColorStop(0,'#3a1a0a');bg.addColorStop(0.6,'#1a0d08');bg.addColorStop(1,'#0a0505');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(trauma>0)ctx.translate(shakeX,shakeY);
   // lava around ring
@@ -372,6 +399,14 @@ function render(){
     ctx.fillText('FLING!',p.x,p.y-40);
     ctx.textAlign='left';
   }
+  // Magma Surge orb
+  if(G.pickup){const pk=G.pickup;
+    ctx.save();ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
+    ctx.fillStyle='#ff9a3a';ctx.beginPath();ctx.arc(pk.x,pk.y,pk.r+Math.sin(pk.t*5)*2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(pk.x,pk.y,7,0,Math.PI*2);ctx.fill();ctx.restore();}
+  if(G.surgeT>0&&G.player&&!G.player.dead){
+    ctx.strokeStyle='rgba(255,154,58,0.8)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(G.player.x,G.player.y,G.player.r+7+Math.sin(G.time*8)*2,0,Math.PI*2);ctx.stroke();}
   // fighters (foes first, player on top)
   for(const f of G.foes)if(!f.dead)drawFighter(f);
   if(G.player&&!G.player.dead)drawFighter(G.player);
@@ -396,7 +431,7 @@ function render(){
   for(const f of floaters){
     if(!f.a)continue;
     ctx.globalAlpha=Math.min(1,f.life);
-    ctx.font='900 20px system-ui';ctx.fillStyle='#000';
+    ctx.font=`900 ${f.size||20}px system-ui`;ctx.fillStyle='#000';
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
@@ -412,6 +447,7 @@ function loop(t){
   const sh=trauma*trauma*18;
   shakeX=(Math.random()-0.5)*sh*2;shakeY=(Math.random()-0.5)*sh*2;
   if(G.state==='play')update(dt);else G.time+=dt;
+  updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=400*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=50*dt;f.life-=dt;if(f.life<=0)f.a=false;}

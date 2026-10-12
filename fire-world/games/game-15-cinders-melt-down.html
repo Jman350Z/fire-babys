@@ -84,7 +84,7 @@ const FACES=[
 const G={state:'title',level:1,cards:[],first:null,second:null,lock:false,
   flips:0,matched:0,score:0,time:0,combo:0};
 function initLevel(n){
-  G.level=n;G.flips=0;G.matched=0;G.score=0;G.combo=0;G.first=null;G.second=null;G.lock=false;
+  G.level=n;G.flips=0;G.matched=0;G.combo=0;G.first=null;G.second=null;G.lock=false;
   const pairCount=[8,10,12][n-1]||8;
   layout();
   const faces=FACES.slice(0,pairCount);
@@ -151,9 +151,9 @@ function levelComplete(){
   setTimeout(()=>{
     if(G.level>=3){
       showOverlay('🏆 MEMORY MASTER!',
-        `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(3)}</div><p style="font-size:24px;font-weight:900">Score: ${G.score}</p>`,
+        `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p style="font-size:24px;font-weight:900">Score: ${G.score}</p>`,
         '🔥 Fire Safety: You\'re a memory champion!',
-        '↻ PLAY AGAIN',()=>{initLevel(1);G.state='play';});
+        '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
     }else{
       showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
         `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>Flips: ${G.flips} (+${bonus} bonus)</p><p>Score: ${G.score}</p>`,
@@ -182,7 +182,7 @@ function showLevels(){
   obtn.style.display='none';
   overlay.classList.remove('hidden');
 }
-function pickLevel(n){sfx.click();audio();initLevel(n);G.state='play';overlay.classList.add('hidden');}
+function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
   obtn.textContent=btn;obtn.style.display='';
@@ -190,13 +190,24 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+/* living embers (overhaul) */
+const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
+function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
+  for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
 function render(){
-  ctx.fillStyle='#160a1e';ctx.fillRect(0,0,W,H);
+  const bgG=ctx.createLinearGradient(0,0,0,H);
+  bgG.addColorStop(0,'#241038');bgG.addColorStop(0.6,'#160a1e');bgG.addColorStop(1,'#2a0f08');
+  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
+  drawEmbers(W,H);
   for(const card of G.cards){
     const x=GX+card.c*CELL,y=GY+card.r*CELL;
     // flip animation
-    if(card.flip>0&&card.flip<1)card.flip=Math.min(1,card.flip+0.12);
-    if(card.flip<0&&card.flip>-1)card.flip=Math.max(-1,card.flip-0.12);
+    const fs=G.frameScale||1;
+    if(card.flip>0&&card.flip<1)card.flip=Math.min(1,card.flip+0.12*fs);
+    if(card.flip<0&&card.flip>-1)card.flip=Math.max(-1,card.flip-0.12*fs);
     if(card.flip===-1)card.flip=0;
     const sx=Math.abs(Math.cos(card.flip*Math.PI/2));
     const cx=x+CELL/2;
@@ -206,7 +217,8 @@ function render(){
       const g=ctx.createLinearGradient(0,0,0,CELL);
       g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');
       ctx.fillStyle=card.matched?'#2a4a2a':g;
-      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();
+      ctx.shadowColor=card.face.c;ctx.shadowBlur=card.matched?16:8;
+      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();ctx.shadowBlur=0;
       ctx.strokeStyle=card.matched?'#4caf50':card.face.c;ctx.lineWidth=3;ctx.stroke();
       ctx.font=`${CELL*0.4}px system-ui`;ctx.textAlign='center';
       ctx.fillText(card.face.e,CELL/2,CELL/2+CELL*0.14);
@@ -216,7 +228,7 @@ function render(){
       if(card.glow>0){
         ctx.strokeStyle=`rgba(255,210,63,${card.glow})`;ctx.lineWidth=5;
         ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.stroke();
-        card.glow-=0.03;
+        card.glow-=0.03*(G.frameScale||1);
       }
     }else{
       const g=ctx.createLinearGradient(0,0,CELL,CELL);
@@ -240,7 +252,7 @@ function render(){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;G.frameScale=Math.min(3,dt*60||1);
   for(const f of floaters){if(!f.a)continue;f.y-=30*dt;f.life-=dt;if(f.life<=0)f.a=false;}
   render();
   requestAnimationFrame(loop);

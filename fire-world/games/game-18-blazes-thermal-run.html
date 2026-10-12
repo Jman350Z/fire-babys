@@ -105,6 +105,7 @@ function initLevel(n){
 }
 function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
 function hitWall(){
+  if(G.state!=='play')return;
   G.lives--;sfx.touch();G.shake=0.6;
   document.getElementById('lives').textContent='❤️ '+G.lives;
   for(let i=0;i<12;i++){const p=particles.find(p=>!p.a);if(!p)break;
@@ -115,6 +116,7 @@ function hitWall(){
   // reset to start
   G.px=0;G.py=0;G.trail=[];
   if(G.lives<=0){
+    G.state='over';G.dragging=false;
     setTimeout(()=>{
       showOverlay('💥 BURNED OUT!',
         `<p>Too many lava touches!</p><p>Score: ${G.score}</p>`,
@@ -125,6 +127,11 @@ function hitWall(){
 }
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
+function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+
 function tryMove(nx,ny){
   // check walls
   const cur=G.maze[G.py][G.px];
@@ -138,6 +145,7 @@ function tryMove(nx,ny){
   if(G.trail.length>40)G.trail.shift();
   // check win
   if(nx===MW-1&&ny===MH-1){
+    G.state='clear'; // lock input at once: no double-counted wins during the overlay delay
     const elapsed=(performance.now()-G.startTime)/1000;
     const timeBonus=Math.max(0,Math.round((120-elapsed)*10));
     const pts=500+timeBonus;
@@ -243,7 +251,10 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  ctx.fillStyle='#0d0a08';ctx.fillRect(0,0,W,H);
+  const bg18=ctx.createLinearGradient(0,0,0,H);
+  bg18.addColorStop(0,'#0d0a08');bg18.addColorStop(1,'#241108');
+  ctx.fillStyle=bg18;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*16,(Math.random()-0.5)*G.shake*16);
   if(!G.maze){ctx.restore();return;}
@@ -291,7 +302,9 @@ function render(){
   const pr=CELL*0.32;
   const g=ctx.createRadialGradient(p.x-4,p.y-5,3,p.x,p.y,pr);
   g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+  ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
   ctx.fillStyle='#2b1a0e';
   ctx.beginPath();ctx.arc(p.x-pr*0.3,p.y-pr*0.15,pr*0.16,0,Math.PI*2);
   ctx.arc(p.x+pr*0.3,p.y-pr*0.15,pr*0.16,0,Math.PI*2);ctx.fill();
@@ -317,7 +330,7 @@ function render(){
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
-  G.shake=Math.max(0,G.shake-dt*2.5);
+  G.shake=Math.max(0,G.shake-dt*2.5);updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   render();

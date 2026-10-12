@@ -101,6 +101,7 @@ function updateHUD(){
 function doJump(){
   if(G.state!=='play'||G.dead)return;
   G.buffer=0.12; // buffer the input
+  G.holding=true;
 }
 function tryJump(){
   if(G.jumps<2&&(G.py>=0||G.coyote>0||G.jumps===1)){
@@ -114,7 +115,7 @@ function tryJump(){
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();doJump();});
 canvas.addEventListener('pointerup',()=>{G.holding=false;
   // jump cut: reduce upward velocity for variable height
-  if(G.vy<-400)G.vy*=-0.4;});
+  if(G.vy<-400)G.vy*=0.4;});
 addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp'){doJump();e.preventDefault();}});
 addEventListener('keyup',e=>{if(e.key===' '||e.key==='ArrowUp'){G.holding=false;if(G.vy<-400)G.vy*=0.4;}});
 
@@ -232,10 +233,18 @@ function startGame(){audio();reset();G.state='play';overlay.classList.add('hidde
 obtn.onclick=()=>{showMathGate();};
 
 /* render */
+/* living embers (overhaul) */
+const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
+function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
+  for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
 function render(){
   const sky=ctx.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,'#1a0d2a');sky.addColorStop(0.6,'#5a1a20');sky.addColorStop(1,'#8a2a10');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  drawEmbers(W,H);
   // distant volcanoes
   ctx.fillStyle='#140a12';
   for(let i=0;i<4;i++){
@@ -314,6 +323,7 @@ function render(){
     ctx.fillStyle='rgba(0,0,0,0.3)';
     ctx.beginPath();ctx.ellipse(px,gy+8,22*Math.max(0.4,1+G.py/400),6,0,0,Math.PI*2);ctx.fill();
     ctx.save();ctx.translate(px,py);ctx.scale(1+squash,1-squash);
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
     const g=ctx.createRadialGradient(-7,-8,4,0,0,24);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();

@@ -70,10 +70,10 @@ const sfx={
 const PEAKS=4;
 const G={state:'title',peak:1,score:0,best:0,
   plats:[],px:0,py:0,vx:0,vy:0,platIdx:0,
-  camY:0,height:0,time:0,dead:false,flagY:0};
+  camY:0,height:0,time:0,dead:false,flagY:0,won:false,grounded:false};
 try{G.best=parseInt(localStorage.getItem('zenith_best')||'0',10)||0;}catch(e){}
 function genPeak(n){
-  G.plats=[];G.camY=0;G.height=0;G.dead=false;G.time=0;
+  G.plats=[];G.camY=0;G.height=0;G.dead=false;G.time=0;G.won=false;G.grounded=false;
   G.vx=0;G.vy=0;
   const gap=Math.max(120,170-n*12);
   let y=H*0.85;
@@ -101,9 +101,10 @@ function updateHUD(){
   document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
 }
 function hop(dir){
-  if(G.state!=='play'||G.dead)return;
+  if(G.state!=='play'||G.dead||!G.grounded)return; // was: hoppable mid-air = infinite flight
   G.vx=dir*330;
   G.vy=-640;
+  G.grounded=false;
   sfx.hop();
 }
 canvas.addEventListener('pointerdown',e=>{
@@ -117,6 +118,7 @@ addEventListener('keydown',e=>{
 });
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
 function update(dt){
   G.time+=dt;
   // move platforms
@@ -128,6 +130,7 @@ function update(dt){
   }
   // physics
   G.vy+=1700*dt;
+  if(G.vy<-10)G.grounded=false;
   G.px+=G.vx*dt;G.py+=G.vy*dt;
   G.vx*=Math.pow(0.3,dt);
   // wrap x
@@ -135,11 +138,12 @@ function update(dt){
   if(G.px>W+20)G.px=-20;
   // land on platforms (falling only)
   if(G.vy>0){
+    G.grounded=false;
     for(let i=0;i<G.plats.length;i++){
       const p=G.plats[i];
       const pw=p.w/2;
       if(G.px>p.x-pw&&G.px<p.x+pw&&G.py>p.y-6&&G.py<p.y+16){
-        G.py=p.y-6;G.vy=0;
+        G.py=p.y-6;G.vy=0;G.grounded=true;
         if(p.type==='crumble'&&!p.crumbling){
           p.crumbling=true;p.crT=0.35;sfx.crumble();
         }
@@ -195,6 +199,7 @@ function update(dt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
 }
 function peakDone(){
+  if(G.won)return;G.won=true; // was: re-entered every frame for ~500ms (+150 pts & overlay each time)
   G.score+=150;updateHUD();sfx.peak();
   setTimeout(()=>{
     if(G.peak>=PEAKS){
@@ -246,6 +251,9 @@ function render(){
   bg.addColorStop(0,alt>0.6?'#0d1a3a':'#1a0f24');
   bg.addColorStop(1,'#0d0a14');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){const ey=H-((e.y+G.time*e.v)%(H+30));const ex=(e.x+Math.sin(G.time*0.7+e.ph)*14)%W;ctx.globalAlpha=0.3+0.2*Math.sin(G.time*2+e.ph);ctx.fillStyle='#ff9a2a';ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;
   const offY=-G.camY;
   // volcano sides
   ctx.fillStyle='#1a0f0a';
@@ -314,7 +322,7 @@ function render(){
       ctx.scale(1/squash,squash);
       const g=ctx.createRadialGradient(-7,-7,3,0,0,19);
       g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,-8,17,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=g;ctx.shadowColor='rgba(255,122,42,0.95)';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(0,-8,17,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
       ctx.fillStyle='#2b1a0e';
       ctx.beginPath();ctx.arc(-6,-12,3.2,0,Math.PI*2);ctx.arc(6,-12,3.2,0,Math.PI*2);ctx.fill();
       ctx.restore();

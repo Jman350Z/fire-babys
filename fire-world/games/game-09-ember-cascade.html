@@ -41,11 +41,12 @@ canvas{display:block;width:100%;height:100%}
 <div class="tower sel" data-t="shooter">🔥 Shooter<small>50🔥</small></div>
 <div class="tower" data-t="frost">❄️ Frost<small>75🔥</small></div>
 <div class="tower" data-t="cannon">💣 Cannon<small>125🔥</small></div>
+<div class="tower" data-t="storm">⚡ Storm<small>150🔥</small></div>
 </div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏰 EMBER CASCADE</h1>
-<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 8 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p></div>
+<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 8 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A good defense is the best plan — know your escape routes!</div>
 <button id="obtn">▶ PLAY</button>
@@ -85,6 +86,16 @@ function noise(dur,vol,delay=0,lp=1500){const ac=audio();if(!ac)return;const t=a
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
   const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+
+/* living ember backdrop (overhaul) */
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
+function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
+  if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
   shoot(){tone(700,400,0.07,'square',0.06);},
   frost(){tone(1200,800,0.15,'sine',0.08);},
@@ -101,6 +112,7 @@ const TOWERS={
   shooter:{cost:50,dmg:12,rate:0.5,range:220,color:'#ff6a1a',name:'Shooter'},
   frost:{cost:75,dmg:6,rate:0.8,range:180,color:'#7fd4ff',name:'Frost',slow:0.5},
   cannon:{cost:125,dmg:40,rate:1.4,range:200,color:'#ff4a00',name:'Cannon',splash:70},
+  storm:{cost:150,dmg:34,rate:1.2,range:210,color:'#c4a0ff',name:'Storm',chain:110},
 };
 
 /* state */
@@ -179,7 +191,7 @@ canvas.addEventListener('pointerdown',e=>{
   if(G.fire<T.cost){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'Need '+T.cost+'🔥','#ff4a5a');return;}
   G.fire-=T.cost;
   best.tower={type:G.selTower,dmg:T.dmg,rate:T.rate,range:T.range,cool:0,lvl:1,
-    slow:T.slow||0,splash:T.splash||0,color:T.color};
+    slow:T.slow||0,splash:T.splash||0,chain:T.chain||0,color:T.color};
   sfx.place();
   for(let i=0;i<8;i++)spawnP(COLS_X[best.c],LANES_Y[best.r],(Math.random()-0.5)*150,(Math.random()-0.5)*150,0.4,T.color,3);
   updateHUD();
@@ -231,8 +243,8 @@ function update(dt){
     if(best){
       t.cool=t.rate;
       G.shots.push({x:tx,y:ty-10,tx:best.x,ty:best.y,t:0,dur:0.12,
-        dmg:t.dmg,slow:t.slow,splash:t.splash,color:t.color,tower:t});
-      if(t.type==='frost')sfx.frost();else sfx.shoot();
+        dmg:t.dmg,slow:t.slow,splash:t.splash,chain:t.chain||0,color:t.color,tower:t});
+      if(t.type==='frost')sfx.frost();else if(t.type==='storm'){tone(1400,300,0.12,'sawtooth',0.08);}else sfx.shoot();
     }
   }
   // projectiles (instant beam visual)
@@ -242,7 +254,7 @@ function update(dt){
       s.done=true;
       // find enemy at target
       for(const e of G.enemies){
-        if(Math.hypot(e.x-s.tx,e.y-s.ty)<30){
+        if(!e.dead&&Math.hypot(e.x-s.tx,e.y-s.ty)<30){
           damageEnemy(e,s.dmg,s);
           break;
         }
@@ -252,6 +264,7 @@ function update(dt){
   G.shots=G.shots.filter(s=>!s.done);
   // enemies move
   for(const e of G.enemies){
+    if(e.dead)continue;
     const sp=e.slowT>0?e.speed*0.5:e.speed;
     e.slowT-=dt;
     e.x-=sp*dt;
@@ -267,24 +280,36 @@ function update(dt){
   G.enemies=G.enemies.filter(e=>!e.dead);
   if(Math.floor(G.time*2)!==Math.floor((G.time-dt)*2))updateHUD();
 }
-function damageEnemy(e,dmg,s){
-  e.hp-=dmg;
-  if(s.slow)e.slowT=2;
-  for(let i=0;i<5;i++)spawnP(e.x,e.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,s.color,3);
-  if(s.splash){
-    sfx.boom();
-    for(const o of G.enemies){
-      if(o!==e&&Math.hypot(o.x-e.x,o.y-e.y)<s.splash)o.hp-=dmg*0.6;
-    }
-    for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2;
-      spawnP(e.x,e.y,Math.cos(a)*250,Math.sin(a)*250,0.5,'#ff6a00',5);}
-  }
+function killCheck(e){
   if(e.hp<=0&&!e.dead){
     e.dead=true;G.score+=e.score;G.fire+=8;
     sfx.kill();
     spawnText(e.x,e.y-20,'+'+e.score,'#ffd23f');
     for(let i=0;i<10;i++)spawnP(e.x,e.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#8a6a4a',4);
   }
+}
+function damageEnemy(e,dmg,s){
+  if(e.dead)return;
+  e.hp-=dmg;
+  if(s.slow)e.slowT=2;
+  for(let i=0;i<5;i++)spawnP(e.x,e.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,s.color,3);
+  if(s.splash){
+    sfx.boom();
+    for(const o of G.enemies){
+      if(o!==e&&!o.dead&&Math.hypot(o.x-e.x,o.y-e.y)<s.splash){o.hp-=dmg*0.6;killCheck(o);}
+    }
+    for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2;
+      spawnP(e.x,e.y,Math.cos(a)*250,Math.sin(a)*250,0.5,'#ff6a00',5);}
+  }
+  // Storm chain lightning: zap nearest other invader in chain range for half damage
+  if(s.chain){
+    let near=null,nd=1e9;
+    for(const o of G.enemies){if(o===e||o.dead)continue;
+      const d=Math.hypot(o.x-e.x,o.y-e.y);if(d<s.chain&&d<nd){nd=d;near=o;}}
+    if(near){near.hp-=dmg*0.5;killCheck(near);
+      for(let i=0;i<6;i++)spawnP(near.x,near.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#c4a0ff',3);}
+  }
+  killCheck(e);
 }
 function gameWin(){
   G.state='clear';sfx.win();
@@ -331,6 +356,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#1a0d08');bg.addColorStop(0.5,'#2a1a0a');bg.addColorStop(1,'#1a0d08');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // keep (castle) on left
   const kx=COLS_X[0]-70;
   ctx.fillStyle='#4a3a2a';
@@ -365,6 +391,7 @@ function render(){
       ctx.fillStyle='#3a2a1a';
       ctx.beginPath();ctx.arc(x,y+8,20,0,Math.PI*2);ctx.fill();
       // fire baby
+      ctx.save();ctx.shadowColor=t.color;ctx.shadowBlur=14;
       const bg2=ctx.createRadialGradient(x-5,y-18,3,x,y-10,18);
       bg2.addColorStop(0,'#fff');bg2.addColorStop(0.4,t.color);bg2.addColorStop(1,'#a33c10');
       ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(x,y-10,16,0,Math.PI*2);ctx.fill();
@@ -373,8 +400,9 @@ function render(){
       ctx.beginPath();ctx.arc(x-5,y-12,3,0,Math.PI*2);ctx.arc(x+5,y-12,3,0,Math.PI*2);ctx.fill();
       // type icon
       ctx.font='14px system-ui';ctx.textAlign='center';
-      ctx.fillText(t.type==='shooter'?'🔥':t.type==='frost'?'❄️':'💣',x,y+22);
+      ctx.fillText(t.type==='shooter'?'🔥':t.type==='frost'?'❄️':t.type==='storm'?'⚡':'💣',x,y+22);
       ctx.textAlign='left';
+      ctx.restore();
       // level pips
       ctx.fillStyle='#ffd23f';
       for(let i=0;i<t.lvl;i++)ctx.fillRect(x-12+i*9,y+26,7,4);
@@ -439,6 +467,7 @@ let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   if(G.state==='play')update(dt);else G.time+=dt;
+  updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}

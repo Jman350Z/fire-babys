@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧱 MAGMA BLOCK BREAKER</h1>
-<div id="obody"><p>Magma blocks are raining down!</p><p><b>TAP</b> each block to smash it before it hits the lava! <b>Don't tap</b> the <b style="color:#7fd4ff">ice blocks</b> — they're friendly! Golden blocks are worth 5x!</p></div>
+<div id="obody"><p>Magma blocks are raining down!</p><p><b>TAP</b> each block to smash it before it hits the lava! <b>Don't tap</b> the <b style="color:#7fd4ff">ice blocks</b> — they're friendly! Golden blocks are worth 5x! Tap the 💥 <b>Ember Nova</b> block to blast nearby magma blocks (base points, no combo)!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: If something hot is falling, move away — don't try to catch it!</div>
 <button id="obtn">▶ PLAY</button>
@@ -71,7 +71,8 @@ const sfx={
   golden(){tone(1000,2000,0.15,'sine',0.15);},
   ouch(){tone(350,120,0.2,'sawtooth',0.15);},
   splash(){noise(0.3,0.25,0,600);},
-  click(){tone(600,600,0.06,'square',0.1);}
+  click(){tone(600,600,0.06,'square',0.1);},
+  nova(){noise(0.25,0.3,0,900);tone(200,900,0.25,'triangle',0.16);}
 };
 const G={state:'title',score:0,best:0,lives:3,combo:1,comboT:0,
   blocks:[],spawnT:0.8,time:0,shake:0};
@@ -96,8 +97,9 @@ function spawnBlock(){
   const r=Math.random();
   let type='magma';
   if(r<0.15)type='golden';
-  else if(r<0.32)type='ice';
-  else if(r<0.42)type='big';
+  else if(r<0.21)type='bomb';
+  else if(r<0.38)type='ice';
+  else if(r<0.48)type='big';
   G.blocks.push({
     x:Math.random()*(W-size),y:-size-10,w:size,h:size*0.8,
     vy:140+G.time*4+Math.random()*80,
@@ -113,11 +115,26 @@ canvas.addEventListener('pointerdown',e=>{
     const b=G.blocks[i];
     if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h){
       if(b.type==='ice'){
-        // penalty!
+        G.blocks.splice(i,1);
+        // penalty (once — the ice block is gone)
         G.score=Math.max(0,G.score-30);G.combo=1;
         sfx.ouch();updateHUD();
         spawnText(b.x+b.w/2,b.y,'-30 🧊','#7fd4ff');
         burst(b.x+b.w/2,b.y+b.h/2,'#7fd4ff');
+      }else if(b.type==='bomb'){
+        // EMBER NOVA: blast nearby non-ice blocks for base points (no combo multiplier — balanced)
+        G.blocks.splice(i,1);
+        const cx=b.x+b.w/2,cy=b.y+b.h/2;let novaPts=0;
+        G.blocks=G.blocks.filter(ob=>{
+          if(ob.type==='ice')return true;
+          const d=Math.hypot(ob.x+ob.w/2-cx,ob.y+ob.h/2-cy);
+          if(d<=150){novaPts+=ob.type==='golden'?50:ob.type==='big'?30:10;return false;}
+          return true;
+        });
+        G.score+=novaPts;sfx.nova();
+        spawnText(cx,cy,'EMBER NOVA +'+novaPts,'#ff9a3a');
+        burst(cx,cy,'#ff9a3a');burst(cx,cy,'#ffd23f');
+        G.shake=Math.max(G.shake,0.2);
       }else{
         b.hp--;
         if(b.hp<=0){
@@ -156,7 +173,7 @@ function spawnText(x,y,txt,color){
 }
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
-  G.comboT-=dt;if(G.comboT<=0)G.combo=Math.max(1,G.combo-1);
+  G.comboT-=dt;if(G.comboT<=0){G.combo=1;G.comboT=0;}
   G.spawnT-=dt;
   if(G.spawnT<=0){
     spawnBlock();
@@ -222,6 +239,16 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#160a04');bg.addColorStop(0.8,'#2a1408');bg.addColorStop(1,'#3a1a05');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // living ember background (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<24;i++){
+    const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
+    const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
+    ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   // lava at bottom
@@ -245,6 +272,10 @@ function render(){
       const g=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);
       g.addColorStop(0,'#d6f0ff');g.addColorStop(1,'#5ab8e8');
       ctx.fillStyle=g;
+    }else if(b.type==='bomb'){
+      const g=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);
+      g.addColorStop(0,'#ffb347');g.addColorStop(0.5,'#ff6a1a');g.addColorStop(1,'#7a2a6a');
+      ctx.fillStyle=g;
     }else if(b.type==='golden'){
       const g=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);
       g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#a37a00');
@@ -254,7 +285,9 @@ function render(){
       g.addColorStop(0,'#ff8a3a');g.addColorStop(0.5,'#d42a1a');g.addColorStop(1,'#7a1a0a');
       ctx.fillStyle=g;
     }
+    if(b.type==='golden'||b.type==='bomb'){ctx.shadowColor=b.type==='golden'?'#ffd23f':'#ff6a1a';ctx.shadowBlur=16;}
     ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,8);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=2;ctx.stroke();
     // cracks for big
     if(b.type==='big'){
@@ -268,6 +301,10 @@ function render(){
     if(b.type==='ice'){
       ctx.font='24px system-ui';ctx.textAlign='center';
       ctx.fillText('🧊',0,9);ctx.textAlign='left';
+    }
+    if(b.type==='bomb'){
+      ctx.font='24px system-ui';ctx.textAlign='center';
+      ctx.fillText('💥',0,9);ctx.textAlign='left';
     }
     if(b.type==='golden'){
       const pulse=1+Math.sin(b.wob*2)*0.1;

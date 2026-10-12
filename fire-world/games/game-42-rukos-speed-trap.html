@@ -36,7 +36,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⚡ RUKO'S SPEED TRAP</h1>
-<div id="obody"><p>Lightning-fast reactions!</p><p><b>TAP</b> when the sweeping needle hits the <b style="color:#4caf50">green zone</b>! Perfect center = JACKPOT. 10 rounds — the needle gets faster every round. Miss and you lose points!</p></div>
+<div id="obody"><p>Lightning-fast reactions!</p><p><b>TAP</b> (or press <b>SPACE</b>) when the sweeping needle hits the <b style="color:#4caf50">green zone</b>! Perfect center = JACKPOT. 10 rounds — the needle gets faster every round. Miss and you lose points!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: React fast — but always think first!</div>
 <button id="obtn">▶ PLAY</button>
@@ -90,9 +90,8 @@ function angDiff(a,b){
   let d=Math.abs(a-b)%(Math.PI*2);
   return d>Math.PI?Math.PI*2-d:d;
 }
-canvas.addEventListener('pointerdown',e=>{
+function doTap(){
   if(G.state!=='play'||G.result)return;
-  e.preventDefault();
   const d=angDiff(G.angle,G.target);
   const perfectW=G.targetW*0.3;
   if(d<perfectW){
@@ -117,7 +116,9 @@ canvas.addEventListener('pointerdown',e=>{
   }
   updateHUD();
   setTimeout(()=>{if(G.state==='play')nextRound();},900);
-});
+}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();doTap();});
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();doTap();}});
 const particles=[],floaters=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 for(let i=0;i<8;i++)floaters.push({a:false});
@@ -134,6 +135,8 @@ function spawnText(x,y,txt,color){
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
   if(!G.result)G.angle+=G.speed*dt;
+  const _tickStep=Math.floor(G.angle/(Math.PI/8));
+  if(G._tickStep!==_tickStep){G._tickStep=_tickStep;if(!G.result)sfx.tick();}
   G.resultT-=dt;
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
@@ -169,10 +172,27 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
   const bg=ctx.createRadialGradient(W/2,H*0.42,50,W/2,H*0.42,Math.max(W,H)*0.7);
   bg.addColorStop(0,'#141a30');bg.addColorStop(1,'#0d1420');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   const cx=W/2,cy=H*0.42,R=Math.min(W,H)*0.32;
@@ -203,8 +223,10 @@ function render(){
     ctx.beginPath();ctx.moveTo(cx,cy);
     ctx.lineTo(cx+Math.cos(na)*R,cy+Math.sin(na)*R);ctx.stroke();
     // tip
+    ctx.shadowColor='#ff8a5a';ctx.shadowBlur=16;
     ctx.fillStyle='#ff4a5a';
     ctx.beginPath();ctx.arc(cx+Math.cos(na)*R,cy+Math.sin(na)*R,9,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
   }
   // center
   const cg=ctx.createRadialGradient(cx-6,cy-6,3,cx,cy,26);

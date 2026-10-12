@@ -109,6 +109,23 @@ canvas.addEventListener('pointerdown',e=>{
 });
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+// [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
+const amb=[];
+for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of amb){
+    if(!e.on){e.on=true;e.x=Math.random()*W;e.y=Math.random()*H;}
+    e.y-=e.v/60;e.x+=Math.sin(G.time*1.3+e.ph)*0.18;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
+    ctx.globalAlpha=0.10+0.14*tw;
+    ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+
 function update(dt){
   G.time+=dt;
   G.vy+=1800*dt;
@@ -127,7 +144,7 @@ function update(dt){
   const wy=G.py-G.camY;
   for(const l of G.lavas){
     const lx=wallX(l.side,G.camY);
-    const ly=l.y+G.camY;
+    const ly=l.y-G.camY;
     if(Math.abs(G.px-lx)<30&&wy>ly&&wy<ly+l.h){
       G.dead=true;sfx.lava();
       gameOver('🔥 BURNED!');return;
@@ -136,17 +153,17 @@ function update(dt){
   // stars
   for(const s of G.stars){
     s.t+=dt*3;
-    if(!s.taken&&Math.hypot(G.px-s.x,G.py-(s.y+G.camY))<36){
+    if(!s.taken&&Math.hypot(G.px-s.x,G.py-s.y)<36){
       s.taken=true;sfx.star();
       G.score+=25*G.combo;G.combo=Math.min(8,G.combo+1);
       updateHUD();
       for(let i=0;i<6;i++){const p=particles.find(p=>!p.a);if(!p)break;
-        p.a=true;p.x=s.x;p.y=s.y+G.camY;const a=Math.random()*Math.PI*2;
+        p.a=true;p.x=s.x;p.y=s.y-G.camY;const a=Math.random()*Math.PI*2;
         p.vx=Math.cos(a)*160;p.vy=Math.sin(a)*160;
         p.life=0.4;p.max=0.4;p.color='#ffd23f';p.size=3;}
     }
   }
-  G.stars=G.stars.filter(s=>!s.taken&&s.y+G.camY<H+60);
+  G.stars=G.stars.filter(s=>!s.taken&&s.y-G.camY<H+60);
   // camera follows up
   const screenY=G.py-G.camY;
   if(screenY<H*0.35){
@@ -160,9 +177,9 @@ function update(dt){
   for(const l of G.lavas)topY=Math.min(topY,l.y);
   while(topY>G.camY-400){
     topY-=200+Math.random()*80;
-    spawnRow(topY-G.camY);
+    spawnRow(topY);
   }
-  G.lavas=G.lavas.filter(l=>l.y+G.camY<H+100);
+  G.lavas=G.lavas.filter(l=>l.y-G.camY<H+100);
   // fell
   if(G.py-G.camY>H+60){
     G.dead=true;sfx.fall();
@@ -201,8 +218,9 @@ function startGame(){audio();reset();G.state='play';overlay.classList.add('hidde
 obtn.onclick=()=>{showMathGate();};
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#1e1006');
+  bg.addColorStop(0,'#140d08');bg.addColorStop(0.55,'#2a1408');bg.addColorStop(1,'#1e1006');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   const offY=-G.camY;
   // walls
   const wl=wallX(-1,G.camY),wr=wallX(1,G.camY);
@@ -250,7 +268,9 @@ function render(){
       ctx.save();ctx.translate(G.px,py);ctx.scale(-G.onWall*0.6,1);
       const g=ctx.createRadialGradient(-6,-7,3,0,0,18);
       g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+      ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
       ctx.fillStyle='#2b1a0e';
       ctx.beginPath();ctx.arc(5,-3,3,0,Math.PI*2);ctx.fill();
       // cling arms

@@ -99,6 +99,23 @@ addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 const particles=[],floaters=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 for(let i=0;i<10;i++)floaters.push({a:false});
+// [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
+const amb=[];
+for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of amb){
+    if(!e.on){e.on=true;e.x=Math.random()*W;e.y=Math.random()*H;}
+    e.y-=e.v/60;e.x+=Math.sin(G.time*1.3+e.ph)*0.18;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
+    ctx.globalAlpha=0.10+0.14*tw;
+    ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+
 function spawnText(x,y,txt,color){
   const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
@@ -139,7 +156,7 @@ function update(dt){
   }
   G.gatesList=G.gatesList.filter(g=>g.y<H+120);
   while(G.gatesList.length<6){
-    const topY=Math.min(...G.gatesList.map(g=>g.y));
+    const topY=G.gatesList.length?Math.min(...G.gatesList.map(g=>g.y)):-340;
     spawnGate(topY-340);
   }
   // speed trail
@@ -194,8 +211,9 @@ function startGame(){audio();reset();G.state='play';overlay.classList.add('hidde
 obtn.onclick=()=>{showMathGate();};
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#0d0a1a');bg.addColorStop(1,'#1a0f24');
+  bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.55,'#160b28');bg.addColorStop(1,'#1a0f24');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // speed lines
@@ -242,7 +260,9 @@ function render(){
     ctx.beginPath();ctx.ellipse(0,30,14,26,0,0,Math.PI*2);ctx.fill();
     const g=ctx.createRadialGradient(-7,-7,3,0,0,20);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=20;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-6,-3,3.5,0,Math.PI*2);ctx.arc(6,-3,3.5,0,Math.PI*2);ctx.fill();
     ctx.restore();

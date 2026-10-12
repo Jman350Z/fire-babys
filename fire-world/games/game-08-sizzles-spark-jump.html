@@ -65,6 +65,16 @@ function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+
+/* living ember backdrop (overhaul) */
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
+function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
+  if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
   bounce(){tone(400,700,0.1,'sine',0.12);},
   spring(){tone(300,1200,0.2,'sine',0.15);},
@@ -140,10 +150,7 @@ function update(dt){
   G.vy+=GRAV*dt;G.py+=G.vy*dt;
   // camera follows up
   const targetCam=Math.min(G.camY,G.py-H*0.4);
-  if(targetCam<G.camY){
-    G.camY=targetCam;
-    const gained=(G.camY-targetCam);
-  }
+  if(targetCam<G.camY)G.camY=targetCam;
   const newHeight=Math.max(G.height,-G.camY/10);
   if(newHeight>G.height){
     G.score+=Math.round((newHeight-G.height)*2);G.height=newHeight;
@@ -153,9 +160,10 @@ function update(dt){
   if(G.vy>0){
     for(const p of G.platforms){
       const py=p.y-G.camY;
-      if(G.px+18>p.x&&G.px-18<p.x+p.w&&G.py+20>py&&G.py+20<py+24){
+      const prevBottom=G.py+20-G.vy*dt;
+      if(G.px+18>p.x&&G.px-18<p.x+p.w&&G.py+20>=py&&prevBottom<=py+24){
         if(p.type==='crumble'){
-          p.crumble=0.4;sfx.crumble();
+          p.crumble=0.4;p.touched=true;sfx.crumble();
           // still bounce once
           G.vy=BOUNCE_V*0.8;sfx.bounce();
         }else if(p.type==='spring'){
@@ -177,19 +185,14 @@ function update(dt){
   }
   // rocket boost
   if(G.rocketT>0){G.rocketT-=dt;G.vy=Math.min(G.vy,-1200);
-    if(Math.random()<0.5)spawnP(G.px+(Math.random()-0.5)*20,G.py+25,(Math.random()-0.5)*100,Math.random()*200,0.4,'#ff6a00',5);}
+    if(Math.random()<0.5)spawnP(G.px+(Math.random()-0.5)*20,G.py-G.camY+25,(Math.random()-0.5)*100,Math.random()*200,0.4,'#ff6a00',5);}
   // moving platforms
   for(const p of G.platforms){
     if(p.type==='moving'){p.x+=p.vx*dt;if(p.x<0||p.x+p.w>W)p.vx*=-1;}
     if(p.type==='crumble'&&p.crumble>0){p.crumble-=dt;}
   }
-  G.platforms=G.platforms.filter(p=>p.crumble<=0||p.type!=='crumble'||p.crumble>0);
-  // actually remove fully crumbled
-  for(let i=G.platforms.length-1;i>=0;i--){
-    const p=G.platforms[i];
-    if(p.type==='crumble'&&p.crumble<=0&&p.crumble!==0&&p.touched)p.gone=true;
-  }
-  G.platforms=G.platforms.filter(p=>!p.gone);
+  // remove crumble platforms whose timer expired after being stepped on
+  G.platforms=G.platforms.filter(p=>!(p.type==='crumble'&&p.touched&&p.crumble<=0));
   // stars
   for(const s of G.stars){
     if(s.taken)continue;
@@ -200,8 +203,8 @@ function update(dt){
       for(let i=0;i<8;i++)spawnP(s.x,sy,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.5,'#ffd23f',4);
     }
   }
-  // spawn more platforms above
-  let topY=Math.min(...G.platforms.map(p=>p.y));
+  // spawn more platforms above (guard: never spread an empty array -> Infinity loop)
+  let topY=G.platforms.length?Math.min(...G.platforms.map(p=>p.y)):G.camY;
   while(topY>G.camY-100){
     topY-=60+Math.random()*80+Math.min(G.height/20,60);
     spawnPlatform(topY);
@@ -269,6 +272,7 @@ function render(){
   bg.addColorStop(0,`rgb(${top[0]|0},${top[1]|0},${top[2]|0})`);
   bg.addColorStop(1,`rgb(${bot[0]|0},${bot[1]|0},${bot[2]|0})`);
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // parallax stars/clouds
   ctx.fillStyle='rgba(255,255,255,0.5)';
   for(let i=0;i<30;i++){
@@ -326,6 +330,7 @@ function render(){
     const py=G.py-G.camY;
     const squash=G.vy>0?Math.min(0.2,G.vy/5000):Math.max(-0.15,G.vy/8000);
     ctx.save();ctx.translate(G.px,py);ctx.scale(1+squash,1-squash);
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
     // rocket flame
     if(G.rocketT>0){
       const fl=20+Math.random()*20;
@@ -374,6 +379,7 @@ let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   if(G.state==='play')update(dt);else G.time+=dt;
+  updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}

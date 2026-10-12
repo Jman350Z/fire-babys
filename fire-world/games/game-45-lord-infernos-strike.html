@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⚡ LORD INFERNO'S STRIKE</h1>
-<div id="obody"><p>Command the storm!</p><p><b>TAP</b> anywhere to call down a lightning strike! Zap the ash monsters before they reach your castle. Each strike costs mana — it refills over time. Chain lightning hits nearby enemies!</p></div>
+<div id="obody"><p>Command the storm!</p><p><b>TAP</b> anywhere to call down a lightning strike! Zap the ash monsters before they reach your castle. Each strike costs mana — it refills over time. Chain lightning hits nearby enemies! Earn a <b>🔆 Inferno Nova</b> every 6 zaps — press <b>SPACE / X</b> to blast the most advanced monster for 55 damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Lightning is dangerous — go inside during storms!</div>
 <button id="obtn">▶ PLAY</button>
@@ -68,19 +68,20 @@ function noise(dur,vol,delay=0,lp=2000){const ac=audio();if(!ac)return;const t=a
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
 const sfx={
   zap(){noise(0.18,0.3,0,3000);tone(1800,300,0.15,'sawtooth',0.12);},
+  nova(){noise(0.35,0.35,0,1800);tone(220,880,0.35,'sawtooth',0.14);},
   kill(){tone(500,900,0.08,'sine',0.09);},
   leak(){tone(320,110,0.25,'sawtooth',0.14);},
   wave(){tone(400,800,0.3,'triangle',0.13);},
   nomana(){tone(200,150,0.1,'square',0.08);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
-const G={state:'title',score:0,best:0,wave:0,mana:100,
+const G={state:'title',score:0,best:0,wave:0,mana:100,kills:0,nova:0,
   enemies:[],bolts:[],spawnQ:[],castleHp:100,
   time:0,shake:0,flash:0};
 try{G.best=parseInt(localStorage.getItem('strike_best')||'0',10)||0;}catch(e){}
 const CASTLE_Y=()=>H*0.88;
 function reset(){
-  G.score=0;G.wave=0;G.mana=100;G.castleHp=100;
+  G.score=0;G.wave=0;G.mana=100;G.castleHp=100;G.kills=0;G.nova=0;
   G.enemies=[];G.bolts=[];G.spawnQ=[];
   G.time=0;G.shake=0;G.flash=0;
   updateHUD();
@@ -89,7 +90,7 @@ function reset(){
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
-  document.getElementById('wave').textContent='🌊 Wave '+Math.max(1,G.wave);
+  document.getElementById('wave').textContent='🌊 Wave '+Math.max(1,G.wave)+(G.nova>0?' • 🔆 Nova ×'+G.nova:'');
   document.getElementById('manaFill').style.width=G.mana+'%';
 }
 function startWave(n){
@@ -154,11 +155,30 @@ function strike(x,y){
     burst(e.x,e.y,'#aee2ff',6);
     if(e.hp<=0&&!e.dead){
       e.dead=true;G.score+=e.score;sfx.kill();
+      G.kills++;if(G.kills%6===0){G.nova++;burst(e.x,e.y,'#ffd23f',10);updateHUD();}
       burst(e.x,e.y,'#8a6a4a',10);
       updateHUD();
     }
   }
 }
+// --- New weapon: Inferno Nova (55 dmg vs the base strike's 45 = +22%, inside the 25% balance cap) ---
+// Earned in normal play: +1 charge every 6 kills. SPACE / X blasts the most advanced enemy, radius 100.
+function novaStrike(){
+  if(G.state!=='play'||G.nova<=0||!G.enemies.length)return;
+  G.nova--;
+  let target=G.enemies[0];
+  for(const e of G.enemies)if(e.y>target.y)target=e;
+  sfx.nova();G.flash=0.5;G.shake=Math.max(G.shake,0.35);
+  G.bolts.push({segs:[{x:target.x,y:0},{x:target.x+20,y:target.y*0.5},{x:target.x,y:target.y}],life:0.3,x:target.x,y:target.y});
+  for(const e of [...G.enemies]){
+    if(Math.hypot(e.x-target.x,e.y-target.y)<100+e.r){
+      e.hp-=55;e.hitT=0.15;burst(e.x,e.y,'#ffd23f',6);
+      if(e.hp<=0&&!e.dead){e.dead=true;G.score+=e.score;G.kills++;sfx.kill();burst(e.x,e.y,'#8a6a4a',10);}
+    }
+  }
+  updateHUD();
+}
+addEventListener('keydown',e=>{if(e.key===' '||e.key.toLowerCase()==='x'){e.preventDefault();novaStrike();}});
 const particles=[];
 for(let i=0;i<120;i++)particles.push({a:false});
 function burst(x,y,color,n=8){
@@ -233,6 +253,22 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
   // stormy sky
   const bg=ctx.createLinearGradient(0,0,0,H);
@@ -250,6 +286,7 @@ function render(){
     const cx=(i*311+G.time*30)%(W+200)-100,cy=(i*97)%(H*0.3);
     ctx.beginPath();ctx.ellipse(cx,cy,90,26,0,0,Math.PI*2);ctx.fill();
   }
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // castle
@@ -259,13 +296,15 @@ function render(){
   ctx.fillStyle='#5a4a6a';
   for(let x=W/2-70;x<W/2+70;x+=28)ctx.fillRect(x,cy-72,20,14);
   ctx.font='36px system-ui';ctx.textAlign='center';
-  ctx.fillText('🏰',W/2,cy-16);ctx.textAlign='left';
+  ctx.shadowColor='#ffd23f';ctx.shadowBlur=14;
+  ctx.fillText('🏰',W/2,cy-16);ctx.shadowBlur=0;ctx.textAlign='left';
   // castle hp
   ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(W/2-60,cy+8,120,8);
   ctx.fillStyle=G.castleHp>50?'#4caf50':'#ff4a5a';
   ctx.fillRect(W/2-60,cy+8,120*G.castleHp/100,8);
   // enemies
   for(const e of G.enemies){
+    if(e.dead)continue;
     ctx.save();ctx.translate(e.x,e.y);
     const flash=e.hitT>0;
     const g=ctx.createRadialGradient(-5,-5,3,0,0,e.r);

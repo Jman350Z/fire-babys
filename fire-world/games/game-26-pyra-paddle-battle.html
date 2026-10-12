@@ -38,7 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏓 PYRA PADDLE BATTLE</h1>
-<div id="obody"><p>It's you vs. the machine!</p><p><b>DRAG</b> or move your <b>mouse</b> to slide your paddle! First to 7 points wins. Watch for speed boosts and curve balls!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
+<div id="obody"><p>It's you vs. the machine!</p><p><b>DRAG</b> or move your <b>mouse</b> to slide your paddle! First to 7 points wins. Watch for speed boosts and curve balls! Every 4th paddle hit is a 🔥 <b>Flame Surge</b> shot (+25% ball speed)!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A good rally takes practice — practice your fire drill too!</div>
 <button id="obtn">▶ PLAY</button>
@@ -72,12 +72,12 @@ const DIFFS=[
   {aiSpeed:380,aiErr:45,ballSpeed:520},
   {aiSpeed:480,aiErr:18,ballSpeed:620},
 ];
-const G={state:'title',diff:1,ps:0,as:0,
+const G={state:'title',diff:0,ps:0,as:0,surge:0,
   py:0,ay:0,bx:0,by:0,bvx:0,bvy:0,serveT:0,
   time:0,shake:0,trail:[],spin:0};
 const PW=14,PH=110,BR=11;
 function reset(){
-  G.ps=0;G.as=0;G.py=H/2;G.ay=H/2;
+  G.ps=0;G.as=0;G.surge=0;G.py=H/2;G.ay=H/2;
   serve(Math.random()<0.5?-1:1);
   updateHUD();
 }
@@ -118,9 +118,10 @@ function burst(x,y,color){
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
   const D=DIFFS[G.diff];
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   if(G.serveT>0){G.serveT-=dt;return;}
   // AI
-  const target=G.by+(G.bvy!==0?(G.by-G.ay)*0:0);
   let aiTarget=G.by;
   if(G.bvx>0){ // ball coming toward AI
     // predict
@@ -140,22 +141,26 @@ function update(dt){
   G.bx+=G.bvx*dt;G.by+=G.bvy*dt;
   // spin curve
   if(G.spin!==0){
-    G.bvy+=G.spin*dt;G.spin*=0.99;
+    G.bvy+=G.spin*dt;G.spin*=Math.pow(0.99,dt*60);
   }
   G.trail.push({x:G.bx,y:G.by});if(G.trail.length>10)G.trail.shift();
   // walls
   if(G.by<BR){G.by=BR;G.bvy=Math.abs(G.bvy);sfx.wall();}
   if(G.by>H-BR){G.by=H-BR;G.bvy=-Math.abs(G.bvy);sfx.wall();}
   // player paddle (left)
-  if(G.bvx<0&&G.bx-BR<30+PW&&G.bx>W*0.05){
+  if(G.bvx<0&&G.bx-BR<30+PW&&G.bx+BR>30){
     if(Math.abs(G.by-G.py)<PH/2+BR){
       const rel=(G.by-G.py)/(PH/2);
-      const spd=Math.min(950,Math.hypot(G.bvx,G.bvy)*1.06+12);
+      let spd=Math.min(950,Math.hypot(G.bvx,G.bvy)*1.06+12);
+      G.surge++;
+      const surged=G.surge>=4;
+      if(surged){spd=Math.min(1188,spd*1.25);G.surge=0;} // FLAME SURGE: +25%
       const ang=rel*1.05;
       G.bvx=Math.cos(ang)*spd;G.bvy=Math.sin(ang)*spd;
       G.bx=30+PW+BR;
       G.spin=rel*220; // curve!
-      sfx.hit();burst(G.bx,G.by,'#7fd4ff');
+      if(surged){tone(250,950,0.2,'sawtooth',0.15);burst(G.bx,G.by,'#ff9a3a');burst(G.bx,G.by,'#ffd23f');}
+      else{sfx.hit();burst(G.bx,G.by,'#7fd4ff');}
     }
   }
   // AI paddle (right)
@@ -183,8 +188,6 @@ function update(dt){
     if(G.ps>=7){endGame(true);return;}
     serve(-1);
   }
-  for(const p of particles){if(!p.a)continue;
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
 }
 function endGame(won){
   G.state='over';
@@ -215,7 +218,20 @@ function showOverlay(title,body,lesson,btn,cb){
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+  const bgd=ctx.createLinearGradient(0,0,0,H);
+  bgd.addColorStop(0,'#0d0a14');bgd.addColorStop(0.6,'#1a1030');bgd.addColorStop(1,'#2a1408');
+  ctx.fillStyle=bgd;ctx.fillRect(0,0,W,H);
+  // living ember background (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<24;i++){
+    const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
+    const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
+    ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // center line
@@ -228,8 +244,8 @@ function render(){
   // paddles
   const pg1=ctx.createLinearGradient(0,0,PW,0);
   pg1.addColorStop(0,'#7fd4ff');pg1.addColorStop(1,'#2a78b8');
-  ctx.fillStyle=pg1;
-  ctx.beginPath();ctx.roundRect(30,G.py-PH/2,PW,PH,8);ctx.fill();
+  ctx.fillStyle=pg1;ctx.shadowColor='#7fd4ff';ctx.shadowBlur=12;
+  ctx.beginPath();ctx.roundRect(30,G.py-PH/2,PW,PH,8);ctx.fill();ctx.shadowBlur=0;
   ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(34,G.py-PH/2+8,3,PH-16);
   const pg2=ctx.createLinearGradient(0,0,PW,0);
   pg2.addColorStop(0,'#ff6a8a');pg2.addColorStop(1,'#a32a4a');
@@ -246,7 +262,8 @@ function render(){
   if(G.serveT<=0){
     const g=ctx.createRadialGradient(G.bx-4,G.by-4,2,G.bx,G.by,BR);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ffd23f';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     // spin indicator
     if(Math.abs(G.spin)>40){
       ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
@@ -255,6 +272,10 @@ function render(){
   }else{
     ctx.fillStyle='#fff';ctx.font='900 24px system-ui';ctx.textAlign='center';
     ctx.fillText('GET READY...',W/2,H/2-60);ctx.textAlign='left';
+  }
+  if(G.state==='play'&&G.surge>=3){
+    ctx.fillStyle='#ff9a3a';ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText('🔥 NEXT HIT: FLAME SURGE!',W/2,H-18);ctx.textAlign='left';
   }
   // particles
   for(const p of particles){

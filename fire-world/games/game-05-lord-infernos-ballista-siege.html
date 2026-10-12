@@ -42,7 +42,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏹 LORD INFERNO'S BALLISTA SIEGE</h1>
-<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge rocks, blast enemies, grab power-ups!</p><div id="levelSel"></div></div>
+<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge rocks, blast enemies, grab power-ups!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never aim anything at a fire — get away and call for help!</div>
 <button id="obtn">▶ PLAY</button>
@@ -77,6 +77,16 @@ function noise(dur,vol,delay=0,lp=2000){const ac=audio();if(!ac)return;const t=a
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
   const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+
+/* living ember backdrop (overhaul) */
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
+function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
+  if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
   shoot(){tone(800,400,0.08,'square',0.08);},
   explode(){noise(0.3,0.35,0,800);tone(150,40,0.25,'sawtooth',0.2);},
@@ -103,7 +113,7 @@ const G={state:'title',level:1,score:0,wave:1,waveKills:0,waveTarget:8,
   bullets:[],enemies:[],pickups:[],time:0,invuln:0,
   power:1,powerT:0,boss:null};
 function reset(level){
-  G.level=level;G.score=0;G.wave=1;G.waveKills=0;G.waveTarget=6+level*2;
+  G.level=level;G.wave=1;G.waveKills=0;G.waveTarget=6+level*2;
   G.px=W/2;G.py=H*0.82;G.hp=100;G.maxHp=100;G.fireT=0;
   G.bullets=[];G.enemies=[];G.pickups=[];G.power=1;G.powerT=0;G.boss=null;G.invuln=0;
   document.getElementById('level').textContent=`LEVEL ${level}/5`;
@@ -135,7 +145,7 @@ function spawnBoss(){
   sfx.hit();
 }
 function spawnPickup(x,y){
-  const types=['hp','rapid','spread','shield'];
+  const types=['hp','rapid','spread','shield','nova'];
   G.pickups.push({x,y,vy:100,type:types[Math.floor(Math.random()*types.length)],t:0});
 }
 
@@ -144,6 +154,7 @@ let dragging=false;
 canvas.addEventListener('pointerdown',e=>{dragging=true;G.px=e.clientX;G.py=Math.min(e.clientY,H*0.9);canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(dragging){G.px=e.clientX;G.py=Math.min(e.clientY,H*0.9);}});
 canvas.addEventListener('pointerup',()=>dragging=false);
+canvas.addEventListener('pointercancel',()=>dragging=false);
 addEventListener('keydown',e=>{
   const sp=14;
   if(e.key==='ArrowLeft')G.px=Math.max(30,G.px-sp);
@@ -161,8 +172,8 @@ function update(dt){
   // auto-fire
   G.fireT-=dt;
   if(G.fireT<=0){
-    G.fireT=G.power===2?0.12:0.18;
-    const n=G.power===3?3:1;
+    G.fireT=G.power===2?0.12:G.power===4?0.20:0.18;
+    const n=G.power===3?3:G.power===4?4:1;
     for(let i=0;i<n;i++){
       const off=(i-(n-1)/2)*14;
       G.bullets.push({x:G.px+off,y:G.py-30,vx:off*8,vy:-700,dead:false});
@@ -225,15 +236,14 @@ function update(dt){
   // wave spawner
   if(!G.boss||G.boss.dead){
     if(G.waveKills>=G.waveTarget){
-      if(G.wave>=3&&(!G.boss||G.boss.dead)&&G.wave===3){
-        // boss wave done after boss dies
-        if(G.boss&&G.boss.dead)levelComplete();
+      if(G.wave===3&&!G.boss){
+        spawnBoss();
+      }else if(G.boss&&G.boss.dead){
+        levelComplete();
       }else if(G.wave<3){
         G.wave++;G.waveKills=0;G.waveTarget=6+G.level*2+G.wave*2;
         document.getElementById('wave').textContent='🌊 Wave '+G.wave;
         spawnText(W/2,H*0.4,'WAVE '+G.wave,'#7fd4ff');
-      }else if(G.wave===3&&!G.boss){
-        spawnBoss();
       }
     }else if(G.enemies.length<4+G.level){
       if(Math.random()<dt*(1+G.level*0.3))spawnEnemy();
@@ -272,6 +282,7 @@ function applyPickup(type){
   if(type==='hp'){G.hp=Math.min(G.maxHp,G.hp+30);updateHP();spawnText(G.px,G.py-40,'+HP','#4caf50');}
   else if(type==='rapid'){G.power=2;G.powerT=10;spawnText(G.px,G.py-40,'RAPID FIRE!','#7fd4ff');}
   else if(type==='spread'){G.power=3;G.powerT=10;spawnText(G.px,G.py-40,'SPREAD SHOT!','#ffd23f');}
+  else if(type==='nova'){G.power=4;G.powerT=10;spawnText(G.px,G.py-40,'EMBER NOVA x4!','#ff9a3a');tone(300,900,0.2,'sawtooth',0.12);}
   else{G.invuln=5;spawnText(G.px,G.py-40,'SHIELD!','#4caf50');}
 }
 function levelComplete(){
@@ -285,7 +296,7 @@ function levelComplete(){
       showOverlay('🏆 SIEGE MASTER!',
         `<div class="stars">★★★</div><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
         '🔥 Fire Safety: You\'re a fire safety champion!',
-        '↻ PLAY AGAIN',()=>{reset(1);G.state='play';});
+        '↻ PLAY AGAIN',()=>{reset(1);G.score=0;updateScoreUI();G.state='play';});
     }else{
       showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
         `<div class="stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>Score: ${G.score} (+${hpBonus} HP bonus)</p>`,
@@ -301,7 +312,7 @@ function gameOver(){
     showOverlay('💥 BALLISTA DOWN!',
       `<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Wave: ${G.wave}</p>`,
       '🔥 Fire Safety: Never aim anything at a fire — get away and call for help!',
-      '↻ TRY AGAIN',()=>{reset(G.level);G.state='play';});
+      '↻ TRY AGAIN',()=>{reset(G.level);G.score=0;updateScoreUI();G.state='play';});
   },800);
 }
 
@@ -322,8 +333,9 @@ function showOverlay(title,body,lesson,btn,cb){
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function startGame(){audio();reset(1);G.state='play';overlay.classList.add('hidden');}
-function selLevel(n){sfx.click();reset(n);G.state='play';overlay.classList.add('hidden');}
+function startGame(){audio();reset(pendingLevel||1);pendingLevel=0;G.score=0;updateScoreUI();G.state='play';overlay.classList.add('hidden');}
+let pendingLevel=0;
+function selLevel(n){sfx.click();pendingLevel=n;showMathGate();}
 obtn.onclick=()=>{showMathGate();};
 (function(){let h='';for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
 document.getElementById('levelSel').innerHTML=h;})();
@@ -333,6 +345,7 @@ function render(){
   const sky=ctx.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,'#0d1a2a');sky.addColorStop(0.5,'#1a2a4a');sky.addColorStop(1,'#3a1a2a');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // stars
   ctx.fillStyle='rgba(255,255,255,0.5)';
   for(let i=0;i<40;i++){
@@ -352,11 +365,11 @@ function render(){
   // pickups
   for(const p of G.pickups){
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.t*4)*0.2);
-    const cols={hp:'#4caf50',rapid:'#7fd4ff',spread:'#ffd23f',shield:'#9a7fd4'};
+    const cols={hp:'#4caf50',rapid:'#7fd4ff',spread:'#ffd23f',shield:'#9a7fd4',nova:'#ff9a3a'};
     ctx.fillStyle=cols[p.type];ctx.strokeStyle='#fff';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.fillStyle='#fff';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText({hp:'+',rapid:'»',spread:'∴',shield:'◈'}[p.type],0,1);
+    ctx.fillText({hp:'+',rapid:'»',spread:'∴',shield:'◈',nova:'✦'}[p.type],0,1);
     ctx.restore();
   }
   ctx.textBaseline='alphabetic';
@@ -407,16 +420,19 @@ function render(){
   }
   // bullets
   for(const b of G.bullets){
+    ctx.save();ctx.shadowColor='#ffd23f';ctx.shadowBlur=12;
     const g=ctx.createLinearGradient(b.x,b.y-14,b.x,b.y+6);
     g.addColorStop(0,'#fff');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'#ff6a00');
     ctx.fillStyle=g;
     ctx.beginPath();ctx.ellipse(b.x,b.y,5,12,0,0,Math.PI*2);ctx.fill();
+    ctx.restore();
   }
   // player ballista
   if(G.state==='play'){
     const blink=G.invuln>0&&Math.sin(G.time*30)>0;
     ctx.globalAlpha=blink?0.4:1;
     ctx.save();ctx.translate(G.px,G.py);
+    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=16;
     // ballista base
     ctx.fillStyle='#5a3a1a';
     ctx.fillRect(-24,-8,48,16);
@@ -474,6 +490,7 @@ function loop(t){
   const sh=trauma*trauma*18;
   shakeX=(Math.random()-0.5)*sh*2;shakeY=(Math.random()-0.5)*sh*2;
   if(G.state==='play')update(dt);else G.time+=dt;
+  updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=50*dt;f.life-=dt;if(f.life<=0)f.a=false;}

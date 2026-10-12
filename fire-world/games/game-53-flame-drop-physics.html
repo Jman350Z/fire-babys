@@ -155,6 +155,7 @@ canvas.addEventListener('pointerup',()=>{
 function updItems(){document.getElementById('items').textContent='🛠️ '+G.itemsLeft;}
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
 function dropFlame(){
   if(G.dropped||G.done)return;
   G.dropped=true;sfx.drop();
@@ -188,7 +189,7 @@ function update(dt){
     const d=Math.hypot(G.fx-cx,G.fy-cy);
     if(d<R+6){
       // bounce off line: reflect velocity
-      const nx=(G.fx-cx)/d,ny=(G.fy-cy)/d;
+      const nx=d>0.001?(G.fx-cx)/d:0,ny=d>0.001?(G.fy-cy)/d:-1; // guard d=0 (centre exactly on line) — was NaN soft-lock
       G.fx=cx+nx*(R+6);G.fy=cy+ny*(R+6);
       const dot=G.vx*nx+G.vy*ny;
       if(dot<0){G.vx-=1.7*dot*nx;G.vy-=1.7*dot*ny;}
@@ -312,7 +313,10 @@ canvas.addEventListener('pointerup',e=>{
   }
 });
 function render(){
-  ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+  const bg53=ctx.createLinearGradient(0,0,0,H);bg53.addColorStop(0,'#1b1030');bg53.addColorStop(0.6,'#120a20');bg53.addColorStop(1,'#0d0a14');ctx.fillStyle=bg53;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){const ey=H-((e.y+G.time*e.v)%(H+30));const ex=(e.x+Math.sin(G.time*0.7+e.ph)*14)%W;ctx.globalAlpha=0.3+0.2*Math.sin(G.time*2+e.ph);ctx.fillStyle='#ff9a2a';ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;
   const L=LEVELS[G.level-1];
   if(!L)return;
   ctx.save();
@@ -372,7 +376,7 @@ function render(){
   if(!G.done||G.time<1){
     const g=ctx.createRadialGradient(G.fx-5,G.fy-5,2,G.fx,G.fy,15);
     g.addColorStop(0,'#fff2c8');g.addColorStop(0.5,'#ff8a3a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(G.fx,G.fy,14,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff8a3a';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(G.fx,G.fy,14,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
   }
   // particles
   for(const p of particles){

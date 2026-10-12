@@ -36,7 +36,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🌋 LAVA MOAT DEFENSE</h1>
-<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 12 waves!</p></div>
+<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 12 waves!</p><p>🔆 <b>EMBER NOVA BLAST:</b> every 12 tower kills charges a Nova — tap the castle or press SPACE to blast all nearby enemies for 45 damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A moat of safety keeps everyone protected!</div>
 <button id="obtn">▶ PLAY</button>
@@ -75,10 +75,17 @@ const sfx={
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',gold:200,wave:0,hp:100,score:0,
-  towers:[],enemies:[],shots:[],spawnQ:[],betweenWaves:0,time:0,shake:0};
+  towers:[],enemies:[],shots:[],spawnQ:[],betweenWaves:0,time:0,shake:0,nova:0};
+const NOVA_NEED=12,NOVA_DMG=45,NOVA_R=230;
+// Living background embers (positions derived from G.time — cheap, stateless)
+const EMBERS=[];
+for(let i=0;i<24;i++)EMBERS.push({x:Math.random(),o:Math.random()*1200,s:24+Math.random()*36,r:1.4+Math.random()*2.2,ph:Math.random()*6.28});
 function reset(){
   G.gold=200;G.wave=0;G.hp=100;G.score=0;
   G.towers=[];G.enemies=[];G.shots=[];
+  // BUGFIX: spawnQ and shake were never cleared — leftover queued enemies
+  // from the previous run leaked into the fresh game after a restart.
+  G.spawnQ=[];G.shake=0;G.nova=0;
   G.betweenWaves=1.5;G.time=0;
   updateHUD();
 }
@@ -87,11 +94,34 @@ function updateHUD(){
   document.getElementById('wave').textContent=`🌊 Wave ${Math.min(G.wave+1,12)}/12`;
   document.getElementById('hp').textContent='🏰 '+G.hp;
 }
+// WEAPON — Ember Nova Blast: charged by 12 tower kills. When ready, tap the
+// castle (or press Space/N) to deal 45 damage to every enemy within 230px of
+// the castle. Base tower shot is 11 dmg, so this is a gated area finisher,
+// not a stronger always-on weapon.
+function novaBlast(){
+  if(G.state!=='play'||G.nova<NOVA_NEED)return;
+  G.nova=0;sfx.boom();tone(180,720,0.35,'sawtooth',0.16);G.shake=Math.max(G.shake,0.3);
+  burst(CX,CY,'#ffb03a',24);
+  for(const e of G.enemies){
+    if(e.dead)continue;
+    if(Math.hypot(e.x-CX,e.y-CY)<=NOVA_R){
+      e.hp-=NOVA_DMG;e.hitT=0.15;burst(e.x,e.y,'#ffd23f',5);
+      if(e.hp<=0){e.dead=true;G.gold+=e.gold;G.score+=e.gold*10;sfx.kill();}
+    }
+  }
+  G.enemies=G.enemies.filter(e=>!e.dead);
+  updateHUD();
+}
+addEventListener('keydown',e=>{
+  if((e.code==='Space'||e.code==='KeyN')&&G.state==='play'){e.preventDefault();novaBlast();}
+});
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
   const d=Math.hypot(x-CX,y-CY);
+  // tapping the castle fires the Nova when charged (castle is not on the build ring)
+  if(d<CASTLE_R+30&&G.nova>=NOVA_NEED){novaBlast();return;}
   // must be near moat ring
   if(Math.abs(d-MOAT_R)>44)return;
   if(G.gold<50){sfx.click();return;}
@@ -161,7 +191,7 @@ function update(dt){
     }
     if(best){
       t.cd=0.45;t.aim=Math.atan2(best.y-t.y,best.x-t.x);
-      G.shots.push({x:t.x,y:t.y,target:best,speed:520,dmg:11+t.kills*0.3});
+      G.shots.push({x:t.x,y:t.y,target:best,speed:520,dmg:11+t.kills*0.3,src:t});
       sfx.shoot();
     }
   }
@@ -184,10 +214,11 @@ function update(dt){
               type:'grunt',hp:20+G.wave*5,r:11,speed:70+G.wave*2,gold:5,t:0,hitT:0,a:0});
           }
         }
-        // tower levels up
-        for(const t of G.towers){
-          if(Math.hypot(t.x-e.x,t.y-e.y)<170){t.kills++;}
-        }
+        // BUGFIX: previously EVERY tower within 170px of a kill got credit,
+        // levelling up towers that never fired. Only the shooter levels up.
+        if(s.src)s.src.kills++;
+        // Ember Nova charge: every tower kill feeds the Nova meter
+        G.nova=Math.min(NOVA_NEED,G.nova+1);
         updateHUD();
       }
     }else{s.x+=dx/d*step;s.y+=dy/d*step;}
@@ -198,7 +229,7 @@ function update(dt){
     if(e.dead)continue;
     e.t+=dt;e.hitT=Math.max(0,e.hitT-dt);
     const dx=CX-e.x,dy=CY-e.y,d=Math.hypot(dx,dy);
-    e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt;
+    if(d>0.01){e.x+=dx/d*e.speed*dt;e.y+=dy/d*e.speed*dt;} // guard: d==0 would NaN-poison the position
     if(d<CASTLE_R+10){
       e.dead=true;
       const dmg=e.type==='tank'?15:8;
@@ -250,7 +281,19 @@ function showOverlay(title,body,lesson,btn,cb){
 function startGame(){audio();resize();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  ctx.fillStyle='#0d0a08';ctx.fillRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#17100c');bg.addColorStop(0.55,'#0d0a08');bg.addColorStop(1,'#1c0d06');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // living embers behind gameplay (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of EMBERS){
+    const ey=H-((G.time*e.s+e.o)%(H+30));
+    const ex=e.x*W+Math.sin(G.time*0.9+e.ph)*10;
+    ctx.globalAlpha=0.15+0.11*Math.sin(G.time*2+e.ph);
+    ctx.fillStyle='#ff9a3c';
+    ctx.beginPath();ctx.arc(ex,ey,e.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // lava moat ring
@@ -288,7 +331,10 @@ function render(){
     const lvl=Math.min(3,1+Math.floor(t.kills/8));
     const g=ctx.createRadialGradient(t.x-5,t.y-11,2,t.x,t.y-6,14);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(1,'#ff6a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(t.x,t.y-6,12+lvl*2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;
+    ctx.shadowColor='#ff8c2e';ctx.shadowBlur=14; // tower flame glow
+    ctx.beginPath();ctx.arc(t.x,t.y-6,12+lvl*2,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     // barrel
     ctx.strokeStyle='#ffd23f';ctx.lineWidth=4+lvl;ctx.lineCap='round';
     ctx.beginPath();ctx.moveTo(t.x,t.y-6);
@@ -312,11 +358,13 @@ function render(){
     ctx.beginPath();ctx.arc(-e.r*0.3,-2,3,0,Math.PI*2);ctx.arc(e.r*0.3,-2,3,0,Math.PI*2);ctx.fill();
     ctx.restore();
   }
-  // shots
+  // shots (projectile glow)
+  ctx.save();ctx.shadowColor='#ffd23f';ctx.shadowBlur=10;
   for(const s of G.shots){
     ctx.fillStyle='#ffd23f';
     ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();
   }
+  ctx.restore();
   // particles
   for(const p of particles){
     if(!p.a)continue;
@@ -325,6 +373,18 @@ function render(){
   }
   ctx.globalAlpha=1;
   ctx.restore();
+  // Ember Nova status
+  if(G.state==='play'){
+    ctx.font='900 14px system-ui';ctx.textAlign='center';
+    if(G.nova>=NOVA_NEED){
+      ctx.fillStyle='#ffb03a';
+      ctx.fillText('🔆 EMBER NOVA READY! Tap the castle or press SPACE!',W/2,H-18);
+    }else{
+      ctx.fillStyle='rgba(255,255,255,0.55)';
+      ctx.fillText(`🔆 Nova charge: ${G.nova}/${NOVA_NEED} kills`,W/2,H-18);
+    }
+    ctx.textAlign='left';
+  }
   if(G.state==='play'&&!G.spawnQ.length&&!G.enemies.length&&G.wave<12){
     ctx.fillStyle='#fff';ctx.font='900 17px system-ui';ctx.textAlign='center';
     ctx.fillText(`Wave ${G.wave+1} in ${Math.ceil(G.betweenWaves)}...  TAP the ring to build! (50🪙)`,W/2,90);

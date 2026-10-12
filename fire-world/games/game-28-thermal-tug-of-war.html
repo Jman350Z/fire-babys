@@ -40,7 +40,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🪢 THERMAL TUG-OF-WAR</h1>
-<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
+<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><p>⚓ <b>EMBER ANCHOR:</b> taps charge the meter — at 20, press <b>SPACE</b> for a big Anchor Slam pull!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Pull together — teamwork beats fire every time!</div>
 <button id="obtn">▶ PLAY</button>
@@ -67,14 +67,15 @@ const sfx={
   win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
   lose(){tone(400,120,0.4,'sawtooth',0.15);},
   count(n){tone(n*200+400,n*200+400,0.12,'sine',0.15);},
-  click(){tone(600,600,0.06,'square',0.1);}
+  click(){tone(600,600,0.06,'square',0.1);},
+  anchor(){tone(170,60,0.25,'triangle',0.2);tone(500,950,0.16,'sine',0.1,0.03);}
 };
 const DIFFS=[
   {ai:2.2,name:'Easy'},
   {ai:3.4,name:'Medium'},
   {ai:4.6,name:'Hard'},
 ];
-const G={state:'title',diff:1,round:1,pyou:0,pai:0,
+const G={state:'title',diff:0,round:1,pyou:0,pai:0,anchor:0,
   pos:0, // -1 (ai wins) to +1 (you win)
   counting:0,countT:0,tapTimes:[],time:0,shake:0,ropeTug:0};
 function reset(){
@@ -93,7 +94,7 @@ document.querySelectorAll('.dbtn').forEach(b=>{
   });
 });
 function startRound(){
-  G.pos=0;G.counting=3;G.countT=0;G.tapTimes=[];
+  G.pos=0;G.anchor=0;G.counting=3;G.countT=0;G.tapTimes=[];
   G.state='countdown';
   updateHUD();
 }
@@ -101,6 +102,7 @@ canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
   e.preventDefault();
   G.pos+=0.028; // each tap pulls
+  G.anchor=Math.min(20,G.anchor+1); // taps charge the Ember Anchor
   G.ropeTug=1;
   G.tapTimes.push(performance.now());
   // keep last second
@@ -113,7 +115,24 @@ canvas.addEventListener('pointerdown',e=>{
   ripples.push({x:e.clientX-rect.left,y:e.clientY-rect.top,r:10,a:1});
   if(G.pos>=1){winRound(true);}
 });
+addEventListener('keydown',e=>{
+  if((e.key===' '||e.key==='Spacebar')&&G.state==='play'&&G.anchor>=20){
+    e.preventDefault();G.anchor=0;G.pos+=0.16;G.ropeTug=1;sfx.anchor();
+    for(let i=0;i<10;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=W/2+G.pos*W*0.38;p.y=H*0.45;p.vx=(Math.random()-0.5)*260;p.vy=(Math.random()-0.5)*260;
+      p.life=0.45;p.max=0.45;p.color='#ffd23f';p.size=4;}
+    if(G.pos>=1)winRound(true);
+  }
+});
 const ripples=[];
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*2200,y:Math.random()*1200,s:1+Math.random()*2.5,v:14+Math.random()*26,ph:Math.random()*6.28});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){e.y-=e.v*0.016;e.x+=Math.sin(G.time*0.9+e.ph)*0.3;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.5+0.5*Math.sin(G.time*2+e.ph);
+    ctx.globalAlpha=0.13+0.22*tw;ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x%(W+12),e.y,e.s,0,6.29);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;}
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 function update(dt){
@@ -194,6 +213,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#140d08');bg.addColorStop(0.6,'#1e1408');bg.addColorStop(1,'#2a1a0a');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   const cy=H*0.45;
@@ -244,6 +264,16 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  // Ember Anchor meter (weapon)
+  if(G.state==='play'||G.state==='countdown'){
+    const bw=Math.min(280,W*0.6),bx=W/2-bw/2,by=cy+138;
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.roundRect(bx,by,bw,16,8);ctx.fill();
+    ctx.fillStyle=G.anchor>=20?'#ffd23f':'#ff8c2e';
+    ctx.beginPath();ctx.roundRect(bx,by,bw*(G.anchor/20),16,8);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';
+    ctx.fillText(G.anchor>=20?'⚓ EMBER ANCHOR READY — PRESS SPACE!':'⚓ Ember Anchor '+G.anchor+'/20',W/2,by+32);
+    ctx.textAlign='left';
+  }
   ctx.restore();
   // countdown
   if(G.state==='countdown'&&G.counting>0){
@@ -271,7 +301,8 @@ function drawTeam(x,y,color,label,faceRight){
     // head (fire baby)
     const g=ctx.createRadialGradient(-4,-44,2,0,-40,14);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(1,'#ff7a2a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,-40,13,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(0,-40,13,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.restore();
   }
   ctx.globalAlpha=1;

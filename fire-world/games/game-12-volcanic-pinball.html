@@ -39,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎱 VOLCANIC PINBALL</h1>
-<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> hit the arcade!</p><p><b>Tap LEFT / RIGHT</b> sides of the screen to flip! Keep the fireball alive, smash bumpers for combos. You have 3 balls!</p></div>
+<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> hit the arcade!</p><p><b>Tap LEFT / RIGHT</b> sides of the screen to flip! Keep the fireball alive, smash bumpers for combos. Hit the <b>🌟 Nova Bumper (125)</b> to earn a one-time <b>🛡️ Ember Shield</b> that saves your next drained ball! You have 3 balls!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Pinball is electric fun — never touch real electrical panels!</div>
 <button id="obtn">▶ PLAY</button>
@@ -79,26 +79,32 @@ const sfx={
 };
 
 /* table layout (relative) */
+let _lay=null,_layKey='';
 function layout(){
   const T=TABLE;
-  return{
+  const key=T.x+','+T.y+','+T.w+','+T.h;
+  if(_lay&&key===_layKey)return _lay; // persistent: flipper/bumper/sling state must survive between calls
+  _layKey=key;
+  _lay={
     bumpers:[
-      {x:T.x+T.w*0.3,y:T.y+T.h*0.22,r:26},{x:T.x+T.w*0.7,y:T.y+T.h*0.22,r:26},
-      {x:T.x+T.w*0.5,y:T.y+T.h*0.34,r:26},
+      {x:T.x+T.w*0.3,y:T.y+T.h*0.22,r:26,pts:100},{x:T.x+T.w*0.7,y:T.y+T.h*0.22,r:26,pts:100},
+      {x:T.x+T.w*0.5,y:T.y+T.h*0.34,r:26,pts:100},
+      {x:T.x+T.w*0.5,y:T.y+T.h*0.12,r:18,pts:125,special:'nova'},
     ],
     slings:[
-      {x:T.x+T.w*0.28,y:T.y+T.h*0.62,w:44,h:80,side:-1},
-      {x:T.x+T.w*0.72,y:T.y+T.h*0.62,w:44,h:80,side:1},
+      {x:T.x+T.w*0.28,y:T.y+T.h*0.62,w:44,h:80,side:-1,cool:0},
+      {x:T.x+T.w*0.72,y:T.y+T.h*0.62,w:44,h:80,side:1,cool:0},
     ],
     flipL:{x:T.x+T.w*0.36,y:T.y+T.h*0.86,len:T.w*0.22,ang:0.5,active:false},
     flipR:{x:T.x+T.w*0.64,y:T.y+T.h*0.86,len:T.w*0.22,ang:-0.5,active:false},
     drainY:T.y+T.h*0.98,
     launchX:T.x+T.w*0.92,
   };
+  return _lay;
 }
 
 const G={state:'title',score:0,best:0,balls:3,combo:1,comboT:0,
-  ball:null,time:0,shake:0,nudge:0};
+  ball:null,time:0,shake:0,nudge:0,shield:false};
 try{G.best=parseInt(localStorage.getItem('pinball_best')||'0',10)||0;}catch(e){}
 const GRAV=1400;
 
@@ -155,14 +161,7 @@ function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p
 function spawnText(x,y,txt){const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.life=1;}
 
-function flipperTip(f){
-  const a=f.active?(f===layout().flipL?-0.55:0.55):(f===layout().flipL?0.5:-0.5);
-  // smooth
-  f.ang+=(a-f.ang)*0.5;
-  return{x:f.x+Math.cos(f.ang)*f.len*(f===layout().flipL?1:-1)*0+ (f===layout().flipL?Math.cos(-f.ang):Math.cos(f.ang))*f.len*(f===layout().flipL?1:-1),
-    y:f.y};
-}
-// simpler: compute flipper segment
+// compute flipper segment
 function flipSeg(f,isLeft){
   const rest=isLeft?0.45:-0.45,act=isLeft?-0.5:0.5;
   const target=f.active?act:rest;
@@ -213,7 +212,8 @@ function update(dt){
       b.vx=nx*sp;b.vy=ny*sp;
       b.x=bp.x+nx*(bp.r+b.r);b.y=bp.y+ny*(bp.r+b.r);
       G.combo=Math.min(8,G.combo+0.5);G.comboT=3;
-      addScore(100,bp.x,bp.y-30);
+      addScore(bp.pts||100,bp.x,bp.y-30);
+      if(bp.special==='nova'&&!G.shield){G.shield=true;spawnText(bp.x,bp.y-50,'🛡️ EMBER SHIELD!');tone(900,1500,0.2,'sine',0.14);}
       sfx.bumper();G.shake=0.35;
       bp.flash=0.3;
       for(let i=0;i<8;i++)spawnP(bp.x,bp.y,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.4,'#ffd23f',4);
@@ -222,7 +222,9 @@ function update(dt){
   }
   // slingshots
   for(const s of L.slings){
-    if(b.x>s.x-s.w/2&&b.x<s.x+s.w/2&&b.y>s.y-s.h/2&&b.y<s.y+s.h/2){
+    s.cool=Math.max(0,(s.cool||0)-dt);
+    if(s.cool<=0&&b.x>s.x-s.w/2&&b.x<s.x+s.w/2&&b.y>s.y-s.h/2&&b.y<s.y+s.h/2){
+      s.cool=0.3;
       b.vx=s.side*380;b.vy=-420;
       sfx.sling();G.shake=0.2;
       addScore(50,s.x,s.y-40);
@@ -248,10 +250,16 @@ function update(dt){
   // drain
   if(b.y>L.drainY){
     sfx.drain();
-    G.balls--;G.combo=1;updateHUD();
     for(let i=0;i<12;i++)spawnP(b.x,TABLE.y+TABLE.h,(Math.random()-0.5)*200,-Math.random()*200,0.5,'#ff4a5a',4);
-    if(G.balls<=0)gameOver();
-    else{newBall();}
+    if(G.shield){
+      G.shield=false;G.combo=1;updateHUD();
+      spawnText(b.x,TABLE.y+TABLE.h*0.7,'🛡️ SHIELD SAVE!');tone(700,1400,0.25,'sine',0.14);
+      newBall();
+    }else{
+      G.balls--;G.combo=1;updateHUD();
+      if(G.balls<=0)gameOver();
+      else{newBall();}
+    }
   }
 }
 function gameOver(){
@@ -262,7 +270,7 @@ function gameOver(){
     showOverlay('💥 GAME OVER',
       `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Best: ${G.best}</p>`,
       '🔥 Fire Safety: Pinball is electric fun — never touch real electrical panels!',
-      '↻ PLAY AGAIN',()=>{G.score=0;G.balls=3;G.combo=1;newBall();G.state='play';updateHUD();});
+      '↻ PLAY AGAIN',()=>{G.score=0;G.balls=3;G.combo=1;G.shield=false;newBall();G.state='play';updateHUD();});
   },600);
 }
 
@@ -283,12 +291,22 @@ function showOverlay(title,body,lesson,btn,cb){
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function startGame(){audio();G.score=0;G.balls=3;G.combo=1;newBall();G.state='play';overlay.classList.add('hidden');updateHUD();}
+function startGame(){audio();G.score=0;G.balls=3;G.combo=1;G.shield=false;newBall();G.state='play';overlay.classList.add('hidden');updateHUD();}
 obtn.onclick=()=>{showMathGate();};
 
 /* render */
+/* living embers (overhaul) */
+const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
+function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
+  for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
 function render(){
-  ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+  const bgG=ctx.createLinearGradient(0,0,0,H);
+  bgG.addColorStop(0,'#1c1030');bgG.addColorStop(0.6,'#0d0a14');bgG.addColorStop(1,'#2a0f08');
+  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
+  drawEmbers(W,H);
   const T=TABLE,L=layout();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*16,(Math.random()-0.5)*G.shake*16);
@@ -315,7 +333,7 @@ function render(){
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(bp.x,bp.y,bp.r,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='#2a1206';ctx.font='900 14px system-ui';ctx.textAlign='center';
-    ctx.fillText('100',bp.x,bp.y+5);ctx.textAlign='left';
+    ctx.fillText(bp.special==='nova'?'🌟':String(bp.pts||100),bp.x,bp.y+5);ctx.textAlign='left';
   }
   // slingshots
   for(const s of L.slings){
@@ -348,7 +366,10 @@ function render(){
     ctx.globalAlpha=1;
     const g=ctx.createRadialGradient(b.x-4,b.y-4,2,b.x,b.y,b.r);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff8a00';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    if(G.shield){ctx.strokeStyle='#7fd4ff';ctx.lineWidth=2.5;ctx.shadowColor='#7fd4ff';ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(b.x,b.y,b.r+5,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
     // face
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(b.x-3.5,b.y-2,2.5,0,Math.PI*2);ctx.arc(b.x+3.5,b.y-2,2.5,0,Math.PI*2);ctx.fill();

@@ -38,7 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎈 CALDERA BOUNCE</h1>
-<div id="obody"><p>Bounce to the top!</p><p><b>DRAG</b> the paddle to bounce the ball upward! Break all the blocks to clear the level. Don't let the ball fall past your paddle!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Bounce to the top!</p><p><b>DRAG</b> the paddle to bounce the ball upward! Break all the blocks to clear the level. Don't let the ball fall past your paddle!</p><p>💥 <b>BLAST BALL:</b> every 6th block you break drops a glowing pickup — catch it with your paddle for 6 seconds of double brick damage!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Bounce back — never give up on safety!</div>
 <button id="obtn">▶ PLAY</button>
@@ -64,12 +64,17 @@ const sfx={
   brick(){tone(600,900,0.07,'triangle',0.09);},
   wall(){tone(300,400,0.05,'square',0.06);},
   lose(){tone(350,100,0.3,'sawtooth',0.13);},
+  power(){tone(500,1100,0.16,'triangle',0.13);tone(750,1500,0.14,'sine',0.1,0.05);},
   win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.09));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',level:1,score:0,lives:3,
   px:0,bx:0,by:0,bvx:0,bvy:0,balls:[],
-  bricks:[],time:0,shake:0,stuck:true};
+  bricks:[],time:0,shake:0,stuck:true,
+  pickups:[],blastT:0,breaks:0};
+// Living background embers (positions derived from G.time — cheap, stateless)
+const EMBERS=[];
+for(let i=0;i<24;i++)EMBERS.push({x:Math.random(),o:Math.random()*1200,s:24+Math.random()*36,r:1.4+Math.random()*2.2,ph:Math.random()*6.28});
 const PW=110,PH=16,BR=10;
 function buildLevel(n){
   G.bricks=[];
@@ -92,9 +97,10 @@ function buildLevel(n){
 }
 function resetBall(){
   G.px=W/2;G.bx=W/2;G.by=H-80;G.bvx=0;G.bvy=0;G.stuck=true;
+  G.pickups=[]; // stale falling pickups don't carry across a lost ball
 }
 function initLevel(n){
-  G.level=n;buildLevel(n);resetBall();
+  G.level=n;G.blastT=0;G.breaks=0;buildLevel(n);resetBall();
   document.getElementById('lives').textContent='❤️ '+G.lives;
   updateHUD();
 }
@@ -116,6 +122,7 @@ canvas.addEventListener('pointerdown',e=>{
   }
 });
 addEventListener('keydown',e=>{
+  if(G.state!=='play')return; // BUGFIX: keys used to steer/launch even on title & game-over screens
   if(e.key==='ArrowLeft')G.px=Math.max(PW/2,G.px-40);
   if(e.key==='ArrowRight')G.px=Math.min(W-PW/2,G.px+40);
   if(e.key===' '&&G.stuck){
@@ -137,6 +144,7 @@ function update(dt){
     G.bx=G.px;
     return;
   }
+  if(G.blastT>0)G.blastT-=dt;
   G.bx+=G.bvx*dt;G.by+=G.bvy*dt;
   // speed cap
   const sp=Math.hypot(G.bvx,G.bvy);
@@ -164,7 +172,9 @@ function update(dt){
   for(const b of G.bricks){
     if(b.hp<=0)continue;
     if(G.bx+BR>b.x&&G.bx-BR<b.x+b.w&&G.by+BR>b.y&&G.by-BR<b.y+b.h){
-      b.hp--;b.hit=1;sfx.brick();
+      // WEAPON — Blast Ball: while active the ball deals 2 brick damage per
+      // hit (one-hit breaks the tough 2-HP bricks) instead of 1.
+      b.hp-=(G.blastT>0?2:1);b.hit=1;sfx.brick();
       G.score+=15;updateHUD();
       burst(G.bx,G.by,`hsl(${b.hue},70%,55%)`);
       // bounce
@@ -175,11 +185,25 @@ function update(dt){
       else if(m===dr)G.bvx=Math.abs(G.bvx);
       else if(m===dt2)G.bvy=-Math.abs(G.bvy);
       else G.bvy=Math.abs(G.bvy);
-      if(b.hp<=0){G.score+=10;updateHUD();}
+      if(b.hp<=0){
+        G.score+=10;updateHUD();
+        // every 6th brick fully broken drops a Blast Ball pickup
+        G.breaks++;
+        if(G.breaks%6===0)G.pickups.push({x:b.x+b.w/2,y:b.y+b.h,dead:false});
+      }
       break;
     }
     b.hit=Math.max(0,b.hit-dt*4);
   }
+  // Blast Ball pickups drift down — catch one with the paddle for 6s of Blast Ball
+  for(const pk of G.pickups){
+    pk.y+=170*dt;
+    if(pk.y>py-8&&pk.y<py+PH+18&&Math.abs(pk.x-G.px)<PW/2+12){
+      pk.dead=true;G.blastT=6;sfx.power();G.score+=25;updateHUD();
+      burst(pk.x,py,'#ffb03a');
+    }else if(pk.y>H+24)pk.dead=true;
+  }
+  G.pickups=G.pickups.filter(pk=>!pk.dead);
   G.bricks=G.bricks.filter(b=>b.hp>0);
   if(!G.bricks.length){
     // level clear
@@ -239,6 +263,10 @@ function showLevels(){
 function pickLevel(n){sfx.click();audio();G.score=0;G.lives=3;initLevel(n);G.state='play';overlay.classList.add('hidden');}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  // CRITICAL BUGFIX: showLevels() sets obtn.style.display='none' and nothing
+  // ever restored it — so the NEXT LEVEL / TRY AGAIN button stayed invisible
+  // forever after the level picker, soft-locking the game. Always restore it.
+  obtn.style.display='';
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
@@ -247,6 +275,16 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0d0a14');bg.addColorStop(1,'#1a0f24');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // living embers behind the bricks (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of EMBERS){
+    const ey=H-((G.time*e.s+e.o)%(H+30));
+    const ex=e.x*W+Math.sin(G.time*0.9+e.ph)*10;
+    ctx.globalAlpha=0.15+0.11*Math.sin(G.time*2+e.ph);
+    ctx.fillStyle='#ff9a3c';
+    ctx.beginPath();ctx.arc(ex,ey,e.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // bricks
@@ -272,10 +310,27 @@ function render(){
   ctx.beginPath();ctx.roundRect(G.px-PW/2,py,PW,PH,8);ctx.fill();
   ctx.fillStyle='rgba(255,255,255,0.35)';
   ctx.fillRect(G.px-PW/2+8,py+3,PW-16,4);
-  // ball
+  // Blast Ball pickups (falling)
+  for(const pk of G.pickups){
+    ctx.save();ctx.shadowColor='#ffb03a';ctx.shadowBlur=16;
+    ctx.fillStyle='#ffb03a';
+    ctx.beginPath();ctx.arc(pk.x,pk.y,10,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    ctx.font='13px system-ui';ctx.textAlign='center';
+    ctx.fillText('💥',pk.x,pk.y+5);ctx.textAlign='left';
+  }
+  // ball (glow — bigger, hotter while Blast Ball is active)
   const g=ctx.createRadialGradient(G.bx-3,G.by-3,2,G.bx,G.by,BR);
   g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=g;
+  ctx.shadowColor=G.blastT>0?'#ff4a1a':'#ffb03a';ctx.shadowBlur=G.blastT>0?24:14;
+  ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  if(G.blastT>0&&G.state==='play'){
+    ctx.fillStyle='#ffb03a';ctx.font='900 15px system-ui';ctx.textAlign='center';
+    ctx.fillText(`💥 BLAST BALL ${G.blastT.toFixed(0)}s — double brick damage!`,W/2,44);
+    ctx.textAlign='left';
+  }
   // stuck hint
   if(G.stuck&&G.state==='play'){
     ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='900 16px system-ui';ctx.textAlign='center';

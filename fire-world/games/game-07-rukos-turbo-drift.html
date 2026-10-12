@@ -68,6 +68,16 @@ function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+
+/* living ember backdrop (overhaul) */
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
+function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
+  if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
   perfect(){tone(1200,1600,0.08,'sine',0.15);tone(1800,2200,0.06,'sine',0.1,0.03);},
   great(){tone(900,1200,0.08,'sine',0.12);},
@@ -100,6 +110,7 @@ function genBeatmap(song){
       }
     }
   }
+  if(notes.length===0)notes.push({lane:1,time:beatLen*2,freq:song.base[1],hit:false,missed:false});
   return notes;
 }
 
@@ -167,6 +178,7 @@ function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p
 /* input */
 const KEYMAP={d:0,f:1,j:2,k:3};
 addEventListener('keydown',e=>{
+  if(e.repeat)return; // held keys auto-repeat: don't phantom-hit notes
   const k=e.key.toLowerCase();
   if(k in KEYMAP){hitLane(KEYMAP[k]);e.preventDefault();}
 });
@@ -245,6 +257,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.7,'#1a1030');bg.addColorStop(1,'#0d0a1a');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // stage lights
   for(let i=0;i<4;i++){
     const lx=LANE_X0+i*LANE_W+LANE_W/2;
@@ -287,6 +300,7 @@ function render(){
         ctx.beginPath();ctx.arc(x,y,26,0,Math.PI*2);ctx.fill();
         ctx.globalAlpha=1;
       }
+      ctx.save();ctx.shadowColor=LANE_COLORS[n.lane];ctx.shadowBlur=14;
       const g=ctx.createRadialGradient(x-6,y-8,4,x,y,20);
       g.addColorStop(0,'#fff');g.addColorStop(0.5,LANE_COLORS[n.lane]);g.addColorStop(1,LANE_COLORS[n.lane]+'88');
       ctx.fillStyle=g;
@@ -295,6 +309,7 @@ function render(){
       // music note symbol
       ctx.fillStyle='#fff';ctx.font='900 16px system-ui';ctx.textAlign='center';
       ctx.fillText('♪',x,y+6);ctx.textAlign='left';
+      ctx.restore();
     }
     // judgment
     if(G.judgT>0&&G.judgment){
@@ -335,6 +350,7 @@ let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   update(dt);
+  updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   render();

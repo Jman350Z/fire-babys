@@ -103,6 +103,10 @@ let gas=false,steerL=false,steerR=false;
 canvas.addEventListener('pointerdown',e=>{gas=true;});
 canvas.addEventListener('pointerup',()=>gas=false);
 canvas.addEventListener('pointercancel',()=>gas=false);
+// BUGFIX: sliding a finger off the canvas never fired pointerup on it,
+// leaving the gas stuck ON. Clear gas on leave / any window-level release.
+canvas.addEventListener('pointerleave',()=>gas=false);
+addEventListener('pointerup',()=>gas=false);
 function bindHold(id,fn){
   const el=document.getElementById(id);
   el.addEventListener('pointerdown',e=>{e.stopPropagation();fn(true);});
@@ -131,6 +135,9 @@ function distToTrack(x,y){
 }
 // boost pads at fixed indices
 const BOOSTS=[8,20,32,44];
+// Living background sparks (positions derived from G.time — cheap, stateless)
+const EMBERS=[];
+for(let i=0;i<24;i++)EMBERS.push({x:Math.random(),o:Math.random()*1200,s:20+Math.random()*30,r:1.3+Math.random()*2,ph:Math.random()*6.28});
 function update(dt){
   G.time+=dt;
   if(G.state==='countdown'){
@@ -155,7 +162,10 @@ function update(dt){
   const{d,idx}=distToTrack(G.x,G.y);
   const trackW=54;
   G.offTrack=d>trackW;
-  if(G.offTrack)G.v=Math.max(80,G.v-300*dt);
+  // BUGFIX: was Math.max(80, v-300*dt) — that FORCED a stopped car off-track
+  // back up to 80 speed, so the car crept forward on its own and could
+  // never stop on the grass. Grass should only drag speed DOWN toward 80.
+  if(G.offTrack&&G.v>80)G.v=Math.max(80,G.v-300*dt);
   // boost pads
   if(BOOSTS.includes(idx)&&G.v>50&&G.boost<=0){
     G.boost=1.2;sfx.boost();
@@ -219,6 +229,16 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#1a3a1a');bg.addColorStop(1,'#0d2412');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // drifting sparks over the grass (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of EMBERS){
+    const ey=H-((G.time*e.s+e.o)%(H+30));
+    const ex=e.x*W+Math.sin(G.time*0.9+e.ph)*12;
+    ctx.globalAlpha=0.13+0.1*Math.sin(G.time*2+e.ph);
+    ctx.fillStyle='#ffb03a';
+    ctx.beginPath();ctx.arc(ex,ey,e.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   if(!TRACK.length)return;
   // track (wide dark)
   ctx.strokeStyle='#2a2a3a';ctx.lineWidth=116;ctx.lineJoin='round';
@@ -273,7 +293,9 @@ function render(){
     const g=ctx.createLinearGradient(0,-11,0,11);
     g.addColorStop(0,'#ff8a3a');g.addColorStop(1,'#d42a1a');
     ctx.fillStyle=G.offTrack?'#6a6a6a':g;
+    ctx.shadowColor=G.boost>0?'#7fd4ff':'#ff8c2e';ctx.shadowBlur=G.boost>0?20:13; // car glow (blue when boosting)
     ctx.beginPath();ctx.roundRect(-20,-11,40,22,6);ctx.fill();
+    ctx.shadowBlur=0;
     // cockpit (fire baby)
     ctx.fillStyle='#ffe9a0';ctx.beginPath();ctx.arc(2,0,8,0,Math.PI*2);ctx.fill();
     // wheels
@@ -306,6 +328,7 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+(G.best?G.best.toFixed(1)+'s':'--');
+TRACK=trackPoints(); // show the track behind the title overlay, not bare grass
 requestAnimationFrame(loop);
 </script>
 </body>

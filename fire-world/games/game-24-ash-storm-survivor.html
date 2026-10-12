@@ -45,7 +45,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🌪️ ASH STORM SURVIVOR</h1>
-<div id="obody"><p>The ash storm is coming!</p><p><b>DRAG</b> or use <b>WASD/arrows</b> to move! Your fire baby auto-blasts nearby enemies. Collect XP gems, level up, choose upgrades. Survive as long as you can!</p></div>
+<div id="obody"><p>The ash storm is coming!</p><p><b>DRAG</b> or use <b>WASD/arrows</b> to move! Your fire baby auto-blasts nearby enemies. Collect XP gems, level up, choose upgrades. Survive as long as you can! Level-up can unlock 💥 <b>Ember Nova</b> — a periodic blast that damages every ash fiend nearby.</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: In a real storm, get inside and stay away from windows!</div>
 <button id="obtn">▶ PLAY</button>
@@ -78,16 +78,17 @@ const sfx={
   hurt(){tone(250,100,0.2,'sawtooth',0.16);},
   xp(){tone(900,1300,0.07,'sine',0.08);},
   level(){tone(600,1200,0.25,'triangle',0.16);tone(900,1600,0.2,'sine',0.12,0.1);},
+  nova(){tone(180,720,0.22,'triangle',0.14);noise(0.18,0.15,0,800);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',score:0,kills:0,time:0,
   px:0,py:0,hp:100,maxHp:100,level:1,xp:0,xpNeed:8,
   dmg:12,fireRate:0.45,projSpeed:520,projCount:1,moveSpeed:300,magnet:90,
-  enemies:[],shots:[],gems:[],fireT:0,spawnT:1,invuln:0,shake:0,leveling:false};
+  enemies:[],shots:[],gems:[],fireT:0,spawnT:1,invuln:0,shake:0,leveling:false,novaT:0,novaLvl:0};
 function reset(){
   Object.assign(G,{score:0,kills:0,time:0,hp:100,maxHp:100,level:1,xp:0,xpNeed:8,
     dmg:12,fireRate:0.45,projSpeed:520,projCount:1,moveSpeed:300,magnet:90,
-    fireT:0,spawnT:1,invuln:0,shake:0,leveling:false});
+    fireT:0,spawnT:1,invuln:0,shake:0,leveling:false,novaT:0,novaLvl:0});
   G.px=W/2;G.py=H/2;G.enemies=[];G.shots=[];G.gems=[];
   updateHUD();
 }
@@ -100,15 +101,13 @@ function updateHUD(){
   document.getElementById('xpfill').style.width=(G.xp/G.xpNeed*100)+'%';
 }
 // movement
-let dragging=false;
-canvas.addEventListener('pointerdown',e=>{dragging=true;canvas.setPointerCapture(e.pointerId);});
+let dragging=false,pointerTarget=null;
+canvas.addEventListener('pointerdown',e=>{dragging=true;pointerTarget={x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{
   if(!dragging||G.state!=='play'||G.leveling)return;
-  // move toward pointer
-  const dx=e.clientX-G.px,dy=e.clientY-G.py,d=Math.hypot(dx,dy);
-  if(d>8){G.px+=dx/d*Math.min(d,G.moveSpeed*0.05);G.py+=dy/d*Math.min(d,G.moveSpeed*0.05);}
+  pointerTarget={x:e.clientX,y:e.clientY};
 });
-canvas.addEventListener('pointerup',()=>dragging=false);
+canvas.addEventListener('pointerup',()=>{dragging=false;pointerTarget=null;});
 const keys={};
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
@@ -126,7 +125,7 @@ function spawnEnemy(){
   const base={x,y,t:Math.random()*10,hitT:0};
   if(type==='chaser')Object.assign(base,{type,hp:20+t*0.8,r:16,speed:70+t*0.7,dmg:10,xp:1,score:10});
   else if(type==='dasher')Object.assign(base,{type,hp:14+t*0.5,r:13,speed:130+t,dmg:8,xp:1,score:15,dashT:2});
-  else Object.assign(base,{type:'tank',hp:60+t*2,r:28,speed:40+t*0.3,dmg:20,xp:3,score:40});
+  else Object.assign(base,{type:'tank',hp:60+t*2,maxHp:60+t*2,r:28,speed:40+t*0.3,dmg:20,xp:3,score:40});
   G.enemies.push(base);
 }
 const particles=[];
@@ -145,6 +144,11 @@ function update(dt){
   if(keys['w']||keys['arrowup'])my-=1;if(keys['s']||keys['arrowdown'])my+=1;
   if(keys['a']||keys['arrowleft'])mx-=1;if(keys['d']||keys['arrowright'])mx+=1;
   if(mx||my){const d=Math.hypot(mx,my);G.px+=mx/d*G.moveSpeed*dt;G.py+=my/d*G.moveSpeed*dt;}
+  if(pointerTarget){
+    const dx=pointerTarget.x-G.px,dy=pointerTarget.y-G.py,d=Math.hypot(dx,dy);
+    if(d>4){const step=Math.min(d,G.moveSpeed*dt);G.px+=dx/d*step;G.py+=dy/d*step;}
+    else pointerTarget=null;
+  }
   G.px=Math.max(20,Math.min(W-20,G.px));G.py=Math.max(20,Math.min(H-20,G.py));
   // spawn
   G.spawnT-=dt;
@@ -185,6 +189,24 @@ function update(dt){
     }
   }
   G.shots=G.shots.filter(s=>!s.dead);
+  // EMBER NOVA weapon: every 4s, blast enemies within 120px (lvl1 dmg 15 = 125% of base shot dmg 12)
+  if(G.novaLvl>0){
+    G.novaT-=dt;
+    if(G.novaT<=0){
+      G.novaT=4;const nd=12+G.novaLvl*3;let hitAny=false;
+      for(const e of G.enemies){
+        if(Math.hypot(e.x-G.px,e.y-G.py)<120){
+          e.hp-=nd;e.hitT=0.1;hitAny=true;
+          if(e.hp<=0&&!e.dead){e.dead=true;G.kills++;G.score+=e.score;
+            G.gems.push({x:e.x,y:e.y,vx:(Math.random()-0.5)*80,vy:(Math.random()-0.5)*80,val:e.xp});}
+        }
+      }
+      if(hitAny)sfx.nova();
+      burst(G.px,G.py,'#ff9a3a',14);
+    }
+  }
+  // BUG FIX: shot/nova-killed enemies were still moved (and could damage the player) for one frame
+  G.enemies=G.enemies.filter(e=>!e.dead);
   // enemies
   for(const e of G.enemies){
     e.t+=dt;e.hitT=Math.max(0,e.hitT-dt);
@@ -232,6 +254,7 @@ function levelUp(){
     {n:'👟 +20% Speed',f:()=>G.moveSpeed*=1.2},
     {n:'❤️ +30 Max HP & Heal',f:()=>{G.maxHp+=30;G.hp=Math.min(G.maxHp,G.hp+30);}},
     {n:'🧲 +50% Magnet',f:()=>G.magnet*=1.5},
+    {n:'💥 Ember Nova (AoE blast)',f:()=>{G.novaLvl++;G.novaT=0.5;}},
   ];
   // pick 3
   const pick=[];
@@ -290,6 +313,16 @@ function render(){
     const ax=(i*211+G.time*80)%W,ay=(i*137+G.time*120)%H;
     ctx.fillRect(ax,ay,3,3);
   }
+  // living ember background (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<24;i++){
+    const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
+    const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
+    ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // gems
@@ -314,7 +347,7 @@ function render(){
     // hp bar for tanks
     if(e.type==='tank'){
       ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-e.r,-e.r-10,e.r*2,5);
-      ctx.fillStyle='#ff4a00';ctx.fillRect(-e.r,-e.r-10,e.r*2*Math.max(0,e.hp/(60+G.time*2)),5);
+      ctx.fillStyle='#ff4a00';ctx.fillRect(-e.r,-e.r-10,e.r*2*Math.max(0,e.hp/(e.maxHp||60)),5);
     }
     ctx.restore();
   }
@@ -322,8 +355,8 @@ function render(){
   for(const s of G.shots){
     const g=ctx.createLinearGradient(s.x-8,s.y,s.x+8,s.y);
     g.addColorStop(0,'rgba(255,210,63,0)');g.addColorStop(0.5,'#ffd23f');g.addColorStop(1,'rgba(255,210,63,0)');
-    ctx.fillStyle=g;
-    ctx.beginPath();ctx.arc(s.x,s.y,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ffd23f';ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(s.x,s.y,6,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
   }
   // player
   if(G.state==='play'&&!G.leveling){
@@ -332,12 +365,18 @@ function render(){
     ctx.save();ctx.translate(G.px,G.py);
     const g=ctx.createRadialGradient(-7,-8,4,0,0,22);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
+    ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-6,-3,3.5,0,Math.PI*2);ctx.arc(6,-3,3.5,0,Math.PI*2);ctx.fill();
     // magnet ring
     ctx.strokeStyle='rgba(127,212,255,0.25)';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(0,0,G.magnet,0,Math.PI*2);ctx.stroke();
+    if(G.novaLvl>0){ // Ember Nova charging ring closing in
+      const frac=Math.max(0,Math.min(1,1-G.novaT/4));
+      ctx.strokeStyle='rgba(255,154,58,'+(0.15+frac*0.4)+')';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(0,0,120*(1-frac*0.75),0,Math.PI*2);ctx.stroke();
+    }
     ctx.restore();
     ctx.globalAlpha=1;
   }

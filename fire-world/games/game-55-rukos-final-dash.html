@@ -41,7 +41,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🔥 RUKO'S FINAL DASH</h1>
-<div id="obody"><p>The grand finale!</p><p><b>TAP</b> to dash-attack the bosses! <b>SWIPE / ◀ ▶</b> to dodge their fireballs! 3 bosses, 3 lives. Hit them when they're open — dodge when they glow!</p></div>
+<div id="obody"><p>The grand finale!</p><p><b>TAP</b> to dash-attack the bosses! <b>SWIPE / ◀ ▶</b> to dodge their fireballs! 3 bosses, 3 lives. Hit them when they're open — dodge when they glow!</p><p>🔥 <b>NEW — Ember Combo Charm:</b> every 4th hit deals DOUBLE damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Face danger smart — dodge, don't freeze!</div>
 <button id="obtn">▶ PLAY</button>
@@ -69,6 +69,7 @@ const sfx={
   hurt(){tone(350,100,0.3,'sawtooth',0.14);},
   roar(){tone(120,60,0.5,'sawtooth',0.16);},
   win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.22,'triangle',0.14,i*0.1));},
+  burst(){tone(200,900,0.18,'sawtooth',0.14);tone(1200,1800,0.12,'sine',0.1,0.03);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const BOSSES=[
@@ -78,7 +79,7 @@ const BOSSES=[
 ];
 const G={state:'title',score:0,lives:3,bossIdx:0,
   bossHp:8,bossX:0,bossT:0,atkTimer:2,open:false,openT:0,
-  px:0,dashX:0,dashT:0,fireballs:[],time:0,shake:0,dead:false,hitT:0};
+  px:0,dashX:0,dashT:0,fireballs:[],time:0,shake:0,dead:false,hitT:0,combo:0};
 function startBoss(n){
   const B=BOSSES[n];
   G.bossIdx=n;G.bossHp=B.hp;G.bossX=W/2;G.bossT=0;
@@ -90,10 +91,10 @@ function startBoss(n){
 }
 function updBoss(){
   const B=BOSSES[G.bossIdx];
-  document.getElementById('bossfill').style.width=(G.bossHp/B.hp*100)+'%';
+  document.getElementById('bossfill').style.width=Math.max(0,G.bossHp/B.hp*100)+'%';
 }
 function reset(){
-  G.score=0;G.lives=3;G.px=W/2;G.dashX=0;G.dashT=0;
+  G.score=0;G.lives=3;G.px=W/2;G.dashX=0;G.dashT=0;G.combo=0;
   G.time=0;G.shake=0;G.dead=false;
   startBoss(0);
   updateHUD();
@@ -135,18 +136,21 @@ function doDash(){
   // dash toward boss x
   G.dashDir=Math.sign(G.bossX-G.px)||1;
   if(G.open&&Math.abs(G.px-G.bossX)<W*0.35){
-    // HIT!
-    G.bossHp--;G.hitT=0.2;G.shake=0.3;sfx.hit();
-    const pts=100*(G.bossIdx+1);
+    // HIT! Ember Combo Charm: every 4th hit deals DOUBLE damage (avg +25% power, in line with existing hits)
+    G.combo++;
+    const dmg=G.combo%4===0?2:1;
+    G.bossHp-=dmg;G.hitT=0.2;G.shake=0.3;
+    const pts=100*(G.bossIdx+1)*dmg;
     G.score+=pts;updateHUD();updBoss();
-    burst(G.bossX,H*0.3,'#ffd23f',12);
-    spawnText(G.bossX,H*0.22,'+'+pts,'#ffd23f');
+    if(dmg===2){sfx.burst();burst(G.bossX,H*0.3,'#ffd23f',20);spawnText(G.bossX,H*0.22,'\u{1F4A5} EMBER BURST +'+pts,'#ffd23f');}
+    else{sfx.hit();burst(G.bossX,H*0.3,'#ffd23f',12);spawnText(G.bossX,H*0.22,'+'+pts,'#ffd23f');}
     if(G.bossHp<=0){bossDown();return;}
   }
 }
 const particles=[],floaters=[];
 for(let i=0;i<100;i++)particles.push({a:false});
 for(let i=0;i<10;i++)floaters.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
 function burst(x,y,color,n){
   for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;
     const a=Math.random()*Math.PI*2;
@@ -204,6 +208,11 @@ function hurt(){
 }
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.hitT=Math.max(0,G.hitT-dt);
+  if(G.state==='bossdown'){ // defeated boss must stop attacking while the victory overlay is pending
+    for(const p of particles){if(!p.a)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+    for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+    return;
+  }
   const B=BOSSES[G.bossIdx];
   G.bossT+=dt;
   // boss sways
@@ -265,6 +274,9 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.6,'#2a0f14');bg.addColorStop(1,'#0d0a14');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){const ey=H-((e.y+G.time*e.v)%(H+30));const ex=(e.x+Math.sin(G.time*0.7+e.ph)*14)%W;ctx.globalAlpha=0.3+0.2*Math.sin(G.time*2+e.ph);ctx.fillStyle='#ff9a2a';ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
   const B=BOSSES[G.bossIdx];
@@ -313,7 +325,7 @@ function render(){
     }
     const fg=ctx.createRadialGradient(f.x-4,f.y-4,2,f.x,f.y,16);
     fg.addColorStop(0,'#fff2c8');fg.addColorStop(0.5,'#ff8a3a');fg.addColorStop(1,'#a32a10');
-    ctx.fillStyle=fg;ctx.beginPath();ctx.arc(f.x,f.y,15,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=fg;ctx.shadowColor='#ff8a3a';ctx.shadowBlur=14;ctx.beginPath();ctx.arc(f.x,f.y,15,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
   }
   // player
   if(!G.dead){
@@ -326,7 +338,7 @@ function render(){
     }
     const g=ctx.createRadialGradient(-7,-7,3,0,0,20);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,-20,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='rgba(255,122,42,0.95)';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(0,-20,18,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-6,-24,3.2,0,Math.PI*2);ctx.arc(6,-24,3.2,0,Math.PI*2);ctx.fill();
     ctx.restore();

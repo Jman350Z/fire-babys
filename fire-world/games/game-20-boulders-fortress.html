@@ -88,6 +88,11 @@ canvas.addEventListener('pointerdown',e=>{e.preventDefault();flap();});
 addEventListener('keydown',e=>{if(e.key===' '){flap();e.preventDefault();}});
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
+function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+
 function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p)return;
   p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
 function spawnPipe(){
@@ -170,6 +175,7 @@ function render(){
   const t=(Math.sin(G.time*0.1)+1)/2;
   sky.addColorStop(0,'#0d1a2a');sky.addColorStop(0.7,'#1a2a4a');sky.addColorStop(1,'#2a1a3a');
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   // parallax mountains
   ctx.fillStyle='#0a1220';
   for(let i=0;i<3;i++){
@@ -213,12 +219,14 @@ function render(){
     ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,36,0,Math.PI*2);ctx.fill();
     const g=ctx.createRadialGradient(-6,-7,3,0,0,20);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff9a3a');g.addColorStop(1,'#e8352c');
+    ctx.shadowColor='#ff9a3a';ctx.shadowBlur=16;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,20,0,Math.PI*2);ctx.fill();
-    // wing
+    ctx.shadowBlur=0;
+    // flame tuft (brand rule: zero wings/feathers — a flickering flame plume instead of the old wing)
     const wa=Math.sin(G.time*22)*0.5;
     ctx.fillStyle='#ff6a1a';
-    ctx.save();ctx.rotate(-0.4+wa*0.4);
-    ctx.beginPath();ctx.ellipse(-14,2,12,6,-0.5,0,Math.PI*2);ctx.fill();
+    ctx.save();ctx.translate(-15,0);ctx.rotate(0.25+wa*0.15);
+    ctx.beginPath();ctx.moveTo(2,-6);ctx.quadraticCurveTo(-13,0,2,7);ctx.quadraticCurveTo(-4,0,2,-6);ctx.fill();
     ctx.restore();
     // face
     ctx.fillStyle='#2b1a0e';
@@ -237,7 +245,6 @@ function render(){
   // flash
   if(G.flash>0){
     ctx.fillStyle=`rgba(255,255,255,${G.flash})`;ctx.fillRect(0,0,W,H);
-    G.flash-=0.06;
   }
   // get ready
   if(G.state==='play'&&G.score===0&&G.time<2){
@@ -270,6 +277,8 @@ let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  if(G.flash>0)G.flash=Math.max(0,G.flash-dt*3); // frame-rate independent (was a per-frame constant in render)
+  updateEmbers(dt);
   render();
   requestAnimationFrame(loop);
 }

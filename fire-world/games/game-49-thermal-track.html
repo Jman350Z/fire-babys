@@ -158,12 +158,29 @@ canvas.addEventListener('pointerup',()=>{G.tracing=false;});
 canvas.addEventListener('pointercancel',()=>{G.tracing=false;});
 const floaters=[];
 for(let i=0;i<8;i++)floaters.push({a:false});
+// [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
+const amb=[];
+for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of amb){
+    if(!e.on){e.on=true;e.x=Math.random()*W;e.y=Math.random()*H;}
+    e.y-=e.v/60;e.x+=Math.sin(G.time*1.3+e.ph)*0.18;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
+    ctx.globalAlpha=0.10+0.14*tw;
+    ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+
 function spawnText(x,y,txt,color){
   const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1.4;
 }
 function levelComplete(){
-  G.tracing=false;
+  G.tracing=false;G.state='clear';
   const elapsed=(performance.now()-G.startT)/1000;
   const timeBonus=Math.max(0,Math.round((30-elapsed)*10));
   const pts=200+timeBonus-G.offCount*50;
@@ -219,7 +236,10 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+  const bg49=ctx.createLinearGradient(0,0,0,H);
+  bg49.addColorStop(0,'#0d0a1a');bg49.addColorStop(0.55,'#170d26');bg49.addColorStop(1,'#1a0f1a');
+  ctx.fillStyle=bg49;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   if(!G.track.length){ctx.restore();return;}
@@ -235,15 +255,19 @@ function render(){
   // progress fill
   const pi=Math.floor(G.progress*G.track.length);
   if(pi>1){
+    ctx.shadowColor='#4caf50';ctx.shadowBlur=12;
     ctx.strokeStyle='#4caf50';ctx.lineWidth=tw*0.7;
     ctx.beginPath();
     for(let i=0;i<=pi;i++){const p=G.track[i];i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);}
     ctx.stroke();
+    ctx.shadowBlur=0;
   }
   // start
   const p0=G.track[0];
+  ctx.shadowColor='#4caf50';ctx.shadowBlur=16;
   ctx.fillStyle='#4caf50';
   ctx.beginPath();ctx.arc(p0.x,p0.y,26,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
   ctx.fillStyle='#fff';ctx.font='900 15px system-ui';ctx.textAlign='center';
   ctx.fillText('START',p0.x,p0.y+5);ctx.textAlign='left';
   // finish

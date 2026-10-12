@@ -38,7 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🫧 RUKO'S LAVA LEAP</h1>
-<div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> need a sharpshooter!</p><p><b>DRAG</b> to aim, <b>RELEASE</b> to fire! Match <b>3+ bubbles</b> of the same color to pop them. Stranded bubbles fall! Tap the shooter to swap colors.</p><div id="lvlSel"></div></div>
+<div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> need a sharpshooter!</p><p><b>DRAG</b> to aim, <b>RELEASE</b> to fire! Match <b>3+ bubbles</b> of the same color to pop them. Stranded bubbles fall! Tap the shooter to swap colors. Every 6 shots charges an <b>Ember Bomb</b> — press <b>B</b> to arm it; it pops up to 3 extra bubbles!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Aim for safety — always point away from fires!</div>
 <button id="obtn">▶ PLAY</button>
@@ -77,7 +77,7 @@ const sfx={
 const COLORS=['#ff4a3a','#ff8a00','#ffd23f','#4caf50','#7fd4ff','#c4a0ff'];
 const G={state:'title',level:1,grid:[],score:0,shots:0,
   cur:null,next:null,aim:0,aiming:false,flying:null,
-  dropCount:0,time:0,shake:0,colors:4};
+  dropCount:0,time:0,shake:0,colors:4,bombReady:false,bombArmed:false,rdt:0.016};
 function gridPos(r,c){
   const x=OX+c*R*2+(r%2?R:0)+R;
   const y=R+r*R*1.732+R;
@@ -112,7 +112,7 @@ function newShooter(){
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
-  document.getElementById('shots').textContent='🎯 '+G.shots;
+  document.getElementById('shots').textContent='🎯 '+G.shots+(G.bombArmed?' 💣 ARMED':G.bombReady?' 💣 READY (B)':'');
 }
 function neighbors(r,c){
   const odd=r%2===1;
@@ -184,12 +184,20 @@ function updateAim(x,y){
 function fire(){
   if(G.flying||G.state!=='play')return;
   const sp=900;
-  G.flying={x:W/2,y:SHOOTER_Y-R-6,vx:Math.sin(G.aim)*sp,vy:-Math.cos(G.aim)*sp,c:G.cur.c,trail:[]};
+  G.flying={x:W/2,y:SHOOTER_Y-R-6,vx:Math.sin(G.aim)*sp,vy:-Math.cos(G.aim)*sp,c:G.cur.c,trail:[],bomb:G.bombArmed};
   sfx.shoot();G.shots++;
+  if(G.flying.bomb){G.bombArmed=false;G.bombReady=false;updateHUD();}
   updateHUD();
 }
+addEventListener('keydown',e=>{
+  if((e.key==='b'||e.key==='B')&&G.state==='play'&&G.bombReady&&!G.bombArmed){
+    G.bombArmed=true;tone(900,1500,0.12,'triangle',0.14);
+    spawnText(W/2,H*0.55,'💣 EMBER BOMB ARMED!');updateHUD();
+  }
+});
 function snapBubble(){
   const f=G.flying;G.flying=null;
+  if(!G.bombReady&&G.shots>0&&G.shots%6===0){G.bombReady=true;spawnText(W/2,H*0.55,'💣 EMBER BOMB READY — PRESS B!');updateHUD();}
   // find nearest empty cell
   let best=null,bd=1e9;
   for(let r=0;r<G.grid.length+1;r++){
@@ -208,8 +216,18 @@ function snapBubble(){
   G.grid[best.r][best.c]={c:f.c,pop:0.01};
   sfx.stick();
   // check cluster
-  const cluster=findCluster(best.r,best.c);
-  if(cluster.length>=3){
+  let cluster=findCluster(best.r,best.c);
+  if(f.bomb){
+    // Ember Bomb: also pop up to 3 neighbouring bubbles of any colour (capped for balance)
+    const inCluster=new Set(cluster.map(cell=>cell.r+','+cell.c));
+    const extra=[];
+    for(const cell of cluster){for(const nb of neighbors(cell.r,cell.c)){
+      const k=nb.r+','+nb.c;
+      if(!inCluster.has(k)&&G.grid[nb.r][nb.c]){inCluster.add(k);extra.push(nb);if(extra.length>=3)break;}
+    }if(extra.length>=3)break;}
+    cluster=cluster.concat(extra);
+  }
+  if(cluster.length>=3||(f.bomb&&cluster.length>=1)){
     for(const cell of cluster){
       G.grid[cell.r][cell.c].pop=0.3;
       G.grid[cell.r][cell.c].popping=true;
@@ -238,7 +256,10 @@ function snapBubble(){
       }
       updateHUD();
       checkWin();
+      if(G.state==='play')checkLose();
     },280);
+  }else{
+    checkLose();
   }
   // ceiling drop every 6 shots
   G.dropCount++;
@@ -248,7 +269,9 @@ function snapBubble(){
     const newRow=[];
     for(let c=0;c<COLS;c++)newRow.push({c:Math.floor(Math.random()*G.colors),pop:0});
     G.grid.unshift(newRow);
-    // shift colors for odd rows
+    // hex rows alternate length by parity: after the shift, truncate any row
+    // that is now too long for its parity or its last bubble hangs off-board
+    for(let r=0;r<G.grid.length;r++){const maxC=COLS-(r%2?1:0);if(G.grid[r]&&G.grid[r].length>maxC)G.grid[r].length=maxC;}
     checkLose();
   }
   newShooter();
@@ -277,6 +300,7 @@ function checkWin(){
   }
 }
 function checkLose(){
+  if(G.state!=='play')return;
   const dangerY=H*0.72;
   for(let r=0;r<G.grid.length;r++)for(let c=0;c<(G.grid[r]?G.grid[r].length:0);c++){
     if(G.grid[r][c]){
@@ -295,6 +319,11 @@ function checkLose(){
   }
 }
 const particles=[],floaters=[];
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
+function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+
 for(let i=0;i<120;i++)particles.push({a:false});
 for(let i=0;i<10;i++)floaters.push({a:false});
 function burst(x,y,color){
@@ -338,6 +367,7 @@ function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#2a1a0e');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
   // danger line
@@ -370,7 +400,7 @@ function render(){
   // falling bubbles
   if(G.falling){
     for(const f of G.falling){
-      f.vy+=1500*0.016;f.y+=f.vy*0.016;
+      f.vy+=1500*G.rdt;f.y+=f.vy*G.rdt; // frame-rate independent (was a hard-coded 60fps step inside render)
       ctx.fillStyle=COLORS[f.c];ctx.globalAlpha=0.8;
       ctx.beginPath();ctx.arc(f.x,f.y,R*0.9,0,Math.PI*2);ctx.fill();
       ctx.globalAlpha=1;
@@ -397,8 +427,12 @@ function render(){
     // current
     const g=ctx.createRadialGradient(sx-8,SHOOTER_Y-10,4,sx,SHOOTER_Y,R);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,COLORS[G.cur.c]);g.addColorStop(1,COLORS[G.cur.c]+'88');
+    ctx.shadowColor=COLORS[G.cur.c];ctx.shadowBlur=16;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(sx,SHOOTER_Y,R,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    if(G.bombArmed){ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;ctx.shadowColor='#ffd23f';ctx.shadowBlur=14;ctx.beginPath();ctx.arc(sx,SHOOTER_Y,R+5,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;}
+    if(G.bombReady&&!G.bombArmed){ctx.fillStyle='#ffd23f';ctx.font='900 13px system-ui';ctx.textAlign='center';ctx.fillText('💣 BOMB READY — PRESS B',sx,SHOOTER_Y+52);ctx.textAlign='left';}
     // cannon
     ctx.save();ctx.translate(sx,SHOOTER_Y);ctx.rotate(G.aim);
     ctx.fillStyle='#4a3a2a';
@@ -416,7 +450,10 @@ function render(){
     ctx.globalAlpha=1;
     const g=ctx.createRadialGradient(f.x-8,f.y-8,4,f.x,f.y,R);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,COLORS[f.c]);g.addColorStop(1,COLORS[f.c]+'88');
+    ctx.shadowColor=COLORS[f.c];ctx.shadowBlur=12;
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,R*0.92,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    if(f.bomb){ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;ctx.shadowColor='#ffd23f';ctx.shadowBlur=16;ctx.beginPath();ctx.arc(f.x,f.y,R*1.05,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0;ctx.font='15px system-ui';ctx.textAlign='center';ctx.fillText('💣',f.x,f.y+5);ctx.textAlign='left';}
   }
   // particles
   for(const p of particles){
@@ -460,7 +497,7 @@ function update(dt){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.rdt=dt;updateEmbers(dt);
   if(G.state==='play')update(dt);else G.time+=dt;
   render();
   requestAnimationFrame(loop);

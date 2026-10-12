@@ -61,14 +61,14 @@ function layout(){
 addEventListener('resize',resize);
 // levels: blocks as {r,c,len,horiz}
 const LEVELS=[
-  {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:3,len:2,h:0},{r:3,c:4,len:2,h:0}],par:4},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:1,c:3,len:2,h:0},{r:3,c:4,len:2,h:0}],par:4},
   {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:2,len:3,h:0},{r:4,c:3,len:2,h:1},{r:1,c:5,len:2,h:0}],par:8},
-  {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:0,len:2,h:0},{r:0,c:4,len:2,h:0},{r:3,c:2,len:3,h:1},{r:4,c:5,len:2,h:0}],par:10},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:0,len:2,h:0},{r:1,c:4,len:2,h:0},{r:3,c:2,len:3,h:1},{r:4,c:5,len:2,h:0}],par:10},
   {blocks:[{r:2,c:1,len:2,h:1},{r:0,c:3,len:3,h:0},{r:3,c:0,len:2,h:1},{r:4,c:2,len:2,h:0},{r:1,c:5,len:3,h:0},{r:5,c:4,len:2,h:1}],par:14},
   {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:2,len:2,h:1},{r:1,c:3,len:3,h:0},{r:4,c:1,len:3,h:1},{r:3,c:4,len:2,h:0},{r:0,c:5,len:2,h:0}],par:16},
   {blocks:[{r:2,c:2,len:2,h:1},{r:0,c:0,len:3,h:0},{r:0,c:4,len:2,h:1},{r:3,c:3,len:2,h:0},{r:4,c:0,len:2,h:1},{r:5,c:2,len:3,h:1},{r:1,c:5,len:2,h:0}],par:20},
-  {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:1,len:2,h:0},{r:0,c:3,len:3,h:1},{r:2,c:4,len:2,h:0},{r:4,c:2,len:2,h:1},{r:5,c:0,len:3,h:0},{r:3,c:5,len:2,h:0},{r:1,c:4,len:2,h:1}],par:24},
-  {blocks:[{r:2,c:1,len:2,h:1},{r:0,c:0,len:2,h:0},{r:0,c:2,len:3,h:1},{r:1,c:4,len:3,h:0},{r:3,c:0,len:2,h:1},{r:4,c:2,len:2,h:0},{r:5,c:3,len:3,h:1},{r:2,c:5,len:2,h:0},{r:4,c:5,len:2,h:1}],par:28},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:1,len:2,h:0},{r:0,c:3,len:3,h:1},{r:2,c:4,len:2,h:0},{r:4,c:2,len:2,h:1},{r:3,c:0,len:2,h:0},{r:3,c:5,len:2,h:0},{r:1,c:4,len:2,h:1}],par:24},
+  {blocks:[{r:2,c:1,len:2,h:1},{r:0,c:0,len:2,h:0},{r:0,c:2,len:3,h:1},{r:1,c:4,len:3,h:0},{r:3,c:0,len:2,h:1},{r:4,c:2,len:2,h:0},{r:5,c:3,len:3,h:1},{r:2,c:5,len:2,h:0},{r:4,c:3,len:2,h:1}],par:28},
 ];
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
@@ -125,23 +125,17 @@ canvas.addEventListener('pointermove',e=>{
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
   const b=d.b;
-  if(b.h){
-    const dc=Math.round((x-d.sx)/GS);
-    if(dc!==0){
-      const nc=b.ox+dc;
-      // check bounds and collision
-      let ok=nc>=0&&nc+b.len<=6;
-      if(ok)for(let i=0;i<b.len;i++)if(occupied(b.r,nc+i,b)){ok=false;break;}
-      if(ok){b.c=nc;d.moved=true;sfx.slide();}
-    }
-  }else{
-    const dr=Math.round((y-d.sy)/GS);
-    if(dr!==0){
-      const nr=b.oy+dr;
-      let ok=nr>=0&&nr+b.len<=6;
-      if(ok)for(let i=0;i<b.len;i++)if(occupied(nr+i,b.c,b)){ok=false;break;}
-      if(ok){b.r=nr;d.moved=true;sfx.slide();}
-    }
+  // Step one cell at a time toward the drag target, checking every cell passed.
+  // (Previously a fast drag teleported the block to its destination, leapfrogging blockers.)
+  const target=b.h?b.ox+Math.round((x-d.sx)/GS):b.oy+Math.round((y-d.sy)/GS);
+  while((b.h?b.c:b.r)!==target){
+    const step=Math.sign(target-(b.h?b.c:b.r));
+    const nc=(b.h?b.c:b.r)+step;
+    let ok=nc>=0&&nc+b.len<=6;
+    if(ok)for(let i=0;i<b.len;i++)if(occupied(b.h?b.r:nc+i,b.h?nc+i:b.c,b)){ok=false;break;}
+    if(!ok)break;
+    if(b.h)b.c=nc;else b.r=nc;
+    d.moved=true;sfx.slide();
   }
 });
 canvas.addEventListener('pointerup',()=>{
@@ -212,8 +206,27 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+
+// --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const maxW=Math.max(W,1),maxH=Math.max(H,1);
+  for(let i=0;i<24;i++){
+    const sp=14+(i%5)*7,off=(i*197)%maxH;
+    const ex=((i*173)%maxW)+Math.sin(G.time*0.7+i)*12;
+    const ey=maxH-((G.time*sp+off)%(maxH+30));
+    ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
+    ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
 function render(){
-  ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#17102a');bg.addColorStop(1,'#0d0a14');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
   if(!G.blocks.length)return;
   // board
   ctx.fillStyle='rgba(255,255,255,0.04)';
@@ -249,7 +262,9 @@ function render(){
     if(isBall){g.addColorStop(0,'#ff8a3a');g.addColorStop(1,'#d42a1a');}
     else{g.addColorStop(0,'#6a5a8a');g.addColorStop(1,'#3a2a4a');}
     ctx.fillStyle=g;
+    if(isBall){ctx.shadowColor='#ff6a1a';ctx.shadowBlur=16;}
     ctx.beginPath();ctx.roundRect(bx,by,bw,bh,10);ctx.fill();
+    ctx.shadowBlur=0;
     ctx.strokeStyle=b===G.drag?.b?'#ffd23f':'rgba(255,255,255,0.25)';
     ctx.lineWidth=b===G.drag?.b?4:2;ctx.stroke();
     // arrows
@@ -261,7 +276,6 @@ function render(){
   });
   // solved ball rolling
   if(G.solved&&G.ballX>=0){
-    G.ballX+=0.08;
     const bx=OX+G.ballX*GS;
     if(bx<W+40){
       const g=ctx.createRadialGradient(bx-6,gy+GS/2-8,3,bx,gy+GS/2,18);
@@ -273,6 +287,7 @@ function render(){
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
+  if(G.solved&&G.ballX>=0)G.ballX+=0.08;
   render();
   requestAnimationFrame(loop);
 }

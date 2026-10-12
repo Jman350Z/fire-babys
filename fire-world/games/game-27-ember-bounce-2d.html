@@ -116,7 +116,8 @@ function update(dt){
   // wrap
   if(G.px<-20)G.px=W+20;if(G.px>W+20)G.px=-20;
   // physics
-  G.vy+=1500*dt;
+  G.vy=Math.min(G.vy+1500*dt,1500);
+  const prevFeet=G.py+16;
   G.py+=G.vy*dt;
   // camera follows up
   const screenY=G.py-G.camY;
@@ -137,7 +138,7 @@ function update(dt){
   if(G.vy>0){
     for(const p of G.plats){
       if(p.broken)continue;
-      if(G.py+16>p.y&&G.py+16<p.y+PH2+14&&G.px+14>p.x&&G.px-14<p.x+PW2){
+      if(G.py+16>p.y&&prevFeet<p.y+PH2&&G.px+14>p.x&&G.px-14<p.x+PW2){
         if(p.type==='break'){
           p.broken=true;sfx.break();
           for(let i=0;i<6;i++){const pt=particles.find(pt=>!pt.a);if(!pt)break;
@@ -209,6 +210,16 @@ function render(){
     const cx=(i*311)%W;
     ctx.beginPath();ctx.ellipse(cx,cy,70,20,0,0,Math.PI*2);ctx.fill();
   }
+  // living ember background (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<24;i++){
+    const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
+    const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
+    ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
   const offY=-G.camY;
   // platforms
   for(const p of G.plats){
@@ -234,7 +245,8 @@ function render(){
     ctx.save();ctx.translate(G.px,py);ctx.scale(1/squash,squash);
     const g=ctx.createRadialGradient(-6,-7,3,0,0,18);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(0,0,16,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     const look=G.vy<0?-3:3;
     ctx.beginPath();ctx.arc(-5,look-2,3,0,Math.PI*2);ctx.arc(5,look-2,3,0,Math.PI*2);ctx.fill();

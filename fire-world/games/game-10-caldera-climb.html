@@ -38,7 +38,7 @@ canvas{display:block}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💎 CALDERA CLIMB</h1>
-<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> need your matching magic!</p><p><b>Swap</b> adjacent ember blocks to match 3+! Match 4 for a <b>line blast</b>, match 5 for a <b>color bomb</b>! Reach the target score before moves run out!</p><div id="lvlSel"></div></div>
+<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> need your matching magic!</p><p><b>Swap</b> adjacent ember blocks to match 3+! Match 4 for a <b>line blast</b>, match 5 for a <b>color bomb</b>! Chain a <b>cascade (x2+)</b> to forge an <b>🌟 Ember Nova</b> — swap it to blast a 3×3 area! Reach the target score before moves run out!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Matching patterns is fun — matching a fire escape plan with your family saves lives!</div>
 <button id="obtn">▶ PLAY</button>
@@ -90,7 +90,7 @@ const LEVELS=[
   {target:10000,moves:24,colors:6},
 ];
 /* state */
-const G={state:'title',level:1,grid:[],score:0,moves:0,target:2000,
+const G={state:'title',level:1,grid:[],score:0,startScore:0,moves:0,target:2000,
   sel:null,animating:false,cascade:0,time:0};
 function newGem(colors,avoid){
   let c;
@@ -99,7 +99,7 @@ function newGem(colors,avoid){
 }
 function initLevel(n){
   const L=LEVELS[n-1];
-  G.level=n;G.target=L.target;G.moves=L.moves;G.score=0;G.cascade=0;G.sel=null;
+  G.level=n;G.target=L.target;G.moves=L.moves;G.startScore=G.score;G.cascade=0;G.sel=null;
   G.grid=[];
   for(let r=0;r<N;r++){G.grid[r]=[];
     for(let c=0;c<N;c++){
@@ -167,9 +167,13 @@ function resolveBoard(cb){
       G.grid[cell.r][cell.c].pop=0.3;
     }
   }
+  if(G.cascade>=2){
+    const sc=G.grid[specialPos.r][specialPos.c];
+    G.grid[specialPos.r][specialPos.c]={c:sc&&sc.c>=0?sc.c:0,special:'nova',pop:0,scale:1};
+  }
   const pts=totalPop*60*G.cascade;
   G.score+=pts;sfx.match(totalPop);
-  spawnText(W/2,H*0.2,'+'+pts+(G.cascade>1?' x'+G.cascade+' COMBO!':''));
+  spawnText(CELL*N/2,CELL*N*0.2,'+'+pts+(G.cascade>1?' x'+G.cascade+' COMBO!':''));
   updateHUD();
   setTimeout(()=>{
     // remove popped
@@ -192,10 +196,18 @@ function resolveBoard(cb){
 function trySwap(r1,c1,r2,c2){
   if(G.animating)return;
   const a=G.grid[r1][c1],b=G.grid[r2][c2];
+  if(!a||!b)return;
   // special activation
-  if(a.special==='bomb'||b.special==='bomb'){activateBomb(r1,c1,r2,c2);return;}
+  if(a.special==='nova'||b.special==='nova'){activateNova(a.special==='nova'?r1:r2,a.special==='nova'?c1:c2);return;}
+  if(a.special==='bomb'||b.special==='bomb'){G.animating=true;activateBomb(r1,c1,r2,c2);return;}
   G.grid[r1][c1]=b;G.grid[r2][c2]=a;
   sfx.swap();
+  // a line-blast special swapped anywhere triggers (it never matches: findMatches excludes specials)
+  if(a.special||b.special){
+    G.moves--;updateHUD();G.animating=true;
+    activateSpecial(r1,c1,r2,c2);
+    return;
+  }
   const matches=findMatches();
   if(matches.length===0){
     // swap back
@@ -204,9 +216,7 @@ function trySwap(r1,c1,r2,c2){
   }
   G.moves--;updateHUD();
   G.animating=true;
-  // check special swaps
-  if(a.special||b.special)activateSpecial(r1,c1,r2,c2);
-  else setTimeout(()=>resolveBoard(()=>{
+  setTimeout(()=>resolveBoard(()=>{
     if(G.moves<=0&&G.score<G.target)gameOver();
   }),250);
 }
@@ -223,7 +233,7 @@ function activateSpecial(r1,c1,r2,c2){
     if(G.grid[cell.r][cell.c]){G.grid[cell.r][cell.c]=null;pts+=60;}
   }
   G.score+=pts;sfx.special();updateHUD();
-  spawnText(W/2,H*0.3,'💥 LINE BLAST!');
+  spawnText(CELL*N/2,CELL*N*0.3,'💥 LINE BLAST!');
   setTimeout(()=>{
     for(let c=0;c<N;c++){let write=N-1;
       for(let r=N-1;r>=0;r--){if(G.grid[r][c]){if(write!==r){G.grid[write][c]=G.grid[r][c];G.grid[r][c]=null;}write--;}}
@@ -245,11 +255,32 @@ function activateBomb(r1,c1,r2,c2){
     }
   }
   G.moves--;G.score+=pts;sfx.special();updateHUD();
-  spawnText(W/2,H*0.3,'💣 COLOR BOMB!');
+  spawnText(CELL*N/2,CELL*N*0.3,'💣 COLOR BOMB!');
   setTimeout(()=>{
     for(let c=0;c<N;c++){let write=N-1;
       for(let r=N-1;r>=0;r--){if(G.grid[r][c]){if(write!==r){G.grid[write][c]=G.grid[r][c];G.grid[r][c]=null;}write--;}}
       for(let r=write;r>=0;r--)G.grid[r][c]=newGem(LEVELS[G.level-1].colors);}
+    setTimeout(()=>resolveBoard(()=>{
+      if(G.moves<=0&&G.score<G.target)gameOver();
+      else if(G.score>=G.target)levelComplete();
+    }),200);
+  },300);
+}
+function activateNova(r,c){
+  // Ember Nova: blast the 3x3 area around the nova gem (max 9 gems x 60 = 540 pts,
+  // comparable to a color bomb's typical clear — not stronger than the best existing special)
+  G.animating=true;G.moves--;updateHUD();
+  let pts=0;
+  for(let rr=r-1;rr<=r+1;rr++)for(let cc=c-1;cc<=c+1;cc++){
+    if(rr<0||rr>=N||cc<0||cc>=N)continue;
+    if(G.grid[rr][cc]){G.grid[rr][cc]=null;pts+=60;}
+  }
+  G.score+=pts;sfx.special();tone(900,1800,0.25,'sine',0.14);
+  spawnText(CELL*N/2,CELL*N*0.3,'🌟 EMBER NOVA!');
+  setTimeout(()=>{
+    for(let cc=0;cc<N;cc++){let write=N-1;
+      for(let rr=N-1;rr>=0;rr--){if(G.grid[rr][cc]){if(write!==rr){G.grid[write][cc]=G.grid[rr][cc];G.grid[rr][cc]=null;}write--;}}
+      for(let rr=write;rr>=0;rr--)G.grid[rr][cc]=newGem(LEVELS[G.level-1].colors);}
     setTimeout(()=>resolveBoard(()=>{
       if(G.moves<=0&&G.score<G.target)gameOver();
       else if(G.score>=G.target)levelComplete();
@@ -264,7 +295,7 @@ function levelComplete(){
       showOverlay('🏆 MATCH MASTER!',
         `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 5 levels cleared!</p>`,
         '🔥 Fire Safety: You\'re a pattern champion!',
-        '↻ PLAY AGAIN',()=>{initLevel(1);G.state='play';});
+        '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
     }else{
       showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
         `<p>Score: ${G.score} (+${bonus} move bonus)</p>`,
@@ -279,7 +310,7 @@ function gameOver(){
     showOverlay('💥 OUT OF MOVES',
       `<p>Score: ${G.score}/${G.target}</p><p>So close!</p>`,
       '🔥 Fire Safety: Never give up — try again!',
-      '↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';});
+      '↻ TRY AGAIN',()=>{G.score=G.startScore;initLevel(G.level);G.state='play';});
   },600);
 }
 
@@ -339,7 +370,7 @@ function showLevels(){
   obtn.style.display='none';
   overlay.classList.remove('hidden');
 }
-function pickLevel(n){sfx.click();audio();initLevel(n);G.state='play';overlay.classList.add('hidden');}
+function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
   obtn.textContent=btn;obtn.style.display='';
@@ -349,6 +380,13 @@ function showOverlay(title,body,lesson,btn,cb){
 obtn.onclick=()=>{showMathGate();};
 
 /* render */
+/* living embers (overhaul) */
+const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
+function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
+  for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();}
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,CELL*N);
   bg.addColorStop(0,'#2a1a0e');bg.addColorStop(1,'#1a0d08');
@@ -357,6 +395,7 @@ function render(){
   ctx.fillStyle='rgba(255,255,255,0.03)';
   for(let r=0;r<N;r++)for(let c=0;c<N;c++)
     if((r+c)%2===0)ctx.fillRect(c*CELL,r*CELL,CELL,CELL);
+  drawEmbers(CELL*N,CELL*N);
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     const gem=G.grid[r]&&G.grid[r][c];
     if(!gem)continue;
@@ -370,7 +409,14 @@ function render(){
     ctx.save();ctx.translate(x+CELL/2,y+CELL/2);
     const pop=gem.pop>0?1+Math.sin(gem.pop*20)*0.2:1;
     ctx.scale(pop,pop);
-    if(gem.special==='bomb'){
+    if(gem.special==='nova'){
+      const g=ctx.createRadialGradient(-5,-5,3,0,0,s/2);
+      g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
+      ctx.fillStyle=g;ctx.shadowColor='#ff9a00';ctx.shadowBlur=16;
+      ctx.beginPath();ctx.arc(0,0,s/2.4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+      ctx.fillStyle='#fff';ctx.font=`900 ${s*0.35}px system-ui`;ctx.textAlign='center';
+      ctx.fillText('✸',0,s*0.12);ctx.textAlign='left';
+    }else if(gem.special==='bomb'){
       // color bomb: rainbow orb
       const g=ctx.createRadialGradient(-5,-5,3,0,0,s/2);
       g.addColorStop(0,'#fff');g.addColorStop(0.3,'#ff4ad9');g.addColorStop(0.6,'#7a4dff');g.addColorStop(1,'#2a1a5a');
@@ -379,6 +425,7 @@ function render(){
       ctx.fillText('💣',0,s*0.12);ctx.textAlign='left';
     }else{
       const col=COLORS[gem.c];
+      if(gem.special){ctx.shadowColor=col.c;ctx.shadowBlur=14;}
       const g=ctx.createRadialGradient(-s*0.2,-s*0.25,s*0.1,0,0,s/2);
       g.addColorStop(0,'#fff');g.addColorStop(0.35,col.c);g.addColorStop(1,col.c+'88');
       ctx.fillStyle=g;
