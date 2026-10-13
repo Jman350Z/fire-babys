@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruko's Turbo Drift — by Jman350Z & fire team</title>
 <meta name="description" content="Drop the beat! Tap notes in rhythm in this Fire Babys music game.">
@@ -25,6 +26,12 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 .songBtn{display:block;width:100%;max-width:360px;margin:8px auto;padding:14px;background:#1a1030;border:2px solid #7a4dff;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer}
 .songBtn:active{background:#2a1a50}
+
+#ctlBtns{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
+#ctlBtns button{background:rgba(0,0,0,.62);color:#fff;border:2px solid rgba(255,255,255,.55);border-radius:12px;min-width:48px;min-height:48px;font-size:20px;cursor:pointer}
+#pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
+#pauseOv h2{font-size:34px;margin-bottom:14px}
+#pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
 </style>
 </head>
 <body>
@@ -36,6 +43,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
+
+<div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
+<div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🎵 RUKO'S TURBO DRIFT</h1>
 <div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> drop the beat!</p><p>Notes fall down 4 lanes — <b>TAP</b> each lane when the note hits the glowing zone! Use <b>D F J K</b> keys or tap the lanes!</p><div id="songList"></div></div>
@@ -62,9 +72,9 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -82,7 +92,7 @@ const sfx={
   perfect(){tone(1200,1600,0.08,'sine',0.15);tone(1800,2200,0.06,'sine',0.1,0.03);},
   great(){tone(900,1200,0.08,'sine',0.12);},
   miss(){tone(200,100,0.15,'sawtooth',0.12);},
-  beat(freq){tone(freq,freq,0.1,'triangle',0.2);},
+  beat(freq){tone(freq,freq,0.1,'triangle',0.13);},
   win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.09));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
@@ -124,7 +134,7 @@ function startSong(idx){
   G.song=idx;G.notes=genBeatmap(SONGS[idx]);
   G.songTime=-2; // 2s countdown
   G.score=0;G.combo=0;G.maxCombo=0;G.hits=0;G.misses=0;G.perfects=0;G.greats=0;
-  G.judgment=null;G.state='play';
+  G.judgment=null;G._lastBeat=-99;G.state='play';
   overlay.classList.add('hidden');
   updateHUD();
 }
@@ -176,7 +186,7 @@ function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p
   p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
 
 /* input */
-const KEYMAP={d:0,f:1,j:2,k:3};
+const KEYMAP={d:0,f:1,j:2,k:3,arrowleft:0,arrowdown:1,arrowup:2,arrowright:3};
 addEventListener('keydown',e=>{
   if(e.repeat)return; // held keys auto-repeat: don't phantom-hit notes
   const k=e.key.toLowerCase();
@@ -196,6 +206,8 @@ function update(dt){
   for(let i=0;i<4;i++)G.laneFlash[i]=Math.max(0,G.laneFlash[i]-dt*3);
   // beat pulse
   const song=SONGS[G.song],beatLen=60/song.bpm;
+  const _bi=Math.floor(G.songTime/beatLen); // backing beat pulse (sfx.beat was dead code)
+  if(_bi!==G._lastBeat){G._lastBeat=_bi;if(G.songTime>-beatLen)sfx.beat(_bi%4===0?song.base[0]/2:song.base[0]/4+55);}
   // miss detection
   for(const n of G.notes){
     if(!n.hit&&!n.missed&&G.songTime-n.time>GREAT_MS){
@@ -344,6 +356,17 @@ function render(){
   }
   ctx.globalAlpha=1;
 }
+
+
+/* gamer-check: pause + mute controls */
+const _pz=document.getElementById('pauseOv');
+function fbPause(){if(G.state==='play'){G.state='pause';_pz.classList.remove('hidden');}}
+function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidden');}}
+document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
+document.getElementById('resumeBtn').onclick=()=>{fbResume();};
+document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');startSong(G.song);};
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
 
 /* loop */
 let lastT=0;

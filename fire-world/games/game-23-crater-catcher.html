@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Crater Catcher — by Jman350Z & fire team</title>
 <meta name="description" content="Catch the falling stars! Move the basket in this Fire Babys catcher game.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #livesbar{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none;display:flex;gap:6px}
 .heart{font-size:22px}.heart.lost{filter:grayscale(1);opacity:.3}
+#ctl{position:fixed;top:108px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
@@ -36,6 +39,7 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="livesbar"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="restartBtn" title="Restart">↻</button><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧺 CRATER CATCHER</h1>
@@ -97,10 +101,9 @@ function spawnItem(){
 function moveBasket(x){G.bx=Math.max(BASKET_W/2,Math.min(W-BASKET_W/2,x));}
 canvas.addEventListener('pointermove',e=>moveBasket(e.clientX));
 canvas.addEventListener('pointerdown',e=>moveBasket(e.clientX));
-addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')G.bx=Math.max(BASKET_W/2,G.bx-32);
-  if(e.key==='ArrowRight')G.bx=Math.min(W-BASKET_W/2,G.bx+32);
-});
+const keysOn={};
+addEventListener('keydown',e=>{keysOn[e.key.toLowerCase()]=true;});
+addEventListener('keyup',e=>{keysOn[e.key.toLowerCase()]=false;});
 const particles=[],floaters=[];
 for(let i=0;i<100;i++)particles.push({a:false});
 for(let i=0;i<12;i++)floaters.push({a:false});
@@ -116,6 +119,8 @@ function spawnText(x,y,txt,color){
 }
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  if(keysOn['arrowleft']||keysOn['a'])moveBasket(G.bx-560*dt);
+  if(keysOn['arrowright']||keysOn['d'])moveBasket(G.bx+560*dt);
   G.comboT-=dt;if(G.comboT<=0){G.combo=1;G.comboT=0;}
   G.spawnT-=dt;
   if(G.spawnT<=0){
@@ -283,15 +288,33 @@ function render(){
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
+  if(G.state==='play'&&G.combo>1){
+    const bw=130,bx=(W-bw)/2,by=100;
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.roundRect(bx,by,bw,8,4);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.roundRect(bx,by,bw*Math.max(0,G.comboT/2.5),8,4);ctx.fill();
+  }
+  if(PAUSED){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+  }
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt*0.2;
+  if(G.state==='play'&&!PAUSED)update(dt);else G.time+=dt*0.2;
   render();
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+G.best;
+let MUTED=false,PAUSED=false;
+const _tone23=tone;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone23(f0,f1,dur,type,vol,delay);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){PAUSED=p;document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!PAUSED);};
+document.getElementById('restartBtn').onclick=()=>{if(G.state==='play'){setPaused(false);reset();G.state='play';sfx.click();}};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 requestAnimationFrame(loop);
 </script>
 </body>

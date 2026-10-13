@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ember Cascade — by Jman350Z & fire team</title>
 <meta name="description" content="Defend the keep! Place fire baby defenders in this tower defense battler. A Fire Babys game.">
@@ -27,6 +28,9 @@ canvas{display:block;width:100%;height:100%}
 .tower{background:rgba(0,0,0,.65);border:3px solid #ff6a1a;border-radius:14px;padding:10px 14px;color:#fff;font-weight:800;font-size:14px;cursor:pointer;text-align:center;min-width:76px}
 .tower.sel{border-color:#ffd23f;background:rgba(80,40,0,.8)}
 .tower small{display:block;font-size:11px;color:#ffd23f}
+#sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
+#waveBtn{position:fixed;bottom:76px;right:12px;z-index:10;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;border-radius:999px;padding:12px 18px;font-size:15px;font-weight:900;cursor:pointer;display:none;box-shadow:0 4px 0 #a33c10}
 </style>
 </head>
 <body>
@@ -43,10 +47,12 @@ canvas{display:block;width:100%;height:100%}
 <div class="tower" data-t="cannon">💣 Cannon<small>125🔥</small></div>
 <div class="tower" data-t="storm">⚡ Storm<small>150🔥</small></div>
 </div>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart">↻</button></div>
+<button id="waveBtn">⏩ WAVE NOW +🔥</button>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏰 EMBER CASCADE</h1>
-<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 8 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p></div>
+<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 8 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p><p>Tap a placed defender to <b>upgrade</b> it (100🔥, up to Lv3). During a break, tap <b>⏩ WAVE NOW</b> to start the next wave early for bonus 🔥!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A good defense is the best plan — know your escape routes!</div>
 <button id="obtn">▶ PLAY</button>
@@ -74,13 +80,13 @@ function calcGrid(){
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=1500){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=1500){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -118,7 +124,7 @@ const TOWERS={
 /* state */
 const G={state:'title',fire:150,wave:0,lives:10,score:0,
   grid:[],enemies:[],shots:[],time:0,selTower:'shooter',
-  waveActive:false,spawnQ:[],spawnT:0,breakT:0};
+  waveActive:false,spawnQ:[],spawnT:0,breakT:0,paused:false};
 function initGrid(){
   G.grid=[];
   for(let r=0;r<GRID.rows;r++)for(let c=0;c<GRID.cols;c++)
@@ -126,7 +132,7 @@ function initGrid(){
 }
 function reset(){
   G.fire=150;G.wave=0;G.lives=10;G.score=0;
-  G.enemies=[];G.shots=[];G.waveActive=false;G.breakT=2;
+  G.enemies=[];G.shots=[];G.waveActive=false;G.breakT=2;G.paused=false;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
   initGrid();updateHUD();
 }
 function updateHUD(){
@@ -176,9 +182,12 @@ canvas.addEventListener('pointerdown',e=>{
     const d=Math.hypot(e.clientX-x,e.clientY-y);
     if(d<bd){bd=d;best=g;}
   }
-  if(!best||bd>60)return;
+  const snapR=Math.max(64,(COLS_X[1]-COLS_X[0])*0.48);
+  if(!best||bd>snapR){spawnText(e.clientX,e.clientY-10,'Tap a glowing circle!','#ffffff');tone(200,150,0.1,'square',0.07);return;}
   if(best.tower){
     // upgrade: double damage for 100 fire
+    if(best.tower.lvl>=3){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'MAX LEVEL','#ffd23f');return;}
+    if(G.fire<100){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'Need 100🔥 to upgrade','#ff9a5a');return;}
     if(G.fire>=100&&best.tower.lvl<3){
       G.fire-=100;best.tower.lvl++;
       best.tower.dmg*=1.6;
@@ -242,7 +251,7 @@ function update(dt){
     }
     if(best){
       t.cool=t.rate;
-      G.shots.push({x:tx,y:ty-10,tx:best.x,ty:best.y,t:0,dur:0.12,
+      G.shots.push({x:tx,y:ty-10,tx:best.x,ty:best.y,tgt:best,t:0,dur:0.12,
         dmg:t.dmg,slow:t.slow,splash:t.splash,chain:t.chain||0,color:t.color,tower:t});
       if(t.type==='frost')sfx.frost();else if(t.type==='storm'){tone(1400,300,0.12,'sawtooth',0.08);}else sfx.shoot();
     }
@@ -252,8 +261,9 @@ function update(dt){
     s.t+=dt;
     if(s.t>=s.dur){
       s.done=true;
-      // find enemy at target
-      for(const e of G.enemies){
+      // hit the tracked target where it is NOW (fallback: any enemy near the aim point)
+      if(s.tgt&&!s.tgt.dead){s.tx=s.tgt.x;s.ty=s.tgt.y;damageEnemy(s.tgt,s.dmg,s);}
+      else for(const e of G.enemies){
         if(!e.dead&&Math.hypot(e.x-s.tx,e.y-s.ty)<30){
           damageEnemy(e,s.dmg,s);
           break;
@@ -266,7 +276,7 @@ function update(dt){
   for(const e of G.enemies){
     if(e.dead)continue;
     const sp=e.slowT>0?e.speed*0.5:e.speed;
-    e.slowT-=dt;
+    e.slowT-=dt;e.flash=Math.max(0,(e.flash||0)-dt);
     e.x-=sp*dt;
     e.wob=(e.wob||0)+dt*6;
     if(e.x<COLS_X[0]-40){
@@ -290,7 +300,7 @@ function killCheck(e){
 }
 function damageEnemy(e,dmg,s){
   if(e.dead)return;
-  e.hp-=dmg;
+  e.hp-=dmg;e.flash=0.12;
   if(s.slow)e.slowT=2;
   for(let i=0;i<5;i++)spawnP(e.x,e.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,s.color,3);
   if(s.splash){
@@ -350,6 +360,16 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+
+/* pause / mute / restart / wave-now (gamer-check batch 03) */
+function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
+const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
+muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();reset();G.state='play';overlay.classList.add('hidden');});
+const waveBtnEl=document.getElementById('waveBtn');
+waveBtnEl.addEventListener('click',e=>{e.currentTarget.blur();if(G.state!=='play'||G.waveActive||G.paused)return;const bonus=Math.max(0,Math.ceil(G.breakT))*5;G.fire+=bonus;spawnText(W/2,H*0.3,'⏩ EARLY WAVE +'+bonus+'🔥','#ffd23f');G.breakT=0;sfx.click();updateHUD();});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
 /* render */
 function render(){
@@ -426,6 +446,7 @@ function render(){
     else if(e.type==='fast'){g.addColorStop(0,'#a08a6a');g.addColorStop(1,'#4a3a2a');}
     else{g.addColorStop(0,'#8a7a6a');g.addColorStop(1,'#3a2a1a');}
     ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,wob,e.r,0,Math.PI*2);ctx.fill();
+    if(e.flash>0){ctx.globalAlpha=Math.min(0.75,e.flash/0.12*0.75);ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(0,wob,e.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
     // eyes
     ctx.fillStyle='#ff4a00';
     ctx.beginPath();ctx.arc(-6,-4+wob,4,0,Math.PI*2);ctx.arc(6,-4+wob,4,0,Math.PI*2);ctx.fill();
@@ -460,13 +481,15 @@ function render(){
     ctx.fillText(G.wave>=8?'':`Next wave in ${Math.ceil(G.breakT)}...`,W/2,H*0.12);
     ctx.textAlign='left';
   }
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',W/2,H/2+32);ctx.textAlign='left';}
 }
 
 /* loop */
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play'&&!G.paused)update(dt);else G.time+=dt;
+  waveBtnEl.style.display=(!G.waveActive&&G.state==='play'&&!G.paused)?'block':'none';
   updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}

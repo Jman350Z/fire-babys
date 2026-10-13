@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sizzle's Target Pop — by Jman350Z & fire team</title>
 <meta name="description" content="Piece it together! Drag puzzle pieces into place. A Fire Babys jigsaw.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #lvlSel{display:flex;gap:8px;margin:12px 0}
 .lvlBtn{width:auto;padding:0 16px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:14px;font-weight:900;cursor:pointer}
+#ctl{position:fixed;top:64px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
@@ -35,6 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="timer">⏱️ 0s</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="restartBtn" title="Restart puzzle">↻</button><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧩 SIZZLE'S TARGET POP</h1>
@@ -46,7 +50,7 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <script>
 'use strict';
-const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const canvas=document.getElementById('c');let ctx=canvas.getContext('2d');const mainCtx=ctx;
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
 let W,H,DPR,PZ,BX,BY,GRID;
@@ -106,10 +110,10 @@ function drawPuzzleArt(px,py,pz,level){
   ctx.fillStyle=bg;ctx.beginPath();ctx.arc(bx,by,16,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
-const G={state:'title',level:1,pieces:[],score:0,startT:0,time:0,drag:null,lastSec:-1};
+const G={state:'title',level:1,pieces:[],score:0,levelScore:0,startT:0,time:0,drag:null,lastSec:-1};
 function initLevel(n){
   G.level=n;layout();
-  G.pieces=[];G.drag=null;G.startT=performance.now();
+  G.pieces=[];G.drag=null;G.levelScore=0;G.startT=performance.now();
   const idx=[];
   for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++)idx.push({r,c});
   // shuffle positions
@@ -122,6 +126,8 @@ function initLevel(n){
     else if(side===1){sx=Math.random()*W;sy=H*0.88+Math.random()*H*0.06;}
     else if(side===2){sx=Math.random()*W*0.12;sy=H*0.25+Math.random()*H*0.5;}
     else{sx=W*0.88+Math.random()*W*0.1;sy=H*0.25+Math.random()*H*0.5;}
+    sx=Math.max(PZ/2+6,Math.min(W-PZ/2-6,sx));
+    sy=Math.max(PZ/2+58,Math.min(H-PZ/2-6,sy));
     // home IS the target: a piece's picture fragment belongs in its home slot.
     // (Targets used to be re-shuffled after creation, so the finished picture
     // could never assemble and no slot visually matched its piece.)
@@ -142,7 +148,7 @@ function pieceAt(x,y){
   return null;
 }
 canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play')return;
+  if(G.state!=='play'||PAUSED)return;
   const rect=canvas.getBoundingClientRect();
   const p=pieceAt(e.clientX-rect.left,e.clientY-rect.top);
   if(p){
@@ -164,10 +170,10 @@ canvas.addEventListener('pointerup',e=>{
   const p=G.drag;if(!p)return;
   G.drag=null;
   const tx=BX+p.tc*PZ+PZ/2,ty=BY+p.tr*PZ+PZ/2;
-  if(Math.hypot(p.x-tx,p.y-ty)<PZ*0.6){
+  if(Math.hypot(p.x-tx,p.y-ty)<PZ*0.75){
     p.x=tx;p.y=ty;p.placed=true;p.snap=0.4;
     sfx.snap();
-    G.score+=100;updateHUD();
+    G.score+=100;G.levelScore+=100;updateHUD();
     if(G.pieces.every(q=>q.placed))levelComplete();
   }
 });
@@ -224,6 +230,8 @@ function render(){
   ctx.fillStyle=bg21;ctx.fillRect(0,0,W,H);
   drawEmbers();
   if(!G.pieces.length)return;
+  buildScene();
+  ctx.globalAlpha=0.16;ctx.drawImage(sceneCanvas,BX,BY);ctx.globalAlpha=1;
   // target slots (glowing)
   for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
     const x=BX+c*PZ,y=BY+r*PZ;
@@ -263,17 +271,33 @@ function render(){
     ctx.strokeRect(p.x-PZ/2,p.y-PZ/2,PZ,PZ);
   }
   // timer
+  drawPaused21();
   if(G.state==='play'){
-    const el=Math.floor((performance.now()-G.startT)/1000);
+    const el=Math.floor(((PAUSED&&pauseT0?pauseT0:performance.now())-G.startT)/1000);
     if(el!==G.lastSec){G.lastSec=el;document.getElementById('timer').textContent='⏱️ '+el+'s';} // was a DOM write every frame
   }
 }
+let sceneCanvas=null,sceneKey='';
+function buildScene(){
+  const key=G.level+'|'+Math.round(PZ*GRID)+'|'+GRID;
+  if(sceneCanvas&&sceneKey===key)return;
+  const size=Math.max(2,Math.ceil(PZ*GRID));
+  const sc=document.createElement('canvas');sc.width=size;sc.height=size;
+  const sBX=BX,sBY=BY;BX=0;BY=0;ctx=sc.getContext('2d');
+  drawPuzzleArt(0,0,PZ*GRID,G.level);
+  ctx=mainCtx;BX=sBX;BY=sBY;
+  sceneCanvas=sc;sceneKey=key;
+}
+function drawPaused21(){
+  if(!PAUSED)return;
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+  ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+}
 function drawPieceArt(hr,hc,px,py){
-  // draw the full image, offset so this piece shows its portion
-  ctx.save();
-  ctx.translate(px-hc*PZ,py-hr*PZ);
-  drawPuzzleArt(BX,BY,PZ*GRID,G.level);
-  ctx.restore();
+  // blit the prerendered scene (was: full scene redraw per piece per frame)
+  buildScene();
+  ctx.drawImage(sceneCanvas,hc*PZ,hr*PZ,PZ,PZ,px,py,PZ,PZ);
 }
 let lastT=0;
 function loop(t){
@@ -285,8 +309,26 @@ function loop(t){
 const embers=[];
 for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
 function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
-function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
+function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
 
+let MUTED=false,PAUSED=false,pauseT0=0;
+const _tone21=tone;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone21(f0,f1,dur,type,vol,delay);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){
+  if(p&&G.state!=='play')return;
+  PAUSED=p;
+  if(p)pauseT0=performance.now();
+  else if(pauseT0){G.startT+=performance.now()-pauseT0;pauseT0=0;}
+  document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';
+}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!PAUSED);};
+document.getElementById('restartBtn').onclick=()=>{
+  if(G.state!=='play')return;
+  if(PAUSED)setPaused(false);
+  G.score-=G.levelScore;initLevel(G.level);updateHUD();sfx.click();
+};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 resize();
 requestAnimationFrame(loop);
 </script>

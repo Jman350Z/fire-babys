@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Magma Block Breaker — by Jman350Z & fire team</title>
 <meta name="description" content="Smash falling magma blocks! Tap them before they hit the lava. A Fire Babys reflex game.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #livesbar{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none;display:flex;gap:6px}
 .heart{font-size:24px;filter:grayscale(0)}
 .heart.lost{filter:grayscale(1);opacity:0.3}
+#ctl{position:fixed;top:108px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
@@ -36,6 +39,7 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="livesbar"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="restartBtn" title="Restart">↻</button><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧱 MAGMA BLOCK BREAKER</h1>
@@ -93,7 +97,7 @@ function updateLives(){
   });
 }
 function spawnBlock(){
-  const size=44+Math.random()*36;
+  const size=54+Math.random()*34;
   const r=Math.random();
   let type='magma';
   if(r<0.15)type='golden';
@@ -102,7 +106,7 @@ function spawnBlock(){
   else if(r<0.48)type='big';
   G.blocks.push({
     x:Math.random()*(W-size),y:-size-10,w:size,h:size*0.8,
-    vy:140+G.time*4+Math.random()*80,
+    vy:Math.min(560,150+G.time*3.2+Math.random()*70),
     type,rot:(Math.random()-0.5)*0.6,vr:(Math.random()-0.5)*2,
     hp:type==='big'?3:1,wob:Math.random()*6,
   });
@@ -155,8 +159,8 @@ canvas.addEventListener('pointerdown',e=>{
       return;
     }
   }
-  // miss tap
-  G.combo=Math.max(1,G.combo-1);updateHUD();
+  // miss tap (only counts above the lava — taps on the lava strip are free)
+  if(y<LAVA_Y()){G.combo=Math.max(1,G.combo-1);updateHUD();}
 });
 const particles=[],floaters=[];
 for(let i=0;i<120;i++)particles.push({a:false});
@@ -331,15 +335,35 @@ function render(){
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
+  // combo countdown: players can see the multiplier about to expire
+  if(G.state==='play'&&G.combo>1){
+    const bw=130,bx=(W-bw)/2,by=100;
+    ctx.fillStyle='rgba(0,0,0,0.5)';ctx.beginPath();ctx.roundRect(bx,by,bw,8,4);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.roundRect(bx,by,bw*Math.max(0,G.comboT/2.5),8,4);ctx.fill();
+  }
+  if(PAUSED){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+  }
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt*0.2;
+  if(G.state==='play'&&!PAUSED)update(dt);else G.time+=dt*0.2;
   render();
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+G.best;
+let MUTED=false,PAUSED=false;
+const _tone22=tone,_noise22=noise;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone22(f0,f1,dur,type,vol,delay);};
+noise=function(dur,vol,delay=0,lp=1500){if(MUTED)return;_noise22(dur,vol,delay,lp);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){PAUSED=p;document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!PAUSED);};
+document.getElementById('restartBtn').onclick=()=>{if(G.state==='play'){setPaused(false);reset();G.state='play';sfx.click();}};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 requestAnimationFrame(loop);
 </script>
 </body>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pyra Prime Defense — by Jman350Z & fire team</title>
 <meta name="description" content="Break every brick! Bounce the fireball in this breakout battler. A Fire Babys game.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#2a1408;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
+#sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
@@ -35,6 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="lives">❤️ 3</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart game">↻</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧱 PYRA PRIME DEFENSE</h1>
@@ -61,13 +65,13 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=2000){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=2000){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -86,14 +90,14 @@ const sfx={
 
 const G={state:'title',level:1,score:0,lives:3,
   px:0,pw:110,balls:[],bricks:[],powerups:[],lasers:[],
-  time:0,shake:0,stickyT:0,slowT:0,laserT:0};
+  time:0,shake:0,stickyT:0,slowT:0,laserT:0,paused:false,keysL:false,keysR:false};
 const BALL_R=10;
 
 function buildLevel(n){
   G.bricks=[];G.balls=[];G.powerups=[];G.lasers=[];
   G.pw=110;G.stickyT=0;G.slowT=0;G.laserT=0;
   G.px=W/2;
-  const cols=Math.max(6,Math.floor(W/70));
+  const cols=Math.max(6,Math.min(12,Math.floor(W/70)));
   const bw=(W*0.92)/cols,bh=28,gap=4;
   const ox=(W-bw*cols)/2,oy=H*0.12;
   const rows=4+n;
@@ -129,9 +133,13 @@ canvas.addEventListener('pointerdown',e=>{
   for(const b of G.balls)if(b.stuck){b.stuck=false;b.vy=-460;}
 });
 addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')G.px=Math.max(G.pw/2,G.px-28);
-  if(e.key==='ArrowRight')G.px=Math.min(W-G.pw/2,G.px+28);
+  if(e.key==='ArrowLeft'){G.keysL=true;e.preventDefault();}
+  if(e.key==='ArrowRight'){G.keysR=true;e.preventDefault();}
   if(e.key===' '){for(const b of G.balls)if(b.stuck){b.stuck=false;b.vy=-460;}}
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')G.keysL=false;
+  if(e.key==='ArrowRight')G.keysR=false;
 });
 
 /* update */
@@ -149,6 +157,8 @@ function update(dt){
   if(G.slowT>0)G.slowT-=dt;
   if(G.stickyT>0)G.stickyT-=dt;
   const py=H*0.82;
+  if(G.keysL)movePaddle(G.px-660*dt);
+  if(G.keysR)movePaddle(G.px+660*dt);
   // paddle auto-follow for stuck balls
   for(const b of G.balls)if(b.stuck){b.x=G.px;b.y=py-16;}
   // lasers
@@ -204,6 +214,13 @@ function update(dt){
         break;
       }
     }
+    // keep a minimum vertical component so rallies always come back down
+    const sp2=Math.hypot(b.vx,b.vy);
+    if(sp2>0&&Math.abs(b.vy)<sp2*0.22){
+      b.vy=(b.vy<0?-1:1)*sp2*0.22;
+      const rx=Math.sqrt(Math.max(0,sp2*sp2-b.vy*b.vy));
+      b.vx=(b.vx<0?-1:1)*rx;
+    }
     // fell
     if(b.y>H+30)b.dead=true;
   }
@@ -223,6 +240,7 @@ function update(dt){
     if(p.y>H+20)p.dead=true;
   }
   G.powerups=G.powerups.filter(p=>!p.dead);
+  for(const br of G.bricks)if(br.flash>0)br.flash=Math.max(0,br.flash-dt);
   // win check
   if(G.bricks.every(b=>b.dead))levelComplete();
 }
@@ -287,6 +305,7 @@ function levelComplete(){
   },700);
 }
 function gameOver(){
+  if(G.state!=='play')return;
   G.state='over';
   setTimeout(()=>{
     showOverlay('💥 GAME OVER',
@@ -316,7 +335,7 @@ function showLevels(){
   obtn.style.display='none';
   overlay.classList.remove('hidden');
 }
-function pickLevel(n){sfx.click();audio();G.level=n;G.score=0;G.lives=3;updateHUD();buildLevel(n);G.state='play';overlay.classList.add('hidden');}
+function pickLevel(n){sfx.click();audio();G.level=n;G.score=0;G.lives=3;updateHUD();buildLevel(n);G.state='play';overlay.classList.add('hidden');setPaused(false);}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
   obtn.textContent=btn;obtn.style.display='';
@@ -324,6 +343,14 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+
+/* pause / mute / restart (gamer-check batch 03) */
+function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
+const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
+muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();G.score=0;G.lives=3;updateHUD();buildLevel(G.level);G.state='play';overlay.classList.add('hidden');setPaused(false);});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
 /* render */
 /* living embers (overhaul) */
@@ -343,7 +370,6 @@ function render(){
   // bricks
   for(const br of G.bricks){
     if(br.dead)continue;
-    br.flash=Math.max(0,br.flash-0.05);
     const cols={1:['#c46a3a','#8a3a1a'],2:['#8a7a6a','#4a3a2a'],3:['#ffd23f','#a37a00']};
     const [c1,c2]=cols[br.type];
     const g=ctx.createLinearGradient(0,br.y,0,br.y+br.h);
@@ -411,13 +437,14 @@ function render(){
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',W/2,H/2+32);ctx.textAlign='left';}
 }
 
 /* loop */
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play'&&!G.paused)update(dt);else G.time+=dt;
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}

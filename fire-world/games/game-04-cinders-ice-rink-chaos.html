@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cinder's Ice Rink Chaos — by Jman350Z & fire team</title>
 <meta name="description" content="Flick ice blocks to smash every crystal! Cinder's Ice Rink Chaos — a Fire Babys physics puzzler.">
@@ -26,6 +27,12 @@ canvas{display:block;width:100%;height:100%}
 #levelSel{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:52px;height:52px;border-radius:14px;border:3px solid #4a90d9;background:#1a2a3a;color:#aee2ff;font-size:18px;font-weight:900;cursor:pointer}
 .stars{color:#ffd23f;font-size:24px;letter-spacing:3px;margin:8px 0}
+
+#ctlBtns{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
+#ctlBtns button{background:rgba(0,0,0,.62);color:#fff;border:2px solid rgba(255,255,255,.55);border-radius:12px;min-width:48px;min-height:48px;font-size:20px;cursor:pointer}
+#pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
+#pauseOv h2{font-size:34px;margin-bottom:14px}
+#pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
 </style>
 </head>
 <body>
@@ -37,6 +44,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
+
+<div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
+<div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🧊 CINDER'S ICE RINK CHAOS</h1>
 <div id="obody"><p><b>Blaze</b> & <b>Boulder</b> star in this frosty frenzy!</p><p><b>Drag</b> an ice block back and <b>release</b> to flick it! Smash every crystal target. Ice is slippery — plan your angles!</p><p>💥 The glowing orange <b>Ember Bomb Block</b> blasts every crystal within splash range!</p><div id="levelSel"></div></div>
@@ -62,13 +72,13 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=3000){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=3000){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -108,7 +118,7 @@ let trauma=0,hitStop=0,shakeX=0,shakeY=0;
 function addTrauma(t){trauma=Math.min(1,trauma+t);}
 
 /* state */
-const G={state:'title',level:1,score:0,shots:3,shotsUsed:0,combo:0,comboT:0,
+const G={state:'title',level:1,score:0,levelStartScore:0,shots:3,shotsUsed:0,combo:0,comboT:0,
   blocks:[],targets:[],time:0,dragBlock:null,dragX:0,dragY:0};
 const ICE_FRICTION=0.995; // slippery!
 
@@ -144,6 +154,8 @@ function buildLevel(n){
   }
   // weapon: last block each level is an Ember Bomb Block (splash smash)
   if(G.blocks.length)G.blocks[G.blocks.length-1].bomb=true;
+  G.levelStartScore=G.score;
+  G.shots=G.blocks.length; // gamer-check: shots must equal flickable blocks, or running out can never trigger the fail state
   document.getElementById('level').textContent=`LEVEL ${n}/5`;
   document.getElementById('shots').textContent='🧊 '+(G.shots-G.shotsUsed);
 }
@@ -157,8 +169,9 @@ function update(dt){
     if(b.held)continue;
     // ice physics: very low friction
     b.x+=b.vx*dt;b.y+=b.vy*dt;
-    b.vx*=ICE_FRICTION;b.vy*=ICE_FRICTION;
+    const _fr=Math.pow(ICE_FRICTION,dt*60);b.vx*=_fr;b.vy*=_fr; // dt-scaled friction
     b.spin+=b.vr*dt;b.vr*=0.99;
+    if(b.used&&!b.slid&&Math.hypot(b.vx,b.vy)>260){b.slid=true;sfx.slideSfx();} // was dead code: slide sound now fires
     // walls
     if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*0.8;sfx.hit();}
     if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*0.8;sfx.hit();}
@@ -250,7 +263,7 @@ function levelFailed(){
   showOverlay('💥 OUT OF ICE BLOCKS',
     `<p>So close! ${G.targets.filter(t=>!t.dead).length} targets remain.</p><p>Score: ${G.score}</p>`,
     '🔥 Fire Safety: Never give up on safety — try again!',
-    '↻ TRY AGAIN',()=>{buildLevel(G.level);G.state='play';});
+    '↻ TRY AGAIN',()=>{G.score=G.levelStartScore;updateScoreUI();buildLevel(G.level);G.state='play';}); // retry restores level-start score: no farming
 }
 
 /* input */
@@ -281,7 +294,7 @@ function releaseDrag(e){
   b.vx=dx/pow*Math.min(pow,140)*9;
   b.vy=dy/pow*Math.min(pow,140)*9;
   b.vr=(Math.random()-0.5)*10;
-  b.used=true;G.shotsUsed++;G.combo=0;
+  b.used=true;b.slid=false;G.shotsUsed++;G.combo=0;
   document.getElementById('shots').textContent='🧊 '+(G.shots-G.shotsUsed);
   sfx.flick();addTrauma(0.2);
   for(let i=0;i<8;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#fff',3);
@@ -370,6 +383,9 @@ function render(){
     ctx.font='900 16px system-ui';ctx.textAlign='center';
     ctx.fillText(Math.round(pow/140*100)+'%',G.dragBlock.x,G.dragBlock.y-40);
     ctx.textAlign='left';
+    const _lvx=G.dragBlock.x-G.dragX,_lvy=G.dragBlock.y-G.dragY,_ll=Math.hypot(_lvx,_lvy)||1;
+    ctx.fillStyle='rgba(255,210,63,0.9)';
+    for(let _s=1;_s<=3;_s++){ctx.beginPath();ctx.arc(G.dragBlock.x+_lvx/_ll*_s*24,G.dragBlock.y+_lvy/_ll*_s*24,4.5,0,Math.PI*2);ctx.fill();}
   }
   // ice blocks
   for(const b of G.blocks){
@@ -417,6 +433,17 @@ function render(){
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
 }
+
+
+/* gamer-check: pause + mute controls */
+const _pz=document.getElementById('pauseOv');
+function fbPause(){if(G.state==='play'){G.state='pause';_pz.classList.remove('hidden');}}
+function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidden');}}
+document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
+document.getElementById('resumeBtn').onclick=()=>{fbResume();};
+document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');G.score=G.levelStartScore||0;updateScoreUI();buildLevel(G.level);G.state='play';};
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
 
 /* loop */
 let lastT=0;

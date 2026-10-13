@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Caldera Climb — by Jman350Z & fire team</title>
 <meta name="description" content="Match the embers! Swap blocks to score big in this Fire Babys match-3 puzzler.">
@@ -25,6 +26,8 @@ canvas{display:block}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#2a1a0e;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
+#sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
@@ -35,6 +38,7 @@ canvas{display:block}
 <div class="pill" id="level">LV 1/5</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart level">↻</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💎 CALDERA CLIMB</h1>
@@ -66,9 +70,9 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -91,7 +95,26 @@ const LEVELS=[
 ];
 /* state */
 const G={state:'title',level:1,grid:[],score:0,startScore:0,moves:0,target:2000,
-  sel:null,animating:false,cascade:0,time:0};
+  sel:null,animating:false,cascade:0,time:0,paused:false,lastMoveT:0,hint:null,epoch:0};
+/* Pause-aware scheduler (gamer-check leftover fix): gameplay timers count
+   down only while unpaused, so pausing mid-cascade freezes the chain in
+   place and resume continues it in the original order. Each timer captures
+   the level epoch; initLevel() bumps it, so a chain left over from a
+   restarted level drops instead of mutating the fresh board. */
+function pTimeout(fn,ms){
+  const epoch=G.epoch;
+  let remaining=ms,last=performance.now(),id=null,dead=false;
+  function tick(){
+    if(dead||epoch!==G.epoch)return;
+    const now=performance.now();
+    if(!G.paused)remaining-=now-last;
+    last=now;
+    if(remaining<=0){fn();return;}
+    id=setTimeout(tick,G.paused?50:Math.min(remaining,50));
+  }
+  id=setTimeout(tick,Math.min(remaining,50));
+  return{cancel(){dead=true;if(id)clearTimeout(id);}};
+}
 function newGem(colors,avoid){
   let c;
   do{c=Math.floor(Math.random()*colors);}while(avoid&&avoid.includes(c));
@@ -100,6 +123,7 @@ function newGem(colors,avoid){
 function initLevel(n){
   const L=LEVELS[n-1];
   G.level=n;G.target=L.target;G.moves=L.moves;G.startScore=G.score;G.cascade=0;G.sel=null;
+  G.epoch++;G.animating=false;
   G.grid=[];
   for(let r=0;r<N;r++){G.grid[r]=[];
     for(let c=0;c<N;c++){
@@ -112,6 +136,7 @@ function initLevel(n){
   }
   document.getElementById('level').textContent=`LV ${n}/5`;
   updateHUD();
+  G.lastMoveT=G.time;G.hint=null;ensureMoves();
 }
 function updateHUD(){
   document.getElementById('score').textContent=`⭐ ${G.score}/${G.target}`;
@@ -145,9 +170,42 @@ function findMatches(){
   }
   return matches;
 }
+function hasPossibleMove(){
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)for(const [dr,dc] of [[0,1],[1,0]]){
+    const r2=r+dr,c2=c+dc;if(r2>=N||c2>=N)continue;
+    const a=G.grid[r][c],b=G.grid[r2][c2];if(!a||!b)continue;
+    if(a.special||b.special)return true;
+    G.grid[r][c]=b;G.grid[r2][c2]=a;const m=findMatches().length>0;G.grid[r][c]=a;G.grid[r2][c2]=b;
+    if(m)return true;
+  }
+  return false;
+}
+function findPossibleMove(){
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++)for(const [dr,dc] of [[0,1],[1,0]]){
+    const r2=r+dr,c2=c+dc;if(r2>=N||c2>=N)continue;
+    const a=G.grid[r][c],b=G.grid[r2][c2];if(!a||!b)continue;
+    if(a.special||b.special)return[r,c,r2,c2];
+    G.grid[r][c]=b;G.grid[r2][c2]=a;const m=findMatches().length>0;G.grid[r][c]=a;G.grid[r2][c2]=b;
+    if(m)return[r,c,r2,c2];
+  }
+  return null;
+}
+function ensureMoves(){
+  if(hasPossibleMove())return;
+  const gems=[];
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){const g=G.grid[r][c];if(g&&!g.special)gems.push(g);}
+  const cols=gems.map(g=>g.c);
+  for(let t=0;t<300;t++){
+    for(let i=cols.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=cols[i];cols[i]=cols[j];cols[j]=tmp;}
+    gems.forEach((g,i)=>g.c=cols[i]);
+    if(findMatches().length===0&&hasPossibleMove())break;
+  }
+  spawnText(CELL*N/2,CELL*N*0.45,'NO MOVES — SHUFFLED!');
+  sfx.special();
+}
 function resolveBoard(cb){
   const matches=findMatches();
-  if(matches.length===0){G.animating=false;G.cascade=0;if(cb)cb();return;}
+  if(matches.length===0){G.animating=false;G.cascade=0;ensureMoves();if(cb)cb();return;}
   G.cascade++;
   let totalPop=0;
   const specialPos={r:matches[0][0].r,c:matches[0][0].c};
@@ -175,7 +233,7 @@ function resolveBoard(cb){
   G.score+=pts;sfx.match(totalPop);
   spawnText(CELL*N/2,CELL*N*0.2,'+'+pts+(G.cascade>1?' x'+G.cascade+' COMBO!':''));
   updateHUD();
-  setTimeout(()=>{
+  pTimeout(()=>{
     // remove popped
     for(let r=0;r<N;r++)for(let c=0;c<N;c++){
       if(G.grid[r][c].pop>0&&!G.grid[r][c].special)G.grid[r][c]=null;
@@ -190,11 +248,12 @@ function resolveBoard(cb){
       for(let r=write;r>=0;r--)G.grid[r][c]=newGem(LEVELS[G.level-1].colors);
     }
     if(G.score>=G.target){levelComplete();return;}
-    setTimeout(()=>resolveBoard(cb),200);
+    pTimeout(()=>resolveBoard(cb),200);
   },300);
 }
 function trySwap(r1,c1,r2,c2){
   if(G.animating)return;
+  G.lastMoveT=G.time;G.hint=null;
   const a=G.grid[r1][c1],b=G.grid[r2][c2];
   if(!a||!b)return;
   // special activation
@@ -210,13 +269,14 @@ function trySwap(r1,c1,r2,c2){
   }
   const matches=findMatches();
   if(matches.length===0){
-    // swap back
-    setTimeout(()=>{G.grid[r1][c1]=a;G.grid[r2][c2]=b;sfx.bad();},200);
+    // swap back — input locked meanwhile so the same gems can't be re-swapped mid-undo
+    G.animating=true;
+    pTimeout(()=>{G.grid[r1][c1]=a;G.grid[r2][c2]=b;sfx.bad();G.animating=false;},200);
     return;
   }
   G.moves--;updateHUD();
   G.animating=true;
-  setTimeout(()=>resolveBoard(()=>{
+  pTimeout(()=>resolveBoard(()=>{
     if(G.moves<=0&&G.score<G.target)gameOver();
   }),250);
 }
@@ -234,11 +294,11 @@ function activateSpecial(r1,c1,r2,c2){
   }
   G.score+=pts;sfx.special();updateHUD();
   spawnText(CELL*N/2,CELL*N*0.3,'💥 LINE BLAST!');
-  setTimeout(()=>{
+  pTimeout(()=>{
     for(let c=0;c<N;c++){let write=N-1;
       for(let r=N-1;r>=0;r--){if(G.grid[r][c]){if(write!==r){G.grid[write][c]=G.grid[r][c];G.grid[r][c]=null;}write--;}}
       for(let r=write;r>=0;r--)G.grid[r][c]=newGem(LEVELS[G.level-1].colors);}
-    setTimeout(()=>resolveBoard(()=>{
+    pTimeout(()=>resolveBoard(()=>{
       if(G.moves<=0&&G.score<G.target)gameOver();
       else if(G.score>=G.target)levelComplete();
     }),200);
@@ -256,11 +316,11 @@ function activateBomb(r1,c1,r2,c2){
   }
   G.moves--;G.score+=pts;sfx.special();updateHUD();
   spawnText(CELL*N/2,CELL*N*0.3,'💣 COLOR BOMB!');
-  setTimeout(()=>{
+  pTimeout(()=>{
     for(let c=0;c<N;c++){let write=N-1;
       for(let r=N-1;r>=0;r--){if(G.grid[r][c]){if(write!==r){G.grid[write][c]=G.grid[r][c];G.grid[r][c]=null;}write--;}}
       for(let r=write;r>=0;r--)G.grid[r][c]=newGem(LEVELS[G.level-1].colors);}
-    setTimeout(()=>resolveBoard(()=>{
+    pTimeout(()=>resolveBoard(()=>{
       if(G.moves<=0&&G.score<G.target)gameOver();
       else if(G.score>=G.target)levelComplete();
     }),200);
@@ -277,20 +337,21 @@ function activateNova(r,c){
   }
   G.score+=pts;sfx.special();tone(900,1800,0.25,'sine',0.14);
   spawnText(CELL*N/2,CELL*N*0.3,'🌟 EMBER NOVA!');
-  setTimeout(()=>{
+  pTimeout(()=>{
     for(let cc=0;cc<N;cc++){let write=N-1;
       for(let rr=N-1;rr>=0;rr--){if(G.grid[rr][cc]){if(write!==rr){G.grid[write][cc]=G.grid[rr][cc];G.grid[rr][cc]=null;}write--;}}
       for(let rr=write;rr>=0;rr--)G.grid[rr][cc]=newGem(LEVELS[G.level-1].colors);}
-    setTimeout(()=>resolveBoard(()=>{
+    pTimeout(()=>resolveBoard(()=>{
       if(G.moves<=0&&G.score<G.target)gameOver();
       else if(G.score>=G.target)levelComplete();
     }),200);
   },300);
 }
 function levelComplete(){
+  if(G.state!=='play')return;
   G.state='clear';sfx.win();
   const bonus=G.moves*50;G.score+=bonus;
-  setTimeout(()=>{
+  pTimeout(()=>{
     if(G.level>=5){
       showOverlay('🏆 MATCH MASTER!',
         `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 5 levels cleared!</p>`,
@@ -305,8 +366,9 @@ function levelComplete(){
   },600);
 }
 function gameOver(){
+  if(G.state!=='play')return;
   G.state='over';
-  setTimeout(()=>{
+  pTimeout(()=>{
     showOverlay('💥 OUT OF MOVES',
       `<p>Score: ${G.score}/${G.target}</p><p>So close!</p>`,
       '🔥 Fire Safety: Never give up — try again!',
@@ -322,26 +384,46 @@ function cellFromPos(x,y){
   if(r<0||r>=N||c<0||c>=N)return null;
   return{r,c};
 }
-let downCell=null;
-canvas.addEventListener('pointerdown',e=>{downCell=cellFromPos(e.clientX,e.clientY);});
+let downCell=null,downPos=null;
+canvas.addEventListener('pointerdown',e=>{downCell=cellFromPos(e.clientX,e.clientY);downPos={x:e.clientX,y:e.clientY};});
+canvas.addEventListener('pointercancel',()=>{downCell=null;downPos=null;});
 canvas.addEventListener('pointerup',e=>{
-  if(!downCell||G.state!=='play'||G.animating)return;
+  if(!downCell||G.state!=='play'||G.animating){downCell=null;downPos=null;return;}
   const up=cellFromPos(e.clientX,e.clientY);
-  if(!up)return;
-  if(downCell.r===up.r&&downCell.c===up.c){
-    // tap: select
-    if(G.sel&&G.sel.r===downCell.r&&G.sel.c===downCell.c)G.sel=null;
-    else if(G.sel){
-      const dr=Math.abs(G.sel.r-downCell.r),dc=Math.abs(G.sel.c-downCell.c);
-      if(dr+dc===1){trySwap(G.sel.r,G.sel.c,downCell.r,downCell.c);G.sel=null;}
-      else G.sel=downCell;
-    }else G.sel=downCell;
-  }else{
-    // swipe
-    const dr=up.r-downCell.r,dc=up.c-downCell.c;
-    if(Math.abs(dr)+Math.abs(dc)===1)trySwap(downCell.r,downCell.c,up.r,up.c);
+  const dx=e.clientX-downPos.x,dy=e.clientY-downPos.y;
+  const adx=Math.abs(dx),ady=Math.abs(dy);
+  if((!up||(up.r===downCell.r&&up.c===downCell.c))&&Math.max(adx,ady)>CELL*0.35){
+    // short swipe that never left the starting cell: swap in the swipe direction
+    const dr=ady>adx?(dy>0?1:-1):0,dc=ady>adx?0:(dx>0?1:-1);
+    const r2=downCell.r+dr,c2=downCell.c+dc;
+    if(r2>=0&&r2<N&&c2>=0&&c2<N){trySwap(downCell.r,downCell.c,r2,c2);G.sel=null;}
+  }else if(up){
+    if(downCell.r===up.r&&downCell.c===up.c){
+      // tap: select
+      if(G.sel&&G.sel.r===downCell.r&&G.sel.c===downCell.c)G.sel=null;
+      else if(G.sel){
+        const dr=Math.abs(G.sel.r-downCell.r),dc=Math.abs(G.sel.c-downCell.c);
+        if(dr+dc===1){trySwap(G.sel.r,G.sel.c,downCell.r,downCell.c);G.sel=null;}
+        else G.sel=downCell;
+      }else G.sel=downCell;
+    }else{
+      // swipe into a neighbouring cell
+      const dr=up.r-downCell.r,dc=up.c-downCell.c;
+      if(Math.abs(dr)+Math.abs(dc)===1)trySwap(downCell.r,downCell.c,up.r,up.c);
+    }
   }
-  downCell=null;
+  downCell=null;downPos=null;
+});
+/* keyboard play: arrows pick a gem, then an arrow swaps it that way */
+addEventListener('keydown',e=>{
+  if(G.state!=='play'||G.animating||G.paused)return;
+  const dirs={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]};
+  const d=dirs[e.key];if(!d)return;
+  e.preventDefault();
+  if(!G.sel){G.sel={r:3,c:3};return;}
+  const r2=G.sel.r+d[0],c2=G.sel.c+d[1];
+  if(r2<0||r2>=N||c2<0||c2>=N)return;
+  trySwap(G.sel.r,G.sel.c,r2,c2);G.sel=null;
 });
 
 /* floaters */
@@ -378,6 +460,14 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
+
+/* pause / mute / restart (gamer-check batch 03) */
+function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
+const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
+muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();G.score=G.startScore;initLevel(G.level);G.state='play';overlay.classList.add('hidden');setPaused(false);});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
 /* render */
 /* living embers (overhaul) */
@@ -442,6 +532,13 @@ function render(){
     }
     ctx.restore();
   }
+  // idle hint: pulse a move that works
+  if(G.hint&&G.state==='play'&&G.time-G.lastMoveT>5){
+    const pulse=0.55+0.45*Math.sin(G.time*6);
+    ctx.strokeStyle=`rgba(255,210,63,${pulse})`;ctx.lineWidth=4;
+    for(const idx of [0,2]){const hr=G.hint[idx],hc=G.hint[idx+1];
+      ctx.beginPath();ctx.roundRect(hc*CELL+3,hr*CELL+3,CELL-6,CELL-6,10);ctx.stroke();}
+  }
   // floaters
   ctx.textAlign='center';
   for(const f of floaters){
@@ -451,13 +548,15 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle='#ffd23f';ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,CELL*N,CELL*N);ctx.fillStyle='#fff';ctx.font='900 30px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',CELL*N/2,CELL*N/2);ctx.font='700 14px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',CELL*N/2,CELL*N/2+28);ctx.textAlign='left';}
 }
 
 /* loop */
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  G.time+=dt;
+  if(!G.paused)G.time+=dt;
+  if(G.state==='play'&&!G.animating&&!G.paused&&G.time-G.lastMoveT>5&&!G.hint)G.hint=findPossibleMove();
   for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}
   render();
   requestAnimationFrame(loop);

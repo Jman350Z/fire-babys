@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sparky Speedway — by Jman350Z & fire team</title>
 <meta name="description" content="Eat crystals, grow long! Steer the ember snake in this Fire Babys arcade classic.">
@@ -26,6 +27,8 @@ canvas{display:block}
 #dpad{position:fixed;bottom:24px;right:16px;z-index:10;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:4px;opacity:0.7}
 .dbtn{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);border-radius:12px;color:#fff;font-size:22px;font-weight:900;touch-action:none}
 .dbtn:active{background:rgba(255,255,255,.3)}
+#sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
@@ -41,10 +44,11 @@ canvas{display:block}
 <button class="dbtn" data-d="left">◀</button><div></div><button class="dbtn" data-d="right">▶</button>
 <div></div><button class="dbtn" data-d="down">▼</button><div></div>
 </div>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart">↻</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🐍 SPARKY SPEEDWAY</h1>
-<div id="obody"><p><b>Cinder</b> & <b>Blaze</b> leave a trail of embers!</p><p><b>Swipe</b>, use the <b>d-pad</b>, or <b>arrow keys</b> to steer! Eat crystals to grow. Don't hit yourself or the walls!</p></div>
+<div id="obody"><p><b>Cinder</b> & <b>Blaze</b> leave a trail of embers!</p><p><b>Swipe</b>, use the <b>d-pad</b>, or <b>arrow keys</b> to steer! Eat crystals to grow. The <b>golden star</b> is worth +50 but vanishes in 6 seconds — hurry! Don't hit yourself or the walls!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Snakes are cool — but never touch a real one! Tell a grown-up if you see one.</div>
 <button id="obtn">▶ PLAY</button>
@@ -64,15 +68,15 @@ const COLS=20,ROWS=20;
 let W,H,DPR,CELL,OX,OY;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  canvas.style.width=W+'px';canvas.style.height=H+'px'; // CSS size in layout px — else retina phones show the board at 2x size, off-screen
   CELL=Math.min((W*0.94)/COLS,(H*0.72)/ROWS);
-  OX=(W-CELL*COLS)/2;OY=(H-CELL*ROWS)/2+20;
-  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+  OX=(W-CELL*COLS)/2;OY=(H-CELL*ROWS)/2+20;}
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -85,8 +89,8 @@ const sfx={
 };
 
 const G={state:'title',snake:[],dir:{x:1,y:0},nextDir:{x:1,y:0},
-  food:null,golden:null,goldenT:0,score:0,best:0,stepT:0,stepDur:0.14,
-  interp:1,time:0,dead:false,grow:0};
+  food:null,golden:null,goldenT:0,goldenLife:0,score:0,best:0,stepT:0,stepDur:0.14,
+  interp:1,time:0,dead:false,grow:0,dirQ:[],prevSnake:null,paused:false};
 try{G.best=parseInt(localStorage.getItem('snake_best')||'0',10)||0;}catch(e){}
 
 function reset(){
@@ -94,31 +98,39 @@ function reset(){
   G.snake=[{x:cx,y:cy},{x:cx-1,y:cy},{x:cx-2,y:cy}];
   G.dir={x:1,y:0};G.nextDir={x:1,y:0};
   G.score=0;G.stepDur=0.14;G.stepT=0;G.interp=1;G.dead=false;G.grow=0;
-  G.golden=null;G.goldenT=8;
+  G.golden=null;G.goldenT=8;G.goldenLife=0;G.dirQ=[];G.prevSnake=null;G.paused=false;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
   for(const p of particles)p.a=false;
   for(const f of floaters)f.a=false;
   placeFood();
   updateHUD();
   document.getElementById('best').textContent='🏆 '+G.best;
 }
-function placeFood(){
-  let p;
-  do{p={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}
-  while(G.snake.some(s=>s.x===p.x&&s.y===p.y)||(G.golden&&p.x===G.golden.x&&p.y===G.golden.y));
-  G.food=p;
+function freeCell(){
+  const free=[];
+  for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
+    if(G.snake.some(s=>s.x===x&&s.y===y))continue;
+    if(G.food&&G.food.x===x&&G.food.y===y)continue;
+    if(G.golden&&G.golden.x===x&&G.golden.y===y)continue;
+    free.push({x,y});
+  }
+  return free.length?free[Math.floor(Math.random()*free.length)]:null;
 }
+function placeFood(){G.food=freeCell();}
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
   document.getElementById('len').textContent='🐍 '+G.snake.length;
 }
 function setDir(x,y){
-  // prevent 180 turns
-  if(G.dir.x===-x&&G.dir.y===-y)return;
-  if(G.nextDir.x===x&&G.nextDir.y===y)return;
-  G.nextDir={x,y};sfx.turn();
+  // turn queue (max 3): an up-then-left flick inside one step now does BOTH turns,
+  // and every queued turn is checked against the previous queued turn — never a 180
+  const last=G.dirQ.length?G.dirQ[G.dirQ.length-1]:G.dir;
+  if(last.x===-x&&last.y===-y)return;
+  if(last.x===x&&last.y===y)return;
+  if(G.dirQ.length<3){G.dirQ.push({x,y});G.nextDir={x,y};sfx.turn();}
 }
 function step(){
-  G.dir={...G.nextDir};
+  G.prevSnake=G.snake.map(sg=>({x:sg.x,y:sg.y}));
+  if(G.dirQ.length)G.dir=G.dirQ.shift();
   const head={x:G.snake[0].x+G.dir.x,y:G.snake[0].y+G.dir.y};
   // wall collision
   if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS){die();return;}
@@ -135,20 +147,20 @@ function step(){
   }
   if(G.golden&&head.x===G.golden.x&&head.y===G.golden.y){
     G.score+=50;G.grow+=3;sfx.golden();
-    G.golden=null;G.goldenT=10;
+    G.golden=null;G.goldenT=10;G.goldenLife=0;
     burst(head.x,head.y,'#ffd23f');
     spawnText(head.x,head.y,'+50!');
     updateHUD();
   }
   if(G.grow>0)G.grow--;
   else G.snake.pop();
-  // golden timer
-  G.goldenT-=G.stepDur;
-  if(G.goldenT<=0&&!G.golden){
-    let p;
-    do{p={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}
-    while(G.snake.some(s=>s.x===p.x&&s.y===p.y)||(G.food&&p.x===G.food.x&&p.y===G.food.y));
-    G.golden=p;
+  // golden crystal is a timed bonus: 6 seconds to grab it, then it's gone
+  if(G.golden){
+    G.goldenLife-=G.stepDur;
+    if(G.goldenLife<=0){G.golden=null;G.goldenT=10;}
+  }else{
+    G.goldenT-=G.stepDur;
+    if(G.goldenT<=0){const p=freeCell();if(p){G.golden=p;G.goldenLife=6;}}
   }
 }
 const particles=[],floaters=[];
@@ -221,6 +233,14 @@ function showOverlay(title,body,lesson,btn,cb){
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 
+/* pause / mute / restart (gamer-check batch 03) */
+function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
+const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
+muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();reset();G.state='play';overlay.classList.add('hidden');});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
+
 /* render */
 /* living embers (overhaul) */
 const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
@@ -258,6 +278,7 @@ function render(){
     const gx=OX+G.golden.x*CELL+CELL/2,gy=OY+G.golden.y*CELL+CELL/2;
     const pulse=1+Math.sin(G.time*8)*0.18;
     ctx.save();ctx.translate(gx,gy);ctx.scale(pulse,pulse);
+    if(G.goldenLife<2)ctx.globalAlpha=0.4+0.3*Math.sin(G.time*14); // about to expire: blink
     ctx.fillStyle='#ffd23f';ctx.strokeStyle='#a37a00';ctx.lineWidth=2;
     ctx.beginPath();
     for(let i=0;i<5;i++){const a=-Math.PI/2+i*Math.PI*2/5,a2=a+Math.PI/5;
@@ -265,19 +286,14 @@ function render(){
     ctx.closePath();ctx.fill();ctx.stroke();
     ctx.restore();
   }
-  // snake (interpolated)
+  // snake (fully interpolated: EVERY segment glides from its previous cell to its new one)
   const n=G.snake.length;
   for(let i=n-1;i>=0;i--){
     const s=G.snake[i];
-    // interpolate between prev and current grid pos
     let px=s.x,py=s.y;
-    if(G.interp<1&&i===0){
-      px=s.x-G.dir.x*(1-G.interp);py=s.y-G.dir.y*(1-G.interp);
-    }else if(G.interp<1&&i>0){
-      const prev=G.snake[i-1];
-      // segments follow with slight lag
-      const lag=Math.min(1,G.interp+0.15);
-      px=s.x+(prev.x-s.x)*0; // keep simple
+    if(G.interp<1&&G.prevSnake&&G.prevSnake.length){
+      const pv=G.prevSnake[Math.min(i,G.prevSnake.length-1)];
+      px=pv.x+(s.x-pv.x)*G.interp;py=pv.y+(s.y-pv.y)*G.interp;
     }
     const x=OX+px*CELL+CELL/2,y=OY+py*CELL+CELL/2;
     const t=i/n;
@@ -322,6 +338,7 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle='#ffd23f';ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',W/2,H/2+32);ctx.textAlign='left';}
 }
 
 /* loop */
@@ -329,7 +346,7 @@ let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   G.time+=dt;
-  if(G.state==='play'&&!G.dead){
+  if(G.state==='play'&&!G.dead&&!G.paused){
     G.stepT+=dt;G.interp=Math.min(1,G.stepT/G.stepDur);
     while(G.stepT>=G.stepDur){G.stepT-=G.stepDur;step();if(G.dead)break;G.interp=0;}
   }

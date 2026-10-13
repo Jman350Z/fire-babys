@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Flame Sprint 2D — by Jman350Z & fire team</title>
 <meta name="description" content="Stack to the sky! Drop blocks with perfect timing in this tower stacker. A Fire Babys game.">
@@ -22,6 +23,9 @@ canvas{display:block;width:100%;height:100%}
 #mathgate{background:#141a2a;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
+#ctl{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.6);color:#fff;font-size:20px;cursor:pointer}
+#pauseBanner{position:fixed;top:36%;left:50%;transform:translate(-50%,-50%);z-index:18;background:rgba(0,0,0,.85);color:#fff;font-size:26px;font-weight:900;padding:18px 34px;border-radius:16px;border:3px solid #ffd23f;pointer-events:none}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #comboPop{position:fixed;top:30%;left:50%;transform:translateX(-50%) scale(0);z-index:6;pointer-events:none;font-size:36px;font-weight:900;color:#ffd23f;text-shadow:0 3px 0 #000;transition:transform .12s}
 #comboPop.pop{transform:translateX(-50%) scale(1.25)}
@@ -35,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0</div>
 </div>
 <div id="comboPop"></div>
-<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button><div id="ctl"><button id="btnPause" title="Pause">⏸</button><button id="btnRestart" title="Restart">↻</button><button id="btnMute" title="Sound on/off">🔊</button></div><div id="pauseBanner" class="hidden">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🗼 FLAME SPRINT 2D</h1>
@@ -57,7 +61,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -92,7 +96,7 @@ function updateHUD(){
   document.getElementById('height').textContent='🗼 '+G.height;
 }
 function drop(){
-  if(G.state!=='play'||!G.cur)return;
+  if(G.state!=='play'||!G.cur||PAUSED)return;
   const cur=G.cur,prev=G.blocks[G.blocks.length-1];
   const overlapL=Math.max(cur.x,prev.x),overlapR=Math.min(cur.x+cur.w,prev.x+prev.w);
   const overlap=overlapR-overlapL;
@@ -109,6 +113,7 @@ function drop(){
     return;
   }
   const perfect=Math.abs((cur.x+cur.w/2)-(prev.x+prev.w/2))<12;
+  burst17(cur.x+cur.w/2,cur.y,perfect?'#ffd23f':`hsl(${cur.hue},80%,65%)`,perfect?16:7);
   if(perfect){
     // snap to prev
     cur.x=prev.x;cur.w=prev.w;
@@ -138,7 +143,7 @@ function drop(){
   spawnBlock();
 }
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();drop();});
-addEventListener('keydown',e=>{if(e.key===' '){drop();e.preventDefault();}});
+addEventListener('keydown',e=>{if(e.repeat)return;if(e.key===' '||e.key==='Enter'){drop();e.preventDefault();}});
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 const embers=[];
@@ -146,8 +151,10 @@ for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+
 function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
 function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.time*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;ctx.fillStyle='#ff8a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}ctx.restore();ctx.globalAlpha=1;}
 
+function burst17(x,y,color,n){for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;const a=Math.random()*Math.PI*2;p.a=true;p.x=x;p.y=y;p.vx=Math.cos(a)*170;p.vy=Math.sin(a)*170-70;p.life=0.45;p.max=0.45;p.color=color;p.size=3+Math.random()*3;}}
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  for(let i=G.blocks.length-1;i>=0;i--)if(G.blocks[i].gone)G.blocks.splice(i,1); // cull fallen pieces: array no longer grows forever
   if(G.cur&&!G.cur.falling){
     G.cur.x+=G.cur.vx*dt;
     if(G.cur.x<=-G.cur.w){G.cur.x=-G.cur.w;G.cur.vx=Math.abs(G.cur.vx);}
@@ -198,6 +205,7 @@ function checkMath(){
   }else document.getElementById('ma').value='';
 }
 function showOverlay(title,body,lesson,btn,cb){
+  setPaused(false);
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
@@ -265,7 +273,7 @@ function render(){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;if(PAUSED){requestAnimationFrame(loop);return;}
   if(G.state==='play')update(dt);else G.time+=dt;
   updateEmbers(dt);
   render();
@@ -273,6 +281,17 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+
+let MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
+let PAUSED=false,pauseT0=0;
+const pauseBanner=document.getElementById('pauseBanner'),btnMuteEl=document.getElementById('btnMute');
+function syncMuteBtn(){btnMuteEl.textContent=MUTED?'🔇':'🔊';}
+syncMuteBtn();
+btnMuteEl.addEventListener('click',e=>{e.stopPropagation();MUTED=!MUTED;try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}syncMuteBtn();if(!MUTED)sfx.click();});
+function setPaused(p){if(p===PAUSED)return;PAUSED=p;pauseBanner.classList.toggle('hidden',!p);document.getElementById('btnPause').textContent=p?'▶':'⏸';}
+document.getElementById('btnPause').addEventListener('click',e=>{e.stopPropagation();if(G.state==='play'&&overlay.classList.contains('hidden'))setPaused(!PAUSED);});
+document.getElementById('btnRestart').addEventListener('click',e=>{e.stopPropagation();restartGame();});
+function restartGame(){setPaused(false);if(G.state==='title')return;reset();G.state='play';overlay.classList.add('hidden');}
 </script>
 </body>
 </html>

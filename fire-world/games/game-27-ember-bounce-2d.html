@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ember Bounce 2D — by Jman350Z & fire team</title>
 <meta name="description" content="Bounce sky-high! Climb the platforms in this vertical jumper. A Fire Babys game.">
@@ -23,6 +24,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#ctl{position:fixed;top:56px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:20px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -32,6 +35,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0m</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="pauseBtn" aria-label="Pause">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🦘 EMBER BOUNCE 2D</h1>
@@ -52,7 +56,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -83,21 +87,22 @@ function spawnPlat(y){
   const r=Math.random();
   let type='normal';
   const h=Math.floor(-y/500);
-  if(h>3&&r<0.12)type='break';
+  if(h>3&&r<0.12+Math.min(0.08,h*0.004))type='break';
   else if(h>2&&r<0.3)type='move';
   else if(h>4&&r<0.38)type='super';
   G.plats.push({
     x:Math.random()*(W-PW2),y,type,
-    vx:type==='move'?(Math.random()<0.5?-1:1)*(60+Math.random()*60):0,
+    vx:type==='move'?(Math.random()<0.5?-1:1)*(60+Math.random()*60+Math.min(70,h*5)):0,
     broken:false
   });
 }
 function updateHUD(){
   document.getElementById('score').textContent='📏 '+Math.floor(G.score/10)+'m';
+  if(G.score>G.best)document.getElementById('best').textContent='🏆 '+Math.floor(G.score/10)+'m';
 }
 // steering
 let dragX=null;
-canvas.addEventListener('pointerdown',e=>{dragX=e.clientX;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointerdown',e=>{dragX=e.clientX;try{canvas.setPointerCapture(e.pointerId);}catch(err){}});
 canvas.addEventListener('pointermove',e=>{
   if(dragX===null||G.state!=='play')return;
   G.px+=(e.clientX-dragX)*1.4;dragX=e.clientX;
@@ -138,7 +143,7 @@ function update(dt){
   if(G.vy>0){
     for(const p of G.plats){
       if(p.broken)continue;
-      if(G.py+16>p.y&&prevFeet<p.y+PH2&&G.px+14>p.x&&G.px-14<p.x+PW2){
+      if(G.py+16>p.y&&prevFeet<p.y+PH2+8&&G.px+14>p.x&&G.px-14<p.x+PW2){
         if(p.type==='break'){
           p.broken=true;sfx.break();
           for(let i=0;i<6;i++){const pt=particles.find(pt=>!pt.a);if(!pt)break;
@@ -148,6 +153,9 @@ function update(dt){
           G.py=p.y-16;
           G.vy=p.type==='super'?-1350:-950;
           if(p.type==='super')sfx.super();else sfx.bounce();
+          for(let i=0;i<5;i++){const pt=particles.find(pt=>!pt.a);if(!pt)break;
+            pt.a=true;pt.x=G.px+(Math.random()-0.5)*22;pt.y=p.y;pt.vx=(Math.random()-0.5)*160;pt.vy=-Math.random()*90;
+            pt.life=0.3;pt.max=0.3;pt.color=p.type==='super'?'#ffd23f':'#9fe870';pt.size=3;}
         }
         break;
       }
@@ -189,6 +197,7 @@ function checkMath(){
   }else document.getElementById('ma').value='';
 }
 function showOverlay(title,body,lesson,btn,cb){
+  window.__paused=false;pauseBtn.textContent='⏸';
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
@@ -261,11 +270,20 @@ function render(){
   }
   ctx.globalAlpha=1;
 }
+
+window.__paused=false;window.__muted=false;
+const pauseBtn=document.getElementById('pauseBtn'),muteBtn=document.getElementById('muteBtn');
+function setPaused(v){if(!['play','countdown'].includes(G.state))return;window.__paused=v;pauseBtn.textContent=v?'▶':'⏸';}
+pauseBtn.addEventListener('click',e=>{e.stopPropagation();setPaused(!window.__paused);});
+function toggleMute(){window.__muted=!window.__muted;muteBtn.textContent=window.__muted?'🔇':'🔊';}
+muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMute();});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p'||k==='escape')setPaused(!window.__paused);if(k==='m')toggleMute();});
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  if(!window.__paused&&G.state==='play'&&!G.dead)update(dt);else if(!window.__paused)G.time+=dt;
   render();
+  if(window.__paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 17px system-ui';ctx.fillText('Tap ▶ or press P to resume',W/2,H/2+38);ctx.textAlign='left';}
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';

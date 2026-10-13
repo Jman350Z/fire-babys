@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Volcanic Pinball — by Jman350Z & fire team</title>
 <meta name="description" content="Flip the flippers! Keep the fireball alive in this volcanic pinball. A Fire Babys game.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #flipL,#flipR{position:fixed;bottom:0;z-index:8;width:50%;height:32%;background:transparent;border:none;touch-action:none}
 #flipL{left:0}#flipR{right:0}
+#sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
 </style>
 </head>
 <body>
@@ -36,10 +39,11 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <button id="flipL"></button><button id="flipR"></button>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart game">↻</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎱 VOLCANIC PINBALL</h1>
-<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> hit the arcade!</p><p><b>Tap LEFT / RIGHT</b> sides of the screen to flip! Keep the fireball alive, smash bumpers for combos. Hit the <b>🌟 Nova Bumper (125)</b> to earn a one-time <b>🛡️ Ember Shield</b> that saves your next drained ball! You have 3 balls!</p></div>
+<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> hit the arcade!</p><p><b>Tap LEFT / RIGHT</b> sides of the screen to flip! <b>↓</b> nudges the table. Keep the fireball alive, smash bumpers for combos. Hit the <b>🌟 Nova Bumper (125)</b> to earn a one-time <b>🛡️ Ember Shield</b> that saves your next drained ball! You have 3 balls!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Pinball is electric fun — never touch real electrical panels!</div>
 <button id="obtn">▶ PLAY</button>
@@ -63,9 +67,9 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -104,7 +108,7 @@ function layout(){
 }
 
 const G={state:'title',score:0,best:0,balls:3,combo:1,comboT:0,
-  ball:null,time:0,shake:0,nudge:0,shield:false};
+  ball:null,time:0,shake:0,nudge:0,shield:false,paused:false,stuckT:0,nudgeCool:0};
 try{G.best=parseInt(localStorage.getItem('pinball_best')||'0',10)||0;}catch(e){}
 const GRAV=1400;
 
@@ -114,12 +118,12 @@ function newBall(){
 }
 function launchBall(){
   if(!G.ball||G.ball.launched)return;
-  G.ball.launched=true;G.ball.vy=-1150;
+  G.ball.launched=true;G.ball.vy=-1500;
   sfx.launch();
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
-  document.getElementById('balls').textContent='🔴 '+G.balls;
+  document.getElementById('balls').textContent='🔴 '+G.balls+(G.shield?' 🛡️':'');
   document.getElementById('best').textContent='🏆 '+G.best;
 }
 function addScore(pts,x,y){
@@ -143,6 +147,8 @@ addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='z')setFlip('L',true);
   if(e.key==='ArrowRight'||e.key==='/')setFlip('R',true);
   if(e.key===' '&&G.ball&&!G.ball.launched)launchBall();
+  if(e.key==='ArrowDown'&&G.ball&&G.ball.launched&&G.nudgeCool<=0&&G.state==='play'&&!G.paused){
+    G.nudgeCool=1.5;G.ball.vy-=170;G.shake=Math.max(G.shake,0.25);tone(300,500,0.08,'square',0.08);}
 });
 addEventListener('keyup',e=>{
   if(e.key==='ArrowLeft'||e.key==='z')setFlip('L',false);
@@ -162,10 +168,10 @@ function spawnText(x,y,txt){const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.life=1;}
 
 // compute flipper segment
-function flipSeg(f,isLeft){
+function flipSeg(f,isLeft,adv){
   const rest=isLeft?0.45:-0.45,act=isLeft?-0.5:0.5;
   const target=f.active?act:rest;
-  f.ang+=(target-f.ang)*0.55;
+  if(adv)f.ang+=(target-f.ang)*0.55; // physics advances in update() only — render() must not move flippers
   const dx=Math.cos(f.ang)*f.len*(isLeft?1:-1);
   const dy=Math.sin(f.ang)*f.len*(isLeft?-1:1)*-1;
   // left flipper: pivot left, tip goes up-right when active
@@ -198,11 +204,11 @@ function update(dt){
   if(b.x-b.r<T.x+4){b.x=T.x+4+b.r;b.vx=Math.abs(b.vx)*0.9;}
   if(b.x+b.r>T.x+T.w-4){b.x=T.x+T.w-4-b.r;b.vx=-Math.abs(b.vx)*0.9;}
   if(b.y-b.r<T.y+4){b.y=T.y+4+b.r;b.vy=Math.abs(b.vy)*0.9;}
-  // plunger lane divider
+  // plunger lane: the curved top deflects the ball left into the playfield;
+  // the divider is solid from the playfield side so the ball can't fall back into the lane
   const laneX=L.launchX-14;
-  if(b.x+b.r>laneX&&b.y>T.y+T.h*0.35&&Math.abs(b.vx)<50){
-    // allow falling back down the lane
-  }
+  if(b.x>laneX&&b.y<T.y+T.h*0.30)b.vx-=2600*dt;
+  else if(b.x<laneX&&b.x+b.r>laneX&&b.y>T.y+T.h*0.30){b.x=laneX-b.r;b.vx=-Math.abs(b.vx)*0.85;}
   // bumpers
   for(const bp of L.bumpers){
     const d=Math.hypot(b.x-bp.x,b.y-bp.y);
@@ -213,7 +219,7 @@ function update(dt){
       b.x=bp.x+nx*(bp.r+b.r);b.y=bp.y+ny*(bp.r+b.r);
       G.combo=Math.min(8,G.combo+0.5);G.comboT=3;
       addScore(bp.pts||100,bp.x,bp.y-30);
-      if(bp.special==='nova'&&!G.shield){G.shield=true;spawnText(bp.x,bp.y-50,'🛡️ EMBER SHIELD!');tone(900,1500,0.2,'sine',0.14);}
+      if(bp.special==='nova'&&!G.shield){G.shield=true;updateHUD();spawnText(bp.x,bp.y-50,'🛡️ EMBER SHIELD!');tone(900,1500,0.2,'sine',0.14);}
       sfx.bumper();G.shake=0.35;
       bp.flash=0.3;
       for(let i=0;i<8;i++)spawnP(bp.x,bp.y,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.4,'#ffd23f',4);
@@ -231,7 +237,7 @@ function update(dt){
     }
   }
   // flippers
-  const fl=flipSeg(L.flipL,true),fr=flipSeg(L.flipR,false);
+  const fl=flipSeg(L.flipL,true,true),fr=flipSeg(L.flipR,false,true);
   for(const [seg,isL] of [[fl,true],[fr,false]]){
     const c=distToSeg(b.x,b.y,seg.x1,seg.y1,seg.x2,seg.y2);
     if(c.d<b.r+6){
@@ -247,6 +253,12 @@ function update(dt){
       sfx.flip();
     }
   }
+  // anti-stuck: a ball resting somewhere safe for >2.5s gets a gentle nudge (pinball staple)
+  G.nudgeCool=Math.max(0,G.nudgeCool-dt);
+  const spdNow=Math.hypot(b.vx,b.vy);
+  if(spdNow<50&&b.y<L.drainY-40){G.stuckT+=dt;
+    if(G.stuckT>2.5){G.stuckT=0;b.vy-=380;b.vx+=(Math.random()<0.5?-140:140);spawnText(b.x,b.y-24,'NUDGE!');tone(500,900,0.12,'sine',0.1);}}
+  else G.stuckT=0;
   // drain
   if(b.y>L.drainY){
     sfx.drain();
@@ -291,8 +303,16 @@ function showOverlay(title,body,lesson,btn,cb){
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function startGame(){audio();G.score=0;G.balls=3;G.combo=1;G.shield=false;newBall();G.state='play';overlay.classList.add('hidden');updateHUD();}
+function startGame(){audio();G.score=0;G.balls=3;G.combo=1;G.shield=false;newBall();G.state='play';overlay.classList.add('hidden');updateHUD();setPaused(false);}
 obtn.onclick=()=>{showMathGate();};
+
+/* pause / mute / restart (gamer-check batch 03) */
+function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
+const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
+muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();G.score=0;G.balls=3;G.combo=1;G.shield=false;G.stuckT=0;newBall();G.state='play';overlay.classList.add('hidden');updateHUD();setPaused(false);});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
 /* render */
 /* living embers (overhaul) */
@@ -345,7 +365,7 @@ function render(){
     ctx.strokeStyle='#7a5aaa';ctx.lineWidth=2;ctx.stroke();
   }
   // flippers
-  const fl=flipSeg(L.flipL,true),fr=flipSeg(L.flipR,false);
+  const fl=flipSeg(L.flipL,true,false),fr=flipSeg(L.flipR,false,false);
   ctx.strokeStyle='#ffd23f';ctx.lineWidth=14;ctx.lineCap='round';
   ctx.beginPath();ctx.moveTo(fl.x1,fl.y1);ctx.lineTo(fl.x2,fl.y2);ctx.stroke();
   ctx.beginPath();ctx.moveTo(fr.x1,fr.y1);ctx.lineTo(fr.x2,fr.y2);ctx.stroke();
@@ -397,13 +417,14 @@ function render(){
     ctx.textAlign='left';
   }
   ctx.restore();
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',W/2,H/2+32);ctx.textAlign='left';}
 }
 
 /* loop */
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play'&&!G.paused)update(dt);else G.time+=dt;
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}

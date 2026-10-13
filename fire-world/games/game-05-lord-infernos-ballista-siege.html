@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lord Inferno's Ballista Siege — by Jman350Z & fire team</title>
 <meta name="description" content="Man the sky-ballista! Blast through rock storms in this vertical shooter. A Fire Babys game.">
@@ -28,6 +29,12 @@ canvas{display:block;width:100%;height:100%}
 .stars{color:#ffd23f;font-size:24px;letter-spacing:3px;margin:8px 0}
 #hpbar{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none;width:min(300px,60vw);height:14px;background:rgba(0,0,0,.5);border-radius:7px;overflow:hidden}
 #hpfill{height:100%;width:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);border-radius:7px;transition:width .2s}
+
+#ctlBtns{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
+#ctlBtns button{background:rgba(0,0,0,.62);color:#fff;border:2px solid rgba(255,255,255,.55);border-radius:12px;min-width:48px;min-height:48px;font-size:20px;cursor:pointer}
+#pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
+#pauseOv h2{font-size:34px;margin-bottom:14px}
+#pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
 </style>
 </head>
 <body>
@@ -40,6 +47,9 @@ canvas{display:block;width:100%;height:100%}
 <div id="hpbar"><div id="hpfill"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
+
+<div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
+<div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🏹 LORD INFERNO'S BALLISTA SIEGE</h1>
 <div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge rocks, blast enemies, grab power-ups!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><div id="levelSel"></div></div>
@@ -65,13 +75,13 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=2000){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=2000){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -151,22 +161,24 @@ function spawnPickup(x,y){
 
 /* input: drag to steer */
 let dragging=false;
-canvas.addEventListener('pointerdown',e=>{dragging=true;G.px=e.clientX;G.py=Math.min(e.clientY,H*0.9);canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(dragging){G.px=e.clientX;G.py=Math.min(e.clientY,H*0.9);}});
+let dragOffX=0,dragOffY=0;
+canvas.addEventListener('pointerdown',e=>{dragging=true;dragOffX=G.px-e.clientX;dragOffY=G.py-e.clientY;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(dragging){G.px=Math.max(20,Math.min(W-20,e.clientX+dragOffX));G.py=Math.max(H*0.4,Math.min(e.clientY+dragOffY,H*0.9));}});
 canvas.addEventListener('pointerup',()=>dragging=false);
 canvas.addEventListener('pointercancel',()=>dragging=false);
-addEventListener('keydown',e=>{
-  const sp=14;
-  if(e.key==='ArrowLeft')G.px=Math.max(30,G.px-sp);
-  if(e.key==='ArrowRight')G.px=Math.min(W-30,G.px+sp);
-  if(e.key==='ArrowUp')G.py=Math.max(H*0.4,G.py-sp);
-  if(e.key==='ArrowDown')G.py=Math.min(H*0.92,G.py+sp);
-  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();
-});
+const KEYS={};
+addEventListener('keydown',e=>{KEYS[e.key]=true;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();});
+addEventListener('keyup',e=>{KEYS[e.key]=false;});
 
 /* update */
 function update(dt){
   G.time+=dt;
+  const _ksp=430*dt; // smooth held-key steering (genre standard for a shmup)
+  if(KEYS.ArrowLeft)G.px=Math.max(30,G.px-_ksp);
+  if(KEYS.ArrowRight)G.px=Math.min(W-30,G.px+_ksp);
+  if(KEYS.ArrowUp)G.py=Math.max(H*0.4,G.py-_ksp);
+  if(KEYS.ArrowDown)G.py=Math.min(H*0.92,G.py+_ksp);
   if(G.invuln>0)G.invuln-=dt;
   if(G.powerT>0){G.powerT-=dt;if(G.powerT<=0)G.power=1;}
   // auto-fire
@@ -176,7 +188,7 @@ function update(dt){
     const n=G.power===3?3:G.power===4?4:1;
     for(let i=0;i<n;i++){
       const off=(i-(n-1)/2)*14;
-      G.bullets.push({x:G.px+off,y:G.py-30,vx:off*8,vy:-700,dead:false});
+      G.bullets.push({x:G.px+off,y:G.py-30,vx:G.power===4?(i-(n-1)/2)*140:off*8,vy:-700,dead:false}); // Nova fans its 4 bolts
     }
     sfx.shoot();
   }
@@ -479,6 +491,17 @@ function render(){
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
 }
+
+
+/* gamer-check: pause + mute controls */
+const _pz=document.getElementById('pauseOv');
+function fbPause(){if(G.state==='play'){G.state='pause';_pz.classList.remove('hidden');}}
+function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidden');}}
+document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
+document.getElementById('resumeBtn').onclick=()=>{fbResume();};
+document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');reset(G.level);G.score=0;updateScoreUI();G.state='play';};
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
 
 /* loop */
 let lastT=0;

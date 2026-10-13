@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Magma Bounce — by Jman350Z & fire team</title>
 <meta name="description" content="Sumo showdown! Bump rock golems out of the magma ring. A Fire Babys physics battler.">
@@ -24,6 +25,12 @@ canvas{display:block;width:100%;height:100%}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #round{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none}
+
+#ctlBtns{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
+#ctlBtns button{background:rgba(0,0,0,.62);color:#fff;border:2px solid rgba(255,255,255,.55);border-radius:12px;min-width:48px;min-height:48px;font-size:20px;cursor:pointer}
+#pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
+#pauseOv h2{font-size:34px;margin-bottom:14px}
+#pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
 </style>
 </head>
 <body>
@@ -36,6 +43,9 @@ canvas{display:block;width:100%;height:100%}
 <div id="round" class="pill hidden"></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
+
+<div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
+<div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">💥 BLAZE'S MAGMA BOUNCE</h1>
 <div id="obody"><p><b>Boulder</b> & <b>Cinder</b> enter the sumo ring!</p><p><b>Fling</b> Blaze to BUMP rock golems out of the arena! Drag back and release. Last one in the ring wins!</p><p>🌋 Grab the <b>Magma Surge</b> orb — Blaze's bumps hit 25% harder for 8 seconds!</p></div>
@@ -61,13 +71,13 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 
 /* audio */
-let AC=null;
+let AC=null,MUTED=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=1000){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=1000){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -103,7 +113,7 @@ let trauma=0,shakeX=0,shakeY=0;
 function addTrauma(t){trauma=Math.min(1,trauma+t);}
 
 /* state */
-const G={state:'title',round:1,score:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0,surgeT:0,pickup:null,pickupT:8};
+const G={state:'title',round:1,score:0,roundStartScore:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0,surgeT:0,pickup:null,pickupT:8};
 function makeFighter(x,y,isPlayer,round){
   return{x,y,vx:0,vy:0,r:isPlayer?26:24+round*2,isPlayer,
     aiT:Math.random()*2,target:null,dead:false,outT:0,
@@ -112,7 +122,7 @@ function makeFighter(x,y,isPlayer,round){
     aggro:0.5+round*0.12};
 }
 function startRound(n){
-  G.round=n;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
+  G.round=n;G.roundStartScore=G.score;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
   G.player=makeFighter(CX,CY-60,true,n);
   const count=2+Math.min(n,3);
   for(let i=0;i<count;i++){
@@ -138,10 +148,17 @@ function update(dt){
   const all=[G.player,...G.foes].filter(f=>!f.dead);
   // player drag handled by input; apply friction
   for(const f of all){
-    if(f.isPlayer&&f.held)continue;
+    if(f.isPlayer&&f.held){ // held players freeze, but the lava edge still counts (was a hold-to-cheat exploit)
+      const _hed=distToRingEdge(f);
+      if(_hed>RING_R+f.r){f.outT+=dt;
+        if(f.outT>0.25&&!f.dead){f.dead=true;sfx.splash();addTrauma(0.6);
+          spawnText(f.x,f.y-30,'💥 OUT!','#ff4a00');roundLost();}}
+      else f.outT=Math.max(0,f.outT-dt*2);
+      continue;}
     // AI
     if(!f.isPlayer&&G.state==='play'){
       f.aiT-=dt;
+      const _esc=1+Math.min(1.5,Math.max(0,G.roundT-25)/40); // after 25s the golems charge harder so rounds resolve
       // target: nearest opponent (player or other foe)
       let best=null,bd=1e9;
       for(const o of all){
@@ -162,15 +179,15 @@ function update(dt){
         }
         // dash occasionally
         if(f.aiT<=0&&bd<200&&Math.random()<f.aggro){
-          f.vx+=mx*f.speed*4;f.vy+=my*f.speed*4;f.aiT=1.5+Math.random()*2;
+          f.vx+=mx*f.speed*4*_esc;f.vy+=my*f.speed*4*_esc;f.aiT=1.5+Math.random()*2;
           for(let i=0;i<6;i++)spawnP(f.x,f.y,(Math.random()-0.5)*150,(Math.random()-0.5)*150,0.3,'#8a6a4a',3);
         }else{
-          f.vx+=mx*f.speed*dt*3;f.vy+=my*f.speed*dt*3;
+          f.vx+=mx*f.speed*dt*3*_esc;f.vy+=my*f.speed*dt*3*_esc;
         }
       }
     }
     // friction (stone on stone)
-    f.vx*=0.985;f.vy*=0.985;
+    const _fr=Math.pow(0.985,dt*60);f.vx*=_fr;f.vy*=_fr; // dt-scaled friction
     // cap speed
     const sp=Math.hypot(f.vx,f.vy),max=f.isPlayer?900:500;
     if(sp>max){f.vx=f.vx/sp*max;f.vy=f.vy/sp*max;}
@@ -257,7 +274,7 @@ function roundLost(){
     showOverlay('💥 KNOCKED OUT!',
       `<p>You got bumped into the lava!</p><p>Score: ${G.score}</p>`,
       '🔥 Fire Safety: Hot lava is like a real fire — never touch, always stay back!',
-      '↻ TRY AGAIN',()=>{startRound(G.round);G.state='play';});
+      '↻ TRY AGAIN',()=>{G.score=G.roundStartScore;updateScoreUI();startRound(G.round);G.state='play';}); // retry restores round-start score: no farming
   },800);
 }
 
@@ -437,6 +454,17 @@ function render(){
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
 }
+
+
+/* gamer-check: pause + mute controls */
+const _pz=document.getElementById('pauseOv');
+function fbPause(){if(G.state==='play'){G.state='pause';_pz.classList.remove('hidden');}}
+function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidden');}}
+document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
+document.getElementById('resumeBtn').onclick=()=>{fbResume();};
+document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');G.score=G.roundStartScore||0;updateScoreUI();startRound(G.round);G.state='play';};
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
 
 /* loop */
 let lastT=0;

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pyra Paddle Battle — by Jman350Z & fire team</title>
 <meta name="description" content="Paddle battle! Outscore the AI in this fiery Pong. A Fire Babys game.">
@@ -25,6 +26,8 @@ canvas{display:block;width:100%;height:100%}
 #diff{display:flex;gap:10px;margin:12px 0}
 .dbtn{background:#1a1030;border:3px solid #ff6a1a;border-radius:12px;padding:12px 20px;color:#fff;font-weight:800;cursor:pointer;font-size:15px}
 .dbtn.sel{background:#3a2040;border-color:#ffd23f}
+#ctl{position:fixed;top:76px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
@@ -35,6 +38,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="ascore" style="color:#ff6a8a">0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="restartBtn" title="Restart match">↻</button><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏓 PYRA PADDLE BATTLE</h1>
@@ -81,12 +85,13 @@ function reset(){
   serve(Math.random()<0.5?-1:1);
   updateHUD();
 }
+function speedScale(){return W<600?0.72:1;}
 function serve(dir){
   const D=DIFFS[G.diff];
   G.bx=W/2;G.by=H/2;
   const a=(Math.random()-0.5)*0.9;
-  G.bvx=Math.cos(a)*D.ballSpeed*dir;
-  G.bvy=Math.sin(a)*D.ballSpeed;
+  G.bvx=Math.cos(a)*D.ballSpeed*speedScale()*dir;
+  G.bvy=Math.sin(a)*D.ballSpeed*speedScale();
   G.serveT=0.8;G.trail=[];
 }
 function updateHUD(){
@@ -103,10 +108,9 @@ document.querySelectorAll('.dbtn').forEach(b=>{
 function movePlayer(y){G.py=Math.max(PH/2,Math.min(H-PH/2,y));}
 canvas.addEventListener('pointermove',e=>movePlayer(e.clientY));
 canvas.addEventListener('pointerdown',e=>movePlayer(e.clientY));
-addEventListener('keydown',e=>{
-  if(e.key==='ArrowUp')G.py=Math.max(PH/2,G.py-36);
-  if(e.key==='ArrowDown')G.py=Math.min(H-PH/2,G.py+36);
-});
+const keysOn={};
+addEventListener('keydown',e=>{keysOn[e.key.toLowerCase()]=true;});
+addEventListener('keyup',e=>{keysOn[e.key.toLowerCase()]=false;});
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 function burst(x,y,color){
@@ -117,6 +121,8 @@ function burst(x,y,color){
 }
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  if(keysOn['arrowup']||keysOn['w'])movePlayer(G.py-640*dt);
+  if(keysOn['arrowdown']||keysOn['s'])movePlayer(G.py+640*dt);
   const D=DIFFS[G.diff];
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
@@ -151,10 +157,10 @@ function update(dt){
   if(G.bvx<0&&G.bx-BR<30+PW&&G.bx+BR>30){
     if(Math.abs(G.by-G.py)<PH/2+BR){
       const rel=(G.by-G.py)/(PH/2);
-      let spd=Math.min(950,Math.hypot(G.bvx,G.bvy)*1.06+12);
+      let spd=Math.min(950*speedScale(),Math.hypot(G.bvx,G.bvy)*1.06+12);
       G.surge++;
       const surged=G.surge>=4;
-      if(surged){spd=Math.min(1188,spd*1.25);G.surge=0;} // FLAME SURGE: +25%
+      if(surged){spd=Math.min(1188*speedScale(),spd*1.25);G.surge=0;} // FLAME SURGE: +25%
       const ang=rel*1.05;
       G.bvx=Math.cos(ang)*spd;G.bvy=Math.sin(ang)*spd;
       G.bx=30+PW+BR;
@@ -167,7 +173,7 @@ function update(dt){
   if(G.bvx>0&&G.bx+BR>W-30-PW){
     if(Math.abs(G.by-G.ay)<PH/2+BR){
       const rel=(G.by-G.ay)/(PH/2);
-      const spd=Math.min(950,Math.hypot(G.bvx,G.bvy)*1.06+12);
+      const spd=Math.min(950*speedScale(),Math.hypot(G.bvx,G.bvy)*1.06+12);
       const ang=rel*1.05;
       G.bvx=-Math.cos(ang)*spd;G.bvy=Math.sin(ang)*spd;
       G.bx=W-30-PW-BR;
@@ -285,14 +291,27 @@ function render(){
   }
   ctx.globalAlpha=1;
   ctx.restore();
+  if(PAUSED){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+  }
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play'&&!PAUSED)update(dt);else G.time+=dt;
   render();
   requestAnimationFrame(loop);
 }
+let MUTED=false,PAUSED=false;
+const _tone26=tone;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone26(f0,f1,dur,type,vol,delay);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){PAUSED=p;document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!PAUSED);};
+document.getElementById('restartBtn').onclick=()=>{if(G.state==='play'){setPaused(false);reset();G.state='play';sfx.click();}};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 requestAnimationFrame(loop);
 </script>
 </body>

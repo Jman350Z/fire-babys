@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ash Storm Survivor — by Jman350Z & fire team</title>
 <meta name="description" content="Survive the ash storm! Dodge and blast in this arena survivor. A Fire Babys game.">
@@ -30,6 +31,8 @@ canvas{display:block;width:100%;height:100%}
 #upgrades{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .upg{background:#1a2a1a;border:3px solid #4caf50;border-radius:14px;padding:14px;color:#fff;font-weight:700;cursor:pointer;max-width:200px;font-size:14px}
 .upg:active{background:#2a4a2a}
+#ctl{position:fixed;top:108px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
 </style>
 </head>
 <body>
@@ -42,6 +45,7 @@ canvas{display:block;width:100%;height:100%}
 <div id="hpbar"><div id="hpfill"></div></div>
 <div id="xpbar"><div id="xpfill"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="restartBtn" title="Restart">↻</button><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🌪️ ASH STORM SURVIVOR</h1>
@@ -79,6 +83,7 @@ const sfx={
   xp(){tone(900,1300,0.07,'sine',0.08);},
   level(){tone(600,1200,0.25,'triangle',0.16);tone(900,1600,0.2,'sine',0.12,0.1);},
   nova(){tone(180,720,0.22,'triangle',0.14);noise(0.18,0.15,0,800);},
+  dash(){tone(280,880,0.14,'sine',0.05);noise(0.14,0.09,0,2200);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',score:0,kills:0,time:0,
@@ -130,6 +135,8 @@ function spawnEnemy(){
 }
 const particles=[];
 for(let i=0;i<150;i++)particles.push({a:false});
+const dmgTexts=[];
+function spawnDmg(x,y,txt){if(dmgTexts.length>=24)return;dmgTexts.push({x,y,txt,life:0.55});}
 function burst(x,y,color,n=8){
   for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;
     const a=Math.random()*Math.PI*2;
@@ -178,7 +185,7 @@ function update(dt){
     for(const e of G.enemies){
       if(Math.hypot(s.x-e.x,s.y-e.y)<e.r+5){
         s.dead=true;e.hp-=G.dmg;e.hitT=0.1;
-        burst(s.x,s.y,'#ffd23f',4);
+        burst(s.x,s.y,'#ffd23f',4);spawnDmg(e.x,e.y-e.r-4,G.dmg);
         if(e.hp<=0&&!e.dead){
           e.dead=true;G.kills++;G.score+=e.score;
           sfx.kill();burst(e.x,e.y,'#8a6a4a',10);
@@ -214,7 +221,7 @@ function update(dt){
     let sp=e.speed;
     if(e.type==='dasher'){
       e.dashT-=dt;
-      if(e.dashT<=0){e.dashT=2.5;e.dashDx=dx/d;e.dashDy=dy/d;sfx.shoot();}
+      if(e.dashT<=0){e.dashT=2.5;e.dashDx=dx/d;e.dashDy=dy/d;sfx.dash();}
       if(e.dashT>2){sp*=3;e.x+=e.dashDx*sp*dt;e.y+=e.dashDy*sp*dt;}
       else{e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt;}
     }else{e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt;}
@@ -241,7 +248,9 @@ function update(dt){
   G.gems=G.gems.filter(g=>!g.dead);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
-  updateHUD();
+  for(let i=dmgTexts.length-1;i>=0;i--){const f=dmgTexts[i];f.y-=34*dt;f.life-=dt;if(f.life<=0)dmgTexts.splice(i,1);}
+  // HUD writes throttled to 10/s (was: 4 DOM writes every frame)
+  if(!G._hudT||G.time-G._hudT>0.1){G._hudT=G.time;updateHUD();}
 }
 function levelUp(){
   G.leveling=true;G.level++;
@@ -302,6 +311,21 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+const enemySprites={};
+function getEnemySprite(type,r,flash){
+  const key=type+'_'+r+'_'+(flash?1:0);
+  if(enemySprites[key])return enemySprites[key];
+  const c=document.createElement('canvas');c.width=(r+2)*2;c.height=(r+2)*2;
+  const x2=c.getContext('2d');x2.translate(r+2,r+2);
+  const g=x2.createRadialGradient(-6,-6,3,0,0,r);
+  if(type==='tank'){g.addColorStop(0,flash?'#fff':'#6a5a4a');g.addColorStop(1,'#2a1a0a');}
+  else if(type==='dasher'){g.addColorStop(0,flash?'#fff':'#a08a6a');g.addColorStop(1,'#4a2a1a');}
+  else{g.addColorStop(0,flash?'#fff':'#8a7a6a');g.addColorStop(1,'#3a2a1a');}
+  x2.fillStyle=g;x2.beginPath();x2.arc(0,0,r,0,Math.PI*2);x2.fill();
+  x2.fillStyle='#ff4a00';
+  x2.beginPath();x2.arc(-r*0.3,-3,4,0,Math.PI*2);x2.arc(r*0.3,-3,4,0,Math.PI*2);x2.fill();
+  enemySprites[key]=c;return c;
+}
 function render(){
   // ash storm bg
   const bg=ctx.createLinearGradient(0,0,0,H);
@@ -333,17 +357,12 @@ function render(){
     ctx.moveTo(0,-8);ctx.lineTo(6,0);ctx.lineTo(0,8);ctx.lineTo(-6,0);ctx.closePath();ctx.fill();
     ctx.restore();
   }
-  // enemies
+  // enemies (body sprites prerendered once per type/flash — was a radial gradient per enemy per frame)
   for(const e of G.enemies){
     ctx.save();ctx.translate(e.x,e.y);
     const flash=e.hitT>0;
-    const g=ctx.createRadialGradient(-6,-6,3,0,0,e.r);
-    if(e.type==='tank'){g.addColorStop(0,flash?'#fff':'#6a5a4a');g.addColorStop(1,'#2a1a0a');}
-    else if(e.type==='dasher'){g.addColorStop(0,flash?'#fff':'#a08a6a');g.addColorStop(1,'#4a2a1a');}
-    else{g.addColorStop(0,flash?'#fff':'#8a7a6a');g.addColorStop(1,'#3a2a1a');}
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ff4a00';
-    ctx.beginPath();ctx.arc(-e.r*0.3,-3,4,0,Math.PI*2);ctx.arc(e.r*0.3,-3,4,0,Math.PI*2);ctx.fill();
+    const spr=getEnemySprite(e.type,e.r,flash);
+    ctx.drawImage(spr,-e.r-2,-e.r-2);
     // hp bar for tanks
     if(e.type==='tank'){
       ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-e.r,-e.r-10,e.r*2,5);
@@ -387,19 +406,44 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  // damage numbers
+  ctx.textAlign='center';ctx.font='900 13px system-ui';
+  for(const f of dmgTexts){
+    ctx.globalAlpha=Math.min(1,f.life*2.4);
+    ctx.fillStyle='#000';ctx.fillText(f.txt,f.x+1,f.y+1);
+    ctx.fillStyle='#ffd23f';ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
-  // vignette
-  const vg=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.7);
-  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.45)');
-  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  // vignette (gradient cached per screen size — was rebuilt every frame)
+  if(!render._vg||render._vgKey!==W+'x'+H){
+    const vg=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.7);
+    vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.45)');
+    render._vg=vg;render._vgKey=W+'x'+H;
+  }
+  ctx.fillStyle=render._vg;ctx.fillRect(0,0,W,H);
+  if(PAUSED){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+  }
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.leveling)update(dt);
+  if(G.state==='play'&&!G.leveling&&!PAUSED)update(dt);
   render();
   requestAnimationFrame(loop);
 }
+let MUTED=false,PAUSED=false;
+const _tone24=tone,_noise24=noise;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone24(f0,f1,dur,type,vol,delay);};
+noise=function(dur,vol,delay=0,lp=1000){if(MUTED)return;_noise24(dur,vol,delay,lp);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){if(p&&(G.state!=='play'||G.leveling))return;PAUSED=p;document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play'&&!G.leveling)setPaused(!PAUSED);};
+document.getElementById('restartBtn').onclick=()=>{if(G.state==='play'){setPaused(false);reset();G.state='play';sfx.click();}};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play'&&!G.leveling)setPaused(!PAUSED);});
 requestAnimationFrame(loop);
 </script>
 </body>
