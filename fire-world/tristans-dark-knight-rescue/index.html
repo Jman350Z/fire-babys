@@ -375,14 +375,15 @@ function updateEnemies(dt){
   if(G.boss&&G.boss.alive){
     const b=G.boss;b.hitT-=dt;b.atkT-=dt;
     document.getElementById('bosshpfill').style.width=(b.hp/b.maxHp*100)+'%';
-    // chase player slowly
+    // chase player — HARD boss (2026-10-12): presses the chase instead of ambling
     const dx=P.x-b.x;
-    b.vx+=(Math.sign(dx)*120-b.vx)*Math.min(1,dt*2);
+    b.vx+=(Math.sign(dx)*175-b.vx)*Math.min(1,dt*2);
     b.x+=b.vx*dt;
-    // slam attack
-    if(b.atkT<=0&&Math.abs(dx)<200){
-      b.atkT=2;sfx('boss');addShake(12,0.4);
-      POOL.spawnProj(b.x,b.y,Math.sign(dx)*300,0,10,false);
+    // slam attack — faster cadence, longer trigger range, and the shot
+    // LEADS the player (aims at where Tristan is heading — visible info)
+    if(b.atkT<=0&&Math.abs(dx)<260){
+      b.atkT=1.6;sfx('boss');addShake(12,0.4);
+      POOL.spawnProj(b.x,b.y,Math.sign(dx+(P.vx||0)*0.35)*340,0,10,false);
       for(let i=0;i<15;i++)POOL.spawnP(b.x,b.y+40,(Math.random()-0.5)*400,-Math.random()*300,0.6,'#ff2a6d',5);
     }
     // boss touch
