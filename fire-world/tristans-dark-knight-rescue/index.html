@@ -70,7 +70,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 </head>
 <body>
 <div id="game">
-<div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div><div id="bosshpwrap" class="hidden"><div id="bosslabel">👹 FORTRESS BOSS</div><div id="bosshpbar"><div id="bosshpfill"></div></div></div></div><div id="score">SCORE 0</div></div>
+<div id="hud"><div><div id="stage">STAGE 1/20</div><div id="hpbar"><div id="hpfill"></div></div><div id="bosshpwrap" class="hidden"><div id="bosslabel">👹 FORTRESS BOSS</div><div id="bosshpbar"><div id="bosshpfill"></div></div></div></div><div id="score">SCORE 0</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off (M)">🔊</button></div>
 <div id="pausedTxt" class="hidden">⏸ Paused</div>
@@ -100,7 +100,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 'use strict';
 /* ============================================================
    TRISTAN'S DARK KNIGHT RESCUE — Game #56
-   15-stage action platformer. Prince Tristan rescues Princess Trinity.
+   20-stage action platformer. Prince Tristan rescues Princess Trinity.
    COPPA: zero PII, zero trackers. Parental math gate on external links.
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
@@ -213,11 +213,11 @@ const P={ // player (Dark Knight Tristan)
 };
 const GRAV=2200,JUMP_V=780,MOVE_SPD=320;
 
-/* ---------- Level generation (15 stages) ---------- */
+/* ---------- Level generation (20 stages) ---------- */
 function buildStage(n){
   G.platforms=[];G.enemies=[];G.hazards=[];G.coins=[];G.boss=null;G.bossActive=false;
   document.getElementById('bosshpwrap').classList.add('hidden');
-  const diff=Math.min(1,(n-1)/14); // 0..1 difficulty
+  const diff=Math.min(1,(n-1)/19); // 0..1 difficulty
   G.levelW=2400+n*220;
   const groundY=H-90;
   // ground segments (with gaps)
@@ -270,9 +270,9 @@ function buildStage(n){
   for(let i=0;i<12+Math.floor(n*0.8);i++){
     G.coins.push({x:200+Math.random()*(G.levelW-400),y:groundY-80-Math.random()*260,taken:false,ph:Math.random()*6});
   }
-  // boss on stage 15
-  if(n===15){
-    G.boss={x:G.levelW-400,y:groundY-120,w:90,h:120,hp:30,maxHp:30,
+  // boss on stage 20
+  if(n===20){
+    G.boss={x:G.levelW-400,y:groundY-120,w:90,h:120,hp:36,maxHp:36,
       vx:0,vy:0,atkT:0,alive:true,hitT:0,phase:1};
     document.getElementById('bosshpwrap').classList.remove('hidden');
     sfx('boss');
@@ -281,7 +281,7 @@ function buildStage(n){
   // reset player
   P.x=80;P.y=groundY-200;P.vx=0;P.vy=0;P.hp=P.maxHp;P.invuln=0;
   G.camX=0;
-  document.getElementById('stage').textContent='STAGE '+n+'/15';
+  document.getElementById('stage').textContent='STAGE '+n+'/20';
 }
 
 /* ---------- Player physics ---------- */
@@ -442,7 +442,7 @@ function playerDie(){
 }
 function stageClear(){
   sfx('win');G.score+=1000*G.stage;
-  if(G.stage>=15){victoryCutscene();return;}
+  if(G.stage>=20){victoryCutscene();return;}
   G.state='stageclear';
   let msg='<p>Stage '+G.stage+' cleared! Score: '+G.score+'</p>';
   if(G.stage===7){ // Stage 8 checkpoint dialogue (MIDDLE name placement #2)
@@ -698,7 +698,7 @@ function startGame(){
 }
 function showIntro(){ // BEGINNING name placement #1
   otitle.innerHTML='⚔️ TRISTAN\'S<br>DARK KNIGHT RESCUE';
-  obody.innerHTML='<p>A cute fire baby swells with <b style="color:#ff2a6d">dark crimson energy</b>... and transforms into a towering armored <b>Dark Knight</b> wielding a blazing obsidian fire sword!</p><p style="color:#ffd23f;font-weight:800">💬 "Prince Tristan rises to take back the fortress and save Princess Trinity!"</p><p>🕹️ <b>Controls:</b> D-pad to move • JUMP to leap (wall-jump too!) • ⚔️ to slash sentinels</p><p>Battle through <b>15 stages</b>. Defeat the fortress boss. Rescue the princess!</p>';
+  obody.innerHTML='<p>A cute fire baby swells with <b style="color:#ff2a6d">dark crimson energy</b>... and transforms into a towering armored <b>Dark Knight</b> wielding a blazing obsidian fire sword!</p><p style="color:#ffd23f;font-weight:800">💬 "Prince Tristan rises to take back the fortress and save Princess Trinity!"</p><p>🕹️ <b>Controls:</b> D-pad to move • JUMP to leap (wall-jump too!) • ⚔️ to slash sentinels</p><p>Battle through <b>20 stages</b>. Defeat the fortress boss. Rescue the princess!</p>';
   obtn.textContent='▶ BEGIN QUEST';
   obtn.onclick=()=>{showMathGate();};
   overlay.classList.remove('hidden');
