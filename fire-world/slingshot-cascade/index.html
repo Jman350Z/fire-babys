@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -33,6 +34,9 @@ canvas{display:block;width:100%;height:100%}
 .lvlBtn.locked{opacity:.35;border-color:#555;color:#888}
 .lvlBtn.done{border-color:#4caf50}
 .stars{color:#ffd23f;font-size:20px;letter-spacing:2px}
+#sysbtns{position:fixed;top:60px;right:12px;z-index:15;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
 </style>
 </head>
 <body>
@@ -43,6 +47,8 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="combo"></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off (M)">🔊</button></div>
+<div id="pausedTxt" class="hidden">⏸ Paused</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 SLINGSHOT CASCADE</h1>
@@ -75,14 +81,14 @@ addEventListener('resize',resize);resize();
 /* ---------------- Audio: layered synth ---------------- */
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__fbMuted)return;
   const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   o.start(t);o.stop(t+dur+0.05);
 }
-function noise(dur,vol,delay=0,lowpass=1000){
+function noise(dur,vol,delay=0,lowpass=1000){if(window.__fbMuted)return;
   const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
@@ -523,6 +529,7 @@ function render(){
 let lastT=0;
 function loop(t){
   const rawDt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(window.__fbPaused){requestAnimationFrame(loop);return;} // [w5b] pause freeze: no sim update, no re-render
   let dt=rawDt;
   if(hitStop>0){hitStop-=rawDt;dt=rawDt*0.08;}
   G.time+=dt;
@@ -547,6 +554,18 @@ function loop(t){
 updateScoreUI();
 showTitle();
 requestAnimationFrame(loop);
+
+/* [w5b] pause + mute controls (were missing entirely).
+   Pause: the main loop early-returns before any sim update while
+   window.__fbPaused is set, so gameplay state is fully frozen and the canvas
+   is not re-rendered; the "⏸ Paused" overlay shows. Resume restores play.
+   Mute: the tone/noise/sfx entry points check window.__fbMuted, and the
+   game's AudioContext is suspended/resumed with the toggle. */
+const __pb=document.getElementById('pauseBtn'),__mb=document.getElementById('muteBtn'),__pt=document.getElementById('pausedTxt');
+function __setPaused(v){if(v&&G.state!=='play')return;window.__fbPaused=!!v;__pb.textContent=window.__fbPaused?'▶':'⏸';__pt.classList.toggle('hidden',!window.__fbPaused);}
+__pb.addEventListener('click',e=>{e.stopPropagation();__setPaused(!window.__fbPaused);});
+__mb.addEventListener('click',e=>{e.stopPropagation();window.__fbMuted=!window.__fbMuted;__mb.textContent=window.__fbMuted?'🔇':'🔊';try{if(typeof AC!=='undefined'&&AC){if(window.__fbMuted)AC.suspend();else AC.resume();}}catch(err){}});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__setPaused(!window.__fbPaused);if(e.key==='m'||e.key==='M')__mb.click();});
 </script>
 </body>
 </html>
