@@ -59,7 +59,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">ROUND 1/5</div>
+<div class="pill" id="level">ROUND 1/10</div>
 <div class="pill" id="foes">🪨 3 left</div>
 </div>
 <div id="round" class="pill hidden"></div>
@@ -156,12 +156,12 @@ function makeFighter(x,y,isPlayer,round){
 function startRound(n){
   G.round=n;G.roundStartScore=G.score;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
   G.player=makeFighter(CX,CY-60,true,n);
-  const count=2+Math.min(n,3);
+  const count=n<=5?2+Math.min(n,3):[5,5,6,6,7][n-6]; // [levels+] R6-10 foe counts per design
   for(let i=0;i<count;i++){
     const a=(i/count)*Math.PI*2-Math.PI/2;
     G.foes.push(makeFighter(CX+Math.cos(a)*RING_R*0.55,CY+Math.sin(a)*RING_R*0.55,false,n));
   }
-  document.getElementById('level').textContent=`ROUND ${n}/5`;
+  document.getElementById('level').textContent=`ROUND ${n}/10`;
   updateFoesUI();
   const rd=document.getElementById('round');
   rd.textContent=`🥋 ROUND ${n} — ${count} GOLEMS!`;rd.classList.remove('hidden');
@@ -318,9 +318,9 @@ function roundWon(){
   G.state='clear';sfx.win();
   const bonus=G.round*300;G.score+=bonus;updateScoreUI();
   setTimeout(()=>{
-    if(G.round>=5){
+    if(G.round>=10){
       showOverlay('🏆 SUMO CHAMPION!',
-        `<p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p><p>Undefeated through 5 rounds!</p>`,
+        `<p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p><p>Undefeated through 10 rounds!</p>`,
         '🔥 Fire Safety: You\'re a fire safety champion!',
         '↻ PLAY AGAIN',()=>{G.score=0;updateScoreUI();startRound(1);G.state='play';});
     }else{

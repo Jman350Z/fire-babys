@@ -58,7 +58,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/8</div>
+<div class="pill" id="level">LV 1/13</div>
 <div class="pill" id="moves">👆 0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -98,6 +98,11 @@ const LEVELS=[
   {blocks:[{r:2,c:2,len:2,h:1},{r:0,c:0,len:3,h:0},{r:0,c:4,len:2,h:1},{r:3,c:3,len:2,h:0},{r:4,c:0,len:2,h:1},{r:5,c:2,len:3,h:1},{r:1,c:5,len:2,h:0}],par:20},
   {blocks:[{r:2,c:0,len:2,h:1},{r:0,c:1,len:2,h:0},{r:0,c:3,len:3,h:1},{r:2,c:4,len:2,h:0},{r:4,c:2,len:2,h:1},{r:3,c:0,len:2,h:0},{r:3,c:5,len:2,h:0},{r:1,c:4,len:2,h:1}],par:24},
   {blocks:[{r:2,c:1,len:2,h:1},{r:0,c:0,len:2,h:0},{r:0,c:2,len:3,h:1},{r:1,c:4,len:3,h:0},{r:3,c:0,len:2,h:1},{r:4,c:2,len:2,h:0},{r:5,c:3,len:3,h:1},{r:2,c:5,len:2,h:0},{r:4,c:3,len:2,h:1}],par:28},
+  {blocks:[{r:2,c:2,len:2,h:1},{r:5,c:4,len:2,h:1},{r:2,c:0,len:2,h:0},{r:2,c:4,len:2,h:0},{r:3,c:2,len:2,h:1},{r:4,c:4,len:2,h:1},{r:4,c:3,len:2,h:0},{r:1,c:3,len:2,h:1},{r:0,c:5,len:3,h:0}],par:30},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:2,c:5,len:2,h:0},{r:5,c:1,len:3,h:1},{r:4,c:1,len:2,h:1},{r:0,c:4,len:2,h:1},{r:1,c:2,len:3,h:0},{r:3,c:3,len:2,h:0},{r:0,c:1,len:2,h:1},{r:2,c:4,len:2,h:0},{r:3,c:0,len:2,h:0}],par:34},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:1,c:2,len:3,h:0},{r:4,c:1,len:2,h:0},{r:1,c:4,len:2,h:0},{r:0,c:0,len:2,h:1},{r:4,c:2,len:3,h:1},{r:2,c:3,len:2,h:0},{r:3,c:4,len:2,h:1},{r:0,c:5,len:3,h:0},{r:5,c:4,len:2,h:1}],par:38},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:1,c:2,len:3,h:0},{r:4,c:1,len:2,h:0},{r:2,c:4,len:2,h:0},{r:0,c:4,len:2,h:1},{r:4,c:2,len:3,h:1},{r:2,c:3,len:2,h:0},{r:3,c:0,len:2,h:1},{r:2,c:5,len:3,h:0},{r:5,c:4,len:2,h:1},{r:5,c:2,len:2,h:1}],par:42},
+  {blocks:[{r:2,c:0,len:2,h:1},{r:2,c:5,len:2,h:0},{r:5,c:0,len:3,h:1},{r:4,c:1,len:2,h:1},{r:0,c:4,len:2,h:1},{r:0,c:2,len:3,h:0},{r:4,c:3,len:2,h:0},{r:0,c:0,len:2,h:1},{r:4,c:4,len:2,h:0},{r:3,c:0,len:2,h:0},{r:4,c:5,len:2,h:0}],par:46},
 ];
 let AC=null;
 let muted=false;try{muted=localStorage.getItem('fb_mute')==='1';}catch(e){}
@@ -118,7 +123,7 @@ function initLevel(n){
   const L=LEVELS[n-1];
   G.level=n;G.moves=0;G.solved=false;G.ballX=-1;G.drag=null;G.history=[];setPaused(false);
   G.blocks=L.blocks.map((b,i)=>({...b,idx:i,ox:b.c,oy:b.r}));
-  document.getElementById('level').textContent=`LV ${n}/8`;
+  document.getElementById('level').textContent=`LV ${n}/13`;
   document.getElementById('moves').textContent='👆 0';
   updateHUD();
 }
@@ -205,9 +210,9 @@ function checkWin(){
     // animate ball rolling out
     G.ballX=ball.c+ball.len;
     setTimeout(()=>{
-      if(G.level>=8){
+      if(G.level>=13){
         showOverlay('🏆 PUZZLE MASTER!',
-          `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 8 blockades cleared!</p>`,
+          `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 13 blockades cleared!</p>`,
           '🔥 Fire Safety: You\'re a champion!',
           '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
       }else{
@@ -233,7 +238,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🧱 PICK LEVEL';
   let h='';
-  for(let i=1;i<=8;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=13;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Slide blocks to free the fireball!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

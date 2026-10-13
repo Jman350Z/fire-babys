@@ -28,7 +28,7 @@ canvas{display:block;width:100%;height:100%}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #pauseBtn,#muteBtn{position:fixed;top:60px;z-index:15;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:19px;cursor:pointer}
 #pauseBtn{right:12px}#muteBtn{right:64px}
-#lvlSel{display:flex;gap:8px;margin:12px 0}
+#lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:auto;padding:0 16px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:14px;font-weight:900;cursor:pointer}
 #shuffleBtn{position:fixed;bottom:14px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #ff6a1a;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #peekBtn{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #ff6a1a;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
@@ -112,8 +112,9 @@ function initPuzzle(n){
     }
   }
   G.empty={r:n-1,c:n-1};
-  // shuffle (valid moves)
-  const shuffles=n*n*20;
+  // shuffle (valid moves — a walk from the solved state, so every dealt board is solvable by construction)
+  const WALK={6:60,7:80,8:100,9:120,10:140};
+  const shuffles=WALK[n]||n*n*20;
   for(let i=0;i<shuffles;i++){
     const moves=[];
     const{r,c}=G.empty;
@@ -224,9 +225,9 @@ function onSolve(){
     showOverlay('🏆 SOLVED!',
       `<p style="font-size:24px;font-weight:900">Score: ${score}</p><p>${G.moves} moves in ${elapsed.toFixed(1)}s</p><p>Grid: ${G.n}×${G.n}</p>`,
       '🔥 Fire Safety: You\'re a champion!',
-      G.n<5?'▶ BIGGER PUZZLE':'↻ PLAY AGAIN',
+      G.n<10?'▶ BIGGER PUZZLE':'↻ PLAY AGAIN',
       ()=>{
-        if(G.n<5)initPuzzle(G.n+1);
+        if(G.n<10)initPuzzle(G.n+1);
         else initPuzzle(G.n);
         G.state='play';
       });
@@ -245,7 +246,7 @@ function checkMath(){
 }
 function showLevels(){
   otitle.innerHTML='🧩 PICK SIZE';
-  const sizes=[3,4,5];
+  const sizes=[3,4,5,6,7,8,9,10];
   let h='';
   sizes.forEach(n=>{h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${n})">${n}×${n}</button>`;});
   obody.innerHTML=`<p>Slide tiles to rebuild the picture!</p><div id="lvlSel">${h}</div>`;

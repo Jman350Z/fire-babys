@@ -54,7 +54,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⛰️ 0m</div>
-<div class="pill" id="level">PEAK 1/4</div>
+<div class="pill" id="level">PEAK 1/9</div>
 <div class="pill" id="best">🏆 0m</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -64,7 +64,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⛰️ BLAZE'S ZENITH</h1>
-<div id="obody"><p>Climb the volcano!</p><p><b>TAP LEFT/RIGHT</b> side of screen (or <b>◀ ▶</b>) to hop between platforms — <b>HOLD</b> a side to steer mid-air! Grab ⭐, avoid 🪨 crumbling rocks. Reach the peak flag 4 times!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Climb the volcano!</p><p><b>TAP LEFT/RIGHT</b> side of screen (or <b>◀ ▶</b>) to hop between platforms — <b>HOLD</b> a side to steer mid-air! Grab ⭐, avoid 🪨 crumbling rocks. Reach the peak flag 9 times!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Climb high — smoke rises, stay low!</div>
 <button id="obtn">▶ PLAY</button>
@@ -93,7 +93,7 @@ const sfx={
   peak(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.2,'triangle',0.14,i*0.09));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
-const PEAKS=4;
+const PEAKS=9;
 const G={state:'title',peak:1,score:0,best:0,
   plats:[],px:0,py:0,vx:0,vy:0,platIdx:0,
   camY:0,height:0,time:0,dead:false,flagY:0,won:false,grounded:false};
@@ -112,7 +112,9 @@ function genPeak(n){
     x=Math.max(70,Math.min(W-70,x));
     y-=gap*(0.85+Math.random()*0.2);
     const r=Math.random();
-    const type=r<0.12?'crumble':r<0.24?'move':'solid';
+    const typeRamp=Math.min(1,Math.max(0,(n-1)/(PEAKS-1))); // gentle per-peak ramp: crumble + moving chances rise 12% -> 20% by peak 9; gap stays at its 120 floor
+    const crumCh=0.12+0.08*typeRamp,moveCh=0.12+0.08*typeRamp;
+    const type=r<crumCh?'crumble':r<crumCh+moveCh?'move':'solid';
     G.plats.push({x,y,w:type==='move'?100:80+Math.random()*50,type,t:Math.random()*6,phase:Math.random()*6,dir:Math.random()<0.5?-1:1});
     if(Math.random()<0.4){const so=(Math.random()-0.5)*60;G.plats[G.plats.length-1].star={x:x+so,y:y-50,t:Math.random()*6,off:so};}
   }
@@ -252,7 +254,7 @@ function peakDone(){
       const isBest=G.height>G.best;
       if(isBest){G.best=G.height;try{localStorage.setItem('zenith_best',String(Math.floor(G.best)));}catch(e){}}
       showOverlay('🏆 ZENITH REACHED!',
-        `<p style="font-size:24px;font-weight:900">Height: ${Math.floor(G.height)}m</p><p>Score: ${G.score}</p><p>All 4 peaks conquered!</p>`,
+        `<p style="font-size:24px;font-weight:900">Height: ${Math.floor(G.height)}m</p><p>Score: ${G.score}</p><p>All 9 peaks conquered!</p>`,
         '🔥 Fire Safety: You\'re a champion!',
         '↻ CLIMB AGAIN',()=>{G.score=0;G.peak=1;genPeak(1);G.state='play';});
     }else{

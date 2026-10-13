@@ -29,7 +29,7 @@ canvas{display:block}
 #ctl button{width:48px;height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.6);color:#fff;font-size:20px;cursor:pointer}
 #pauseBanner{position:fixed;top:36%;left:50%;transform:translate(-50%,-50%);z-index:18;background:rgba(0,0,0,.85);color:#fff;font-size:26px;font-weight:900;padding:18px 34px;border-radius:16px;border:3px solid #ffd23f;pointer-events:none}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
-#lvlSel{display:flex;gap:8px;margin:12px 0}
+#lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center;max-width:92vw}
 .lvlBtn{width:52px;height:52px;border-radius:12px;border:3px solid #8a4dff;background:#1a0e2a;color:#e2a0ff;font-size:14px;font-weight:900;cursor:pointer}
 </style>
 <style data-fbvis-cycle1>
@@ -79,7 +79,7 @@ let W,H,DPR,CELL,GX,GY,COLS,ROWS;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layout();}
 function layout(){
-  const pairs=[8,10,12][G.level-1]||8;
+  const pairs=[8,10,12,12,12,12,12,12][G.level-1]||8;
   COLS=pairs<=8?4:6;ROWS=Math.ceil(pairs*2/COLS);
   CELL=Math.min(W*0.9/COLS,H*0.62/ROWS,90);
   GX=(W-CELL*COLS)/2;GY=(H-CELL*ROWS)/2+30;
@@ -111,7 +111,7 @@ const G={state:'title',level:1,cards:[],first:null,second:null,lock:false,
   flips:0,matched:0,score:0,time:0,combo:0,preview:0};
 function initLevel(n){
   G.level=n;G.flips=0;G.matched=0;G.combo=0;G.first=null;G.second=null;G.lock=false;
-  const pairCount=[8,10,12][n-1]||8;
+  const pairCount=[8,10,12,12,12,12,12,12][n-1]||8;
   layout();
   const faces=FACES.slice(0,pairCount);
   let deck=[];
@@ -122,13 +122,13 @@ function initLevel(n){
     r:Math.floor(i/COLS),c:i%COLS}));
   // genre-standard kids' preview: show all faces briefly so young players can memorise
   for(const cd of G.cards)cd.flip=1;
-  G.lock=true;G.preview=1.6;
+  G.lock=true;G.preview=[1.6,1.6,1.6,1.4,1.2,1.0,0.9,0.8][n-1]||1.6;
   updateHUD();
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
   document.getElementById('flips').textContent='🃏 '+G.flips;
-  const total=[8,10,12][G.level-1]||8;
+  const total=[8,10,12,12,12,12,12,12][G.level-1]||8;
   document.getElementById('pairs').textContent=`✅ ${G.matched}/${total}`;
 }
 canvas.addEventListener('pointerdown',e=>{
@@ -151,7 +151,7 @@ canvas.addEventListener('pointerdown',e=>{
         G.score+=pts;sfx.match();updateHUD();
         spawnText(G.first);
         G.first=null;G.second=null;G.lock=false;
-        if(G.matched>=([8,10,12][G.level-1]||8))levelComplete();
+        if(G.matched>=([8,10,12,12,12,12,12,12][G.level-1]||8))levelComplete();
       },400);
     }else{
       G.combo=0;sfx.no();
@@ -172,12 +172,12 @@ function spawnText(card){
 }
 function levelComplete(){
   G.state='clear';sfx.win();
-  const total=[8,10,12][G.level-1]||8;
+  const total=[8,10,12,12,12,12,12,12][G.level-1]||8;
   const perfect=total*2;
   const stars=G.flips<=perfect+2?3:G.flips<=perfect+6?2:1;
   const bonus=stars*300;G.score+=bonus;
   setTimeout(()=>{
-    if(G.level>=3){
+    if(G.level>=8){
       showOverlay('🏆 MEMORY MASTER!',
         `<div style="color:#ffd23f;font-size:28px">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p style="font-size:24px;font-weight:900">Score: ${G.score}</p>`,
         '🔥 Fire Safety: You\'re a memory champion!',
@@ -204,8 +204,8 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🃏 PICK LEVEL';
   let h='';
-  const names=['Easy (8 pairs)','Medium (10 pairs)','Hard (12 pairs)'];
-  for(let i=1;i<=3;i++)h+=`<button class="lvlBtn" style="width:auto;padding:0 16px" onclick="event.stopPropagation();pickLevel(${i})">${names[i-1]}</button>`;
+  const names=['Easy (8 pairs)','Medium (10 pairs)','Hard (12 pairs)','Expert (12 pairs)','Master (12 pairs)','Grandmaster (12 pairs)','Legend (12 pairs)','Ultimate (12 pairs)'];
+  for(let i=1;i<=8;i++)h+=`<button class="lvlBtn" style="width:auto;padding:0 16px" onclick="event.stopPropagation();pickLevel(${i})">${names[i-1]}</button>`;
   obody.innerHTML=`<p>Find all matching pairs!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

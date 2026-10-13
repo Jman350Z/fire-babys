@@ -56,7 +56,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/6</div>
+<div class="pill" id="level">LV 1/11</div>
 <div class="pill" id="stars">⭐ 0/0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -142,6 +142,63 @@ const MAZES=[
     "1111111011111101",
     "1000001000000301",
     "1111111111111111"],
+  [ // 7: serpentine (16x9, 3 stars, 4 lava)
+    "1111111111111111",
+    "1400000000000051",
+    "1001010000002001",
+    "1031010000100021",
+    "1002010010100001",
+    "1000010030100101",
+    "1000010020100101",
+    "1000000000100301",
+    "1111111111111111"],
+  [ // 8: twin gates (17x10, 4 stars, 5 lava)
+    "11111111111111111",
+    "14000000000000051",
+    "10210100000000301",
+    "10010100000103021",
+    "10000100000102001",
+    "10030100100100001",
+    "10020100100100001",
+    "10000120000100101",
+    "10000000030100001",
+    "11111111111111111"],
+  [ // 9: lava pockets (17x11, 5 stars, 6 lava)
+    "11111111111111111",
+    "14000000000000051",
+    "10010100000002031",
+    "10310100000100001",
+    "10000102000100101",
+    "10000100100103121",
+    "10020100100100101",
+    "10000100300100101",
+    "10000100000120001",
+    "10000030002100001",
+    "11111111111111111"],
+  [ // 10: triple gates (18x11, 6 stars, 7 lava)
+    "111111111111111111",
+    "140000000000000051",
+    "100101020000030101",
+    "103101000010000121",
+    "100201000010100131",
+    "100001013012100101",
+    "100001010010020101",
+    "100001000010300101",
+    "100001002010000101",
+    "100000000010200031",
+    "111111111111111111"],
+  [ // 11: inferno master (18x11, 7 stars, 8 lava)
+    "111111111111111111",
+    "140000000000000051",
+    "100000000010200001",
+    "100101003010002101",
+    "100101002010000131",
+    "103001000010102101",
+    "100031010010102101",
+    "100201010010030101",
+    "100001200010003101",
+    "100001030002000101",
+    "111111111111111111"],
 ];
 let AC=null;
 let muted=false;try{muted=localStorage.getItem('fb_mute')==='1';}catch(e){}
@@ -176,7 +233,7 @@ function initLevel(n){
       else if(ch==='3')G.stars.push({r,c,taken:false,t:Math.random()*6});
     }
   }
-  document.getElementById('level').textContent=`LV ${n}/6`;
+  document.getElementById('level').textContent=`LV ${n}/11`;
   document.getElementById('stars').textContent=`⭐ 0/${G.stars.length}`;
   updateHUD();
 }
@@ -290,9 +347,9 @@ function update(dt){
       if(allStars){
         sfx.goal();G.score+=200;updateHUD();
         setTimeout(()=>{
-          if(G.level>=6){
+          if(G.level>=11){
             showOverlay('🏆 MAZE MASTER!',
-              `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 6 mazes conquered!</p><p>Final maze time: ${(G.elapsed||0).toFixed(1)}s</p>`,
+              `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 11 mazes conquered!</p><p>Final maze time: ${(G.elapsed||0).toFixed(1)}s</p>`,
               '🔥 Fire Safety: You\'re a champion!',
               '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
           }else{
@@ -326,7 +383,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🔥 PICK MAZE';
   let h='';
-  for(let i=1;i<=6;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=11;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Roll through and collect every star!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

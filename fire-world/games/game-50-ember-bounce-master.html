@@ -58,7 +58,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/5</div>
+<div class="pill" id="level">LV 1/10</div>
 <div class="pill" id="lives">❤️❤️❤️</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -106,6 +106,11 @@ const LEVELS=[
   ["..........","..##22##..",".###ss###.","##222222##",".#s####s#.",".########."],
   ["..........",".22#ss#22.","..######..","##2####2##",".#ss##ss#.","222####222"],
   ["..........","22##ss##22",".###22###.","##s####s##","222####222",".#ss##ss#."],
+  ["..........","22##ss##22",".###22###.","##s##22s##",".########.","2#s####s#2"],
+  ["..........","22##ss##22",".###22###.","##s222#s##",".#####s##.","2#s####s22"],
+  ["..........","22##ss##22",".###222###","##s2222s##","##s###ss##","2#s####.22"],
+  ["..........","22##ss##2.",".###222###","##s2222s##","##s#22ss#.","22s####s22"],
+  ["..........","22##ss##22","2###222##.",".#s2222s##","##ss22s###","22s22##s2#"],
 ];
 const G={state:'title',level:1,score:0,lives:3,
   px:0,ball:{x:0,y:0,vx:0,vy:0,stuck:true},bricks:[],time:0,shake:0,
@@ -124,7 +129,7 @@ function initLevel(n){
   G.px=W/2;
   G.ball.stuck=true;
   G.ball.x=W/2;G.ball.y=H*0.82-24;
-  document.getElementById('level').textContent=`LV ${n}/5`;
+  document.getElementById('level').textContent=`LV ${n}/10`;
   updateHUD();
 }
 function updateHUD(){
@@ -279,9 +284,9 @@ function updateParts(dt){
   for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
 }
 function levelDone(){
-  if(G.level>=5){
+  if(G.level>=10){
     showOverlay('🏆 BOUNCE MASTER!',
-      `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 5 levels smashed!</p>`,
+      `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 10 levels smashed!</p>`,
       '🔥 Fire Safety: You\'re a champion!',
       '↻ PLAY AGAIN',()=>{G.score=0;G.lives=3;initLevel(1);G.state='play';});
   }else{
@@ -314,7 +319,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🔥 PICK LEVEL';
   let h='';
-  for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Smash every brick to win!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

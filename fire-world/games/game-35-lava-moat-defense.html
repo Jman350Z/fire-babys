@@ -57,7 +57,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="gold">🪙 200</div>
-<div class="pill" id="wave">🌊 Wave 1/12</div>
+<div class="pill" id="wave">🌊 Wave 1/17</div>
 <div class="pill" id="hp">🏰 100</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -66,7 +66,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button><button id="ffBtn" aria-label="Fast forward">⏩</button></div>
 <div id="overlay">
 <h1 id="otitle">🌋 LAVA MOAT DEFENSE</h1>
-<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 12 waves!</p><p>⬆️ <b>TAP a built tower</b> to pick it, then <b>UPGRADE</b> it (stronger + longer reach, up to Lv4) or <b>SELL</b> it back for 70% of what you spent. Towers also grow a little stronger with every blast they land.</p><p>🔆 <b>EMBER NOVA BLAST:</b> every 12 tower kills charges a Nova — tap the castle or press SPACE to blast all nearby enemies for 45 damage!</p></div>
+<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 17 waves!</p><p>⬆️ <b>TAP a built tower</b> to pick it, then <b>UPGRADE</b> it (stronger + longer reach, up to Lv4) or <b>SELL</b> it back for 70% of what you spent. Towers also grow a little stronger with every blast they land.</p><p>🔆 <b>EMBER NOVA BLAST:</b> every 12 tower kills charges a Nova — tap the castle or press SPACE to blast all nearby enemies for 45 damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A moat of safety keeps everyone protected!</div>
 <button id="obtn">▶ PLAY</button>
@@ -121,7 +121,7 @@ function reset(){
 }
 function updateHUD(){
   document.getElementById('gold').textContent='🪙 '+Math.floor(G.gold);
-  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(Math.max(G.wave,1),12)}/12`; // was wave+1: HUD showed Wave 2 during Wave 1
+  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(Math.max(G.wave,1),17)}/17`; // was wave+1: HUD showed Wave 2 during Wave 1
   document.getElementById('hp').textContent='🏰 '+G.hp;
 }
 // WEAPON — Ember Nova Blast: charged by 12 tower kills. When ready, tap the
@@ -256,7 +256,7 @@ function burst(x,y,color,n=7){
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.msgT=Math.max(0,G.msgT-dt);G.rangeT=Math.max(0,G.rangeT-dt);
   if(!G.spawnQ.length&&!G.enemies.length&&G.state==='play'){
-    if(G.wave>=12){victory();return;}
+    if(G.wave>=17){victory();return;}
     G.betweenWaves-=dt;
     if(G.betweenWaves<=0){startWave(G.wave+1);G.betweenWaves=5;}
   }
@@ -333,7 +333,7 @@ function victory(){
   G.state='over';sfx.win();
   setTimeout(()=>{
     showOverlay('🏆 VICTORY!',
-      `<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>All 12 waves repelled! The castle stands strong!</p>`,
+      `<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>All 17 waves repelled! The castle stands strong!</p>`,
       '🔥 Fire Safety: You\'re a champion!',
       '↻ PLAY AGAIN',()=>{reset();G.state='play';});
   },600);
@@ -342,7 +342,7 @@ function defeat(){
   G.state='over';
   setTimeout(()=>{
     showOverlay('💥 CASTLE BREACHED',
-      `<p>Wave reached: ${G.wave}/12</p><p>Score: ${G.score}</p>`,
+      `<p>Wave reached: ${G.wave}/17</p><p>Score: ${G.score}</p>`,
       '🔥 Fire Safety: Protect your home!',
       '↻ TRY AGAIN',()=>{reset();G.state='play';});
   },600);
@@ -504,7 +504,7 @@ function render(){
     ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';
     ctx.fillText(G.msg,W/2,64);ctx.textAlign='left';
   }
-  if(G.state==='play'&&!G.spawnQ.length&&!G.enemies.length&&G.wave<12){
+  if(G.state==='play'&&!G.spawnQ.length&&!G.enemies.length&&G.wave<17){
     ctx.fillStyle='#fff';ctx.font='900 17px system-ui';ctx.textAlign='center';
     ctx.fillText(`Wave ${G.wave+1} in ${Math.ceil(G.betweenWaves)}...  TAP the ring to build! (50🪙)`,W/2,90);
     ctx.textAlign='left';

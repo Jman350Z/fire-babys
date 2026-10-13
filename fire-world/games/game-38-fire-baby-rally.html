@@ -7,7 +7,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fire Baby Rally — by Jman350Z & fire team</title>
-<meta name="description" content="Race the track! 3 laps against the clock. A Fire Babys racing game.">
+<meta name="description" content="Race the track! 8 laps against the clock. A Fire Babys racing game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#0d1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -54,7 +54,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <body>
 <div id="game">
 <div id="hud">
-<div class="pill gold" id="lap">LAP 1/3</div>
+<div class="pill gold" id="lap">LAP 1/8</div>
 <div class="pill" id="time">⏱️ 0.0s</div>
 <div class="pill" id="best">🏆 --</div>
 <div class="pill" id="speed">🚗 0</div>
@@ -65,7 +65,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button><button id="resetBtn" aria-label="Reset to track">⟲</button></div>
 <div id="overlay">
 <h1 id="otitle">🏁 FIRE BABY RALLY</h1>
-<div id="obody"><p>3 laps — beat the clock!</p><p><b>HOLD</b> to accelerate, <b>◀ ▶</b> or <b>arrow keys</b> to steer! Stay on the track — grass slows you down. Hit the boost pads for speed! Stuck? Press <b>R</b> or tap ⟲ to hop back on track.</p><p>👻 Set a lap time and a see-through <b>ghost car</b> replays your best lap next race — race against yourself!</p></div>
+<div id="obody"><p>8 laps — beat the clock!</p><p><b>HOLD</b> to accelerate, <b>◀ ▶</b> or <b>arrow keys</b> to steer! Stay on the track — grass slows you down. Hit the boost pads for speed! Stuck? Press <b>R</b> or tap ⟲ to hop back on track.</p><p>👻 Set a lap time and a see-through <b>ghost car</b> replays your best lap next race — race against yourself!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Race to safety — never race real cars!</div>
 <button id="obtn">▶ PLAY</button>
@@ -145,7 +145,7 @@ function reset(){
   updateHUD();
 }
 function updateHUD(){
-  document.getElementById('lap').textContent=`LAP ${Math.min(G.lap,3)}/3`;
+  document.getElementById('lap').textContent=`LAP ${Math.min(G.lap,8)}/8`;
   document.getElementById('time').textContent='⏱️ '+G.raceT.toFixed(1)+'s';
   document.getElementById('best').textContent='🏆 '+(G.best?G.best.toFixed(1)+'s':'--');
   document.getElementById('speed').textContent='🚗 '+Math.round(G.v*0.36);
@@ -246,7 +246,7 @@ function update(dt){
     G.lapTimes.push(lt);G.lapStart=G.raceT;
     G.lapMsg=`🏁 Lap ${G.lapTimes.length}: ${lt.toFixed(1)}s`;G.lapMsgT=2.2; // live split (was only shown at race end)
     sfx.lap();
-    if(G.lap>=3){finishRace();return;}
+    if(G.lap>=8){finishRace();return;}
     G.lap++;
   }
   G._lastIdx=idx;

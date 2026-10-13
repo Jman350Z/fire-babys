@@ -57,7 +57,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/6</div>
+<div class="pill" id="level">LV 1/11</div>
 <div class="pill" id="items">🛠️ 3</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -110,6 +110,11 @@ const LEVELS=[
   {walls:[{x:0.05,y:0.35,w:0.3,h:0.04},{x:0.65,y:0.35,w:0.3,h:0.04},{x:0.3,y:0.62,w:0.4,h:0.04}],waters:[{x:0.5,y:0.78,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:4},
   {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.5,y:0.9},spawn:{x:0.3,y:0.1},items:4},
   {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.5,y:0.6,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
+  {walls:[{x:0.25,y:0.42,w:0.38,h:0.04}],waters:[{x:0.62,y:0.7,r:0.05}],goal:{x:0.35,y:0.88},spawn:{x:0.55,y:0.12},items:4},
+  {walls:[{x:0.1,y:0.38,w:0.35,h:0.04},{x:0.55,y:0.58,w:0.35,h:0.04}],waters:[{x:0.5,y:0.74,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.2,y:0.12},items:4},
+  {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:5},
+  {walls:[{x:0.05,y:0.3,w:0.28,h:0.04},{x:0.67,y:0.3,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.2,y:0.68,w:0.3,h:0.04}],waters:[{x:0.65,y:0.6,r:0.045},{x:0.72,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
+  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.3,y:0.6,r:0.045},{x:0.7,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
 ];
 const G={state:'title',level:1,score:0,
   fx:0,fy:0,vx:0,vy:0,dropped:false,done:false,
@@ -121,7 +126,7 @@ function initLevel(n){
   G.fx=L.spawn.x*W;G.fy=L.spawn.y*H;G.vx=0;G.vy=0;
   G.dropped=false;G.done=false;G._stillT=0;G._ax=undefined;
   G.ramps=[];G.fans=[];G.itemsLeft=L.items;G.drawing=null;
-  document.getElementById('level').textContent=`LV ${n}/6`;
+  document.getElementById('level').textContent=`LV ${n}/11`;
   document.getElementById('items').textContent='🛠️ '+G.itemsLeft;
   updateHUD();
 }
@@ -293,9 +298,9 @@ function updateParts(dt){
   }
 }
 function levelDone(){
-  if(G.level>=6){
+  if(G.level>=11){
     showOverlay('🏆 PHYSICS MASTER!',
-      `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 6 puzzles solved!</p>`,
+      `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 11 puzzles solved!</p>`,
       '🔥 Fire Safety: You\'re a champion!',
       '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';toolBar.classList.remove('hidden');});
   }else{
@@ -319,7 +324,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='💧 PICK LEVEL';
   let h='';
-  for(let i=1;i<=6;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=11;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Draw ramps, place fans, guide the flame!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

@@ -56,7 +56,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">PUZZLE 1/3</div>
+<div class="pill" id="level">PUZZLE 1/8</div>
 <div class="pill" id="timer">⏱️ 0s</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -110,7 +110,7 @@ function reScatter(){
   free.forEach((p,i)=>{if(G.drag===p)return;const s=slots[i];if(s){p.x=s.x;p.y=s.y;}});
 }
 function layout(){
-  const n=[3,4,5][G.level-1]||3;
+  const n=[3,4,5,5,6,6,7,7][G.level-1]||3;
   GRID=n;
   PZ=Math.min(W*0.86/n,H*0.5/n,110);
   BX=(W-PZ*n)/2;BY=(H-PZ*n)/2+20;
@@ -137,6 +137,16 @@ function drawPuzzleArt(px,py,pz,level){
     g.addColorStop(0,'#1a2a4a');g.addColorStop(0.5,'#ff6a1a');g.addColorStop(1,'#3a1a0a');
   }else if(level===2){
     g.addColorStop(0,'#0d1a2a');g.addColorStop(0.4,'#5a2a8a');g.addColorStop(0.7,'#ff4a00');g.addColorStop(1,'#1a0d08');
+  }else if(level===4){
+    g.addColorStop(0,'#0d2a2a');g.addColorStop(0.35,'#2a8a6a');g.addColorStop(0.65,'#ff8a00');g.addColorStop(1,'#1a0d08');
+  }else if(level===5){
+    g.addColorStop(0,'#2a0d1a');g.addColorStop(0.35,'#8a2a5a');g.addColorStop(0.65,'#ff6a1a');g.addColorStop(1,'#0d0805');
+  }else if(level===6){
+    g.addColorStop(0,'#1a1a0d');g.addColorStop(0.35,'#6a8a2a');g.addColorStop(0.65,'#ffd23f');g.addColorStop(1,'#141005');
+  }else if(level===7){
+    g.addColorStop(0,'#0d1a3a');g.addColorStop(0.35,'#2a5a8a');g.addColorStop(0.65,'#ff4a00');g.addColorStop(1,'#080d1a');
+  }else if(level===8){
+    g.addColorStop(0,'#3a0d0d');g.addColorStop(0.3,'#8a1a1a');g.addColorStop(0.6,'#ff8a00');g.addColorStop(1,'#1a0505');
   }else{
     g.addColorStop(0,'#2a1a3a');g.addColorStop(0.35,'#ff8a00');g.addColorStop(0.6,'#ffd23f');g.addColorStop(1,'#0d0805');
   }
@@ -183,7 +193,7 @@ function initLevel(n){
       tr:Math.floor(i/GRID),tc:i%GRID,
       x:sx,y:sy,placed:false,snap:0});
   });
-  document.getElementById('level').textContent=`PUZZLE ${n}/3`;
+  document.getElementById('level').textContent=`PUZZLE ${n}/8`;
   updateHUD();
 }
 function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
@@ -231,9 +241,9 @@ function levelComplete(){
   const bonus=Math.max(0,Math.round((180-elapsed)*5));
   G.score+=bonus;updateHUD();sfx.win();
   setTimeout(()=>{
-    if(G.level>=3){
+    if(G.level>=8){
       showOverlay('🏆 PUZZLE MASTER!',
-        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 3 puzzles solved!</p>`,
+        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 8 puzzles solved!</p>`,
         '🔥 Fire Safety: You\'re a champion!',
         '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
     }else{
@@ -258,8 +268,8 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🧩 PICK PUZZLE';
   let h='';
-  const names=['3×3 Easy','4×4 Medium','5×5 Hard'];
-  for(let i=1;i<=3;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${names[i-1]}</button>`;
+  const names=['3×3 Easy','4×4 Medium','5×5 Hard','5×5 Expert','6×6 Master','6×6 Grandmaster','7×7 Legend','7×7 Ultimate'];
+  for(let i=1;i<=8;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${names[i-1]}</button>`;
   obody.innerHTML=`<p>Drag pieces into their glowing slots!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

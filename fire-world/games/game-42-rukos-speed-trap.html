@@ -52,7 +52,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="round">ROUND 1/10</div>
+<div class="pill" id="round">ROUND 1/15</div>
 <div class="pill" id="best">🏆 0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -61,7 +61,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⚡ RUKO'S SPEED TRAP</h1>
-<div id="obody"><p>Lightning-fast reactions!</p><p><b>TAP</b> (or press <b>SPACE</b>) when the sweeping needle hits the <b style="color:#4caf50">green zone</b>! Perfect center = JACKPOT. 10 rounds — the needle gets faster every round. Miss and you lose points!</p></div>
+<div id="obody"><p>Lightning-fast reactions!</p><p><b>TAP</b> (or press <b>SPACE</b>) when the sweeping needle hits the <b style="color:#4caf50">green zone</b>! Perfect center = JACKPOT. 15 rounds — the needle gets faster every round. Miss and you lose points!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: React fast — but always think first!</div>
 <button id="obtn">▶ PLAY</button>
@@ -94,7 +94,7 @@ const G={state:'title',score:0,best:0,round:0,
   angle:0,speed:2,target:0,targetW:0.5,
   result:null,resultT:0,time:0,shake:0,combo:0};
 try{G.best=parseInt(localStorage.getItem('speedtrap_best')||'0',10)||0;}catch(e){}
-const ROUNDS=10;
+const ROUNDS=15;
 function reset(){
   setPaused(false);G.score=0;G.round=0;G.combo=0;G.time=0;G.shake=0;
   nextRound();

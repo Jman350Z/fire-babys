@@ -59,7 +59,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="fire">🔥 150</div>
-<div class="pill" id="wave">🌊 Wave 1/8</div>
+<div class="pill" id="wave">🌊 Wave 1/13</div>
 <div class="pill" id="lives">❤️ 10</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -74,7 +74,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏰 EMBER CASCADE</h1>
-<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 8 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p><p>Tap a placed defender to <b>upgrade</b> it (100🔥, up to Lv3). During a break, tap <b>⏩ WAVE NOW</b> to start the next wave early for bonus 🔥!</p></div>
+<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 13 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p><p>Tap a placed defender to <b>upgrade</b> it (100🔥, up to Lv3). During a break, tap <b>⏩ WAVE NOW</b> to start the next wave early for bonus 🔥!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A good defense is the best plan — know your escape routes!</div>
 <button id="obtn">▶ PLAY</button>
@@ -172,7 +172,7 @@ function reset(){
 }
 function updateHUD(){
   document.getElementById('fire').textContent='🔥 '+Math.floor(G.fire);
-  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(G.wave+1,8)}/8`;
+  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(G.wave+1,13)}/13`;
   document.getElementById('lives').textContent='❤️ '+G.lives;
 }
 function startWave(n){
@@ -257,7 +257,7 @@ function update(dt){
   if(!G.waveActive){
     G.breakT-=dt;
     if(G.breakT<=0){
-      if(G.wave>=8){gameWin();return;}
+      if(G.wave>=13){gameWin();return;}
       startWave(G.wave+1);
     }
   }else{
@@ -361,7 +361,7 @@ function gameWin(){
   const bonus=G.lives*100;G.score+=bonus;
   setTimeout(()=>{
     showOverlay('🏆 KEEP DEFENDED!',
-      `<p>All 8 waves survived!</p><p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Lives left: ${G.lives} (+${bonus})</p>`,
+      `<p>All 13 waves survived!</p><p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Lives left: ${G.lives} (+${bonus})</p>`,
       '🔥 Fire Safety: A good defense is the best plan — know your escape routes!',
       '↻ PLAY AGAIN',()=>{reset();G.state='play';});
   },600);
@@ -505,7 +505,7 @@ function render(){
   if(!G.waveActive&&G.state==='play'){
     ctx.textAlign='center';ctx.font='900 20px system-ui';
     ctx.fillStyle='#fff';
-    ctx.fillText(G.wave>=8?'':`Next wave in ${Math.ceil(G.breakT)}...`,W/2,H*0.12);
+    ctx.fillText(G.wave>=13?'':`Next wave in ${Math.ceil(G.breakT)}...`,W/2,H*0.12);
     ctx.textAlign='left';
   }
   // floaters — [w5b] drawn after everything else in the field (above towers and

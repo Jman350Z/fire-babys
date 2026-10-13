@@ -54,7 +54,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="gates">🚪 0/20</div>
+<div class="pill" id="gates">🚪 0/25</div>
 <div class="pill" id="best">🏆 0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -64,7 +64,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💨 PYRA PRIME DASH</h1>
-<div id="obody"><p>Thread every gate!</p><p><b>DRAG</b> left/right (or <b>◀ ▶</b>) to steer! Fly through the glowing gates — miss one and you lose a life. 3 lives, 20 gates. Golden gates are worth 3x!</p></div>
+<div id="obody"><p>Thread every gate!</p><p><b>DRAG</b> left/right (or <b>◀ ▶</b>) to steer! Fly through the glowing gates — miss one and you lose a life. 3 lives, 25 gates. Golden gates are worth 3x!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Dash to safety — know your exits!</div>
 <button id="obtn">▶ PLAY</button>
@@ -95,7 +95,7 @@ const sfx={
 const G={state:'title',score:0,best:0,lives:3,gates:0,
   px:0,gatesList:[],speed:420,time:0,shake:0,dead:false,streak:0};
 try{G.best=parseInt(localStorage.getItem('gatedash_best')||'0',10)||0;}catch(e){}
-const TOTAL=20,PY=()=>H*0.72;
+const TOTAL=25,PY=()=>H*0.72;
 function reset(){
   G.score=0;G.lives=3;G.gates=0;G.streak=0;
   G.px=W/2;G.gatesList=[];G.speed=420;G.time=0;G.shake=0;G.dead=false;

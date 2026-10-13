@@ -59,7 +59,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0/2000</div>
 <div class="pill" id="moves">🎯 30</div>
-<div class="pill" id="level">LV 1/5</div>
+<div class="pill" id="level">LV 1/10</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart level">↻</button></div>
@@ -116,6 +116,9 @@ const LEVELS=[
   {target:2000,moves:30,colors:5},{target:3500,moves:28,colors:5},
   {target:5000,moves:26,colors:6},{target:7000,moves:25,colors:6},
   {target:10000,moves:24,colors:6},
+  {target:13000,moves:24,colors:6},{target:16500,moves:23,colors:6},
+  {target:20500,moves:23,colors:6},{target:25000,moves:22,colors:6},
+  {target:31000,moves:22,colors:6},
 ];
 /* state */
 const G={state:'title',level:1,grid:[],score:0,startScore:0,moves:0,target:2000,
@@ -158,7 +161,7 @@ function initLevel(n){
       G.grid[r][c]=newGem(L.colors,avoid);
     }
   }
-  document.getElementById('level').textContent=`LV ${n}/5`;
+  document.getElementById('level').textContent=`LV ${n}/10`;
   updateHUD();
   G.lastMoveT=G.time;G.hint=null;ensureMoves();
 }
@@ -376,9 +379,9 @@ function levelComplete(){
   G.state='clear';sfx.win();
   const bonus=G.moves*50;G.score+=bonus;
   pTimeout(()=>{
-    if(G.level>=5){
+    if(G.level>=10){
       showOverlay('🏆 MATCH MASTER!',
-        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 5 levels cleared!</p>`,
+        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 10 levels cleared!</p>`,
         '🔥 Fire Safety: You\'re a pattern champion!',
         '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
     }else{
@@ -471,7 +474,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='💎 PICK LEVEL';
   let h='';
-  for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Match 3+ to score! Reach the target before moves run out.</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

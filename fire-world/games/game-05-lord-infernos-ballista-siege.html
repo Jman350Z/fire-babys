@@ -65,7 +65,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LEVEL 1/5</div>
+<div class="pill" id="level">LEVEL 1/10</div>
 <div class="pill" id="wave">🌊 Wave 1</div>
 </div>
 <div id="hpbar"><div id="hpfill"></div></div>
@@ -161,7 +161,7 @@ function reset(level){
   G.level=level;G.wave=1;G.waveKills=0;G.waveTarget=6+level*2;
   G.px=W/2;G.py=H*0.82;G.hp=100;G.maxHp=100;G.fireT=0;
   G.bullets=[];G.enemies=[];G.pickups=[];G.power=1;G.powerT=0;G.boss=null;G.invuln=0;
-  document.getElementById('level').textContent=`LEVEL ${level}/5`;
+  document.getElementById('level').textContent=`LEVEL ${level}/10`;
   document.getElementById('wave').textContent='🌊 Wave 1';
   updateHP();
 }
@@ -339,7 +339,7 @@ function levelComplete(){
   G.score+=hpBonus;updateScoreUI();
   const stars=G.hp>70?3:G.hp>35?2:1;
   setTimeout(()=>{
-    if(G.level>=5){
+    if(G.level>=10){
       showOverlay('🏆 SIEGE MASTER!',
         `<div class="stars">★★★</div><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
         '🔥 Fire Safety: You\'re a fire safety champion!',
@@ -384,7 +384,7 @@ function startGame(){audio();reset(pendingLevel||1);pendingLevel=0;G.score=0;upd
 let pendingLevel=0;
 function selLevel(n){sfx.click();pendingLevel=n;showMathGate();}
 obtn.onclick=()=>{showMathGate();};
-(function(){let h='';for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
+(function(){let h='';for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
 document.getElementById('levelSel').innerHTML=h;})();
 
 /* render */

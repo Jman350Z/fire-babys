@@ -56,7 +56,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/5</div>
+<div class="pill" id="level">LV 1/10</div>
 <div class="pill" id="lives">❤️ 3</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -121,6 +121,8 @@ function buildLevel(n){
     for(let c=0;c<cols;c++){
       // patterns
       if(n>=3&&r===2&&c>=2&&c<=4)continue; // hole
+      if(n===7&&r===6&&c>=2&&c<=4)continue; // extra hole row (L7)
+      if(n===9&&r===8&&c>=2&&c<=4)continue; // extra hole row (L9)
       G.bricks.push({
         x:ox+c*bw+3,y:oy+r*(bh+6),w:bw-6,h:bh,
         hp:r%3===0?2:1,maxHp:r%3===0?2:1,
@@ -128,7 +130,7 @@ function buildLevel(n){
       });
     }
   }
-  document.getElementById('level').textContent=`LV ${n}/5`;
+  document.getElementById('level').textContent=`LV ${n}/10`;
 }
 function resetBall(){
   G.px=W/2;G.bx=W/2;G.by=H-80;G.bvx=0;G.bvy=0;G.stuck=true;
@@ -257,9 +259,9 @@ function update(dt){
     sfx.win();G.score+=100;updateHUD();
     G.stuck=true;
     setTimeout(()=>{
-      if(G.level>=5){
+      if(G.level>=10){
         showOverlay('🏆 YOU WIN!',
-          `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 5 levels cleared!</p>`,
+          `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 10 levels cleared!</p>`,
           '🔥 Fire Safety: You\'re a champion!',
           '↻ PLAY AGAIN',()=>{G.score=0;G.lives=3;initLevel(1);G.state='play';});
       }else{
@@ -279,7 +281,7 @@ function update(dt){
       G.state='over';
       setTimeout(()=>{
         showOverlay('💥 GAME OVER',
-          `<p>Score: ${G.score}</p><p>Level reached: ${G.level}/5</p>`,
+          `<p>Score: ${G.score}</p><p>Level reached: ${G.level}/10</p>`,
           '🔥 Fire Safety: Never give up!',
           '↻ TRY AGAIN',()=>{G.score=0;G.lives=3;initLevel(1);G.state='play';});
       },600);
@@ -302,7 +304,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='🎈 PICK LEVEL';
   let h='';
-  for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Bounce up and break all the blocks!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');

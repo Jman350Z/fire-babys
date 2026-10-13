@@ -63,7 +63,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LEVEL 1/5</div>
+<div class="pill" id="level">LEVEL 1/10</div>
 <div class="pill" id="shots">🧊 3</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
@@ -182,6 +182,36 @@ function buildLevel(n){
     for(let i=0;i<5;i++)T(cx-120+i*60,gy-240);
     T(cx-60,gy-340);T(cx+60,gy-340);T(cx,gy-420);
     G.shots=5;
+  }else if(n===6){
+    B(cx-160,gy-60);B(cx-80,gy-60);B(cx,gy-60);B(cx+80,gy-60);B(cx+160,gy-60);
+    for(let i=0;i<6;i++)T(cx-150+i*60,gy-220);
+    for(let i=0;i<4;i++)T(cx-90+i*60,gy-330);
+    T(cx-40,gy-420);T(cx+40,gy-420);
+    G.shots=5;
+  }else if(n===7){
+    B(cx-140,gy-60);B(cx+140,gy-60);B(cx-70,gy-140);B(cx+70,gy-140);B(cx,gy-60);
+    for(let i=0;i<5;i++)T(cx-120+i*60,gy-240);
+    for(let i=0;i<4;i++)T(cx-90+i*60,gy-340);
+    T(cx-60,gy-430);T(cx,gy-430);T(cx+60,gy-430);T(cx,gy-160);
+    G.shots=5;
+  }else if(n===8){
+    B(cx-150,gy-60);B(cx-50,gy-60);B(cx+50,gy-60);B(cx+150,gy-60);B(cx-75,gy-140);B(cx+75,gy-140);
+    for(let i=0;i<6;i++)T(cx-150+i*60,gy-230);
+    for(let i=0;i<5;i++)T(cx-120+i*60,gy-330);
+    T(cx-60,gy-430);T(cx,gy-430);T(cx+60,gy-430);
+    G.shots=6;
+  }else if(n===9){
+    B(cx-160,gy-60);B(cx+160,gy-60);B(cx-80,gy-120);B(cx+80,gy-120);B(cx,gy-60);B(cx,gy-180);
+    for(let i=0;i<6;i++)T(cx-150+i*60,gy-250);
+    for(let i=0;i<5;i++)T(cx-120+i*60,gy-350);
+    for(let i=0;i<4;i++)T(cx-90+i*60,gy-440);
+    G.shots=6;
+  }else if(n===10){
+    B(cx-160,gy-60);B(cx+160,gy-60);B(cx-80,gy-120);B(cx+80,gy-120);B(cx,gy-60);B(cx,gy-190);
+    for(let i=0;i<7;i++)T(cx-165+i*55,gy-230);
+    for(let i=0;i<6;i++)T(cx-150+i*60,gy-340);
+    for(let i=0;i<4;i++)T(cx-90+i*60,gy-440);
+    G.shots=6;
   }else{
     B(cx-160,gy-60);B(cx+160,gy-60);B(cx-80,gy-120);B(cx+80,gy-120);B(cx,gy-60);
     for(let i=0;i<6;i++)T(cx-150+i*60,gy-220);
@@ -193,7 +223,7 @@ function buildLevel(n){
   if(G.blocks.length)G.blocks[G.blocks.length-1].bomb=true;
   G.levelStartScore=G.score;
   G.shots=G.blocks.length; // gamer-check: shots must equal flickable blocks, or running out can never trigger the fail state
-  document.getElementById('level').textContent=`LEVEL ${n}/5`;
+  document.getElementById('level').textContent=`LEVEL ${n}/10`;
   document.getElementById('shots').textContent='🧊 '+(G.shots-G.shotsUsed);
 }
 function updateScoreUI(){document.getElementById('score').textContent='⭐ '+G.score;}
@@ -282,7 +312,7 @@ function levelComplete(){
   for(let i=0;i<25;i++){const a=Math.random()*Math.PI*2;
     spawnP(W/2,H/2,Math.cos(a)*300,Math.sin(a)*300,1,'#aee2ff',5);}
   setTimeout(()=>{
-    if(G.level>=5){
+    if(G.level>=10){
       showOverlay('🏆 ICE MASTER!',
         `<div class="stars">★★★</div><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
         '🔥 Fire Safety: You\'re a fire safety champion!',
@@ -360,7 +390,7 @@ let pendingLevel=0;
 function startGame(){audio();const lv=pendingLevel||1;pendingLevel=0;G.level=lv;G.score=0;updateScoreUI();buildLevel(lv);G.state='play';overlay.classList.add('hidden');}
 function selLevel(n){sfx.click();pendingLevel=n;showMathGate();}
 obtn.onclick=()=>{showMathGate();};
-(function(){let h='';for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
+(function(){let h='';for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
 document.getElementById('levelSel').innerHTML=h;})();
 
 /* render */

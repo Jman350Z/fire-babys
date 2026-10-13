@@ -60,7 +60,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LV 1/8</div>
+<div class="pill" id="level">LV 1/13</div>
 <div class="pill" id="stars">⭐ 0/3</div>
 </div>
 <div id="inkbar"><div id="inkfill"></div></div>
@@ -109,6 +109,11 @@ const LEVELS=[
   {sx:0.85,sy:0.15,gx:0.15,gy:0.85,ink:600,obs:[{x:0.4,y:0.4,w:0.2,h:0.2}]},
   {sx:0.1,sy:0.85,gx:0.9,gy:0.15,ink:600,obs:[{x:0.25,y:0.3,w:0.5,h:0.05},{x:0.25,y:0.6,w:0.5,h:0.05}]},
   {sx:0.5,sy:0.1,gx:0.5,gy:0.9,ink:650,obs:[{x:0.2,y:0.35,w:0.25,h:0.05},{x:0.55,y:0.35,w:0.25,h:0.05},{x:0.2,y:0.65,w:0.25,h:0.05},{x:0.55,y:0.65,w:0.25,h:0.05}]},
+  {sx:0.15,sy:0.25,gx:0.85,gy:0.75,ink:600,obs:[{x:0.35,y:0.32,w:0.3,h:0.06},{x:0.35,y:0.62,w:0.3,h:0.06}]},
+  {sx:0.85,sy:0.2,gx:0.15,gy:0.8,ink:625,obs:[{x:0.42,y:0.25,w:0.06,h:0.25},{x:0.42,y:0.6,w:0.06,h:0.25},{x:0.65,y:0.42,w:0.2,h:0.06}]},
+  {sx:0.5,sy:0.12,gx:0.5,gy:0.88,ink:650,obs:[{x:0.2,y:0.35,w:0.25,h:0.05},{x:0.55,y:0.35,w:0.25,h:0.05},{x:0.35,y:0.6,w:0.3,h:0.05}]},
+  {sx:0.1,sy:0.85,gx:0.9,gy:0.15,ink:675,obs:[{x:0.25,y:0.3,w:0.22,h:0.05},{x:0.53,y:0.3,w:0.22,h:0.05},{x:0.25,y:0.6,w:0.22,h:0.05},{x:0.53,y:0.6,w:0.22,h:0.05}]},
+  {sx:0.15,sy:0.15,gx:0.85,gy:0.85,ink:700,obs:[{x:0.3,y:0.28,w:0.18,h:0.05},{x:0.55,y:0.42,w:0.18,h:0.05},{x:0.3,y:0.56,w:0.18,h:0.05},{x:0.55,y:0.7,w:0.18,h:0.05},{x:0.65,y:0.2,w:0.05,h:0.18}]},
 ];
 const G={state:'title',level:1,lines:[],drawing:null,ink:400,maxInk:400,
   ball:null,rolling:false,score:0,time:0,hintT:0,goBtn:{x:0,y:0,w:90,h:44}};
@@ -118,7 +123,7 @@ function initLevel(n){
   G.ball={x:L.sx*W,y:L.sy*H,vx:0,vy:0,r:16};
   G.rolling=false;G.rollT=0;G.stillT=0;G.score=G.score||0;
   G.goBtn={x:W-110,y:H-118,w:90,h:44};
-  document.getElementById('level').textContent=`LV ${n}/8`;
+  document.getElementById('level').textContent=`LV ${n}/13`;
   updateInk();updateHUD();
 }
 function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
@@ -255,9 +260,9 @@ function levelComplete(){
     const a=Math.random()*Math.PI*2;p.vx=Math.cos(a)*250;p.vy=Math.sin(a)*250;
     p.life=0.7;p.max=0.7;p.color='#ffd23f';p.size=4;}
   setTimeout(()=>{
-    if(G.level>=8){
+    if(G.level>=13){
       showOverlay('🏆 MASTER ARTIST!',
-        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 8 levels solved!</p>`,
+        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 13 levels solved!</p>`,
         '🔥 Fire Safety: You\'re a champion!',
         '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
     }else{
@@ -291,7 +296,7 @@ function checkMath(){
 function showLevels(){
   otitle.innerHTML='✏️ PICK LEVEL';
   let h='';
-  for(let i=1;i<=8;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  for(let i=1;i<=13;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Draw lines to guide the fire baby to the goal!</p><div id="lvlSel">${h}</div>`;
   obtn.style.display='none';
   overlay.classList.remove('hidden');
