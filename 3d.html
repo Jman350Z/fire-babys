@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-5NCPLkl89iE3JWI7zMgKrmxLGwJPeXGBV/WMixBFtts=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-EMMglCzGNHlBfB0hlhjFw+zAAUqjpVeb+r3WnGDrDd8=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-gM1ycRtlehMwqo+ojUfndqUD431Rc4tEavT7ASKnAVY=' 'sha256-wV4E/WlR5hhxsE3bbqjuX5nudpgX7sus17tMoFi42T8='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-5NCPLkl89iE3JWI7zMgKrmxLGwJPeXGBV/WMixBFtts=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-EMMglCzGNHlBfB0hlhjFw+zAAUqjpVeb+r3WnGDrDd8=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-F6gojk+upopx6RobQfQ3xAVgAw5E7vJKjHRFGiRkVD0=' 'sha256-wV4E/WlR5hhxsE3bbqjuX5nudpgX7sus17tMoFi42T8='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
 <script src="https://firebabys.io/rating.js"></script>
@@ -3082,6 +3082,7 @@ function showVictoryPanelDefaults(){ /* labels set per victory */ }
 
 /* ---------- tournaments ---------- */
 var tourn={round:0};
+var TOURN_NAMES=['OPENING ROUND','EMBER CLASH','QUARTERFINAL','STORM ROUND','SEMIFINAL','INFERNO ROUND','CHAMPION PATH','FINAL'];
 var RIVAL_PALETTES=[
   {body:'#7a4ad6', dark:'#2a1a55', core:'#b79aff'},
   {body:'#2ad6c6', dark:'#0a4440', core:'#a9fff5'},
@@ -3096,18 +3097,18 @@ function tournamentRound(){
   tourn.round++;
   battleKind='tournament'; state='BATTLE'; battleTime=0;
   arenaCenter.set(0,0,30);
-  var names=['QUARTERFINAL','SEMIFINAL','FINAL'];
+  var names=TOURN_NAMES;
   reviveSquad(false); // full heal between rounds
   townBanner('TOURNAMENT', names[tourn.round-1], 1600, function(){
     spawnRivals(tourn.round);
     document.getElementById('foepill').style.display='block';
-    setObjective('🏆 WIN ROUND '+tourn.round+'/3!');
+    setObjective('🏆 WIN ROUND '+tourn.round+'/'+TOURN_NAMES.length+'!');
   });
 }
 function spawnRivals(round){
   var n=2+round, pal=RIVAL_PALETTES[(round-1)%3];
   for(var i=0;i<n;i++){
-    var boss=(round===3&&i===0);
+    var boss=(round===TOURN_NAMES.length&&i===0);
     var spec={body:pal.body, dark:pal.dark, core:pal.core};
     var g=makeBaby(spec,'villain', boss?1.35:1.0);
     var R=g.userData.R;
@@ -3119,7 +3120,7 @@ function spawnRivals(round){
     scene.add(g);
     var clss=['A','B','C','D'];
     units.push({ group:g, side:'foe', name:boss?'RIVAL CHAMP':'RIVAL CUB', cls:clss[i%4],
-      hp:boss?230:70+round*25, maxHp:boss?230:70+round*25, atk:boss?18:8+round*3,
+      hp:boss?Math.round((70+round*25)*1.3):70+round*25, maxHp:boss?Math.round((70+round*25)*1.3):70+round*25, atk:boss?18:8+round*3,
       speed:5.0, range:2.4, cd:Math.random()*0.8, hpbar:hp, state:'seek', dead:false,
       lunge:0, lungeDir:null, boss:boss, spec:{id:'rival'} });
   }
@@ -3128,7 +3129,7 @@ function spawnRivals(round){
 function tournamentRoundWin(){
   var exp=30*tourn.round;
   grantExpAll(exp); addTotalExp(exp*5);
-  if(tourn.round<3){
+  if(tourn.round<TOURN_NAMES.length){
     showToast('🏆 ROUND '+tourn.round+' WON! +'+exp+' EXP');
     setTimeout(function(){ clearArena(); tournamentRound(); }, 1600);
   } else {

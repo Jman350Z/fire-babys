@@ -41,6 +41,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-
 .card h3{font-size:18px;margin:6px 0;color:#ffd76a}
 .card .mechanic{font-size:13px;color:#c9a06a;font-style:italic;margin-bottom:6px}
 .card .stars{font-size:13px;color:#e8c9a8;margin-bottom:10px}
+.card .tagline{font-size:13px;color:#ffd76a;font-weight:800;margin-bottom:10px}
 .card .play{display:inline-block;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:2px solid #ff6a1a;box-shadow:0 4px 0 #a33c10;font-weight:900;padding:12px 28px;border-radius:999px;text-decoration:none;font-size:16px}
 #gameFrame{position:fixed;inset:0;z-index:200;background:#0c0502;display:none;flex-direction:column}
 #gameFrame.active{display:flex}
@@ -79,63 +80,63 @@ footer{background:rgba(0,0,0,.25);border-top:2px solid rgba(255,106,26,.3);color
 <footer><p>the future is BLAZING FOR FIRE BABYS 🔥</p><p style="font-size:13px;margin-top:8px">All games by Jman350Z &amp; fire team • Kid-safe • Free forever</p></footer>
 <script>
 const GAMES=[
-{n:1,t:"Fire Babys Slingshot Cascade",m:"Slingshot physics",s:"Blaze & Sizzle",u:"/fire-world/slingshot-cascade/",e:"🎯",c:"action"},
+{n:1,t:"Fire Babys Slingshot Cascade",m:"Slingshot physics — 10 rounds, tap powers",s:"Blaze · Aqua · Sparky · Ruko",u:"/fire-world/slingshot-cascade/",e:"🎯",c:"action",tag:"🆕 More levels"},
 {n:2,t:"Ruko's Panic Dash",m:"3-lane endless runner",s:"Ruko & Sizzle",u:"/fire-world/rukos-panic-dash/",e:"😡",c:"action"},
 {n:3,t:"Blaze Runner",m:"Endless runner — jump lava gaps",s:"Blaze",u:"/fire-world/game-02-blaze-runner.html",e:"🏃",c:"action"},
-{n:4,t:"Cinder's Ice Rink Chaos",m:"Flick ice blocks",s:"Blaze & Boulder",u:"/fire-world/games/game-04-cinders-ice-rink-chaos.html",e:"🧊",c:"puzzle"},
-{n:5,t:"Lord Inferno's Ballista Siege",m:"Vertical shooter",s:"Ruko & Sizzle",u:"/fire-world/games/game-05-lord-infernos-ballista-siege.html",e:"🏹",c:"action"},
-{n:6,t:"Blaze's Magma Bounce",m:"Sumo arena bumper",s:"Boulder & Cinder",u:"/fire-world/games/game-06-blazes-magma-bounce.html",e:"💥",c:"action"},
+{n:4,t:"Cinder's Ice Rink Chaos",m:"Flick ice blocks",s:"Blaze & Boulder",u:"/fire-world/games/game-04-cinders-ice-rink-chaos.html",e:"🧊",c:"puzzle",tag:"🆕 More levels"},
+{n:5,t:"Lord Inferno's Ballista Siege",m:"Vertical shooter",s:"Ruko & Sizzle",u:"/fire-world/games/game-05-lord-infernos-ballista-siege.html",e:"🏹",c:"action",tag:"🆕 More levels"},
+{n:6,t:"Blaze's Magma Bounce",m:"Sumo arena bumper",s:"Boulder & Cinder",u:"/fire-world/games/game-06-blazes-magma-bounce.html",e:"💥",c:"action",tag:"🆕 More levels"},
 {n:7,t:"Ruko's Turbo Drift",m:"Rhythm tap timing",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-07-rukos-turbo-drift.html",e:"🎵",c:"music"},
 {n:8,t:"Sizzle's Spark Jump",m:"Doodle jump hopper",s:"Cinder & Blaze",u:"/fire-world/games/game-08-sizzles-spark-jump.html",e:"🦘",c:"action"},
-{n:9,t:"Ember Cascade",m:"Lane tower defense",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-09-ember-cascade.html",e:"🏰",c:"strategy"},
-{n:10,t:"Caldera Climb",m:"Match-3 swap",s:"Blaze & Boulder",u:"/fire-world/games/game-10-caldera-climb.html",e:"💎",c:"puzzle"},
+{n:9,t:"Ember Cascade",m:"Lane tower defense",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-09-ember-cascade.html",e:"🏰",c:"strategy",tag:"🆕 More levels"},
+{n:10,t:"Caldera Climb",m:"Match-3 swap",s:"Blaze & Boulder",u:"/fire-world/games/game-10-caldera-climb.html",e:"💎",c:"puzzle",tag:"🆕 More levels"},
 {n:11,t:"Magma Trench Dodge",m:"One-tap auto-runner",s:"Ruko & Sizzle",u:"/fire-world/games/game-11-magma-trench-dodge.html",e:"⚡",c:"action"},
 {n:12,t:"Volcanic Pinball",m:"Pinball flippers",s:"Boulder & Cinder",u:"/fire-world/games/game-12-volcanic-pinball.html",e:"🎱",c:"action"},
-{n:13,t:"Pyra Prime Defense",m:"Breakout paddle",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-13-pyra-prime-defense.html",e:"🧱",c:"action"},
+{n:13,t:"Pyra Prime Defense",m:"Breakout paddle",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-13-pyra-prime-defense.html",e:"🧱",c:"action",tag:"🆕 More levels"},
 {n:14,t:"Sparky Speedway",m:"Snake grow",s:"Cinder & Blaze",u:"/fire-world/games/game-14-sparky-speedway.html",e:"🐍",c:"action"},
-{n:15,t:"Cinder's Melt-Down",m:"Memory match cards",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-15-cinders-melt-down.html",e:"🃏",c:"puzzle"},
+{n:15,t:"Cinder's Melt-Down",m:"Memory match cards",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-15-cinders-melt-down.html",e:"🃏",c:"puzzle",tag:"🆕 More levels"},
 {n:16,t:"Inferno Drop",m:"Whack-a-mole tap",s:"Blaze & Boulder",u:"/fire-world/games/game-16-inferno-drop.html",e:"🔨",c:"action"},
 {n:17,t:"Flame Sprint 2D",m:"Stack tower timing",s:"Ruko & Sizzle",u:"/fire-world/games/game-17-flame-sprint-2d.html",e:"🗼",c:"puzzle"},
-{n:18,t:"Blaze's Thermal Run",m:"Maze navigator",s:"Boulder & Cinder",u:"/fire-world/games/game-18-blazes-thermal-run.html",e:"🌀",c:"puzzle"},
-{n:19,t:"Ruko's Lava Leap",m:"Bubble shooter",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-19-rukos-lava-leap.html",e:"🫧",c:"puzzle"},
+{n:18,t:"Blaze's Thermal Run",m:"Maze navigator",s:"Boulder & Cinder",u:"/fire-world/games/game-18-blazes-thermal-run.html",e:"🌀",c:"puzzle",tag:"🆕 More levels"},
+{n:19,t:"Ruko's Lava Leap",m:"Bubble shooter",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-19-rukos-lava-leap.html",e:"🫧",c:"puzzle",tag:"🆕 More levels"},
 {n:20,t:"Boulder's Fortress",m:"Flappy flyer",s:"Cinder & Blaze",u:"/fire-world/games/game-20-boulders-fortress.html",e:"🎈",c:"action"},
-{n:21,t:"Sizzle's Puzzle Snap",m:"Jigsaw puzzle",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-21-sizzles-target-pop.html",e:"🧩",c:"puzzle"},
+{n:21,t:"Sizzle's Puzzle Snap",m:"Jigsaw puzzle",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-21-sizzles-target-pop.html",e:"🧩",c:"puzzle",tag:"🆕 More levels"},
 {n:22,t:"Magma Tap Smash",m:"Tap reflex",s:"Blaze & Boulder",u:"/fire-world/games/game-22-magma-block-breaker.html",e:"👆",c:"action"},
 {n:23,t:"Crater Catcher",m:"One-tap bounce",s:"Ruko & Sizzle",u:"/fire-world/games/game-23-crater-catcher.html",e:"🏓",c:"action"},
 {n:24,t:"Ash Storm Survivor",m:"Pong vs AI",s:"Boulder & Cinder",u:"/fire-world/games/game-24-ash-storm-survivor.html",e:"🏸",c:"action"},
-{n:25,t:"Lava Line Draw",m:"Top-down racer",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-25-lava-line-draw.html",e:"🏎️",c:"action"},
+{n:25,t:"Lava Line Draw",m:"Top-down racer",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-25-lava-line-draw.html",e:"🏎️",c:"action",tag:"🆕 More levels"},
 {n:26,t:"Pyra Paddle Battle",m:"Catch falling items",s:"Cinder & Blaze",u:"/fire-world/games/game-26-pyra-paddle-battle.html",e:"🧺",c:"action"},
 {n:27,t:"Ember Bounce 2D",m:"Cannon aim & power",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-27-ember-bounce-2d.html",e:"💣",c:"puzzle"},
-{n:28,t:"Thermal Tug-of-War",m:"Pipe connector",s:"Blaze & Boulder",u:"/fire-world/games/game-28-thermal-tug-of-war.html",e:"🔧",c:"puzzle"},
-{n:29,t:"Blaze's Jump Quest",m:"Simon memory sequence",s:"Ruko & Sizzle",u:"/fire-world/games/game-29-blazes-jump-quest.html",e:"🔔",c:"music"},
+{n:28,t:"Thermal Tug-of-War",m:"Pipe connector",s:"Blaze & Boulder",u:"/fire-world/games/game-28-thermal-tug-of-war.html",e:"🔧",c:"puzzle",tag:"🆕 More levels"},
+{n:29,t:"Blaze's Jump Quest",m:"Simon memory sequence",s:"Ruko & Sizzle",u:"/fire-world/games/game-29-blazes-jump-quest.html",e:"🔔",c:"music",tag:"🆕 More levels"},
 {n:30,t:"Ruko's Dash Blitz",m:"Balloon pop",s:"Boulder & Cinder",u:"/fire-world/games/game-30-rukos-dash-blitz.html",e:"🎈",c:"action"},
-{n:31,t:"Boulder's Rampart",m:"Fall-down dodger",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-31-boulders-rampart.html",e:"🕳️",c:"action"},
+{n:31,t:"Boulder's Rampart",m:"Fall-down dodger",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-31-boulders-rampart.html",e:"🕳️",c:"action",tag:"🆕 More levels"},
 {n:32,t:"Cinder's Glide",m:"Laser mirror puzzle",s:"Cinder & Blaze",u:"/fire-world/games/game-32-cinders-glide.html",e:"🔦",c:"puzzle"},
 {n:33,t:"Inferno Aim",m:"Gravity flip runner",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-33-inferno-aim.html",e:"🔄",c:"action"},
 {n:34,t:"Spark Jump Arcade",m:"Button masher",s:"Blaze & Boulder",u:"/fire-world/games/game-34-spark-jump-arcade.html",e:"💪",c:"action"},
-{n:35,t:"Lava Moat Defense",m:"Spot the difference",s:"Ruko & Sizzle",u:"/fire-world/games/game-35-lava-moat-defense.html",e:"👀",c:"puzzle"},
+{n:35,t:"Lava Moat Defense",m:"Spot the difference",s:"Ruko & Sizzle",u:"/fire-world/games/game-35-lava-moat-defense.html",e:"👀",c:"puzzle",tag:"🆕 More levels"},
 {n:36,t:"Magma Drop Physics",m:"Sliding tile puzzle",s:"Boulder & Cinder",u:"/fire-world/games/game-36-magma-drop-physics.html",e:"🔲",c:"puzzle"},
 {n:37,t:"Volcanic Stack Smash",m:"Shooting gallery",s:"Sizzle & Lord Inferno",u:"/fire-world/games/game-37-volcanic-stack-smash.html",e:"🎯",c:"action"},
-{n:38,t:"Fire Baby Rally",m:"Thrust flyer",s:"Cinder & Blaze",u:"/fire-world/games/game-38-fire-baby-rally.html",e:"🚀",c:"action"},
-{n:39,t:"Caldera Bounce",m:"Vertical breakout",s:"Blaze & Cinder",u:"/fire-world/games/game-39-caldera-bounce.html",e:"🔥",c:"action"},
+{n:38,t:"Fire Baby Rally",m:"Thrust flyer",s:"Cinder & Blaze",u:"/fire-world/games/game-38-fire-baby-rally.html",e:"🚀",c:"action",tag:"🆕 More levels"},
+{n:39,t:"Caldera Bounce",m:"Vertical breakout",s:"Blaze & Cinder",u:"/fire-world/games/game-39-caldera-bounce.html",e:"🔥",c:"action",tag:"🆕 More levels"},
 {n:40,t:"Sizzle's Spark Run",m:"3-lane spark runner",s:"Sizzle & Blaze",u:"/fire-world/games/game-40-sizzles-spark-run.html",e:"✨",c:"action"},
-{n:41,t:"Blaze's Inferno Roll",m:"Maze roller",s:"Blaze & Boulder",u:"/fire-world/games/game-41-blazes-inferno-roll.html",e:"🌀",c:"puzzle"},
-{n:42,t:"Ruko's Speed Trap",m:"Reaction timing",s:"Ruko & Sizzle",u:"/fire-world/games/game-42-rukos-speed-trap.html",e:"⚡",c:"action"},
-{n:43,t:"Boulder's Blockade",m:"Sliding block puzzle",s:"Boulder & Cinder",u:"/fire-world/games/game-43-boulders-blockade.html",e:"🧱",c:"puzzle"},
-{n:44,t:"Cinder's Slide",m:"Sliding tile puzzle",s:"Cinder & Blaze",u:"/fire-world/games/game-44-cinders-slide.html",e:"🧩",c:"puzzle"},
+{n:41,t:"Blaze's Inferno Roll",m:"Maze roller",s:"Blaze & Boulder",u:"/fire-world/games/game-41-blazes-inferno-roll.html",e:"🌀",c:"puzzle",tag:"🆕 More levels"},
+{n:42,t:"Ruko's Speed Trap",m:"Reaction timing",s:"Ruko & Sizzle",u:"/fire-world/games/game-42-rukos-speed-trap.html",e:"⚡",c:"action",tag:"🆕 More levels"},
+{n:43,t:"Boulder's Blockade",m:"Sliding block puzzle",s:"Boulder & Cinder",u:"/fire-world/games/game-43-boulders-blockade.html",e:"🧱",c:"puzzle",tag:"🆕 More levels"},
+{n:44,t:"Cinder's Slide",m:"Sliding tile puzzle",s:"Cinder & Blaze",u:"/fire-world/games/game-44-cinders-slide.html",e:"🧩",c:"puzzle",tag:"🆕 More levels"},
 {n:45,t:"Lord Inferno's Strike",m:"Lightning defense",s:"Lord Inferno & Ruko",u:"/fire-world/games/game-45-lord-infernos-strike.html",e:"🌩️",c:"action"},
 {n:46,t:"Magma Jump 2D",m:"Wall-jump climber",s:"Blaze & Sizzle",u:"/fire-world/games/game-46-magma-jump-2d.html",e:"🧗",c:"action"},
-{n:47,t:"Pyra Prime Dash",m:"Gate dasher",s:"Pyra & Blaze",u:"/fire-world/games/game-47-pyra-prime-dash.html",e:"💨",c:"action"},
+{n:47,t:"Pyra Prime Dash",m:"Gate dasher",s:"Pyra & Blaze",u:"/fire-world/games/game-47-pyra-prime-dash.html",e:"💨",c:"action",tag:"🆕 More levels"},
 {n:48,t:"Ash Heap Hero",m:"Sorting hero",s:"Cinder & Boulder",u:"/fire-world/games/game-48-ash-heap-hero.html",e:"🦸",c:"puzzle"},
-{n:49,t:"Thermal Track",m:"Trace the track",s:"Blaze & Ruko",u:"/fire-world/games/game-49-thermal-track.html",e:"🛤️",c:"puzzle"},
-{n:50,t:"Ember Bounce Master",m:"Vertical breakout",s:"Ember & Blaze",u:"/fire-world/games/game-50-ember-bounce-master.html",e:"🔥",c:"action"},
+{n:49,t:"Thermal Track",m:"Trace the track",s:"Blaze & Ruko",u:"/fire-world/games/game-49-thermal-track.html",e:"🛤️",c:"puzzle",tag:"🆕 More levels"},
+{n:50,t:"Ember Bounce Master",m:"Vertical breakout",s:"Ember & Blaze",u:"/fire-world/games/game-50-ember-bounce-master.html",e:"🔥",c:"action",tag:"🆕 More levels"},
 {n:51,t:"Volcanic Target",m:"Aim trainer",s:"Ruko & Sizzle",u:"/fire-world/games/game-51-volcanic-target.html",e:"🎯",c:"action"},
 {n:52,t:"Lava Rush Arcade",m:"Endless runner",s:"Blaze & Boulder",u:"/fire-world/games/game-52-lava-rush-arcade.html",e:"🌋",c:"action"},
-{n:53,t:"Flame Drop Physics",m:"Physics puzzler",s:"Blaze & Cinder",u:"/fire-world/games/game-53-flame-drop-physics.html",e:"💧",c:"puzzle"},
-{n:54,t:"Blaze's Zenith",m:"Peak climber",s:"Blaze & Sizzle",u:"/fire-world/games/game-54-blazes-zenith.html",e:"⛰️",c:"action"},
-{n:55,t:"Ruko's Final Dash",m:"3-boss rush finale",s:"Ruko & Sizzle",u:"/fire-world/games/game-55-rukos-final-dash.html",e:"👹",c:"action"},
-{n:56,t:"Tristan's Dark Knight Rescue",m:"15-stage melee platformer",s:"Prince Tristan",u:"/fire-world/tristans-dark-knight-rescue/",e:"⚔️",c:"action"},
-{n:57,t:"Trinity's Holy Lightning Rescue",m:"15-stage lightning platformer",s:"Princess Trinity",u:"/fire-world/trinitys-holy-lightning-rescue/",e:"⚡",c:"action"}
+{n:53,t:"Flame Drop Physics",m:"Physics puzzler",s:"Blaze & Cinder",u:"/fire-world/games/game-53-flame-drop-physics.html",e:"💧",c:"puzzle",tag:"🆕 More levels"},
+{n:54,t:"Blaze's Zenith",m:"Peak climber",s:"Blaze & Sizzle",u:"/fire-world/games/game-54-blazes-zenith.html",e:"⛰️",c:"action",tag:"🆕 More levels"},
+{n:55,t:"Ruko's Final Dash",m:"3-boss rush finale",s:"Ruko & Sizzle",u:"/fire-world/games/game-55-rukos-final-dash.html",e:"👹",c:"action",tag:"🆕 More levels"},
+{n:56,t:"Tristan's Dark Knight Rescue",m:"15-stage melee platformer",s:"Prince Tristan",u:"/fire-world/tristans-dark-knight-rescue/",e:"⚔️",c:"action",tag:"🆕 More levels"},
+{n:57,t:"Trinity's Holy Lightning Rescue",m:"15-stage lightning platformer",s:"Princess Trinity",u:"/fire-world/trinitys-holy-lightning-rescue/",e:"⚡",c:"action",tag:"🆕 More levels"}
 ];
 const CATS={all:"🌟 All 57",action:"💥 Action",puzzle:"🧩 Puzzle",strategy:"♟️ Strategy",music:"🎵 Music"};
 let activeCat='all';
@@ -146,7 +147,7 @@ const q=document.getElementById('search').value.toLowerCase();
 const f=GAMES.filter(g=>(activeCat==='all'||g.c===activeCat)&&(g.t.toLowerCase().includes(q)||g.m.toLowerCase().includes(q)));
 document.getElementById('noResults').classList.toggle('hidden',f.length>0);
 document.getElementById('count').textContent=`Showing ${f.length} of 57 games`;
-document.getElementById('grid').innerHTML=f.map(g=>`<div class="card" onclick="playGame('${g.u}','${g.t.replace(/'/g,"\\'")}')"><div class="thumb">${g.e}</div><div class="body"><span class="num">GAME #${g.n}</span><h3>${g.t}</h3><div class="mechanic">${g.m}</div><div class="stars">⭐ ${g.s}</div><a class="play" href="${g.u}">▶ Play</a></div></div>`).join('');
+document.getElementById('grid').innerHTML=f.map(g=>`<div class="card" onclick="playGame('${g.u}','${g.t.replace(/'/g,"\\'")}')"><div class="thumb">${g.e}</div><div class="body"><span class="num">GAME #${g.n}</span><h3>${g.t}</h3><div class="mechanic">${g.m}</div><div class="stars">⭐ ${g.s}</div>${g.tag?'<div class="tagline">'+g.tag+'</div>':''}<a class="play" href="${g.u}">▶ Play</a></div></div>`).join('');
 }
 function playGame(url,title){document.getElementById('frameTitle').textContent='🎮 '+title;document.getElementById('gameIframe').src=url;document.getElementById('gameFrame').classList.add('active');document.body.style.overflow='hidden';}
 function closeGame(){document.getElementById('gameIframe').src='';document.getElementById('gameFrame').classList.remove('active');document.body.style.overflow='';}
