@@ -51,6 +51,30 @@ footer{border-top:2px solid rgba(255,106,26,.3);padding:28px 0;text-align:center
 footer a{color:#d8a05c;text-decoration:none;margin:0 8px}
 @media(max-width:480px){.page{padding:36px 0}.card .face{font-size:52px}}
 </style>
+<style data-fbvis-cycle1>
+/* fbvis-cycle1: card presentation pass — medallion portrait frames, per-character
+   element tints on the FRAME only (faces/art unchanged), chips, focus states. */
+.card{position:relative;overflow:hidden;--t1:#ff6a1a;--t2:#7a2d00}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,transparent,var(--t1),transparent)}
+.grid:not(.villains) .card:nth-child(1){--t1:#ff6a1a;--t2:#7a2d00}
+.grid:not(.villains) .card:nth-child(2){--t1:#c98a4a;--t2:#5f3d17}
+.grid:not(.villains) .card:nth-child(3){--t1:#ffd23f;--t2:#8a6410}
+.grid:not(.villains) .card:nth-child(4){--t1:#ff4a3a;--t2:#7c1d12}
+.grid:not(.villains) .card:nth-child(5){--t1:#ffb347;--t2:#8a4d0f}
+.grid.villains .card:nth-child(1){--t1:#8a9a5b;--t2:#3d4726}
+.grid.villains .card:nth-child(2){--t1:#e8c93a;--t2:#6e5c0e}
+.grid.villains .card:nth-child(3){--t1:#4aa8ff;--t2:#173f6e}
+.grid.villains .card:nth-child(4){--t1:#9aa4b0;--t2:#3c434c}
+.grid.villains .card:nth-child(5){--t1:#ff2a1a;--t2:#6e0d05}
+.card .face{display:flex;align-items:center;justify-content:center;width:112px;height:112px;margin:2px auto 14px;border-radius:50%;font-size:56px;filter:none;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.28),transparent 55%),radial-gradient(circle at 50% 45%,var(--t1),var(--t2));border:3px solid var(--t1);box-shadow:0 10px 24px rgba(0,0,0,.45),0 0 28px var(--t2),inset 0 3px 8px rgba(255,255,255,.35),inset 0 -8px 14px rgba(0,0,0,.35)}
+.card .role{display:inline-block;padding:3px 14px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16)}
+.card .move{box-shadow:0 3px 10px rgba(0,0,0,.3)}
+h2{position:relative;padding-bottom:14px}
+h2::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:72px;height:4px;border-radius:2px;background:linear-gradient(90deg,#ff6a1a,#ffd76a)}
+a:focus-visible,.btn:focus-visible{outline:3px solid #ffd76a;outline-offset:3px;border-radius:8px}
+@media(max-width:480px){.card .face{width:92px;height:92px;font-size:46px}}
+@media (prefers-reduced-motion:reduce){.card,.btn,nav a.nl{transition:none}.card:hover{transform:none}}
+</style>
 </head>
 <body>
 <nav><div class="wrap">
