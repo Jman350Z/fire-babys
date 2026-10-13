@@ -42,7 +42,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏓 PYRA PADDLE BATTLE</h1>
-<div id="obody"><p>It's you vs. the machine!</p><p><b>DRAG</b> or move your <b>mouse</b> to slide your paddle! First to 7 points wins. Watch for speed boosts and curve balls! Every 4th paddle hit is a 🔥 <b>Flame Surge</b> shot (+25% ball speed)!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
+<div id="obody"><p>It's you vs. the machine!</p><p><b>DRAG</b> or move your <b>mouse</b> to slide your paddle! First to 7 points wins. Watch for speed boosts and curve balls! Every 4th paddle hit is a 🔥 <b>Flame Surge</b> shot (+25% ball speed)!</p><div id="diff"><button class="dbtn" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn sel" data-d="2">😈 Hard</button></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A good rally takes practice — practice your fire drill too!</div>
 <button id="obtn">▶ PLAY</button>
@@ -74,9 +74,9 @@ const sfx={
 const DIFFS=[
   {aiSpeed:280,aiErr:90,ballSpeed:420},
   {aiSpeed:380,aiErr:45,ballSpeed:520},
-  {aiSpeed:480,aiErr:18,ballSpeed:620},
+  {aiSpeed:560,aiErr:8,ballSpeed:620},
 ];
-const G={state:'title',diff:0,ps:0,as:0,surge:0,
+const G={state:'title',diff:2,ps:0,as:0,surge:0,
   py:0,ay:0,bx:0,by:0,bvx:0,bvy:0,serveT:0,
   time:0,shake:0,trail:[],spin:0};
 const PW=14,PH=110,BR=11;
@@ -130,12 +130,33 @@ function update(dt){
   // AI
   let aiTarget=G.by;
   if(G.bvx>0){ // ball coming toward AI
-    // predict
-    const t=(W-30-G.bx)/G.bvx;
-    aiTarget=G.by+G.bvy*t;
-    // bounce prediction (simple)
-    aiTarget=((aiTarget%(H*2))+H*2)%(H*2);
-    if(aiTarget>H)aiTarget=H*2-aiTarget;
+    let predY;
+    if(G.diff===2){
+      // HARD bot (2026-10-12): full trajectory read — steps the ball
+      // forward with the game's own wall + spin-curve physics, so it
+      // tracks curving balls the old straight-line guess missed...
+      let sx=G.bx,sy=G.by,svx=G.bvx,svy=G.bvy,ss=G.spin;
+      const plane=W-30-PW-BR, sdt=1/120;
+      for(let s=0;s<480&&sx<plane;s++){
+        svy+=ss*sdt; ss*=Math.pow(0.99,sdt*60);
+        sx+=svx*sdt; sy+=svy*sdt;
+        if(sy<BR){sy=BR;svy=Math.abs(svy);}
+        if(sy>H-BR){sy=H-BR;svy=-Math.abs(svy);}
+      }
+      predY=sy;
+      // ...and it AIMS the return away from the player's paddle by
+      // offsetting the contact point (rel>0 sends the ball downward).
+      const want=(G.py<predY)?0.55:-0.55;
+      aiTarget=predY-want*(PH/2);
+      if(Math.abs(aiTarget-predY)>PH/2-BR-4)aiTarget=predY; // never whiff on purpose
+    }else{
+      // easy/medium: straight-line prediction, no spin read
+      const t=(W-30-G.bx)/G.bvx;
+      predY=G.by+G.bvy*t;
+      predY=((predY%(H*2))+H*2)%(H*2);
+      if(predY>H)predY=H*2-predY;
+      aiTarget=predY;
+    }
     aiTarget+=(Math.random()-0.5)*D.aiErr;
   }else{
     aiTarget=H/2+Math.sin(G.time*1.5)*60; // idle drift

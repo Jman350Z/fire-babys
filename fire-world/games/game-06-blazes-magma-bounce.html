@@ -116,10 +116,10 @@ function addTrauma(t){trauma=Math.min(1,trauma+t);}
 const G={state:'title',round:1,score:0,roundStartScore:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0,surgeT:0,pickup:null,pickupT:8};
 function makeFighter(x,y,isPlayer,round){
   return{x,y,vx:0,vy:0,r:isPlayer?26:24+round*2,isPlayer,
-    aiT:Math.random()*2,target:null,dead:false,outT:0,
+    aiT:Math.random()*2,target:null,dead:false,outT:0,surgeT:0,
     squash:0,flash:0,
     speed:isPlayer?0:60+round*18+Math.random()*30,
-    aggro:0.5+round*0.12};
+    aggro:Math.min(0.95,0.78+round*0.05)};
 }
 function startRound(n){
   G.round=n;G.roundStartScore=G.score;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
@@ -148,6 +148,7 @@ function update(dt){
   const all=[G.player,...G.foes].filter(f=>!f.dead);
   // player drag handled by input; apply friction
   for(const f of all){
+    if(f.surgeT>0)f.surgeT-=dt;
     if(f.isPlayer&&f.held){ // held players freeze, but the lava edge still counts (was a hold-to-cheat exploit)
       const _hed=distToRingEdge(f);
       if(_hed>RING_R+f.r){f.outT+=dt;
@@ -177,19 +178,41 @@ function update(dt){
           mx=mx*0.3+(CX-f.x)/edgeD*0.9;my=my*0.3+(CY-f.y)/edgeD*0.9;
           const m=Math.hypot(mx,my)||1;mx/=m;my/=m;
         }
-        // dash occasionally
-        if(f.aiT<=0&&bd<200&&Math.random()<f.aggro){
-          f.vx+=mx*f.speed*4*_esc;f.vy+=my*f.speed*4*_esc;f.aiT=1.5+Math.random()*2;
+        // HARD bots (2026-10-12): contest the Magma Surge orb — the foe
+        // closest to it breaks off and takes it (unless the player is
+        // about to grab it first). A surged golem hits harder + faster.
+        let orbRun=false;
+        if(G.pickup&&G.player&&!G.player.dead){
+          const pd=Math.hypot(G.player.x-G.pickup.x,G.player.y-G.pickup.y);
+          const md2=Math.hypot(f.x-G.pickup.x,f.y-G.pickup.y);
+          let closest=true;
+          for(const o of G.foes){if(o!==f&&!o.dead&&Math.hypot(o.x-G.pickup.x,o.y-G.pickup.y)<md2){closest=false;break;}}
+          if(closest&&pd>130){
+            orbRun=true;
+            const od=Math.hypot(G.pickup.x-f.x,G.pickup.y-f.y)||1;
+            mx=(G.pickup.x-f.x)/od;my=(G.pickup.y-f.y)/od;
+            if(edgeD>RING_R*0.85){mx=mx*0.3+(CX-f.x)/edgeD*0.9;my=my*0.3+(CY-f.y)/edgeD*0.9;const m3=Math.hypot(mx,my)||1;mx/=m3;my/=m3;}
+          }
+        }
+        // dash occasionally — HARD: dashes LEAD the target (aim where
+        // the opponent is heading, visible info only), more often,
+        // from farther out, and never while running for the orb
+        if(!orbRun&&f.aiT<=0&&bd<230&&Math.random()<f.aggro){
+          const lead=Math.min(0.35,bd/600);
+          const lx=best.x+(best.vx||0)*lead-f.x,ly=best.y+(best.vy||0)*lead-f.y,ld=Math.hypot(lx,ly)||1;
+          let dmx=lx/ld,dmy=ly/ld;
+          if(edgeD>RING_R*0.85){dmx=dmx*0.3+(CX-f.x)/edgeD*0.9;dmy=dmy*0.3+(CY-f.y)/edgeD*0.9;const m2=Math.hypot(dmx,dmy)||1;dmx/=m2;dmy/=m2;}
+          f.vx+=dmx*f.speed*4*_esc;f.vy+=dmy*f.speed*4*_esc;f.aiT=0.8+Math.random()*0.9;
           for(let i=0;i<6;i++)spawnP(f.x,f.y,(Math.random()-0.5)*150,(Math.random()-0.5)*150,0.3,'#8a6a4a',3);
         }else{
-          f.vx+=mx*f.speed*dt*3*_esc;f.vy+=my*f.speed*dt*3*_esc;
+          f.vx+=mx*f.speed*dt*3*_esc*(f.surgeT>0?1.4:1);f.vy+=my*f.speed*dt*3*_esc*(f.surgeT>0?1.4:1);
         }
       }
     }
     // friction (stone on stone)
     const _fr=Math.pow(0.985,dt*60);f.vx*=_fr;f.vy*=_fr; // dt-scaled friction
     // cap speed
-    const sp=Math.hypot(f.vx,f.vy),max=f.isPlayer?900:500;
+    const sp=Math.hypot(f.vx,f.vy),max=f.isPlayer?900:(f.surgeT>0?660:500);
     if(sp>max){f.vx=f.vx/sp*max;f.vy=f.vy/sp*max;}
     f.x+=f.vx*dt;f.y+=f.vy*dt;
     f.squash*=0.9;f.flash=Math.max(0,f.flash-dt*4);
@@ -221,7 +244,16 @@ function update(dt){
       tone(500,1400,0.25,'sine',0.16);tone(750,1800,0.2,'sine',0.1,0.07);
       spawnText(G.player.x,G.player.y-40,'🌋 MAGMA SURGE!','#ff9a3a',20);
       for(let i=0;i<12;i++)spawnP(G.player.x,G.player.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#ff9a3a',4);
-    }}
+    }
+    // HARD bots (2026-10-12): a golem that reaches the orb first takes
+    // the Surge for itself (same 25% bump power, 5s, faster cap)
+    if(G.pickup){for(const f of G.foes){if(!f.dead&&Math.hypot(f.x-G.pickup.x,f.y-G.pickup.y)<f.r+G.pickup.r){
+      f.surgeT=5;G.pickup=null;G.pickupT=10+Math.random()*4;
+      tone(300,900,0.25,'sine',0.14);
+      spawnText(f.x,f.y-40,'🌋 GOLEM SURGE!','#ff6a8a',20);
+      for(let i=0;i<12;i++)spawnP(f.x,f.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#ff6a8a',4);
+      break;}}}
+  }
   // collisions: bump!
   for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
     const a=all[i],b=all[j];
@@ -235,8 +267,8 @@ function update(dt){
       const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
       if(rel<0){
         const imp=-rel*1.4;
-        // Magma Surge: Blaze's bumps hit foes 25% harder while surging
-        const aFac=(a.isPlayer&&G.surgeT>0)?1.25:1, bFac=(b.isPlayer&&G.surgeT>0)?1.25:1;
+        // Magma Surge: bumps hit 25% harder while surging (player OR a surged golem)
+        const aFac=((a.isPlayer&&G.surgeT>0)||a.surgeT>0)?1.25:1, bFac=((b.isPlayer&&G.surgeT>0)||b.surgeT>0)?1.25:1;
         a.vx-=nx*imp*(b.r/total)*bFac;a.vy-=ny*imp*(b.r/total)*bFac;
         b.vx+=nx*imp*(a.r/total)*aFac;b.vy+=ny*imp*(a.r/total)*aFac;
         a.squash=0.3;b.squash=0.3;a.flash=1;b.flash=1;

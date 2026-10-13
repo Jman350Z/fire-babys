@@ -47,7 +47,7 @@ canvas{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🪢 THERMAL TUG-OF-WAR</h1>
-<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><p>⚓ <b>EMBER ANCHOR:</b> taps charge the meter — at 20, press <b>SPACE</b> (or tap the ⚓ SLAM button when it glows) for a big Anchor Slam pull! Desktop: <b>←/→, A/D or Enter</b> also pull!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
+<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><p>⚓ <b>EMBER ANCHOR:</b> taps charge the meter — at 20, press <b>SPACE</b> (or tap the ⚓ SLAM button when it glows) for a big Anchor Slam pull! Desktop: <b>←/→, A/D or Enter</b> also pull!</p><div id="diff"><button class="dbtn" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn sel" data-d="2">😈 Hard</button></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Pull together — teamwork beats fire every time!</div>
 <button id="obtn">▶ PLAY</button>
@@ -82,7 +82,7 @@ const DIFFS=[
   {ai:3.2,name:'Medium'},
   {ai:4.2,name:'Hard'},
 ];
-const G={state:'title',diff:0,round:1,pyou:0,pai:0,anchor:0,
+const G={state:'title',diff:2,round:1,pyou:0,pai:0,anchor:0,
   pos:0, // -1 (ai wins) to +1 (you win)
   counting:0,countT:0,tapTimes:[],time:0,shake:0,ropeTug:0};
 function reset(){

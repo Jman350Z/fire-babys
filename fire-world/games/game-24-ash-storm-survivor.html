@@ -215,16 +215,30 @@ function update(dt){
   // BUG FIX: shot/nova-killed enemies were still moved (and could damage the player) for one frame
   G.enemies=G.enemies.filter(e=>!e.dead);
   // enemies
+  // player velocity estimate (feeds the HARD dasher lead-aim — visible info only)
+  const _pvx=(G.px-(G._lx==null?G.px:G._lx))/Math.max(dt,0.001), _pvy=(G.py-(G._ly==null?G.py:G._ly))/Math.max(dt,0.001);
+  G._lx=G.px; G._ly=G.py;
+  const _pvm=Math.hypot(_pvx,_pvy), _pvS=_pvm>420?420/_pvm:1, pvx=_pvx*_pvS, pvy=_pvy*_pvS;
   for(const e of G.enemies){
     e.t+=dt;e.hitT=Math.max(0,e.hitT-dt);
     const dx=G.px-e.x,dy=G.py-e.y,d=Math.hypot(dx,dy)||1;
     let sp=e.speed;
     if(e.type==='dasher'){
       e.dashT-=dt;
-      if(e.dashT<=0){e.dashT=2.5;e.dashDx=dx/d;e.dashDy=dy/d;sfx.dash();}
+      if(e.dashT<=0){e.dashT=2.5;
+        // HARD (2026-10-12): dash at where the player is HEADING, not where they are
+        const _lead=Math.min(0.4,(d/(e.speed*3))*0.8);
+        const _ax=G.px+pvx*_lead-e.x, _ay=G.py+pvy*_lead-e.y, _ad=Math.hypot(_ax,_ay)||1;
+        e.dashDx=_ax/_ad;e.dashDy=_ay/_ad;sfx.dash();}
       if(e.dashT>2){sp*=3;e.x+=e.dashDx*sp*dt;e.y+=e.dashDy*sp*dt;}
       else{e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt;}
-    }else{e.x+=dx/d*sp*dt;e.y+=dy/d*sp*dt;}
+    }else{
+      // HARD (2026-10-12): chasers fan out with a weaving offset instead
+      // of stacking into a single blob on the player's position
+      let ox=0,oy=0;
+      if(e.type==='chaser'){const w=Math.sin(e.t*0.9+e.r)*0.35;ox=(-dy/d)*w;oy=(dx/d)*w;}
+      e.x+=(dx/d+ox)*sp*dt;e.y+=(dy/d+oy)*sp*dt;
+    }
     // touch player
     if(d<e.r+18&&G.invuln<=0){
       G.hp-=e.dmg;G.invuln=0.5;sfx.hurt();G.shake=0.35;
