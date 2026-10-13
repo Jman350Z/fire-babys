@@ -15,19 +15,26 @@
   .ov { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center;
     justify-content:flex-start; z-index:10; pointer-events:none; text-align:center;
     overflow-y:auto; -webkit-overflow-scrolling:touch; padding:4vh 0; }
-  .ov .panel { pointer-events:auto; background:rgba(10,4,2,.82); border:2px solid rgba(255,140,46,.55);
+  .ov .panel { pointer-events:auto; background:linear-gradient(165deg,rgba(42,19,8,.88),rgba(10,4,2,.92) 55%,rgba(26,10,4,.90));
+    border:2px solid rgba(255,140,46,.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
     border-radius:18px; padding:26px 34px; max-width:88vw; margin:auto;
     max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
-    box-shadow:0 0 60px rgba(255,90,20,.25), inset 0 0 40px rgba(255,90,20,.06); }
+    box-shadow:0 24px 60px rgba(0,0,0,.55), 0 0 60px rgba(255,90,20,.28), inset 0 1px 0 rgba(255,220,160,.20), inset 0 0 40px rgba(255,90,20,.06);
+    animation:panelIn .45s cubic-bezier(.2,.9,.25,1.15); }
+  @keyframes panelIn { from{opacity:0; transform:translateY(14px) scale(.96)} to{opacity:1; transform:none} }
   h1.logo { font-size:min(15vw,84px); font-weight:900; letter-spacing:2px; line-height:1;
     background:linear-gradient(180deg,#fff7c0 5%,#ffd76a 30%,#ff8c2e 62%,#e8352c 100%);
+    background-size:100% 180%; animation:logoSheen 5s ease-in-out infinite;
     -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 4px 18px rgba(255,110,20,.55)); }
+  @keyframes logoSheen { 0%,100%{background-position:50% 0%} 50%{background-position:50% 100%} }
   .sub { color:#ffb347; font-weight:700; letter-spacing:3px; font-size:13px; margin-top:10px; }
   .tag { color:#c98a5a; font-size:12px; margin-top:8px; letter-spacing:1px; }
-  .bigbtn { pointer-events:auto; margin-top:22px; background:linear-gradient(180deg,#ff7a2e,#e8352c);
+  .bigbtn { pointer-events:auto; margin-top:22px; background:linear-gradient(180deg,#ffb03a 0%,#ff7a2e 45%,#e8352c 100%);
     color:#fff; border:none; border-radius:999px; font-size:20px; font-weight:900; letter-spacing:2px;
-    padding:16px 52px; cursor:pointer; box-shadow:0 6px 30px rgba(255,80,20,.5); animation:pulse 1.6s infinite; }
+    padding:16px 52px; cursor:pointer; box-shadow:0 6px 30px rgba(255,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45), inset 0 -8px 16px rgba(120,10,0,.30);
+    animation:pulse 1.6s infinite; transition:transform .08s, filter .15s; }
+  .bigbtn:hover { filter:brightness(1.08); }
   .bigbtn:active { transform:scale(.94); }
   /* TAP TO START rebuild: big touch target, instant tap response, no double-tap zoom */
   #startbtn{ touch-action:manipulation; -webkit-tap-highlight-color:transparent;
@@ -43,8 +50,9 @@
   @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
   #topbar { position:fixed; top:0; left:0; right:0; z-index:9; display:none;
     justify-content:space-between; align-items:center; padding:10px 14px; pointer-events:none; }
-  #topbar .pill { background:rgba(10,4,2,.7); border:1px solid rgba(255,140,46,.4); color:#ffd76a;
-    border-radius:999px; padding:6px 14px; font-size:13px; font-weight:800; letter-spacing:1px; }
+  #topbar .pill { background:linear-gradient(180deg,rgba(32,15,6,.78),rgba(10,4,2,.80)); border:1px solid rgba(255,140,46,.4); color:#ffd76a;
+    border-radius:999px; padding:6px 14px; font-size:13px; font-weight:800; letter-spacing:1px;
+    box-shadow:0 3px 10px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,220,160,.18); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
   #fps { color:#7dff9a; }
   #foepill { display:none; }
   #objbanner { position:fixed; top:84px; left:50%; transform:translateX(-50%); z-index:9; display:none; text-align:center;
@@ -74,7 +82,7 @@
   #mpblkbtn.active { border-color:#fff; box-shadow:0 0 26px #4db2ff, 0 4px 0 rgba(0,0,0,.35); }
   #mpjumpbtn { background:radial-gradient(circle at 35% 30%,#d6ffe9,#2edf7a 70%); }
   #vign { position:fixed; inset:0; z-index:5; pointer-events:none;
-    background:radial-gradient(ellipse at center, transparent 55%, rgba(10,2,0,.55) 100%); }
+    background:radial-gradient(ellipse at center, transparent 52%, rgba(16,4,0,.38) 78%, rgba(8,1,0,.62) 100%); }
   .stat { color:#ffe9d6; font-size:15px; margin:4px 0; font-weight:600; }
   .stat b { color:#ffd76a; }
   #clskey { display:flex; gap:10px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
@@ -83,10 +91,13 @@
   /* mode hub */
   #hubbtns { display:flex; flex-direction:column; gap:10px; margin-top:18px; width:min(78vw,340px); }
   .modebtn { pointer-events:auto; display:flex; align-items:center; gap:12px; text-align:left;
-    background:rgba(30,14,6,.9); border:2px solid rgba(255,150,60,.4); border-radius:14px;
-    padding:12px 16px; cursor:pointer; color:#ffe9d6; }
+    background:linear-gradient(180deg,rgba(48,21,9,.92),rgba(22,10,4,.95)); border:2px solid rgba(255,150,60,.4); border-radius:14px;
+    padding:12px 16px; cursor:pointer; color:#ffe9d6;
+    box-shadow:0 5px 14px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,220,160,.14);
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
   .modebtn:active { transform:scale(.96); }
-  .modebtn .ic { font-size:30px; }
+  .modebtn:hover { transform:translateY(-2px); border-color:rgba(255,180,90,.78); box-shadow:0 9px 22px rgba(0,0,0,.48), 0 0 16px rgba(255,140,40,.28), inset 0 1px 0 rgba(255,220,160,.18); }
+  .modebtn .ic { font-size:30px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.55)); }
   .modebtn .nm { font:900 16px system-ui; letter-spacing:1px; color:#ffd76a; }
   .modebtn .ds { font:600 11px system-ui; color:#c98a5a; margin-top:2px; }
   /* leaderboards */
@@ -111,6 +122,16 @@
     padding:5px 10px; color:#ffd76a; font:800 11px system-ui; letter-spacing:1px; }
   #expfillwrap { width:110px; height:6px; background:rgba(255,255,255,.12); border-radius:3px; margin-top:4px; }
   #expfill { height:100%; width:0%; background:linear-gradient(90deg,#ffb347,#7dff9a); border-radius:3px; }
+  /* premium visual pass 2026-10-12: toast depth, name-field focus glow, tab + swatch motion, joystick glow */
+  #toast { background:linear-gradient(180deg,rgba(42,19,7,.95),rgba(12,5,2,.96)); box-shadow:0 18px 44px rgba(0,0,0,.55), 0 0 40px rgba(255,180,60,.5), inset 0 1px 0 rgba(255,230,180,.25); }
+  #pname { transition:border-color .15s, box-shadow .15s; }
+  #pname:focus { outline:none; border-color:#ffd76a; box-shadow:0 0 14px rgba(255,180,60,.45); }
+  .lbtab { transition:background .15s, border-color .15s, transform .1s; }
+  .lbtab:active { transform:scale(.95); }
+  .pcsw { transition:transform .12s, box-shadow .12s, border-color .12s; }
+  .pcsw:hover { transform:scale(1.1); }
+  #knob { box-shadow:0 0 22px rgba(255,140,40,.85), inset 0 2px 5px rgba(255,255,255,.45); }
+  #joy { box-shadow:inset 0 0 24px rgba(0,0,0,.35), 0 0 18px rgba(255,120,40,.18); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
 </style>
 <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "103dfc2c031d45238949156f1859ca69"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
@@ -680,7 +701,7 @@ var FBQ=(function(){
     shadowSoft:(q==='high'),
     shadowSize:(q==='high'?2048:1024),
     particleScale:(q==='high'?1:q==='medium'?0.6:0.35),
-    emberCount:(q==='high'?220:q==='medium'?120:60),
+    emberCount:(q==='high'?260:q==='medium'?150:60),
     botHz:(q==='low'?10:20)
   };
 })();
@@ -849,8 +870,8 @@ function flameTexture(){
 function glowTexture(){
   var S=128, c=cnv(S,S), x=c.getContext('2d');
   var g=x.createRadialGradient(S/2,S/2,2, S/2,S/2,S/2);
-  g.addColorStop(0,'rgba(255,190,90,0.85)'); g.addColorStop(0.5,'rgba(255,120,30,0.35)');
-  g.addColorStop(1,'rgba(255,90,20,0)');
+  g.addColorStop(0,'rgba(255,205,105,0.9)'); g.addColorStop(0.32,'rgba(255,140,45,0.42)');
+  g.addColorStop(0.68,'rgba(255,95,25,0.14)'); g.addColorStop(1,'rgba(255,90,20,0)');
   x.fillStyle=g; x.fillRect(0,0,S,S);
   return tex(c);
 }
@@ -1033,8 +1054,8 @@ function buildSceneryFX(){
   }
   var eg=new THREE.BufferGeometry();
   eg.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  var em=new THREE.PointsMaterial({size:0.42, map:GLOW_TEX, transparent:true,
-    blending:THREE.AdditiveBlending, depthWrite:false, color:0xffb050, opacity:0.9});
+  var em=new THREE.PointsMaterial({size:0.5, map:GLOW_TEX, transparent:true,
+    blending:THREE.AdditiveBlending, depthWrite:false, color:0xffb050, opacity:0.95});
   __embers=new THREE.Points(eg, em);
   __embers.userData={spd:spd, N:N};
   __embers.frustumCulled=false;
@@ -1077,6 +1098,7 @@ function skyTexture(){
   g.addColorStop(0,'#2f7fe0');
   g.addColorStop(0.34,'#8fd0ff');
   g.addColorStop(0.52,'#ffe3b3');
+  g.addColorStop(0.58,'#ffc98a');
   g.addColorStop(0.64,'#ff9a52');
   g.addColorStop(0.74,'#c65a28');
   g.addColorStop(0.86,'#5a2818');
@@ -1098,6 +1120,10 @@ function skyTexture(){
   hg.addColorStop(0,'rgba(255,170,80,0)');
   hg.addColorStop(1,'rgba(255,170,80,0.35)');
   x.fillStyle=hg; x.fillRect(0,S*0.5,256,S*0.3);
+  // low sun glow pooled on the horizon (premium pass)
+  var sg2=x.createRadialGradient(184,S*0.62,4, 184,S*0.62,120);
+  sg2.addColorStop(0,'rgba(255,228,165,0.55)'); sg2.addColorStop(1,'rgba(255,228,165,0)');
+  x.fillStyle=sg2; x.fillRect(64,Math.round(S*0.62)-120,240,240);
   return tex(c);
 }
 function worldGroundTexture(){
@@ -1107,12 +1133,20 @@ function worldGroundTexture(){
     var y0=zToY(b.z0), y1=zToY(b.z1);
     x.fillStyle=b.base; x.fillRect(0,y0,W,y1-y0);
   });
-  // speckle + scorch everywhere
-  for(var i=0;i<5200;i++){
+  // speckle + scorch everywhere (denser + warm flecks for a richer ground read)
+  for(var i=0;i<7000;i++){
     var v=Math.random();
-    x.fillStyle = v<0.5 ? 'rgba(28,20,16,0.22)' : (v<0.8 ? 'rgba(130,110,90,0.16)' : 'rgba(16,12,10,0.3)');
+    x.fillStyle = v<0.45 ? 'rgba(28,20,16,0.22)' : (v<0.72 ? 'rgba(130,110,90,0.16)' : (v<0.88 ? 'rgba(16,12,10,0.3)' : 'rgba(255,190,120,0.10)'));
     var s=1+Math.random()*4;
     x.fillRect(Math.random()*W, Math.random()*H, s, s);
+  }
+  // soft warm light pools in the ember village band (torchlight feel)
+  var py0=zToY(52), py1=zToY(18);
+  for(var p9=0;p9<10;p9++){
+    var px2=Math.random()*W, py2=py0+Math.random()*(py1-py0), pr2=26+Math.random()*44;
+    var pg2=x.createRadialGradient(px2,py2,2,px2,py2,pr2);
+    pg2.addColorStop(0,'rgba(255,170,80,0.13)'); pg2.addColorStop(1,'rgba(255,170,80,0)');
+    x.fillStyle=pg2; x.beginPath(); x.arc(px2,py2,pr2,0,Math.PI*2); x.fill();
   }
   // grease slicks (yellow blobs in grease band)
   var gy0=zToY(18), gy1=zToY(-2);
@@ -1133,7 +1167,7 @@ function worldGroundTexture(){
   }
   // lava glow patches (volcano band)
   var vy0=zToY(-62), vy1=zToY(-118);
-  for(var l2=0;l2<14;l2++){
+  for(var l2=0;l2<18;l2++){
     var lx=Math.random()*W, ly=vy0+Math.random()*(vy1-vy0), lr=14+Math.random()*36;
     var lg=x.createRadialGradient(lx,ly,2,lx,ly,lr);
     lg.addColorStop(0,'rgba(255,110,30,0.5)'); lg.addColorStop(1,'rgba(255,110,30,0)');
@@ -3402,7 +3436,7 @@ function init(){
   renderer.shadowMap.type=FBQ.shadowSoft?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
   if(THREE.ACESFilmicToneMapping!==undefined){
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.2;
+    renderer.toneMappingExposure=1.25;
   }
 
   scene=new THREE.Scene();
@@ -3410,7 +3444,7 @@ function init(){
   camera=new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 400);
   camera.position.set(0,10.5,53); camera.lookAt(0,1.5,34);
 
-  scene.add(new THREE.HemisphereLight(0xffd9a8, 0x6a4028, 1.05));
+  scene.add(new THREE.HemisphereLight(0xffd9a8, 0x6a4028, 1.12));
   var dir=new THREE.DirectionalLight(0xffe0b0, 1.25); dir.position.set(-14,26,52);
   dir.castShadow=true;
   dir.shadow.mapSize.set(FBQ.shadowSize,FBQ.shadowSize);
@@ -3420,6 +3454,8 @@ function init(){
   dir.shadow.bias=-0.0004; dir.shadow.normalBias=0.5;
   scene.add(dir); scene.add(dir.target); window.__sun=dir;
   var fill=new THREE.DirectionalLight(0x7aa8ff, 0.45); fill.position.set(12,16,-14); scene.add(fill);
+  // premium pass: warm rim/back light so characters separate from the scenery
+  var rim=new THREE.DirectionalLight(0xff8a40, 0.55); rim.position.set(18,10,-34); scene.add(rim);
 
   FLAME_TEX=flameTexture(); GLOW_TEX=glowTexture();
   buildOpenWorld();
@@ -3434,6 +3470,10 @@ function init(){
     var tag=nameTag(HEROES[i].name,'#ffd76a'); tag.position.y=2.9; g.add(tag);
     scene.add(g); titleCast.push(g);
   }
+  // premium pass: warm pool of stage light under the title crew
+  var stageGlow=new THREE.Mesh(new THREE.PlaneGeometry(30,13),
+    new THREE.MeshBasicMaterial({ map:GLOW_TEX, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.5 }));
+  stageGlow.rotation.x=-Math.PI/2; stageGlow.position.set(0,0.07,40); scene.add(stageGlow);
 
   bindInput();
   clock=new THREE.Clock();
