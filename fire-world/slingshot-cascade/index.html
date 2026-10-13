@@ -34,6 +34,14 @@ canvas{display:block;width:100%;height:100%}
 .lvlBtn.locked{opacity:.35;border-color:#555;color:#888}
 .lvlBtn.done{border-color:#4caf50}
 .stars{color:#ffd23f;font-size:20px;letter-spacing:2px}
+#levelSel{flex-wrap:wrap;justify-content:center;max-width:96vw}
+#heroBar{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;z-index:12;display:flex;gap:6px;background:rgba(0,0,0,.45);padding:6px;border-radius:16px}
+.heroPick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.heroChip{border:3px solid #7a4a2a;background:#2a1a0e;color:#ffe9d6;border-radius:14px;padding:6px 10px;font-size:13px;font-weight:800;cursor:pointer;line-height:1.25;min-width:64px}
+.heroChip small{display:block;font-size:11px;color:#ffd23f;font-weight:700}
+.heroChip.sel{border-color:#ffd23f;background:#5a2c10;box-shadow:0 0 0 2px #ff6a1a,0 0 14px rgba(255,210,63,.55);transform:scale(1.06)}
+#heroBar .heroChip{min-width:0;padding:5px 8px;font-size:12px}
+@media(max-width:600px){#heroBar{bottom:58px;gap:4px}#heroBar .heroChip{font-size:11px;padding:4px 6px}.heroChip{min-width:56px}}
 #sysbtns{position:fixed;top:60px;right:12px;z-index:15;display:flex;gap:8px}
 #sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
 #pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
@@ -70,6 +78,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="combo"></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off (M)">🔊</button></div>
+<div id="heroBar" class="heroPickSlot" role="group" aria-label="Choose your hero"></div>
 <div id="pausedTxt" class="hidden">⏸ Paused</div>
 <canvas id="c"></canvas>
 <div id="overlay">
@@ -149,7 +158,19 @@ function addHitStop(t){hitStop=Math.max(hitStop,t);}
 
 /* ---------------- Game state ---------------- */
 const G={state:'title',level:1,score:0,shots:0,shotsUsed:0,combo:0,comboT:0,best:0,time:0,
-  blocks:[],pig:null,sling:null,dragging:false,projectiles:[],stars:0};
+  blocks:[],pig:null,sling:null,dragging:false,projectiles:[],stars:0,hero:'blaze'};
+
+/* ---------------- Heroes & specials (Jeff's spec) ---------------- */
+const HEROES={
+  blaze:{name:'Blaze',emoji:'🔥',sIcon:'💥',sName:'Explosion',trail:'#ff8a2a'},
+  aqua:{name:'Aqua',emoji:'💧',sIcon:'💦',sName:'Splash Damage',trail:'#5ab8e8'},
+  sparky:{name:'Sparky',emoji:'⚡',sIcon:'🧲',sName:'Magnetic',trail:'#ffd23f'},
+  ruko:{name:'Ruko',emoji:'🌀',sIcon:'🌪',sName:'Tornado',trail:'#ff7043'}
+};
+function heroChipsHTML(){return Object.keys(HEROES).map(k=>{const h=HEROES[k];
+  return `<button class="heroChip${G.hero===k?' sel':''}" data-hero="${k}" onclick="event.stopPropagation();selHero('${k}')">${h.emoji} ${h.name}<small>${h.sIcon} ${h.sName}</small></button>`;}).join('');}
+function refreshHeroChips(){document.querySelectorAll('.heroPickSlot').forEach(el=>{el.innerHTML=heroChipsHTML();});}
+function selHero(k){if(!HEROES[k])return;G.hero=k;try{sfx.click();}catch(e){}refreshHeroChips();}
 try{G.best=parseInt(localStorage.getItem('sling_best')||'0',10)||0;}catch(e){}
 const GRAV=1600;
 const groundY=()=>H-70;
@@ -184,6 +205,45 @@ function buildLevel(n){
     });
     B(W*0.665,gy-30,40,60,'crystal',1);
     G.shots=5;
+  }else if(n===6){
+    // Wide Tower — single broad tower, rock hp2 + crystal mix
+    B(W*0.60,gy-50,32,100,'rock',2);B(W*0.67,gy-50,32,100,'crystal',1);B(W*0.74,gy-50,32,100,'rock',2);
+    B(W*0.67,gy-112,230,24,'crystal',1);
+    B(W*0.635,gy-155,30,62,'rock',2);B(W*0.705,gy-155,30,62,'crystal',1);
+    B(W*0.67,gy-198,180,24,'rock',2);
+    B(W*0.67,gy-235,30,50,'crystal',1);
+    G.shots=4;
+  }else if(n===7){
+    // Twin Huts — two short towers + center crystal
+    [0.56,0.76].forEach(bx=>{
+      B(W*bx,gy-40,30,80,'rock',2);B(W*bx+46,gy-40,30,80,'crystal',1);
+      B(W*bx+23,gy-92,106,22,'rock',2);
+      B(W*bx+23,gy-128,30,50,'crystal',1);
+    });
+    B(W*0.685,gy-30,40,60,'crystal',1);
+    G.shots=5;
+  }else if(n===8){
+    // Big Pyramid — the L3 pyramid loop pattern at 5 rows
+    for(let r=0;r<5;r++)for(let i=0;i<5-r;i++)
+      B(W*0.58+i*34+r*17,gy-25-r*48,30,44,r%2?'crystal':'rock',r%2?1:2);
+    G.shots=5;
+  }else if(n===9){
+    // Twin Towers II — L4 twin towers with hp3 rock bases only (uppers stay hp1-2)
+    [0.55,0.78].forEach(bx=>{
+      B(W*bx,gy-50,30,100,'rock',3);B(W*bx+44,gy-50,30,100,'rock',3);
+      B(W*bx,gy-115,104,22,'crystal',1);
+      B(W*bx+22,gy-155,30,60,'crystal',1);
+    });
+    B(W*0.665,gy-30,40,60,'crystal',1);
+    G.shots=6;
+  }else if(n===10){
+    // Fortress Remix — L5 fortress layout, crystals swapped onto the beams
+    for(let i=0;i<5;i++)B(W*0.55+i*52,gy-60,34,120,'rock',3);
+    B(W*0.55,gy-135,290,24,'crystal',1);
+    for(let i=0;i<3;i++)B(W*0.60+i*80,gy-175,30,60,'rock',2);
+    B(W*0.60,gy-215,240,22,'crystal',1);
+    B(W*0.70,gy-255,30,60,'rock',2);
+    G.shots=6;
   }else{
     // fortress
     for(let i=0;i<5;i++)B(W*0.55+i*52,gy-60,34,120,'rock',3);
@@ -195,7 +255,7 @@ function buildLevel(n){
   }
   G.sling={x:Math.max(90,W*0.14),y:gy-110};
   G.shotsUsed=0;G.combo=0;
-  document.getElementById('level').textContent='LEVEL '+n+'/5';
+  document.getElementById('level').textContent='LEVEL '+n+'/10';
   document.getElementById('shots').textContent='🎯 '+G.shots;
   document.getElementById('best').textContent='🏆 '+G.best;
 }
@@ -203,10 +263,93 @@ function updateScoreUI(){document.getElementById('score').textContent='⭐ '+G.s
 
 /* ---------------- Physics ---------------- */
 function rectHit(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
+/* ---------------- Hero specials: armed in flight, once per launch ---------------- */
+function trySpecial(){
+  if(G.state!=='play')return false;
+  const pr=G.projectiles.find(p=>p.live&&!p.specialUsed&&p.y<groundY()-20);
+  if(!pr)return false;
+  pr.pendingSpecial=true; // executed inside updatePhysics()'s projectile loop
+  return true;
+}
+function heroFx(pr,n,color){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=80+Math.random()*320;
+  spawnP(pr.x,pr.y,Math.cos(a)*sp,Math.sin(a)*sp,0.6,color,5);}}
+function executeSpecial(pr){
+  if(pr.specialUsed)return;pr.specialUsed=true;
+  const hero=pr.hero||'blaze';
+  if(hero==='blaze'){
+    // EXPLOSION: instant blast, 2 damage + radial knockback; hero's flight ENDS
+    addTrauma(0.9);addHitStop(0.08);sfx.shatter();sfx.hit();
+    heroFx(pr,26,'#ffb347');heroFx(pr,14,'#ff6a1a');
+    spawnText(pr.x,pr.y-44,'💥 BOOM!','#ffd23f',28);
+    for(const b of G.blocks){
+      if(b.dead)continue;
+      const dx=b.x-pr.x,dy=b.y-pr.y,d=Math.hypot(dx,dy);
+      if(d<=130){
+        b.hp-=2;b.settled=false;b.hitT=0.12;
+        const nx=d?dx/d:0,ny=d?dy/d:-1;
+        b.vx+=nx*380;b.vy+=ny*380-80;b.vr+=(Math.random()-0.5)*6;
+        for(let i=0;i<5;i++)spawnP(b.x,b.y,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.5,b.type==='crystal'?'#7fd4ff':'#a08a6a',4);
+        if(b.hp<=0)destroyBlock(b,pr);
+      }
+    }
+    pr.live=false;
+  }else if(hero==='aqua'){
+    // SPLASH DAMAGE: burst, 1 damage + small knockback; hero KEEPS flying
+    addTrauma(0.35);sfx.shatter();
+    heroFx(pr,20,'#7fd4ff');heroFx(pr,8,'#aee8ff');
+    spawnText(pr.x,pr.y-44,'💦 SPLASH!','#aee8ff',24);
+    for(const b of G.blocks){
+      if(b.dead)continue;
+      const dx=b.x-pr.x,dy=b.y-pr.y,d=Math.hypot(dx,dy);
+      if(d<=100){
+        b.hp-=1;b.settled=false;b.hitT=0.12;
+        const nx=d?dx/d:0,ny=d?dy/d:-1;
+        b.vx+=nx*170;b.vy+=ny*170-50;
+        for(let i=0;i<4;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.4,'#7fd4ff',4);
+        if(b.hp<=0)destroyBlock(b,pr);
+      }
+    }
+  }else if(hero==='sparky'){
+    // MAGNETIC: 0.45s pull toward the hero (applied per-frame in applyMagnet)
+    pr.magnetT=0.45;addTrauma(0.2);sfx.stretch();
+    heroFx(pr,14,'#ffd23f');
+    spawnText(pr.x,pr.y-44,'🧲 MAGNET!','#ffd23f',24);
+  }else if(hero==='ruko'){
+    // TORNADO: instant whirlwind, upward + sideways scatter with spin; hero KEEPS flying
+    addTrauma(0.5);addHitStop(0.03);sfx.launch();
+    heroFx(pr,22,'#ffccbc');heroFx(pr,10,'#ff7043');
+    spawnText(pr.x,pr.y-44,'🌪 TORNADO!','#ffccbc',24);
+    for(const b of G.blocks){
+      if(b.dead)continue;
+      const dx=b.x-pr.x,dy=b.y-pr.y,d=Math.hypot(dx,dy);
+      if(d<=140){
+        b.settled=false;b.hitT=0.12;
+        const nx=d?-dy/d:1,ny=d?dx/d:0; // tangential swirl
+        b.vx+=nx*380+(Math.random()-0.5)*220;
+        b.vy+=-320-Math.random()*220;
+        b.vr+=(Math.random()-0.5)*16;
+      }
+    }
+  }
+}
+function applyMagnet(pr,dt){
+  // per-frame pull next to projectile physics; settled=false required or blocks never integrate
+  spawnP(pr.x+(Math.random()-0.5)*30,pr.y+(Math.random()-0.5)*30,(Math.random()-0.5)*60,(Math.random()-0.5)*60,0.25,'#ffd23f',3);
+  for(const b of G.blocks){
+    if(b.dead)continue;
+    const dx=pr.x-b.x,dy=pr.y-b.y,d=Math.hypot(dx,dy);
+    if(d<=170&&d>1){
+      b.settled=false;b.hitT=0.05;
+      b.vx+=dx/d*1500*dt;b.vy+=dy/d*1500*dt;
+    }
+  }
+}
 function updatePhysics(dt){
   // projectiles
   for(const pr of G.projectiles){
     if(!pr.live)continue;
+    if(pr.pendingSpecial){pr.pendingSpecial=false;executeSpecial(pr);if(!pr.live)continue;}
+    if(pr.magnetT>0){pr.magnetT-=dt;applyMagnet(pr,dt);}
     pr.vy+=GRAV*dt;
     pr.x+=pr.vx*dt;pr.y+=pr.vy*dt;pr.rot+=pr.vr*dt;
     // squash on fast movement
@@ -297,6 +440,7 @@ let dragX=0,dragY=0;
 function getPos(e){const t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY};}
 function slingReady(){return G.state==='play'&&!G.dragging&&G.projectiles.length===0&&(G.shots-G.shotsUsed)>0;}
 canvas.addEventListener('pointerdown',e=>{
+  if(trySpecial())return; // mid-flight tap fires the hero special (once per launch)
   if(!slingReady())return;
   const p=getPos(e),s=G.sling;
   if(Math.hypot(p.x-s.x,p.y-s.y)<70){G.dragging=true;dragX=p.x;dragY=p.y;sfx.stretch();canvas.setPointerCapture(e.pointerId);}
@@ -316,7 +460,7 @@ canvas.addEventListener('pointerup',e=>{
   const power=Math.hypot(dx,dy);
   if(power<25)return; // too weak
   // launch!
-  const pr={x:s.x,y:s.y,vx:dx*7.5,vy:dy*7.5-150,rot:0,vr:8,live:true,restT:0,squash:0,trail:[]};
+  const pr={x:s.x,y:s.y,vx:dx*7.5,vy:dy*7.5-150,rot:0,vr:8,live:true,restT:0,squash:0,trail:[],hero:G.hero,specialUsed:false,pendingSpecial:false,magnetT:0};
   G.projectiles.push(pr);
   G.shotsUsed++;G.combo=0;
   document.getElementById('shots').textContent='🎯 '+(G.shots-G.shotsUsed);
@@ -334,7 +478,7 @@ function levelComplete(){
   for(let i=0;i<30;i++)spawnP(W/2,H/2,(Math.random()-0.5)*600,(Math.random()-0.5)*600,1,'#ffd23f',6);
   setTimeout(()=>sfx.star(0),300);setTimeout(()=>sfx.star(1),600);setTimeout(()=>sfx.star(2),900);
   setTimeout(()=>{
-    if(G.level>=5){gameComplete();}
+    if(G.level>=10){gameComplete();}
     else showOverlay('⭐ LEVEL '+G.level+' CLEAR!',
       `<div class="stars">${'★'.repeat(G.stars)}${'☆'.repeat(3-G.stars)}</div><p>Score: ${G.score}</p><p>Bonus: +${bonus}</p>`,
       '🔥 Fire Safety: Know two ways out of every room in case of fire!',
@@ -351,7 +495,7 @@ function levelFailed(){
 function gameComplete(){
   G.state='done';sfx.win();
   showOverlay('🏆 YOU DID IT!',
-    `<p>All 5 levels cleared!</p><p style="font-size:28px;font-weight:900;color:#ffd23f">Final Score: ${G.score}</p><p>Best: ${G.best}</p>`,
+    `<p>All 10 levels cleared!</p><p style="font-size:28px;font-weight:900;color:#ffd23f">Final Score: ${G.score}</p><p>Best: ${G.best}</p>`,
     '🔥 Fire Safety: You\'re a fire safety champion! Share what you learned!',
     '↻ PLAY AGAIN',()=>{G.level=1;G.score=0;updateScoreUI();buildLevel(1);G.state='play';});
 }
@@ -380,8 +524,9 @@ function showTitle(){
   const lv=document.getElementById('levelSel');
   // level select (all unlocked for kids)
   let h='';
-  for(let i=1;i<=5;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
-  obody.innerHTML=`<p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Smash every crystal tower. Fewer shots = more stars!</p><div id="levelSel">${h}</div>`;
+  for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
+  obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Smash every crystal tower. Fewer shots = more stars!</p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
+  refreshHeroChips();
   obtn.textContent='▶ PLAY';
   obtn.onclick=()=>{showMathGate();};
   overlay.classList.remove('hidden');
@@ -390,23 +535,52 @@ function selLevel(n){sfx.click();G.level=n;G.score=0;updateScoreUI();mathgate.cl
 obtn.onclick=()=>{showMathGate();};
 
 /* ---------------- Rendering ---------------- */
-function drawBlaze(x,y,r,squash,rot){
+const HERO_ART={
+  blaze:{glow:'rgba(255,140,0,',body:['#ffe9a0','#ff8a2a','#e8352c'],tip:'#ff6a1a'},
+  aqua:{glow:'rgba(80,170,255,',body:['#d8f6ff','#3fa9f5','#1668b8'],tip:'#7fd4ff'},
+  sparky:{glow:'rgba(255,210,63,',body:['#fff9c4','#ffd23f','#f59e0b'],tip:'#ffea00'},
+  ruko:{glow:'rgba(255,87,34,',body:['#ffd0b0','#ff7043','#b71c1c'],tip:'#ff5722'}
+};
+function drawHero(x,y,r,squash,rot,hero){
+  const art=HERO_ART[hero]||HERO_ART.blaze;
   ctx.save();ctx.translate(x,y);ctx.rotate(rot||0);
   ctx.scale(1+squash,1-squash);
   // glow
   const gl=ctx.createRadialGradient(0,0,r*0.5,0,0,r*2);
-  gl.addColorStop(0,'rgba(255,140,0,0.35)');gl.addColorStop(1,'rgba(255,140,0,0)');
+  gl.addColorStop(0,art.glow+'0.35)');gl.addColorStop(1,art.glow+'0)');
   ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,r*2,0,Math.PI*2);ctx.fill();
   // body
   const g=ctx.createRadialGradient(-r*0.3,-r*0.35,r*0.2,0,0,r);
-  g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff8a2a');g.addColorStop(1,'#e8352c');
+  g.addColorStop(0,art.body[0]);g.addColorStop(0.5,art.body[1]);g.addColorStop(1,art.body[2]);
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
-  // flame tip
+  // hero tip (same code-art style per hero)
   const w=Math.sin(G.time*10)*3;
-  ctx.fillStyle='#ff6a1a';
-  ctx.beginPath();ctx.moveTo(-r*0.5,-r*0.7);
-  ctx.quadraticCurveTo(w,-r*1.7,r*0.5,-r*0.7);
-  ctx.quadraticCurveTo(0,-r*1.1,-r*0.5,-r*0.7);ctx.fill();
+  ctx.fillStyle=art.tip;
+  ctx.beginPath();
+  if(hero==='aqua'){
+    // droplet tip
+    ctx.moveTo(w*0.4,-r*1.7);
+    ctx.quadraticCurveTo(r*0.55,-r*0.95,r*0.42,-r*0.68);
+    ctx.quadraticCurveTo(0,-r*1.05,-r*0.42,-r*0.68);
+    ctx.quadraticCurveTo(-r*0.55,-r*0.95,w*0.4,-r*1.7);
+  }else if(hero==='sparky'){
+    // spark (lightning) tip
+    ctx.moveTo(-r*0.08,-r*1.8);ctx.lineTo(r*0.4,-r*0.95);ctx.lineTo(r*0.06,-r*0.95);
+    ctx.lineTo(r*0.3,-r*0.6);ctx.lineTo(-r*0.32,-r*1.05);ctx.lineTo(-r*0.02,-r*1.05);ctx.closePath();
+  }else if(hero==='ruko'){
+    // swirl tip: spiral curls
+    ctx.moveTo(-r*0.5,-r*0.7);
+    ctx.quadraticCurveTo(w,-r*1.55,r*0.42,-r*1.05);
+    ctx.quadraticCurveTo(r*0.05,-r*1.3,-r*0.12,-r*0.95);
+    ctx.quadraticCurveTo(-r*0.45,-r*1.15,-r*0.5,-r*0.7);
+    ctx.quadraticCurveTo(0,-r*1.05,-r*0.5,-r*0.7);
+  }else{
+    // Blaze flame tip (unchanged)
+    ctx.moveTo(-r*0.5,-r*0.7);
+    ctx.quadraticCurveTo(w,-r*1.7,r*0.5,-r*0.7);
+    ctx.quadraticCurveTo(0,-r*1.1,-r*0.5,-r*0.7);
+  }
+  ctx.fill();
   // face
   ctx.fillStyle='#2b1a0e';
   const blink=(Math.sin(G.time*0.7)>0.97)?0.15:1;
@@ -419,6 +593,7 @@ function drawBlaze(x,y,r,squash,rot){
   ctx.beginPath();ctx.arc(-r*0.55,r*0.15,r*0.12,0,Math.PI*2);ctx.arc(r*0.55,r*0.15,r*0.12,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
+function drawBlaze(x,y,r,squash,rot){drawHero(x,y,r,squash,rot,'blaze');}
 function drawBlock(b){
   ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.rot||0);
   if(b.hitT>0)ctx.globalAlpha=0.7;
@@ -493,7 +668,7 @@ function render(){
     ctx.beginPath();ctx.moveTo(s.x-34,s.y-52);ctx.lineTo(bx,by);ctx.stroke();
     ctx.beginPath();ctx.moveTo(s.x+34,s.y-52);ctx.lineTo(bx,by);ctx.stroke();
     // Blaze in sling or dragging
-    if(slingReady()||G.dragging)drawBlaze(bx,by-6,20,G.dragging?0.15:Math.sin(G.time*3)*0.05,0);
+    if(slingReady()||G.dragging)drawHero(bx,by-6,20,G.dragging?0.15:Math.sin(G.time*3)*0.05,0,G.hero);
     // trajectory dots
     if(G.dragging){
       const dx=s.x-dragX,dy=s.y-dragY;
@@ -523,10 +698,19 @@ function render(){
     if(!pr.live)continue;
     // trail
     pr.trail.push({x:pr.x,y:pr.y});if(pr.trail.length>10)pr.trail.shift();
-    pr.trail.forEach((t,i)=>{ctx.globalAlpha=i/10*0.4;ctx.fillStyle='#ff8a2a';
+    pr.trail.forEach((t,i)=>{ctx.globalAlpha=i/10*0.4;ctx.fillStyle=(HEROES[pr.hero]||HEROES.blaze).trail;
       ctx.beginPath();ctx.arc(t.x,t.y,10*i/10,0,Math.PI*2);ctx.fill();});
     ctx.globalAlpha=1;
-    drawBlaze(pr.x,pr.y,19,pr.squash,pr.rot);
+    drawHero(pr.x,pr.y,19,pr.squash,pr.rot,pr.hero);
+    // pulsing TAP! hint + special icon while the special is armed in flight
+    if(!pr.specialUsed&&pr.y<groundY()-20){
+      const hh=HEROES[pr.hero]||HEROES.blaze,pu=0.8+0.2*Math.sin(G.time*10);
+      ctx.save();ctx.translate(pr.x,pr.y-48);ctx.scale(pu,pu);ctx.textAlign='center';
+      ctx.font='900 17px system-ui';
+      ctx.fillStyle='#000';ctx.fillText(hh.sIcon+' TAP!',2,2);
+      ctx.fillStyle='#ffd23f';ctx.fillText(hh.sIcon+' TAP!',0,0);
+      ctx.restore();ctx.textAlign='left';
+    }
   }
   // particles
   for(const p of particles){
@@ -587,7 +771,7 @@ const __pb=document.getElementById('pauseBtn'),__mb=document.getElementById('mut
 function __setPaused(v){if(v&&G.state!=='play')return;window.__fbPaused=!!v;__pb.textContent=window.__fbPaused?'▶':'⏸';__pt.classList.toggle('hidden',!window.__fbPaused);}
 __pb.addEventListener('click',e=>{e.stopPropagation();__setPaused(!window.__fbPaused);});
 __mb.addEventListener('click',e=>{e.stopPropagation();window.__fbMuted=!window.__fbMuted;__mb.textContent=window.__fbMuted?'🔇':'🔊';try{if(typeof AC!=='undefined'&&AC){if(window.__fbMuted)AC.suspend();else AC.resume();}}catch(err){}});
-addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__setPaused(!window.__fbPaused);if(e.key==='m'||e.key==='M')__mb.click();});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__setPaused(!window.__fbPaused);if(e.key==='m'||e.key==='M')__mb.click();if(e.code==='Space'||e.key===' '){if(G.state==='play'){e.preventDefault();trySpecial();}}});
 </script>
 </body>
 </html>
