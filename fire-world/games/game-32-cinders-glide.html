@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cinder's Glide — by Jman350Z & fire team</title>
 <meta name="description" content="Hold to glide up, release to dive! Navigate the caves. A Fire Babys game.">
@@ -23,6 +24,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#ctl{position:fixed;top:56px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:20px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -33,6 +36,7 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="pauseBtn" aria-label="Pause">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🪂 CINDER'S GLIDE</h1>
@@ -53,7 +57,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -64,7 +68,7 @@ const sfx={
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',score:0,best:0,dist:0,speed:300,
-  py:0,vy:0,holding:false,rot:0,
+  py:0,vy:0,holding:false,wasHold:false,rot:0,
   walls:[],gems:[],spawnX:0,time:0,shake:0,dead:false,ceiling:[],floor:[],terr:[],bonus:0};
 try{G.best=parseInt(localStorage.getItem('glide_best')||'0',10)||0;}catch(e){}
 function reset(){
@@ -75,7 +79,7 @@ function reset(){
   let top=H*0.15,bot=H*0.85;
   for(let x=0;x<W+400;x+=40){
     G.terr.push({x,top,bot});
-    top+= (Math.random()-0.5)*60;bot+=(Math.random()-0.5)*60;
+    top+= (Math.random()-0.5)*36;bot+=(Math.random()-0.5)*36;
     top=Math.max(40,Math.min(H*0.45,top));
     bot=Math.max(H*0.55,Math.min(H-40,bot));
     if(bot-top<220){const mid=(top+bot)/2;top=mid-110;bot=mid+110;}
@@ -92,8 +96,8 @@ function extendTerrain(){
   let last=G.terr[G.terr.length-1];
   while(last.x<G.nextX+W){
     const nx=last.x+40;
-    let top=last.top+(Math.random()-0.5)*70;
-    let bot=last.bot+(Math.random()-0.5)*70;
+    let top=last.top+(Math.random()-0.5)*40;
+    let bot=last.bot+(Math.random()-0.5)*40;
     const gapShrink=Math.min(80,G.dist*0.06);
     top=Math.max(30,Math.min(H*0.5-140+gapShrink,top));
     bot=Math.max(H*0.5+140-gapShrink,Math.min(H-30,bot));
@@ -140,6 +144,8 @@ function update(dt){
   G.speed=Math.min(650,300+G.dist*0.3);
   G.dist+=G.speed*dt/50;G.score=Math.floor(G.dist)+G.bonus;
   // glide physics
+  if(G.holding&&!G.wasHold)sfx.whoosh();
+  G.wasHold=G.holding;
   if(G.holding)G.vy-=1600*dt;else G.vy+=1100*dt;
   G.vy=Math.max(-520,Math.min(620,G.vy));
   G.py+=G.vy*dt;
@@ -199,6 +205,7 @@ function checkMath(){
   }else document.getElementById('ma').value='';
 }
 function showOverlay(title,body,lesson,btn,cb){
+  window.__paused=false;pauseBtn.textContent='⏸';
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
@@ -213,7 +220,7 @@ function render(){
   // bg crystals
   ctx.fillStyle='rgba(127,212,255,0.06)';
   for(let i=0;i<10;i++){
-    const cx=(i*271-G.dist*20)%W,cy=(i*173)%H;
+    const cx=((i*271-G.dist*20)%(W+40)+(W+40))%(W+40)-20,cy=(i*173)%H;
     ctx.beginPath();
     ctx.moveTo(cx,cy);ctx.lineTo(cx+16,cy+34);ctx.lineTo(cx-16,cy+34);ctx.closePath();ctx.fill();
   }
@@ -297,11 +304,20 @@ function render(){
     ctx.textAlign='left';
   }
 }
+
+window.__paused=false;window.__muted=false;
+const pauseBtn=document.getElementById('pauseBtn'),muteBtn=document.getElementById('muteBtn');
+function setPaused(v){if(!['play','countdown'].includes(G.state))return;window.__paused=v;pauseBtn.textContent=v?'▶':'⏸';}
+pauseBtn.addEventListener('click',e=>{e.stopPropagation();setPaused(!window.__paused);});
+function toggleMute(){window.__muted=!window.__muted;muteBtn.textContent=window.__muted?'🔇':'🔊';}
+muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMute();});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p'||k==='escape')setPaused(!window.__paused);if(k==='m')toggleMute();});
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  if(!window.__paused&&G.state==='play'&&!G.dead)update(dt);else if(!window.__paused)G.time+=dt;
   render();
+  if(window.__paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 17px system-ui';ctx.fillText('Tap ▶ or press P to resume',W/2,H/2+38);ctx.textAlign='left';}
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+G.best;

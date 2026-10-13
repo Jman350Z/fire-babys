@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cinder's Slide — by Jman350Z & fire team</title>
 <meta name="description" content="Slide the tiles! Classic 15-puzzle with fire baby art. A Fire Babys game.">
@@ -23,9 +24,12 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#pauseBtn,#muteBtn{position:fixed;top:60px;z-index:15;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:19px;cursor:pointer}
+#pauseBtn{right:12px}#muteBtn{right:64px}
 #lvlSel{display:flex;gap:8px;margin:12px 0}
 .lvlBtn{width:auto;padding:0 16px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:14px;font-weight:900;cursor:pointer}
 #shuffleBtn{position:fixed;bottom:14px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #ff6a1a;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#peekBtn{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #ff6a1a;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
@@ -36,11 +40,14 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="timer">⏱️ 0s</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<button id="pauseBtn" title="Pause (P)">⏸</button>
+<button id="muteBtn" title="Sound on/off">🔊</button>
 <button id="shuffleBtn">🔀 Shuffle</button>
+<button id="peekBtn">👀 Hold to Peek</button>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧩 CINDER'S SLIDE</h1>
-<div id="obody"><p>Slide the picture back together!</p><p><b>TAP</b> a tile next to the empty space to slide it! Rebuild the fire baby picture. Bigger grids = bigger challenge!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Slide the picture back together!</p><p><b>TAP</b> a tile next to the empty space to slide it! Rebuild the fire baby picture. Bigger grids = bigger challenge!</p><p>⌨️ <b>Arrow keys</b> slide tiles too, and you can <b>hold 👀 PEEK</b> in the game to see the finished picture!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Piece together your escape plan!</div>
 <button id="obtn">▶ PLAY</button>
@@ -60,8 +67,9 @@ function layout(){
 }
 addEventListener('resize',resize);
 let AC=null;
+let muted=false;try{muted=localStorage.getItem('fb_mute')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -72,7 +80,7 @@ const sfx={
 };
 const G={state:'title',n:3,grid:[],empty:{r:0,c:0},moves:0,startT:0,solved:false,time:0,anim:null};
 function initPuzzle(n){
-  G.n=n;layout();
+  setPaused(false);G.n=n;layout();
   G.grid=[];G.moves=0;G.solved=false;G.anim=null;
   G.startT=performance.now();
   let v=1;
@@ -144,22 +152,37 @@ function drawTileArt(hr,hc,px,py,ts){
   ctx.fillStyle='rgba(255,255,255,0.75)';ctx.font=`900 ${ts*0.18}px system-ui`;ctx.textAlign='left';
   ctx.fillText(G._drawV||'',px+6,py+ts*0.22);
 }
+function trySlide(r,c){
+  if(G.state!=='play'||G.solved||G.anim||G.paused||G.peek)return false;
+  if(r<0||r>=G.n||c<0||c>=G.n)return false;
+  const er=G.empty.r,ec=G.empty.c;
+  if(Math.abs(r-er)+Math.abs(c-ec)!==1)return false;
+  G.anim={fr:r,fc:c,tr:er,tc:ec,t:0,v:G.grid[r][c]};
+  G.grid[er][ec]=G.grid[r][c];
+  G.grid[r][c]=0;
+  G.empty={r,c};
+  sfx.slide();
+  return true;
+}
 canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play'||G.solved||G.anim)return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
-  const c=Math.floor((x-OX)/TS),r=Math.floor((y-OY)/TS);
-  if(r<0||r>=G.n||c<0||c>=G.n)return;
-  const er=G.empty.r,ec=G.empty.c;
-  if(Math.abs(r-er)+Math.abs(c-ec)===1){
-    // animate slide
-    G.anim={fr:r,fc:c,tr:er,tc:ec,t:0,v:G.grid[r][c]};
-    G.grid[er][ec]=G.grid[r][c];
-    G.grid[r][c]=0;
-    G.empty={r,c};
-    sfx.slide();
-  }
+  trySlide(Math.floor((y-OY)/TS),Math.floor((x-OX)/TS));
 });
+// keyboard play (desktop genre standard — arrows move the gap; the tile on that side slides in)
+addEventListener('keydown',e=>{
+  const er=G.empty.r,ec=G.empty.c;let used=true;
+  if(e.key==='ArrowLeft')trySlide(er,ec-1);
+  else if(e.key==='ArrowRight')trySlide(er,ec+1);
+  else if(e.key==='ArrowUp')trySlide(er-1,ec);
+  else if(e.key==='ArrowDown')trySlide(er+1,ec);
+  else used=false;
+  if(used)e.preventDefault();
+});
+// hold-to-peek at the finished picture (players had never seen the whole picture they are rebuilding)
+const _peekBtn=document.getElementById('peekBtn');
+['pointerdown'].forEach(ev=>_peekBtn.addEventListener(ev,e=>{e.preventDefault();if(G.state==='play')G.peek=true;}));
+['pointerup','pointerleave','pointercancel'].forEach(ev=>_peekBtn.addEventListener(ev,()=>{G.peek=false;}));
 document.getElementById('shuffleBtn').addEventListener('click',()=>{
   if(G.state==='play'){initPuzzle(G.n);sfx.click();}
 });
@@ -226,7 +249,7 @@ function drawEmbers(){
     const ey=maxH-((G.time*sp+off)%(maxH+30));
     ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
     ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
-    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.shadowBlur=0;
     ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
@@ -241,7 +264,7 @@ function render(){
   ctx.fillStyle='rgba(255,255,255,0.04)';
   ctx.beginPath();ctx.roundRect(OX-8,OY-8,TS*G.n+16,TS*G.n+16,14);ctx.fill();
   for(let r=0;r<G.n;r++)for(let c=0;c<G.n;c++){
-    const v=G.grid[r][c];
+    const v=G.peek?((r*G.n+c+1>=G.n*G.n)?0:r*G.n+c+1):G.grid[r][c];
     const px=OX+c*TS,py=OY+r*TS;
     if(v===0){
       // empty
@@ -251,7 +274,7 @@ function render(){
     }
     let dx=px,dy=py;
     // animation
-    if(G.anim&&G.anim.v===v){
+    if(!G.peek&&G.anim&&G.anim.v===v){
       const t=Math.min(1,G.anim.t);
       const fx=OX+G.anim.fc*TS,fy=OY+G.anim.fr*TS;
       const tx=OX+G.anim.tc*TS,ty=OY+G.anim.tr*TS;
@@ -268,14 +291,21 @@ function render(){
   G._drawV=null;
   // timer
   if(G.state==='play'&&!G.solved){
-    const el=(performance.now()-G.startT)/1000;
+    const el=((G.paused&&G._pausedAt)?G._pausedAt-G.startT:performance.now()-G.startT)/1000;
     document.getElementById('timer').textContent='⏱️ '+el.toFixed(0)+'s';
   }
 }
+function setPaused(v){const was=G.paused;G.paused=!!v;const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';if(G.paused)G._pausedAt=performance.now();else if(was&&G._pausedAt){G.startT+=performance.now()-G._pausedAt;G._pausedAt=0;}}
+function togglePause(){if(G.state!=='play')return;setPaused(!G.paused);}
+document.getElementById('pauseBtn').addEventListener('click',()=>{togglePause();});
+document.getElementById('muteBtn').addEventListener('click',function(){muted=!muted;this.textContent=muted?'🔇':'🔊';try{localStorage.setItem('fb_mute',muted?'1':'0');}catch(e){}});
+document.getElementById('muteBtn').textContent=muted?'🔇':'🔊';
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')togglePause();});
+function drawPaused(){ctx.fillStyle='rgba(5,3,10,0.72)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#ffd76a';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.fillStyle='#fff';ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to resume',W/2,H/2+34);ctx.textAlign='left';}
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
-  if(G.anim){
+  if(G.anim&&!G.paused){
     G.anim.t+=dt*8;
     if(G.anim.t>=1){
       G.anim=null;G.moves++;
@@ -283,7 +313,7 @@ function loop(t){
       if(checkWin())onSolve();
     }
   }
-  render();
+  render();if(G.paused)drawPaused();
   requestAnimationFrame(loop);
 }
 resize();

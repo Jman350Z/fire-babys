@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ash Heap Hero — by Jman350Z & fire team</title>
 <meta name="description" content="Sort the ash heap! Be a cleanup hero. A Fire Babys sorting game.">
@@ -24,6 +25,10 @@ canvas{display:block;width:100%;height:100%}
 #mathgate{background:#0e1a2a;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #4a90d9}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
+#ctl{position:fixed;right:12px;bottom:14px;z-index:15;display:flex;gap:8px}
+#ctl button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
+
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
@@ -36,6 +41,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="timebar"><div id="timefill"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="btnPause" title="Pause (P)">⏸</button><button id="btnMute" title="Sound on/off (M)">🔊</button><button id="btnRestart" title="Restart">↻</button></div>
+<div id="pausedTxt" class="hidden">⏸ PAUSED</div>
+
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🦸 ASH HEAP HERO</h1>
@@ -54,9 +62,10 @@ let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
+addEventListener('resize',()=>{for(const it of G.items){it.x=Math.max(36,Math.min(W-36,it.x));it.y=Math.min(H-40,it.y);}});
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__mute)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -83,6 +92,7 @@ const G={state:'title',score:0,best:0,streak:0,bestStreak:0,
   items:[],spawnT:0.8,drag:null,time:0};
 try{G.best=parseInt(localStorage.getItem('sort_best')||'0',10)||0;}catch(e){}
 const DUR=90;
+const tfEl=document.getElementById('timefill');
 function binRect(i){
   const bw=W*0.28,bh=110,gap=W*0.04;
   const totalW=bw*3+gap*2;
@@ -125,6 +135,7 @@ canvas.addEventListener('pointermove',e=>{
   G.drag.it.y=e.clientY-rect.top-G.drag.oy;
   G.drag.it.held=true;
 });
+canvas.addEventListener('pointercancel',()=>{if(G.drag){G.drag.it.held=false;G.drag=null;}});
 canvas.addEventListener('pointerup',e=>{
   const d=G.drag;if(!d)return;
   G.drag=null;
@@ -184,7 +195,7 @@ function spawnText(x,y,txt,color){
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
 }
 function update(dt){
-  G.time-=dt;
+  G.time-=dt;tfEl.style.width=Math.max(0,G.time/DUR*100)+'%';
   if(G.time<=10&&Math.floor(G.time)!==Math.floor(G.time+dt))sfx.tick();
   if(G.time<=0){gameOver();return;}
   G.spawnT-=dt;
@@ -198,9 +209,9 @@ function update(dt){
     if(!it.held){
       it.y+=it.vy*dt;it.t+=dt*3;
       // fell to bottom = miss
-      if(it.y>H-60){
+      if(it.y>binRect(0).y+20){
         it.gone=true;G.streak=0;
-        spawnText(it.x,H-100,'MISSED!','#ff4a5a');
+        spawnText(it.x,binRect(0).y-12,'MISSED!','#ff4a5a');
         updateHUD();
       }
     }
@@ -212,7 +223,7 @@ function update(dt){
   if(Math.random()<0.1)updateHUD();
 }
 function gameOver(){
-  G.state='over';
+  G.state='over';G.drag=null;
   const isBest=G.score>G.best;
   if(isBest){G.best=G.score;try{localStorage.setItem('sort_best',String(G.best));}catch(e){}}
   setTimeout(()=>{
@@ -305,6 +316,20 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+G.best;
+
+// [gamer-check batch-09] pause / mute / restart controls (P = pause, M = mute)
+window.__mute=false;
+let __prePause=null;
+const __pTxt=document.getElementById('pausedTxt');
+function __togglePause(){
+  if(G.state==='play'){__prePause='play';G.state='paused';__pTxt.classList.remove('hidden');}
+  else if(G.state==='paused'){G.state=__prePause||'play';__prePause=null;__pTxt.classList.add('hidden');}
+}
+document.getElementById('btnPause').onclick=e=>{e.stopPropagation();__togglePause();};
+document.getElementById('btnMute').onclick=e=>{e.stopPropagation();window.__mute=!window.__mute;e.currentTarget.textContent=window.__mute?'\u{1F507}':'\u{1F50A}';};
+document.getElementById('btnRestart').onclick=e=>{e.stopPropagation();if(G.state==='play'||G.state==='paused'){__pTxt.classList.add('hidden');__prePause=null;reset();G.state='play';}};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p')__togglePause();if(k==='m')document.getElementById('btnMute').click();});
+
 requestAnimationFrame(loop);
 </script>
 </body>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Jump Quest — by Jman350Z & fire team</title>
 <meta name="description" content="Run and jump! Side-scrolling platformer adventure. A Fire Babys game.">
@@ -26,6 +27,11 @@ canvas{display:block;width:100%;height:100%}
 #lvlSel{display:flex;gap:8px;margin:12px 0}
 .lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
 #jumpBtn{position:fixed;bottom:70px;right:20px;z-index:10;width:90px;height:90px;border-radius:50%;background:rgba(255,140,46,.8);border:3px solid #ff6a1a;color:#fff;font-size:16px;font-weight:900;display:none}
+#shootBtn{position:fixed;bottom:176px;right:20px;z-index:10;width:76px;height:76px;border-radius:50%;background:rgba(255,90,42,.8);border:3px solid #ff5a2a;color:#fff;font-size:24px;font-weight:900;display:none}
+#moveBtns{position:fixed;bottom:70px;left:16px;z-index:10;display:none;gap:12px}
+.cbtn{width:76px;height:76px;border-radius:50%;background:rgba(90,160,230,.75);border:3px solid #4a90d9;color:#fff;font-size:26px;font-weight:900}
+#ctl{position:fixed;top:56px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:20px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -37,6 +43,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <button id="jumpBtn">⤴️</button>
+<button id="shootBtn">🔥</button>
+<div id="moveBtns"><button class="cbtn" id="leftBtn">◀</button><button class="cbtn" id="rightBtn">▶</button></div>
+<div id="ctl"><button id="pauseBtn" aria-label="Pause">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏃 BLAZE'S JUMP QUEST</h1>
@@ -57,7 +66,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -106,7 +115,9 @@ addEventListener('keydown',e=>{
   keys[e.key.toLowerCase()]=true;
   if(e.key===' '||e.key==='ArrowUp'){jump();e.preventDefault();}
 });
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;
+  if(e.key===' '||e.key==='ArrowUp')jumpCut();});
+function jumpCut(){if(G.state==='play'&&G.vy<-320)G.vy=-320;}
 function shootFireball(){
   if(G.state!=='play'||G.dead||G.shotCD>0)return;
   G.shotCD=0.35;sfx.shoot();
@@ -119,16 +130,22 @@ function jump(){
     G.vy=-780;G.onGround=false;G.coyote=0;sfx.jump();
   }else G.jbuf=0.12;
 }
-let touchL=false,touchR=false;
+let touchL=false,touchR=false,runPtr=null;
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
   if(e.clientX<W*0.4)jump();
-  else{touchR=true;canvas.setPointerCapture(e.pointerId);}
+  else{touchR=true;runPtr=e.pointerId;try{canvas.setPointerCapture(e.pointerId);}catch(err){}}
 });
-canvas.addEventListener('pointerup',e=>{touchR=false;});
-canvas.addEventListener('pointercancel',()=>touchR=false);
+canvas.addEventListener('pointerup',e=>{if(e.pointerId===runPtr){touchR=false;runPtr=null;}});
+canvas.addEventListener('pointercancel',e=>{if(e.pointerId===runPtr){touchR=false;runPtr=null;}});
 document.getElementById('jumpBtn').addEventListener('pointerdown',e=>{e.stopPropagation();jump();});
-if('ontouchstart'in window)document.getElementById('jumpBtn').style.display='block';
+document.getElementById('jumpBtn').addEventListener('pointerup',()=>jumpCut());
+document.getElementById('shootBtn').addEventListener('pointerdown',e=>{e.stopPropagation();shootFireball();});
+function bindHold(id,fn){const el=document.getElementById(id);
+  el.addEventListener('pointerdown',e=>{e.stopPropagation();fn(true);});
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>fn(false)));}
+bindHold('leftBtn',v=>touchL=v);bindHold('rightBtn',v=>touchR=v);
+if('ontouchstart'in window){document.getElementById('jumpBtn').style.display='block';document.getElementById('shootBtn').style.display='block';document.getElementById('moveBtns').style.display='flex';}
 const particles=[];
 for(let i=0;i<70;i++)particles.push({a:false});
 const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*2200,y:Math.random()*1200,s:1+Math.random()*2.5,v:14+Math.random()*26,ph:Math.random()*6.28});
@@ -155,7 +172,7 @@ function update(dt){
   const SPEED=330;
   let ax=0;
   if(keys['arrowright']||keys['d']||touchR)ax+=1;
-  if(keys['arrowleft']||keys['a'])ax-=1;
+  if(keys['arrowleft']||keys['a']||touchL)ax-=1;
   G.vx=ax*SPEED;
   if(ax!==0)G.face=ax;
   G.vy+=2200*dt;G.vy=Math.min(G.vy,1200);
@@ -171,8 +188,8 @@ function update(dt){
         G.py=p.y-ph/2;G.vy=0;G.onGround=true;G.coyote=0.1;
       }
     }
-    // side bump
-    if(G.px+pw/2>p.x&&G.px-pw/2<p.x+p.w&&G.py+ph/2>p.y+10&&G.py-ph/2<p.y+p.h){
+    // side bump — only on tall ground slabs; thin platforms are one-way (pass through)
+    if(p.h>30&&G.px+pw/2>p.x&&G.px-pw/2<p.x+p.w&&G.py+ph/2>p.y+10&&G.py-ph/2<p.y+p.h){
       if(G.vx>0)G.px=p.x-pw/2;else if(G.vx<0)G.px=p.x+p.w+pw/2;
     }
   }
@@ -209,7 +226,7 @@ function update(dt){
     e.x+=e.vx*e.dir*dt;
     if(e.x<e.minX||e.x>e.maxX)e.dir*=-1;
     if(Math.abs(G.px-e.x)<34&&Math.abs(G.py-e.y)<36){
-      if(G.vy>200&&G.py<e.y-8){
+      if(G.vy>80&&G.py<e.y-8){
         // stomp!
         e.dead=true;G.vy=-520;sfx.stomp();G.score+=100;updateHUD();
         burst(e.x,e.y,'#ff6a5a');
@@ -239,8 +256,7 @@ function update(dt){
   // goal
   if(G.px>=L.goal*TILE&&!G.dead){
     G.dead=true;sfx.win();
-    const coinBonus=G.coins.filter(c=>c.taken).length*25;
-    G.score+=200+coinBonus;updateHUD();
+    G.score+=200;updateHUD(); // coins already paid +25 each on pickup — no double count
     setTimeout(()=>{
       if(G.level>=5){
         showOverlay('🏆 QUEST COMPLETE!',
@@ -285,6 +301,7 @@ function showLevels(){
 }
 function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
 function showOverlay(title,body,lesson,btn,cb){
+  window.__paused=false;pauseBtn.textContent='⏸';
   obtn.style.display='';
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
@@ -384,11 +401,20 @@ function render(){
   ctx.globalAlpha=1;
   ctx.restore();
 }
+
+window.__paused=false;window.__muted=false;
+const pauseBtn=document.getElementById('pauseBtn'),muteBtn=document.getElementById('muteBtn');
+function setPaused(v){if(!['play','countdown'].includes(G.state))return;window.__paused=v;pauseBtn.textContent=v?'▶':'⏸';}
+pauseBtn.addEventListener('click',e=>{e.stopPropagation();setPaused(!window.__paused);});
+function toggleMute(){window.__muted=!window.__muted;muteBtn.textContent=window.__muted?'🔇':'🔊';}
+muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMute();});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p'||k==='escape')setPaused(!window.__paused);if(k==='m')toggleMute();});
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  if(!window.__paused&&G.state==='play'&&!G.dead)update(dt);else if(!window.__paused)G.time+=dt;
   render();
+  if(window.__paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 17px system-ui';ctx.fillText('Tap ▶ or press P to resume',W/2,H/2+38);ctx.textAlign='left';}
   requestAnimationFrame(loop);
 }
 resize();

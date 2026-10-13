@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Inferno Roll — by Jman350Z & fire team</title>
 <meta name="description" content="Roll through the maze! Tilt to guide the ball. A Fire Babys maze roller.">
@@ -23,6 +24,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#pauseBtn,#muteBtn{position:fixed;top:60px;z-index:15;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:19px;cursor:pointer}
+#pauseBtn{right:12px}#muteBtn{right:64px}
 #lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
 </style>
@@ -35,10 +38,12 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="stars">⭐ 0/0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<button id="pauseBtn" title="Pause (P)">⏸</button>
+<button id="muteBtn" title="Sound on/off">🔊</button>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🔥 BLAZE'S INFERNO ROLL</h1>
-<div id="obody"><p>Roll to the goal!</p><p><b>DRAG</b> anywhere to tilt the maze, or use <b>arrow keys/WASD</b>! Roll the fireball through the maze, collect all ⭐ stars, then reach the 🏁 goal. Avoid the lava pits!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Roll to the goal!</p><p><b>DRAG</b> anywhere to tilt the maze, use <b>arrow keys/WASD</b>, or <b>TILT your phone/tablet</b> for real! Roll the fireball through the maze, collect all ⭐ stars, then reach the 🏁 goal. Avoid the lava pits!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Roll with it — stay calm in emergencies!</div>
 <button id="obtn">▶ PLAY</button>
@@ -117,8 +122,9 @@ const MAZES=[
     "1111111111111111"],
 ];
 let AC=null;
+let muted=false;try{muted=localStorage.getItem('fb_mute')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -136,7 +142,7 @@ function initLevel(n){
   const mz=MAZES[n-1];
   MH=mz.length;MW=mz[0].length;
   layout();
-  G.level=n;G.grid=[];G.stars=[];G.dead=false;G.time=0;G.shake=0;
+  G.level=n;G.grid=[];G.stars=[];G.dead=false;G.time=0;G.elapsed=0;G.shake=0;setPaused(false);
   G.bvx=0;G.bvy=0;
   for(let r=0;r<MH;r++){
     G.grid[r]=[];
@@ -161,22 +167,45 @@ function cellAt(x,y){
 }
 // tilt input
 let tiltX=0,tiltY=0,dragging=false,lx=0,ly=0;
-canvas.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointerdown',e=>{if(G.paused)return;dragging=true;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{
-  if(!dragging||G.state!=='play')return;
+  if(!dragging||G.state!=='play'||G.paused)return;
   tiltX=Math.max(-1,Math.min(1,(e.clientX-lx)/60));
   tiltY=Math.max(-1,Math.min(1,(e.clientY-ly)/60));
 });
 canvas.addEventListener('pointerup',()=>{dragging=false;tiltX=0;tiltY=0;});
+canvas.addEventListener('pointercancel',()=>{dragging=false;tiltX=0;tiltY=0;});
+// Real device tilt (leftover-fix), following the game-08 pattern: a plain
+// deviceorientation listener feeds devTilt, and iOS permission is requested
+// from a user tap (see requestTiltPermission below). Tilt is ADDITIONAL —
+// drag and keys keep working exactly as before, and where the API or
+// permission is absent this is a graceful no-op (devTilt stays 0).
+const devTilt={x:0,y:0,seen:false};
+addEventListener('deviceorientation',e=>{
+  if(!e||(e.gamma==null&&e.beta==null))return;
+  devTilt.seen=true;
+  devTilt.x=Math.max(-1,Math.min(1,(e.gamma||0)/25));
+  // portrait phones rest around beta≈45° in the hand; use that as level
+  devTilt.y=Math.max(-1,Math.min(1,((e.beta||0)-45)/25));
+});
+function requestTiltPermission(){
+  try{
+    if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+      const r=DeviceOrientationEvent.requestPermission();
+      if(r&&typeof r.catch==='function')r.catch(()=>{});
+    }
+  }catch(e){}
+}
 const keys={};
 addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;tiltX=0;tiltY=0;dragging=false;}); // missed keyup / lost pointer left the ball driving itself
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
 function update(dt){
-  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  G.time+=dt;G.elapsed=(G.elapsed||0)+dt;G.shake=Math.max(0,G.shake-dt*3);
   // input accel
-  let ax=tiltX*1400,ay=tiltY*1400;
+  let ax=(tiltX+devTilt.x)*1400,ay=(tiltY+devTilt.y)*1400; // drag tilt + real device tilt (either or both)
   if(keys['arrowleft']||keys['a'])ax-=1400;
   if(keys['arrowright']||keys['d'])ax+=1400;
   if(keys['arrowup']||keys['w'])ay-=1400;
@@ -192,18 +221,20 @@ function update(dt){
   let nx=G.bx+G.bvx*dt/CELL,ny=G.by+G.bvy*dt/CELL;
   // X collision
   const cx=OX+(nx+0.5)*CELL,cy=OY+(G.by+0.5)*CELL;
-  if(isWall(cx-R,OY+(G.by+0.5)*CELL)||isWall(cx+R,OY+(G.by+0.5)*CELL)){
+  const RD=R*0.72; // diagonal samples — cheap corner-clipping fix (was cardinal-only, ball overlapped wall corners)
+  if(isWall(cx-R,cy)||isWall(cx+R,cy)||isWall(cx-RD,cy-RD)||isWall(cx+RD,cy-RD)||isWall(cx-RD,cy+RD)||isWall(cx+RD,cy+RD)){
     if(Math.abs(G.bvx)>70)sfx.bump();G.bvx*=-0.4;nx=G.bx;
   }else G.bx=nx;
   // Y collision
   const cx2=OX+(G.bx+0.5)*CELL,cy2=OY+(ny+0.5)*CELL;
-  if(isWall(cx2,cy2-R)||isWall(cx2,cy2+R)){
+  if(isWall(cx2,cy2-R)||isWall(cx2,cy2+R)||isWall(cx2-RD,cy2-RD)||isWall(cx2+RD,cy2-RD)||isWall(cx2-RD,cy2+RD)||isWall(cx2+RD,cy2+RD)){
     if(Math.abs(G.bvy)>70)sfx.bump();G.bvy*=-0.4;ny=G.by;
   }else G.by=ny;
   const px=OX+(G.bx+0.5)*CELL,py=OY+(G.by+0.5)*CELL;
   // lava check
-  const cell=cellAt(px,py);
-  if(cell==='2'&&!G.dead){
+  // lava kills on real overlap (centre + edge samples), not only when the centre crosses (ball could sit half-in lava, unharmed)
+  const _lava=[cellAt(px,py),cellAt(px-R*0.55,py),cellAt(px+R*0.55,py),cellAt(px,py-R*0.55),cellAt(px,py+R*0.55)].includes('2');
+  if(_lava&&!G.dead){
     G.dead=true;sfx.lava();G.shake=0.5;
     for(let i=0;i<16;i++){const p=particles.find(p=>!p.a);if(!p)break;
       p.a=true;p.x=px;p.y=py;const a=Math.random()*Math.PI*2;
@@ -239,12 +270,12 @@ function update(dt){
         setTimeout(()=>{
           if(G.level>=6){
             showOverlay('🏆 MAZE MASTER!',
-              `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 6 mazes conquered!</p>`,
+              `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 6 mazes conquered!</p><p>Final maze time: ${(G.elapsed||0).toFixed(1)}s</p>`,
               '🔥 Fire Safety: You\'re a champion!',
               '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
           }else{
             showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
-              `<p>+200 pts!</p><p>Score: ${G.score}</p>`,
+              `<p>+200 pts!</p><p>Score: ${G.score}</p><p>Maze time: ${(G.elapsed||0).toFixed(1)}s</p>`,
               '🔥 Fire Safety: Roll with it!',
               '▶ NEXT MAZE',()=>{initLevel(G.level+1);G.state='play';});
           }
@@ -278,14 +309,14 @@ function showLevels(){
   obtn.style.display='none';
   overlay.classList.remove('hidden');
 }
-function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
+function pickLevel(n){requestTiltPermission();sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
   obtn.textContent=btn;obtn.style.display='';
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-obtn.onclick=()=>{showMathGate();};
+obtn.onclick=()=>{requestTiltPermission();showMathGate();}; // PLAY tap: iOS tilt permission prompt lives here (user gesture)
 
 // --- Overhaul: living ember background (24 cheap additive particles, deterministic from G.time) ---
 function drawEmbers(){
@@ -297,7 +328,7 @@ function drawEmbers(){
     const ey=maxH-((G.time*sp+off)%(maxH+30));
     ctx.globalAlpha=Math.max(0.08,0.35+0.3*Math.sin(G.time*3+i*1.7));
     ctx.fillStyle=i%3?'#ff8a3a':'#ffd23f';
-    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.shadowBlur=0;
     ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
@@ -356,6 +387,18 @@ function render(){
   ctx.font=`${CELL*0.5}px system-ui`;ctx.textAlign='center';
   ctx.fillText('🏁',0,CELL*0.18);ctx.textAlign='left';
   ctx.restore();
+  // goal-gate feedback: how many stars are still needed (was silent — ball sat on goal, nothing happened)
+  const _rem=G.stars.filter(s=>!s.taken).length;
+  if(_rem>0){
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.font='900 12px system-ui';ctx.textAlign='center';
+    const _bt=_rem+' ⭐ LEFT';const _bw=ctx.measureText(_bt).width+16;
+    ctx.beginPath();ctx.roundRect(gp.x-_bw/2,gp.y-CELL*0.95,_bw,18,9);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.fillText(_bt,gp.x,gp.y-CELL*0.95+13);ctx.textAlign='left';
+    if(Math.round(G.by)===G.goal.r&&Math.round(G.bx)===G.goal.c){
+      ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';
+      ctx.fillText('⭐ COLLECT ALL THE STARS FIRST!',W/2,OY-14);ctx.textAlign='left';
+    }
+  }
   // ball
   if(!G.dead){
     const bp=cellXY(G.bx,G.by);
@@ -379,15 +422,22 @@ function render(){
   ctx.restore();
   if(G.state==='play'&&G.time<4){
     ctx.fillStyle='rgba(255,255,255,0.75)';ctx.font='900 16px system-ui';ctx.textAlign='center';
-    ctx.fillText('DRAG TO TILT • COLLECT ALL ⭐ THEN 🏁',W/2,H-100);
+    ctx.fillText(devTilt.seen?'TILT OR DRAG • COLLECT ALL ⭐ THEN 🏁':'DRAG TO TILT • COLLECT ALL ⭐ THEN 🏁',W/2,H-100);
     ctx.textAlign='left';
   }
 }
+function setPaused(v){G.paused=!!v;const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
+function togglePause(){if(G.state!=='play')return;setPaused(!G.paused);}
+document.getElementById('pauseBtn').addEventListener('click',()=>{togglePause();});
+document.getElementById('muteBtn').addEventListener('click',function(){muted=!muted;this.textContent=muted?'🔇':'🔊';try{localStorage.setItem('fb_mute',muted?'1':'0');}catch(e){}});
+document.getElementById('muteBtn').textContent=muted?'🔇':'🔊';
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')togglePause();});
+function drawPaused(){ctx.fillStyle='rgba(5,3,10,0.72)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#ffd76a';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.fillStyle='#fff';ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to resume',W/2,H/2+34);ctx.textAlign='left';}
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
-  render();
+  if(G.state==='play'&&!G.dead&&!G.paused)update(dt);else G.time+=dt;
+  render();if(G.paused)drawPaused();
   requestAnimationFrame(loop);
 }
 MW=11;MH=7;

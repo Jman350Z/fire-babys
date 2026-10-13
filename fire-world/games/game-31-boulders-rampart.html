@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Boulder's Rampart — by Jman350Z & fire team</title>
 <meta name="description" content="Defend the rampart! Tower defense against the ash army. A Fire Babys game.">
@@ -27,6 +28,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;top:60px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#ctl{position:fixed;top:56px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:20px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -43,10 +46,11 @@ canvas{display:block;width:100%;height:100%}
 <div class="tbtn" data-t="frost">❄️ Frost<small>75</small></div>
 <div class="tbtn" data-t="ember">🔥 Ember<small>125</small></div>
 </div>
+<div id="ctl"><button id="pauseBtn" aria-label="Pause">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="speedBtn" aria-label="Game speed">⏩1×</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🏰 BOULDER'S RAMPART</h1>
-<div id="obody"><p>Defend the castle!</p><p><b>TAP</b> a tower type, then <b>TAP</b> the battlefield to build it! Enemies march left to the castle. 🏹 fast, 💣 splash damage, ❄️ slows enemies, 🔥 <b>Ember</b> sets enemies ablaze (burn damage over time). Survive all 10 waves!</p></div>
+<div id="obody"><p>Defend the castle!</p><p><b>TAP</b> a tower type, then <b>TAP</b> the battlefield to build it! Enemies march left to the castle. 🏹 fast, 💣 splash damage, ❄️ slows enemies, 🔥 <b>Ember</b> sets enemies ablaze (burn damage over time). Survive all 10 waves!</p><p>⬆️ <b>TAP a built tower</b> to upgrade it — +50% damage per level, up to Lv3. 💰 <b>HOLD a built tower</b> (~1 second, watch the gold ring fill) to sell it back for 70% of what you spent on it — let go early to cancel. ⏩ button = 2× speed.</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Defend your home — keep exits clear!</div>
 <button id="obtn">▶ PLAY</button>
@@ -64,11 +68,11 @@ function layout(){}
 addEventListener('resize',resize);
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=900){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=900){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -94,7 +98,7 @@ const TOWERS={
 function lanes(){return[H*0.3,H*0.5,H*0.7];}
 const G={state:'title',gold:150,wave:0,lives:20,score:0,
   towers:[],enemies:[],shots:[],sel:'arrow',
-  waveT:0,spawnQ:[],betweenWaves:0,time:0,shake:0,path:[]};
+  waveT:0,spawnQ:[],betweenWaves:0,time:0,shake:0,path:[],msg:'',msgT:0};
 function reset(){
   G.gold=150;G.wave=0;G.lives=20;G.score=0;
   G.towers=[];G.enemies=[];G.shots=[];
@@ -102,7 +106,7 @@ function reset(){
   updateHUD();
 }
 function updateHUD(){
-  document.getElementById('gold').textContent='🪙 '+Math.floor(G.gold);
+  document.getElementById('gold').textContent='🪙 '+Math.floor(G.gold)+' · ⭐ '+G.score;
   document.getElementById('wave').textContent=`🌊 Wave ${Math.min(Math.max(G.wave,1),10)}/10`;
   document.getElementById('lives').textContent='🏰 '+G.lives;
 }
@@ -113,19 +117,58 @@ document.querySelectorAll('.tbtn').forEach(b=>{
     b.classList.add('sel');G.sel=b.dataset.t;sfx.click();
   });
 });
+// --- Tower selling (leftover-fix): LONG-PRESS a placed tower to sell it.
+// Tap-to-upgrade already owns the single tap, and a double-tap would sell a
+// tower a child just paid to upgrade — so selling uses a deliberate ~600ms
+// hold instead: a gold progress ring fills around the tower; reaching full
+// sells at 70% of total invested gold (base cost + upgrades paid). Releasing
+// early or dragging off the tower cancels with no sale and no upgrade.
+const SELL_HOLD=0.6,SELL_RATE=0.7;
+G.hold=null; // {tower,x,y,t,cancelled}
+function towerAt(x,y){for(const t of G.towers)if(Math.hypot(t.x-x,t.y-y)<44)return t;return null;}
+function investedOf(t){if(t.invested!=null)return t.invested;let v=TOWERS[t.type].cost;for(let k=1;k<(t.lvl||1);k++)v+=Math.ceil(TOWERS[t.type].cost*0.7*k);return v;}
+function sellRefund(t){return Math.floor(investedOf(t)*SELL_RATE);}
+function upgradeTower(t){
+  const upCost=Math.ceil(TOWERS[t.type].cost*0.7*(t.lvl||1));
+  if((t.lvl||1)>=3){msg('⭐ That tower is max level (Lv3)');return;}
+  if(G.gold<upCost){sfx.click();msg('Upgrade needs 🪙 '+upCost);return;}
+  G.gold-=upCost;t.invested=investedOf(t)+upCost;t.lvl=(t.lvl||1)+1;t.dmgMul=1+0.5*(t.lvl-1);sfx.build();updateHUD();msg('⬆️ Tower upgraded to Lv'+t.lvl+' — +50% damage!');
+}
+function sellTower(t){
+  const refund=sellRefund(t);
+  G.towers=G.towers.filter(x=>x!==t);
+  G.gold+=refund;sfx.build();tone(900,1400,0.12,'triangle',0.1);burst(t.x,t.y,'#ffd23f',10);updateHUD();
+  msg('💰 Tower sold! +🪙 '+refund);
+}
 canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play')return;
+  if(G.state!=='play'||window.__paused)return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
   // can't build on castle or too far right
   if(x<W*0.14||x>W*0.94||y<H*0.18||y>H*0.85)return;
+  const hit=towerAt(x,y);
+  if(hit){G.hold={tower:hit,x,y,t:0,cancelled:false};return;} // tap (upgrade) or hold (sell) decided on release / timer
   const T=TOWERS[G.sel];
-  if(G.gold<T.cost){sfx.click();return;}
-  // check overlap
-  for(const t of G.towers)if(Math.hypot(t.x-x,t.y-y)<44)return;
+  if(G.gold<T.cost){sfx.click();msg('Not enough gold — need 🪙 '+T.cost);return;}
   G.gold-=T.cost;sfx.build();updateHUD();
-  G.towers.push({x,y,type:G.sel,cd:0,lvl:1});
+  G.towers.push({x,y,type:G.sel,cd:0,lvl:1,invested:T.cost});
 });
+canvas.addEventListener('pointermove',e=>{
+  if(!G.hold||G.hold.cancelled)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  if(Math.hypot(x-G.hold.x,y-G.hold.y)>24){G.hold.cancelled=true;msg('✋ Sell cancelled');}
+});
+function endHold(){
+  if(!G.hold)return;
+  const h=G.hold;G.hold=null;
+  if(h.cancelled||h.t>=SELL_HOLD)return; // dragged off = cancel; sold already by the hold timer
+  if(window.__paused)return;
+  upgradeTower(h.tower); // a short tap on a tower is the existing upgrade gesture
+}
+canvas.addEventListener('pointerup',endHold);
+canvas.addEventListener('pointercancel',()=>{G.hold=null;});
+function msg(t){G.msg=t;G.msgT=2.2;}
 function startWave(n){
   G.wave=n;sfx.wave();
   const comp=[];
@@ -172,7 +215,7 @@ function burst(x,y,color,n=7){
     p.life=0.4;p.max=0.4;p.color=color;p.size=3+Math.random()*3;}
 }
 function update(dt){
-  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.msgT=Math.max(0,G.msgT-dt);
   // wave flow
   if(!G.spawnQ.length&&!G.enemies.length&&G.state==='play'){
     if(G.wave>=10){victory();return;}
@@ -197,7 +240,7 @@ function update(dt){
     if(best){
       t.cd=T.rate;t.aim=Math.atan2(best.y-t.y,best.x-t.x);
       G.shots.push({x:t.x,y:t.y-14,tx:best.x,ty:best.y,target:best,
-        speed:t.type==='cannon'?320:560,dmg:T.dmg,type:t.type});
+        speed:t.type==='cannon'?320:560,dmg:T.dmg*(t.dmgMul||1),type:t.type});
       sfx.shoot();
     }
   }
@@ -281,6 +324,7 @@ function checkMath(){
   }else document.getElementById('ma').value='';
 }
 function showOverlay(title,body,lesson,btn,cb){
+  window.__paused=false;pauseBtn.textContent='⏸';
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
@@ -320,6 +364,15 @@ function render(){
     ctx.beginPath();ctx.arc(t.x,t.y-6,14,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.font='20px system-ui';ctx.textAlign='center';
     ctx.fillText(T.emoji,t.x,t.y+1);ctx.textAlign='left';
+    if(t.lvl>1){ctx.fillStyle='#ffd23f';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('★'.repeat(t.lvl),t.x,t.y+24);ctx.textAlign='left';}
+    // long-press sell progress ring
+    if(G.hold&&G.hold.tower===t&&!G.hold.cancelled){
+      const f=Math.min(1,G.hold.t/SELL_HOLD);
+      ctx.strokeStyle='rgba(255,210,63,0.95)';ctx.lineWidth=5;ctx.lineCap='round';
+      ctx.beginPath();ctx.arc(t.x,t.y,30,-Math.PI/2,-Math.PI/2+Math.PI*2*f);ctx.stroke();
+      ctx.fillStyle='#ffd23f';ctx.font='900 12px system-ui';ctx.textAlign='center';
+      ctx.fillText('💰 SELL +'+sellRefund(t),t.x,t.y-40);ctx.textAlign='left';
+    }
     // aim barrel
     if(t.aim!==undefined){
       ctx.strokeStyle=T.color;ctx.lineWidth=5;ctx.lineCap='round';
@@ -364,6 +417,7 @@ function render(){
   }
   ctx.globalAlpha=1;
   ctx.restore();
+  if(G.msgT>0&&G.msg){ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';ctx.fillText(G.msg,W/2,H*0.16);ctx.textAlign='left';}
   // next wave countdown
   if(G.state==='play'&&!G.spawnQ.length&&!G.enemies.length&&G.wave<10){
     ctx.fillStyle='#fff';ctx.font='900 18px system-ui';ctx.textAlign='center';
@@ -371,15 +425,28 @@ function render(){
     ctx.textAlign='left';
   }
 }
+
+window.__paused=false;window.__muted=false;
+const pauseBtn=document.getElementById('pauseBtn'),muteBtn=document.getElementById('muteBtn');
+function setPaused(v){if(!['play','countdown'].includes(G.state))return;window.__paused=v;pauseBtn.textContent=v?'▶':'⏸';}
+pauseBtn.addEventListener('click',e=>{e.stopPropagation();setPaused(!window.__paused);});
+function toggleMute(){window.__muted=!window.__muted;muteBtn.textContent=window.__muted?'🔇':'🔊';}
+muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMute();});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p'||k==='escape')setPaused(!window.__paused);if(k==='m')toggleMute();});
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  const rawDt=Math.min((t-lastT)/1000||0,0.25); // wall-clock delta: the hold-to-sell timer must take a real ~600ms even on slow devices, so it uses raw frame time (still frozen while paused), not the capped/scaled game dt
+  if(G.hold&&!G.hold.cancelled&&!window.__paused&&G.state==='play'){G.hold.t+=rawDt;if(G.hold.t>=SELL_HOLD){const ht=G.hold.tower;G.hold=null;sellTower(ht);}}
+  const dt=Math.min(rawDt,1/30)*(window.__speed||1);lastT=t;
+  if(!window.__paused&&G.state==='play')update(dt);else if(!window.__paused)G.time+=dt;
   render();
+  if(window.__paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 17px system-ui';ctx.fillText('Tap ▶ or press P to resume',W/2,H/2+38);ctx.textAlign='left';}
   requestAnimationFrame(loop);
 }
 resize();
 requestAnimationFrame(loop);
+window.__speed=1;
+document.getElementById('speedBtn').addEventListener('click',e=>{e.stopPropagation();window.__speed=window.__speed===1?2:1;e.currentTarget.textContent=window.__speed===2?'⏩2×':'⏩1×';});
 </script>
 </body>
 </html>

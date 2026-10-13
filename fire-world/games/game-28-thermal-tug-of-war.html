@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Thermal Tug-of-War — by Jman350Z & fire team</title>
 <meta name="description" content="Tap fast to win the tug-of-war! Mash against the AI. A Fire Babys game.">
@@ -27,6 +28,10 @@ canvas{display:block;width:100%;height:100%}
 .dbtn{background:#1a0e08;border:3px solid #ff6a1a;border-radius:12px;padding:12px 20px;color:#fff;font-weight:800;cursor:pointer;font-size:15px}
 .dbtn.sel{background:#3a2008;border-color:#ffd23f}
 #tapzone{position:fixed;inset:0;z-index:8}
+#ctl{position:fixed;top:56px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:12px;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.35);font-size:20px;cursor:pointer}
+#anchorBtn{position:fixed;bottom:84px;right:16px;z-index:15;width:92px;height:92px;border-radius:50%;background:linear-gradient(180deg,#ffd76a,#ff8c2e);border:3px solid #ffd23f;color:#2a1206;font-size:17px;font-weight:900;display:none;box-shadow:0 0 18px rgba(255,210,63,.7)}
+#anchorBtn.ready{display:block}
 </style>
 </head>
 <body>
@@ -37,10 +42,12 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="taps">👆 0/s</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<button id="anchorBtn">⚓ SLAM!</button>
+<div id="ctl"><button id="pauseBtn" aria-label="Pause">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🪢 THERMAL TUG-OF-WAR</h1>
-<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><p>⚓ <b>EMBER ANCHOR:</b> taps charge the meter — at 20, press <b>SPACE</b> for a big Anchor Slam pull!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
+<div id="obody"><p>It's a pulling contest!</p><p><b>TAP AS FAST AS YOU CAN</b> anywhere to pull the rope! Drag the flag past YOUR line to win the round. Best of 3 rounds wins the match!</p><p>⚓ <b>EMBER ANCHOR:</b> taps charge the meter — at 20, press <b>SPACE</b> (or tap the ⚓ SLAM button when it glows) for a big Anchor Slam pull! Desktop: <b>←/→, A/D or Enter</b> also pull!</p><div id="diff"><button class="dbtn sel" data-d="0">😊 Easy</button><button class="dbtn" data-d="1">😐 Medium</button><button class="dbtn" data-d="2">😈 Hard</button></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Pull together — teamwork beats fire every time!</div>
 <button id="obtn">▶ PLAY</button>
@@ -57,7 +64,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -72,8 +79,8 @@ const sfx={
 };
 const DIFFS=[
   {ai:2.2,name:'Easy'},
-  {ai:3.4,name:'Medium'},
-  {ai:4.6,name:'Hard'},
+  {ai:3.2,name:'Medium'},
+  {ai:4.2,name:'Hard'},
 ];
 const G={state:'title',diff:0,round:1,pyou:0,pai:0,anchor:0,
   pos:0, // -1 (ai wins) to +1 (you win)
@@ -98,30 +105,41 @@ function startRound(){
   G.state='countdown';
   updateHUD();
 }
-canvas.addEventListener('pointerdown',e=>{
+function doPull(x,y){
   if(G.state!=='play')return;
-  e.preventDefault();
-  G.pos+=0.028; // each tap pulls
+  G.pos+=0.032; // each tap pulls
   G.anchor=Math.min(20,G.anchor+1); // taps charge the Ember Anchor
   G.ropeTug=1;
   G.tapTimes.push(performance.now());
-  // keep last second
   const now=performance.now();
   G.tapTimes=G.tapTimes.filter(t=>now-t<1000);
   document.getElementById('taps').textContent=`👆 ${G.tapTimes.length}/s`;
   sfx.tap();
-  // tap ripple
-  const rect=canvas.getBoundingClientRect();
-  ripples.push({x:e.clientX-rect.left,y:e.clientY-rect.top,r:10,a:1});
+  ripples.push({x:x,y:y,r:10,a:1});
+  document.getElementById('anchorBtn').classList.toggle('ready',G.anchor>=20);
   if(G.pos>=1){winRound(true);}
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  doPull(e.clientX-rect.left,e.clientY-rect.top);
 });
-addEventListener('keydown',e=>{
-  if((e.key===' '||e.key==='Spacebar')&&G.state==='play'&&G.anchor>=20){
-    e.preventDefault();G.anchor=0;G.pos+=0.16;G.ropeTug=1;sfx.anchor();
+function slamAnchor(){
+  if(G.state!=='play'||G.anchor<20)return;
+  G.anchor=0;G.pos+=0.16;G.ropeTug=1;sfx.anchor();
+  document.getElementById('anchorBtn').classList.remove('ready');
     for(let i=0;i<10;i++){const p=particles.find(p=>!p.a);if(!p)break;
       p.a=true;p.x=W/2+G.pos*W*0.38;p.y=H*0.45;p.vx=(Math.random()-0.5)*260;p.vy=(Math.random()-0.5)*260;
       p.life=0.45;p.max=0.45;p.color='#ffd23f';p.size=4;}
-    if(G.pos>=1)winRound(true);
+  if(G.pos>=1)winRound(true);
+}
+document.getElementById('anchorBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();slamAnchor();});
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(!e.repeat&&G.state==='play'&&(k==='arrowleft'||k==='arrowright'||k==='a'||k==='d'||k==='enter')){doPull(W/2,H*0.45);}
+  if((e.key===' '||e.key==='Spacebar')&&G.state==='play'&&G.anchor>=20){
+    e.preventDefault();slamAnchor();
   }
 });
 const ripples=[];
@@ -150,7 +168,7 @@ function update(dt){
   if(G.state!=='play')return;
   // AI pulls
   const D=DIFFS[G.diff];
-  G.pos-=D.ai*dt*0.05*(1+G.round*0.15);
+  G.pos-=D.ai*dt*0.05*(1+G.round*0.12);
   // natural drift back to center
   G.pos-=G.pos*0.15*dt;
   // tap rate decay display
@@ -164,6 +182,7 @@ function update(dt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
 }
 function winRound(youWon){
+  document.getElementById('anchorBtn').classList.remove('ready');
   if(youWon){G.pyou++;sfx.win();G.shake=0.3;}
   else{G.pai++;sfx.lose();G.shake=0.3;}
   updateHUD();
@@ -182,7 +201,7 @@ function winRound(youWon){
         '↻ REMATCH',()=>{reset();startRound();});
     },900);
   }else{
-    G.state='roundend';G.round++;
+    G.state='roundend';G.round++;sfx.round();
     setTimeout(()=>{
       showOverlay(youWon?'💪 ROUND WON!':'😤 ROUND LOST',
         `<p>Score: YOU ${G.pyou} — ${G.pai} AI</p><p>Get ready for round ${G.round}!</p>`,
@@ -203,6 +222,7 @@ function checkMath(){
   }else document.getElementById('ma').value='';
 }
 function showOverlay(title,body,lesson,btn,cb){
+  window.__paused=false;pauseBtn.textContent='⏸';
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
@@ -309,11 +329,20 @@ function drawTeam(x,y,color,label,faceRight){
   ctx.fillStyle=color;ctx.font='900 16px system-ui';ctx.textAlign='center';
   ctx.fillText(label,x,y+80);ctx.textAlign='left';
 }
+
+window.__paused=false;window.__muted=false;
+const pauseBtn=document.getElementById('pauseBtn'),muteBtn=document.getElementById('muteBtn');
+function setPaused(v){if(!['play','countdown'].includes(G.state))return;window.__paused=v;pauseBtn.textContent=v?'▶':'⏸';}
+pauseBtn.addEventListener('click',e=>{e.stopPropagation();setPaused(!window.__paused);});
+function toggleMute(){window.__muted=!window.__muted;muteBtn.textContent=window.__muted?'🔇':'🔊';}
+muteBtn.addEventListener('click',e=>{e.stopPropagation();toggleMute();});
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p'||k==='escape')setPaused(!window.__paused);if(k==='m')toggleMute();});
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='countdown'||G.state==='play')update(dt);else G.time+=dt;
+  if(!window.__paused&&(G.state==='countdown'||G.state==='play'))update(dt);else if(!window.__paused)G.time+=dt;
   render();
+  if(window.__paused){ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 17px system-ui';ctx.fillText('Tap ▶ or press P to resume',W/2,H/2+38);ctx.textAlign='left';}
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

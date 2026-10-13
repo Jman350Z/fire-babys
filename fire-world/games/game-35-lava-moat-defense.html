@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lava Moat Defense — by Jman350Z & fire team</title>
 <meta name="description" content="Defend the castle from all sides! 360° tower defense. A Fire Babys game.">
@@ -22,7 +23,14 @@ canvas{display:block;width:100%;height:100%}
 #mathgate{background:#1a0e08;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
+#ctl{position:fixed;top:108px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
 #back{position:fixed;top:60px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#tpanel{position:fixed;bottom:52px;left:50%;transform:translateX(-50%);z-index:12;display:none;gap:8px;align-items:center;background:rgba(0,0,0,.72);border:2px solid #ffd23f;border-radius:16px;padding:8px 10px}
+#tpanel .info{color:#fff;font-weight:800;font-size:13px;padding:0 4px;white-space:nowrap}
+#tpanel button{min-height:48px;border-radius:12px;border:2px solid rgba(255,255,255,.4);background:rgba(255,140,46,.85);color:#fff;font-weight:900;font-size:14px;padding:8px 12px;cursor:pointer}
+#tpanel button.sell{background:rgba(76,175,80,.85)}
+#tpanel button.close{background:rgba(0,0,0,.5);min-width:48px}
 </style>
 </head>
 <body>
@@ -34,9 +42,11 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
+<div id="tpanel"><span class="info" id="tpInfo">🔥 Lv1</span><button id="tpUp">⬆️ Upgrade</button><button id="tpSell" class="sell">💰 Sell</button><button id="tpClose" class="close">✖</button></div>
+<div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button><button id="ffBtn" aria-label="Fast forward">⏩</button></div>
 <div id="overlay">
 <h1 id="otitle">🌋 LAVA MOAT DEFENSE</h1>
-<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 12 waves!</p><p>🔆 <b>EMBER NOVA BLAST:</b> every 12 tower kills charges a Nova — tap the castle or press SPACE to blast all nearby enemies for 45 damage!</p></div>
+<div id="obody"><p>They're coming from EVERYWHERE!</p><p><b>TAP</b> anywhere on the lava moat ring to build a fire tower (50 🪙)! Towers auto-blast enemies marching toward the castle. Rotate your defense — survive all 12 waves!</p><p>⬆️ <b>TAP a built tower</b> to pick it, then <b>UPGRADE</b> it (stronger + longer reach, up to Lv4) or <b>SELL</b> it back for 70% of what you spent. Towers also grow a little stronger with every blast they land.</p><p>🔆 <b>EMBER NOVA BLAST:</b> every 12 tower kills charges a Nova — tap the castle or press SPACE to blast all nearby enemies for 45 damage!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: A moat of safety keeps everyone protected!</div>
 <button id="obtn">▶ PLAY</button>
@@ -52,13 +62,13 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
   CX=W/2;CY=H/2;MOAT_R=Math.min(W,H)*0.32;CASTLE_R=Math.min(W,H)*0.09;}
 addEventListener('resize',resize);
-let AC=null;
+let AC=null,muted=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
-function noise(dur,vol,delay=0,lp=800){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function noise(dur,vol,delay=0,lp=800){if(muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const len=ac.sampleRate*dur,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
   for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
@@ -75,7 +85,7 @@ const sfx={
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',gold:200,wave:0,hp:100,score:0,
-  towers:[],enemies:[],shots:[],spawnQ:[],betweenWaves:0,time:0,shake:0,nova:0};
+  towers:[],enemies:[],shots:[],spawnQ:[],betweenWaves:0,time:0,shake:0,nova:0,paused:false,speed:1,msg:'',msgT:0,rangeT:0,lastTower:null,selTower:null};
 const NOVA_NEED=12,NOVA_DMG=45,NOVA_R=230;
 // Living background embers (positions derived from G.time — cheap, stateless)
 const EMBERS=[];
@@ -85,13 +95,13 @@ function reset(){
   G.towers=[];G.enemies=[];G.shots=[];
   // BUGFIX: spawnQ and shake were never cleared — leftover queued enemies
   // from the previous run leaked into the fresh game after a restart.
-  G.spawnQ=[];G.shake=0;G.nova=0;
+  G.spawnQ=[];G.shake=0;G.nova=0;G.paused=false;G.msg='';G.msgT=0;G.rangeT=0;G.lastTower=null;G.selTower=null;document.getElementById('tpanel').style.display='none';pauseBtn.textContent='⏸️';
   G.betweenWaves=1.5;G.time=0;
   updateHUD();
 }
 function updateHUD(){
   document.getElementById('gold').textContent='🪙 '+Math.floor(G.gold);
-  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(G.wave+1,12)}/12`;
+  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(Math.max(G.wave,1),12)}/12`; // was wave+1: HUD showed Wave 2 during Wave 1
   document.getElementById('hp').textContent='🏰 '+G.hp;
 }
 // WEAPON — Ember Nova Blast: charged by 12 tower kills. When ready, tap the
@@ -115,6 +125,54 @@ function novaBlast(){
 addEventListener('keydown',e=>{
   if((e.code==='Space'||e.code==='KeyN')&&G.state==='play'){e.preventDefault();novaBlast();}
 });
+// --- Manual upgrade/sell economy (leftover-fix) ---
+// Balance vs the game's own numbers: base tower 50g, 11 dmg / 0.45s ≈ 24 DPS,
+// 170 range. Enemies pay 7-22g and gold also trickles at 1.2/s, waves run
+// 7-29 enemies. Upgrade costs 40/80/120g (Lv2/3/4) buy +45% damage and +8
+// range per level (Lv4 ≈ 2.35x damage, 194 range ≈ 57 DPS before the capped
+// veteran bonus). One maxed tower costs 290g total — about six base towers'
+// worth of damage concentrated in ONE ring slot, which is the point: ring
+// slots are limited by the 52px spacing, so upgrades win late, raw towers
+// win early. That keeps both choices live instead of one dominating.
+// Sell refunds 70% of total invested (genre standard), so repositioning
+// costs something but is never a trap. The old auto-level-by-kills is now a
+// capped veteran bonus (+0.3 dmg/kill, max +6) — kills still matter, but
+// damage no longer grows without bound or without the player deciding.
+const UP_COSTS=[0,40,80,120]; // index = current level (Lv1->2 costs 40, ...)
+const MAX_LVL=4;
+function towerRange(t){return 170+((t.lvl||1)-1)*8;}
+function towerDmg(t){return (11+Math.min((t.kills||0)*0.3,6))*(1+0.45*((t.lvl||1)-1));}
+function sellRefund35(t){const inv=t.invested!=null?t.invested:50;return Math.floor(inv*0.7);}
+const tpanel=document.getElementById('tpanel'),tpInfo=document.getElementById('tpInfo'),
+      tpUp=document.getElementById('tpUp'),tpSell=document.getElementById('tpSell');
+function refreshPanel(){
+  const t=G.selTower;
+  if(!t||!G.towers.includes(t)){tpanel.style.display='none';return;}
+  tpanel.style.display='flex';
+  tpInfo.textContent='🔥 Lv'+(t.lvl||1)+' · ⚔️ '+towerDmg(t).toFixed(0);
+  tpUp.textContent=(t.lvl||1)>=MAX_LVL?'⭐ MAX':'⬆️ Upgrade '+UP_COSTS[t.lvl||1]+'🪙';
+  tpSell.textContent='💰 Sell +'+sellRefund35(t)+'🪙';
+}
+function selectTower(t){G.selTower=t;G.lastTower=t;G.rangeT=1.4;refreshPanel();}
+function deselectTower(){G.selTower=null;tpanel.style.display='none';}
+tpUp.addEventListener('click',e=>{
+  e.stopPropagation();const t=G.selTower;if(!t)return;
+  if((t.lvl||1)>=MAX_LVL){G.msg='⭐ That tower is max level (Lv'+MAX_LVL+')';G.msgT=1.6;return;}
+  const cost=UP_COSTS[t.lvl||1];
+  if(G.gold<cost){sfx.click();G.msg='🪙 Upgrade needs '+cost+' gold!';G.msgT=1.6;return;}
+  G.gold-=cost;t.invested=(t.invested!=null?t.invested:50)+cost;t.lvl=(t.lvl||1)+1;
+  sfx.build();updateHUD();G.rangeT=1.4;G.lastTower=t;refreshPanel();
+  G.msg='⬆️ Tower upgraded to Lv'+t.lvl+'!';G.msgT=1.6;
+});
+tpSell.addEventListener('click',e=>{
+  e.stopPropagation();const t=G.selTower;if(!t)return;
+  const refund=sellRefund35(t);
+  G.towers=G.towers.filter(x=>x!==t);G.gold+=refund;
+  if(G.lastTower===t)G.lastTower=null;
+  deselectTower();sfx.build();tone(900,1400,0.12,'triangle',0.1);burst(t.x,t.y,'#ffd23f',10);updateHUD();
+  G.msg='💰 Tower sold! +🪙 '+refund;G.msgT=1.6;
+});
+document.getElementById('tpClose').addEventListener('click',e=>{e.stopPropagation();deselectTower();});
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
   const rect=canvas.getBoundingClientRect();
@@ -122,18 +180,25 @@ canvas.addEventListener('pointerdown',e=>{
   const d=Math.hypot(x-CX,y-CY);
   // tapping the castle fires the Nova when charged (castle is not on the build ring)
   if(d<CASTLE_R+30&&G.nova>=NOVA_NEED){novaBlast();return;}
+  if(d<CASTLE_R+30&&G.nova<NOVA_NEED){G.msg=`🔆 Nova needs ${NOVA_NEED-G.nova} more kills!`;G.msgT=1.6;return;}
+  // tapping a placed tower selects it (upgrade / sell panel) — before any build logic
+  for(const t of G.towers){
+    if(Math.hypot(t.x-x,t.y-y)<44){selectTower(t);sfx.click();return;}
+  }
   // must be near moat ring
-  if(Math.abs(d-MOAT_R)>44)return;
-  if(G.gold<50){sfx.click();return;}
+  if(Math.abs(d-MOAT_R)>44){deselectTower();G.msg='👆 Tap ON the glowing ring to build!';G.msgT=1.6;return;}
+  if(G.gold<50){sfx.click();G.msg='🪙 Need 50 gold for a tower!';G.msgT=1.6;return;}
   // check overlap
   for(const t of G.towers){
     const td=Math.hypot(t.x-x,t.y-y);
-    if(td<52)return;
+    if(td<52){G.msg='Too close to another tower!';G.msgT=1.4;return;}
   }
+  deselectTower();
   G.gold-=50;sfx.build();updateHUD();
   // snap to ring
   const a=Math.atan2(y-CY,x-CX);
-  G.towers.push({x:CX+Math.cos(a)*MOAT_R,y:CY+Math.sin(a)*MOAT_R,a,cd:0,aim:0,kills:0});
+  const nt={x:CX+Math.cos(a)*MOAT_R,y:CY+Math.sin(a)*MOAT_R,a,cd:0,aim:0,kills:0,lvl:1,invested:50};
+  G.towers.push(nt);G.lastTower=nt;G.rangeT=1.4; // flash the new tower's range so players learn its reach
 });
 function startWave(n){
   G.wave=n;sfx.wave();
@@ -158,7 +223,7 @@ function spawnEnemy(type){
   else if(type==='fast')Object.assign(base,{type,hp:16+G.wave*4,r:11,speed:95+G.wave*3,gold:9});
   else if(type==='tank')Object.assign(base,{type:'tank',hp:80+G.wave*18,r:22,speed:32+G.wave*1.5,gold:22});
   else Object.assign(base,{type:'splitter',hp:34+G.wave*8,r:16,speed:55+G.wave*2,gold:12});
-  G.enemies.push(base);
+  base.maxhp=base.hp;G.enemies.push(base);
 }
 const particles=[];
 for(let i=0;i<120;i++)particles.push({a:false});
@@ -169,7 +234,7 @@ function burst(x,y,color,n=7){
     p.life=0.4;p.max=0.4;p.color=color;p.size=3+Math.random()*3;}
 }
 function update(dt){
-  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.msgT=Math.max(0,G.msgT-dt);G.rangeT=Math.max(0,G.rangeT-dt);
   if(!G.spawnQ.length&&!G.enemies.length&&G.state==='play'){
     if(G.wave>=12){victory();return;}
     G.betweenWaves-=dt;
@@ -184,14 +249,14 @@ function update(dt){
     let best=null,bd=1e9;
     for(const e of G.enemies){
       const d=Math.hypot(e.x-t.x,e.y-t.y);
-      if(d<170){
+      if(d<towerRange(t)){
         const cd=Math.hypot(e.x-CX,e.y-CY);
         if(cd<bd){bd=cd;best=e;}
       }
     }
     if(best){
       t.cd=0.45;t.aim=Math.atan2(best.y-t.y,best.x-t.x);
-      G.shots.push({x:t.x,y:t.y,target:best,speed:520,dmg:11+t.kills*0.3,src:t});
+      G.shots.push({x:t.x,y:t.y,target:best,speed:520,dmg:towerDmg(t),src:t});
       sfx.shoot();
     }
   }
@@ -211,7 +276,7 @@ function update(dt){
         if(e.type==='splitter'){
           for(let i=0;i<2;i++){
             G.enemies.push({x:e.x+(Math.random()-0.5)*30,y:e.y+(Math.random()-0.5)*30,
-              type:'grunt',hp:20+G.wave*5,r:11,speed:70+G.wave*2,gold:5,t:0,hitT:0,a:0});
+              type:'grunt',hp:20+G.wave*5,maxhp:20+G.wave*5,r:11,speed:70+G.wave*2,gold:5,t:0,hitT:0,a:0});
           }
         }
         // BUGFIX: previously EVERY tower within 170px of a kill got credit,
@@ -280,6 +345,15 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();resize();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+const muteBtn=document.getElementById('muteBtn'),pauseBtn=document.getElementById('pauseBtn');
+muteBtn.onclick=()=>{muted=!muted;muteBtn.textContent=muted?'🔇':'🔊';};
+function togglePause(){if(!(G.state==='play'))return;G.paused=!G.paused;pauseBtn.textContent=G.paused?'▶️':'⏸️';}
+pauseBtn.onclick=togglePause;
+addEventListener('keydown',e=>{if(e.code==='KeyP')togglePause();});
+
+const ffBtn=document.getElementById('ffBtn');
+ffBtn.onclick=()=>{G.speed=G.speed===1?2:1;ffBtn.textContent=G.speed===2?'⏩2x':'⏩';ffBtn.style.background=G.speed===2?'rgba(255,170,40,.6)':'rgba(0,0,0,.55)';};
+
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#17100c');bg.addColorStop(0.55,'#0d0a08');bg.addColorStop(1,'#1c0d06');
@@ -324,11 +398,26 @@ function render(){
   ctx.strokeStyle=G.hp>50?'#4caf50':G.hp>25?'#ffd23f':'#ff4a5a';
   ctx.lineWidth=6;
   ctx.beginPath();ctx.arc(CX,CY,CASTLE_R+12,-Math.PI/2,-Math.PI/2+Math.PI*2*G.hp/100);ctx.stroke();
+  // tower range preview: faint reach ring per tower, bright ring on the newest
+  for(const t of G.towers){
+    ctx.strokeStyle='rgba(255,210,63,0.07)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(t.x,t.y,towerRange(t),0,Math.PI*2);ctx.stroke();
+  }
+  if(G.lastTower&&G.rangeT>0){
+    ctx.strokeStyle=`rgba(255,210,63,${0.45*G.rangeT/1.4})`;ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(G.lastTower.x,G.lastTower.y,towerRange(G.lastTower),0,Math.PI*2);ctx.stroke();
+  }
+  if(G.selTower&&G.towers.includes(G.selTower)){
+    ctx.strokeStyle='rgba(255,210,63,0.55)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(G.selTower.x,G.selTower.y,towerRange(G.selTower),0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(G.selTower.x,G.selTower.y,26,0,Math.PI*2);ctx.stroke();
+  }
   // towers
   for(const t of G.towers){
     ctx.fillStyle='#4a3a2a';
     ctx.beginPath();ctx.arc(t.x,t.y,18,0,Math.PI*2);ctx.fill();
-    const lvl=Math.min(3,1+Math.floor(t.kills/8));
+    const lvl=t.lvl||1; // manual upgrade level (was auto-by-kills; kills now feed the capped veteran damage bonus)
     const g=ctx.createRadialGradient(t.x-5,t.y-11,2,t.x,t.y-6,14);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(1,'#ff6a1a');
     ctx.fillStyle=g;
@@ -341,7 +430,7 @@ function render(){
     ctx.lineTo(t.x+Math.cos(t.aim)*20,t.y-6+Math.sin(t.aim)*20);ctx.stroke();
     if(lvl>1){
       ctx.fillStyle='#ffd23f';ctx.font='900 11px system-ui';ctx.textAlign='center';
-      ctx.fillText('★'.repeat(lvl-1),t.x,t.y+22);ctx.textAlign='left';
+      ctx.fillText('★'.repeat(lvl),t.x,t.y+22);ctx.textAlign='left';
     }
   }
   // enemies
@@ -357,6 +446,12 @@ function render(){
     ctx.fillStyle='#ff4a00';
     ctx.beginPath();ctx.arc(-e.r*0.3,-2,3,0,Math.PI*2);ctx.arc(e.r*0.3,-2,3,0,Math.PI*2);ctx.fill();
     ctx.restore();
+    // enemy HP bar (genre standard — shows tank damage progress)
+    if(e.maxhp&&e.hp<e.maxhp){
+      ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(e.x-e.r,e.y-e.r-10,e.r*2,5);
+      ctx.fillStyle=e.hp/e.maxhp>0.4?'#4caf50':'#ff4a5a';
+      ctx.fillRect(e.x-e.r,e.y-e.r-10,e.r*2*Math.max(0,e.hp/e.maxhp),5);
+    }
   }
   // shots (projectile glow)
   ctx.save();ctx.shadowColor='#ffd23f';ctx.shadowBlur=10;
@@ -385,16 +480,21 @@ function render(){
     }
     ctx.textAlign='left';
   }
+  if(G.msgT>0&&G.state==='play'){
+    ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';
+    ctx.fillText(G.msg,W/2,64);ctx.textAlign='left';
+  }
   if(G.state==='play'&&!G.spawnQ.length&&!G.enemies.length&&G.wave<12){
     ctx.fillStyle='#fff';ctx.font='900 17px system-ui';ctx.textAlign='center';
     ctx.fillText(`Wave ${G.wave+1} in ${Math.ceil(G.betweenWaves)}...  TAP the ring to build! (50🪙)`,W/2,90);
     ctx.textAlign='left';
   }
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸️ PAUSED',W/2,H/2);ctx.textAlign='left';}
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play'&&!G.paused)update(dt*G.speed);else G.time+=dt;
   render();
   requestAnimationFrame(loop);
 }

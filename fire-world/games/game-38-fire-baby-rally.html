@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fire Baby Rally — by Jman350Z & fire team</title>
 <meta name="description" content="Race the track! 3 laps against the clock. A Fire Babys racing game.">
@@ -23,6 +24,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#ctl{position:fixed;top:64px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
 #pedals{position:fixed;bottom:20px;right:16px;z-index:10;display:flex;gap:12px}
 .pedal{width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.15);border:3px solid #fff;color:#fff;font-size:28px;display:flex;align-items:center;justify-content:center;font-weight:900}
 .pedal:active{background:rgba(255,255,255,.35)}
@@ -34,13 +37,15 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill gold" id="lap">LAP 1/3</div>
 <div class="pill" id="time">⏱️ 0.0s</div>
 <div class="pill" id="best">🏆 --</div>
+<div class="pill" id="speed">🚗 0</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <div id="pedals"><div class="pedal" id="leftBtn">◀</div><div class="pedal" id="rightBtn">▶</div></div>
 <canvas id="c"></canvas>
+<div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button><button id="resetBtn" aria-label="Reset to track">⟲</button></div>
 <div id="overlay">
 <h1 id="otitle">🏁 FIRE BABY RALLY</h1>
-<div id="obody"><p>3 laps — beat the clock!</p><p><b>HOLD</b> to accelerate, <b>◀ ▶</b> or <b>arrow keys</b> to steer! Stay on the track — grass slows you down. Hit the boost pads for speed!</p></div>
+<div id="obody"><p>3 laps — beat the clock!</p><p><b>HOLD</b> to accelerate, <b>◀ ▶</b> or <b>arrow keys</b> to steer! Stay on the track — grass slows you down. Hit the boost pads for speed! Stuck? Press <b>R</b> or tap ⟲ to hop back on track.</p><p>👻 Set a lap time and a see-through <b>ghost car</b> replays your best lap next race — race against yourself!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Race to safety — never race real cars!</div>
 <button id="obtn">▶ PLAY</button>
@@ -55,9 +60,9 @@ let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
-let AC=null;
+let AC=null,muted=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(muted)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -83,12 +88,38 @@ function trackPoints(){
 let TRACK=[];
 const G={state:'title',lap:1,lapTimes:[],raceT:0,
   x:0,y:0,a:0,v:0,boost:0,countdown:0,
-  best:null,offTrack:false,time:0,skid:[]};
+  best:null,offTrack:false,time:0,skid:[],paused:false,lapMsg:'',lapMsgT:0,ghost:null,ghostBestLap:null,rec:[],recAcc:0};
 try{const b=localStorage.getItem('rally_best');if(b)G.best=parseFloat(b);}catch(e){}
+// --- Ghost car (leftover-fix): record the player's best LAP and replay it
+// translucently on later races. Samples are {t,x,y,a} taken every 0.1s of lap
+// time (10/s — a 3-minute lap caps at 1800 samples, ~90KB worst case, and the
+// storage write happens once per lap at most). The ghost is render-only: it
+// is never fed into physics, so it can never collide with or slow the player.
+const GHOST_KEY='rally_ghost_v1',GHOST_DT=0.1,GHOST_MAX=1800;
+function loadGhost(){
+  G.ghost=null;G.ghostBestLap=null;
+  try{
+    const raw=localStorage.getItem(GHOST_KEY);
+    if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.samples)&&d.samples.length>10&&isFinite(d.time)){G.ghost=d.samples;G.ghostBestLap=d.time;}}
+  }catch(e){}
+}
+function saveGhostIfBest(lapTime){
+  if(!G.rec||G.rec.length<10)return;
+  if(G.ghostBestLap!=null&&lapTime>=G.ghostBestLap)return;
+  G.ghost=G.rec.slice(0,GHOST_MAX);G.ghostBestLap=lapTime;
+  try{localStorage.setItem(GHOST_KEY,JSON.stringify({time:lapTime,samples:G.ghost}));}catch(e){}
+}
+function ghostPose(lapT){
+  if(!G.ghost||!G.ghost.length)return null;
+  const i=Math.max(0,Math.min(G.ghost.length-1,Math.floor(lapT/GHOST_DT)));
+  return G.ghost[i];
+}
 function reset(){
   TRACK=trackPoints();
+  loadGhost();G.rec=[];G.recAcc=0;
   const p0=TRACK[0];
-  G.x=p0.x;G.y=p0.y+40;G.a=-Math.PI/2;G.v=0;G.boost=0;
+  G.x=p0.x;G.y=p0.y-40;G.a=Math.PI/2;G.v=0;G.boost=0; // FIX: car was placed below the line facing UP (-PI/2) but the circuit runs DOWNWARD from the start point — it spawned facing the wrong way
+  G.paused=false;G.lapMsg='';G.lapMsgT=0;pauseBtn.textContent='⏸️';
   G.lap=1;G.lapTimes=[];G.raceT=0;G.countdown=3;G.skid=[];
   G.state='countdown';G.countT=0;
   updateHUD();
@@ -97,16 +128,28 @@ function updateHUD(){
   document.getElementById('lap').textContent=`LAP ${Math.min(G.lap,3)}/3`;
   document.getElementById('time').textContent='⏱️ '+G.raceT.toFixed(1)+'s';
   document.getElementById('best').textContent='🏆 '+(G.best?G.best.toFixed(1)+'s':'--');
+  document.getElementById('speed').textContent='🚗 '+Math.round(G.v*0.36);
 }
 // input
-let gas=false,steerL=false,steerR=false;
-canvas.addEventListener('pointerdown',e=>{gas=true;});
-canvas.addEventListener('pointerup',()=>gas=false);
-canvas.addEventListener('pointercancel',()=>gas=false);
-// BUGFIX: sliding a finger off the canvas never fired pointerup on it,
-// leaving the gas stuck ON. Clear gas on leave / any window-level release.
-canvas.addEventListener('pointerleave',()=>gas=false);
-addEventListener('pointerup',()=>gas=false);
+let gas=false,kbGas=false,steerL=false,steerR=false,gasId=null;
+canvas.addEventListener('pointerdown',e=>{gas=true;gasId=e.pointerId;});
+function clearGas(e){if(gasId===null||e.pointerId===gasId){gas=false;gasId=null;}}
+canvas.addEventListener('pointerup',clearGas);
+canvas.addEventListener('pointercancel',clearGas);
+// BUGFIX (earlier): sliding a finger off the canvas left gas stuck ON.
+// BUGFIX (now): the window-level clear also fired when the STEERING finger
+// lifted, killing the gas mid-corner in two-finger play. Gas is now tied to
+// its own pointerId — only the gas finger (or keyboard) can release it.
+canvas.addEventListener('pointerleave',clearGas);
+addEventListener('pointerup',clearGas);
+function resetToTrack(){
+  if(G.state!=='play')return;
+  const{idx}=distToTrack(G.x,G.y);
+  const p=TRACK[idx],q=TRACK[(idx+1)%TRACK.length],r=TRACK[(idx-1+TRACK.length)%TRACK.length];
+  G.x=p.x;G.y=p.y;G.a=Math.atan2(q.y-r.y,q.x-r.x);G.v=Math.max(G.v,60);
+  G.lapMsg='⟲ Back on track!';G.lapMsgT=1.2;
+}
+addEventListener('keydown',e=>{if(e.key.toLowerCase()==='r')resetToTrack();});
 function bindHold(id,fn){
   const el=document.getElementById(id);
   el.addEventListener('pointerdown',e=>{e.stopPropagation();fn(true);});
@@ -118,11 +161,11 @@ bindHold('rightBtn',v=>steerR=v);
 const keys={};
 addEventListener('keydown',e=>{
   keys[e.key.toLowerCase()]=true;
-  if(e.key==='ArrowUp'||e.key===' ')gas=true;
+  if(e.key==='ArrowUp'||e.key===' ')kbGas=true;
 });
 addEventListener('keyup',e=>{
   keys[e.key.toLowerCase()]=false;
-  if(e.key==='ArrowUp'||e.key===' ')gas=false;
+  if(e.key==='ArrowUp'||e.key===' ')kbGas=false;
 });
 function distToTrack(x,y){
   let best=1e9,bi=0;
@@ -148,8 +191,11 @@ function update(dt){
     return;
   }
   if(G.state!=='play')return;
-  G.raceT+=dt;G.boost=Math.max(0,G.boost-dt);
-  const accel=gas||keys['w']?420:0;
+  G.raceT+=dt;G.boost=Math.max(0,G.boost-dt);G.lapMsgT=Math.max(0,G.lapMsgT-dt);
+  // record this lap for a possible new ghost (light: one sample per 0.1s)
+  G.recAcc+=dt;
+  if(G.recAcc>=GHOST_DT&&G.rec.length<GHOST_MAX){G.recAcc=0;G.rec.push({t:G.raceT-(G.lapStart||0),x:Math.round(G.x),y:Math.round(G.y),a:+G.a.toFixed(3)});}
+  const accel=(gas||kbGas||keys['w'])?420:0;
   const maxV=G.boost>0?560:340;
   if(accel)G.v=Math.min(maxV,G.v+accel*dt);
   else G.v=Math.max(0,G.v-180*dt);
@@ -176,7 +222,9 @@ function update(dt){
   if(G._lastIdx>40&&idx<8&&G.raceT>3){
     // crossed line
     const lt=G.raceT-(G.lapStart||0);
+    saveGhostIfBest(lt);G.rec=[];G.recAcc=0; // this lap becomes / stays the ghost
     G.lapTimes.push(lt);G.lapStart=G.raceT;
+    G.lapMsg=`🏁 Lap ${G.lapTimes.length}: ${lt.toFixed(1)}s`;G.lapMsgT=2.2; // live split (was only shown at race end)
     sfx.lap();
     if(G.lap>=3){finishRace();return;}
     G.lap++;
@@ -223,6 +271,14 @@ function showOverlay(title,body,lesson,btn,cb){
   overlay.classList.remove('hidden');
 }
 function startGame(){audio();reset();overlay.classList.add('hidden');}
+const muteBtn=document.getElementById('muteBtn'),pauseBtn=document.getElementById('pauseBtn');
+muteBtn.onclick=()=>{muted=!muted;muteBtn.textContent=muted?'🔇':'🔊';};
+function togglePause(){if(!(G.state==='play'||G.state==='countdown'))return;G.paused=!G.paused;pauseBtn.textContent=G.paused?'▶️':'⏸️';}
+pauseBtn.onclick=togglePause;
+addEventListener('keydown',e=>{if(e.code==='KeyP')togglePause();});
+
+document.getElementById('resetBtn').onclick=()=>resetToTrack();
+
 obtn.onclick=()=>{showMathGate();};
 function render(){
   // grass
@@ -279,6 +335,20 @@ function render(){
     ctx.beginPath();ctx.arc(s.x,s.y,4,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  // ghost car (best-lap replay — translucent, render-only, never collides)
+  if(G.ghost&&(G.state==='play')){
+    const gp=ghostPose(G.raceT-(G.lapStart||0));
+    if(gp){
+      ctx.save();ctx.globalAlpha=0.42;ctx.translate(gp.x,gp.y);ctx.rotate(gp.a);
+      ctx.fillStyle='#aee2ff';
+      ctx.beginPath();ctx.roundRect(-20,-11,40,22,6);ctx.fill();
+      ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(2,0,8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#111';
+      ctx.fillRect(-14,-15,10,5);ctx.fillRect(-14,10,10,5);
+      ctx.fillRect(6,-15,10,5);ctx.fillRect(6,10,10,5);
+      ctx.restore();ctx.globalAlpha=1;
+    }
+  }
   // car
   if(G.state!=='title'){
     ctx.save();ctx.translate(G.x,G.y);ctx.rotate(G.a);
@@ -313,17 +383,23 @@ function render(){
     ctx.fillText(n>0?n:'GO!',W/2,H/2);
     ctx.textAlign='left';
   }
+  if(G.lapMsgT>0&&G.state==='play'){
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(W/2-150,84,300,40);
+    ctx.fillStyle='#ffd23f';ctx.font='900 22px system-ui';ctx.textAlign='center';
+    ctx.fillText(G.lapMsg,W/2,112);ctx.textAlign='left';
+  }
   // gas hint
   if(G.state==='play'&&G.raceT<4){
     ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 18px system-ui';ctx.textAlign='center';
     ctx.fillText('HOLD TO GO! ◀ ▶ TO STEER',W/2,H*0.85);
     ctx.textAlign='left';
   }
+  if(G.paused){ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';ctx.fillText('⏸️ PAUSED',W/2,H/2);ctx.textAlign='left';}
 }
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='countdown'||G.state==='play')update(dt);else G.time+=dt;
+  if((G.state==='countdown'||G.state==='play')&&!G.paused)update(dt);else G.time+=dt;
   render();
   requestAnimationFrame(loop);
 }

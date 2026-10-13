@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Magma Jump 2D — by Jman350Z & fire team</title>
 <meta name="description" content="Wall jump to the top! Bounce between walls. A Fire Babys climber.">
@@ -22,6 +23,10 @@ canvas{display:block;width:100%;height:100%}
 #mathgate{background:#1a0e08;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
+#ctl{position:fixed;right:12px;bottom:14px;z-index:15;display:flex;gap:8px}
+#ctl button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
+
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 </style>
 </head>
@@ -33,6 +38,9 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0m</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="btnPause" title="Pause (P)">⏸</button><button id="btnMute" title="Sound on/off (M)">🔊</button><button id="btnRestart" title="Restart">↻</button></div>
+<div id="pausedTxt" class="hidden">⏸ PAUSED</div>
+
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🧗 MAGMA JUMP 2D</h1>
@@ -53,7 +61,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__mute)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -64,7 +72,7 @@ const sfx={
   fall(){tone(400,80,0.5,'sawtooth',0.14);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
-const G={state:'title',score:0,best:0,combo:1,
+const G={state:'title',score:0,best:0,combo:1,bonus:0,lastStarT:-99,
   px:0,py:0,vx:0,vy:0,onWall:1, // 1=right,-1=left
   camY:0,stars:[],lavas:[],time:0,dead:false,wallGap:0};
 try{G.best=parseInt(localStorage.getItem('walljump_best')||'0',10)||0;}catch(e){}
@@ -74,14 +82,14 @@ function wallX(side,camY){
   return side>0?W/2+base:W/2-base;
 }
 function reset(){
-  G.score=0;G.combo=1;G.camY=0;G.time=0;G.dead=false;
+  G.score=0;G.combo=1;G.bonus=0;G.lastStarT=-99;G.camY=0;G.time=0;G.dead=false;
   G.stars=[];G.lavas=[];
   G.onWall=1;
   G.px=wallX(1,0)-18;G.py=H*0.7;G.vx=0;G.vy=0;
   // initial stars/lava
   for(let i=0;i<10;i++)spawnRow(-i*220);
   updateHUD();
-  document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';
+  document.getElementById('best').textContent='🏆 '+G.best;
 }
 function spawnRow(y){
   // y is world y (negative up)
@@ -96,19 +104,34 @@ function spawnRow(y){
 }
 function updateHUD(){
   document.getElementById('score').textContent='📏 '+Math.floor(G.score/10)+'m';
-  document.getElementById('combo').textContent='🔥 x'+G.combo;
+  document.getElementById('combo').textContent='🔥 x'+G.combo+(G.bonus>0?' ⭐+'+G.bonus:'');
+}
+// [gamer-check] jumps only launch FROM a wall (vx===0 while clinging) —
+// mid-air taps used to reset vy and let players tap-spam-fly past the whole game.
+function doJump(){
+  if(G.state!=='play'||G.dead)return;
+  if(G.vx!==0)return;
+  G.onWall*=-1;
+  G.vx=G.onWall*420;
+  G.vy=-780;
+  sfx.jump();
 }
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.dead)return;
   e.preventDefault();
-  // jump to opposite wall
-  G.onWall*=-1;
-  G.vx=G.onWall*420;
-  G.vy=-560;
-  sfx.jump();
+  doJump();
+});
+addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();doJump();}
 });
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+function stickDust(){
+  for(let i=0;i<4;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    p.a=true;p.x=G.px;p.y=G.py-G.camY;
+    p.vx=(Math.random()-0.5)*120;p.vy=(Math.random()-0.5)*120;
+    p.life=0.3;p.max=0.3;p.color='#ffb37a';p.size=2.5;}
+}
 // [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
 const amb=[];
 for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
@@ -128,18 +151,20 @@ function drawEmbers(){
 
 function update(dt){
   G.time+=dt;
-  G.vy+=1800*dt;
+  if(G.combo>1&&G.time-G.lastStarT>4){G.combo=1;updateHUD();}
+  G.vy+=1500*dt;
   G.px+=G.vx*dt;G.py+=G.vy*dt;
   // wall stick
   const wl=wallX(-1,G.camY),wr=wallX(1,G.camY);
   if(G.px<wl+18){
     G.px=wl+18;
-    if(G.vx<0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=-1;}
+    if(G.vx<0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=-1;stickDust();}
   }
   if(G.px>wr-18){
     G.px=wr-18;
-    if(G.vx>0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=1;}
+    if(G.vx>0){G.vx=0;G.vy=Math.min(G.vy,60);G.onWall=1;stickDust();}
   }
+  if(G.vx===0)G.vy=Math.min(G.vy,90); // clinging: slow genre-standard wall slide
   // lava collision
   const wy=G.py-G.camY;
   for(const l of G.lavas){
@@ -155,7 +180,7 @@ function update(dt){
     s.t+=dt*3;
     if(!s.taken&&Math.hypot(G.px-s.x,G.py-s.y)<36){
       s.taken=true;sfx.star();
-      G.score+=25*G.combo;G.combo=Math.min(8,G.combo+1);
+      G.bonus+=25*G.combo;G.lastStarT=G.time;G.combo=Math.min(8,G.combo+1);
       updateHUD();
       for(let i=0;i<6;i++){const p=particles.find(p=>!p.a);if(!p)break;
         p.a=true;p.x=s.x;p.y=s.y-G.camY;const a=Math.random()*Math.PI*2;
@@ -189,11 +214,12 @@ function update(dt){
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
 }
 function gameOver(title){
-  const isBest=G.score>G.best;
-  if(isBest){G.best=G.score;try{localStorage.setItem('walljump_best',String(G.best));}catch(e){}}
+  const total=G.score+G.bonus;
+  const isBest=total>G.best;
+  if(isBest){G.best=total;try{localStorage.setItem('walljump_best',String(G.best));}catch(e){}}
   setTimeout(()=>{
     showOverlay(title,
-      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Height: ${Math.floor(G.score/10)}m</p><p>Best: ${Math.floor(G.best/10)}m</p>`,
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Height: ${Math.floor(G.score/10)}m</p><p>⭐ Star bonus: +${G.bonus}</p><p>Total score: ${total}</p><p>Best total: ${G.best}</p>`,
       '🔥 Fire Safety: Climb to safety!',
       '↻ CLIMB AGAIN',()=>{reset();G.state='play';});
   },600);
@@ -307,7 +333,21 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
-document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';
+document.getElementById('best').textContent='🏆 '+G.best;
+
+// [gamer-check batch-09] pause / mute / restart controls (P = pause, M = mute)
+window.__mute=false;
+let __prePause=null;
+const __pTxt=document.getElementById('pausedTxt');
+function __togglePause(){
+  if(G.state==='play'){__prePause='play';G.state='paused';__pTxt.classList.remove('hidden');}
+  else if(G.state==='paused'){G.state=__prePause||'play';__prePause=null;__pTxt.classList.add('hidden');}
+}
+document.getElementById('btnPause').onclick=e=>{e.stopPropagation();__togglePause();};
+document.getElementById('btnMute').onclick=e=>{e.stopPropagation();window.__mute=!window.__mute;e.currentTarget.textContent=window.__mute?'\u{1F507}':'\u{1F50A}';};
+document.getElementById('btnRestart').onclick=e=>{e.stopPropagation();if(G.state==='play'||G.state==='paused'){__pTxt.classList.add('hidden');__prePause=null;reset();G.state='play';}};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p')__togglePause();if(k==='m')document.getElementById('btnMute').click();});
+
 requestAnimationFrame(loop);
 </script>
 </body>

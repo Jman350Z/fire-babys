@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Thermal Track — by Jman350Z & fire team</title>
 <meta name="description" content="Trace the track! Stay on the path. A Fire Babys precision game.">
@@ -22,6 +23,10 @@ canvas{display:block;width:100%;height:100%}
 #mathgate{background:#141024;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
+#ctl{position:fixed;right:12px;bottom:14px;z-index:15;display:flex;gap:8px}
+#ctl button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
+
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
 .lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#141024;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
@@ -35,6 +40,9 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="prog">📏 0%</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="btnPause" title="Pause (P)">⏸</button><button id="btnMute" title="Sound on/off (M)">🔊</button><button id="btnRestart" title="Restart">↻</button></div>
+<div id="pausedTxt" class="hidden">⏸ PAUSED</div>
+
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🛤️ THERMAL TRACK</h1>
@@ -53,9 +61,10 @@ let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
+addEventListener('resize',()=>{if(G.track.length&&(Math.abs(W-G._lw)>40||Math.abs(H-G._lh)>160)&&(G.state==='play'||G.state==='title'||G.state==='paused'))initLevel(G.level);});
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__mute)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -93,7 +102,7 @@ const G={state:'title',level:1,score:0,
   track:[],progress:0,tracing:false,offCount:0,
   startT:0,time:0,shake:0,trail:[]};
 function initLevel(n){
-  G.level=n;G.track=genTrack(n);
+  G.level=n;G._lw=W;G._lh=H;G.track=genTrack(n);
   G.progress=0;G.tracing=false;G.offCount=0;G.trail=[];
   G.time=0;G.shake=0;
   document.getElementById('level').textContent=`LV ${n}/6`;
@@ -118,7 +127,8 @@ canvas.addEventListener('pointerdown',e=>{
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
   const p0=G.track[0];
-  if(Math.hypot(x-p0.x,y-p0.y)<70){
+  const pProg=G.track[Math.min(G.track.length-1,Math.floor(G.progress*G.track.length))];
+  if(Math.hypot(x-p0.x,y-p0.y)<70||(G.progress>0.02&&Math.hypot(x-pProg.x,y-pProg.y)<80)){
     G.tracing=true;G.startT=performance.now();
     G.trail=[{x,y}];
     canvas.setPointerCapture(e.pointerId);
@@ -298,7 +308,7 @@ function render(){
     ctx.globalAlpha=Math.min(1,f.life);
     ctx.font='900 22px system-ui';ctx.fillStyle='#000';
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
-    f.y-=30*0.016;f.life-=0.016;
+    f.y-=30*(G._dt||0.016);f.life-=(G._dt||0.016);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
   ctx.restore();
@@ -310,10 +320,24 @@ function render(){
 }
 let lastT=0;
 function loop(t){
-  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;G.time+=dt;G._dt=dt;
   render();
   requestAnimationFrame(loop);
 }
+
+// [gamer-check batch-09] pause / mute / restart controls (P = pause, M = mute)
+window.__mute=false;
+let __prePause=null;
+const __pTxt=document.getElementById('pausedTxt');
+function __togglePause(){
+  if(G.state==='play'){__prePause='play';G.state='paused';__pTxt.classList.remove('hidden');G.tracing=false;}
+  else if(G.state==='paused'){G.state=__prePause||'play';__prePause=null;__pTxt.classList.add('hidden');}
+}
+document.getElementById('btnPause').onclick=e=>{e.stopPropagation();__togglePause();};
+document.getElementById('btnMute').onclick=e=>{e.stopPropagation();window.__mute=!window.__mute;e.currentTarget.textContent=window.__mute?'\u{1F507}':'\u{1F50A}';};
+document.getElementById('btnRestart').onclick=e=>{e.stopPropagation();if(G.state==='play'||G.state==='paused'){__pTxt.classList.add('hidden');__prePause=null;initLevel(G.level);G.state='play';}};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p')__togglePause();if(k==='m')document.getElementById('btnMute').click();});
+
 requestAnimationFrame(loop);
 </script>
 </body>
