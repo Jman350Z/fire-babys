@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -38,12 +39,17 @@ canvas{display:block;width:100%;height:100%}
 #btnAtk{background:rgba(196,30,122,.55)}
 #btnJump{background:rgba(255,106,0,.55)}
 #back{position:fixed;top:52px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#sysbtns{position:fixed;top:60px;right:12px;z-index:15;display:flex;gap:8px}
+#sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
 </style>
 </head>
 <body>
 <div id="game">
 <div id="hud"><div><div id="stage">STAGE 1/15</div><div id="hpbar"><div id="hpfill"></div></div><div id="bosshpwrap" class="hidden"><div id="bosslabel">👹 FORTRESS BOSS</div><div id="bosshpbar"><div id="bosshpfill"></div></div></div></div><div id="score">SCORE 0</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off (M)">🔊</button></div>
+<div id="pausedTxt" class="hidden">⏸ Paused</div>
 <canvas id="c"></canvas>
 <div id="dpad">
 <div></div><div class="dbtn" id="dUp">▲</div><div></div>
@@ -85,7 +91,7 @@ addEventListener('resize',resize);resize();
 /* ---------- Web Audio synth ---------- */
 let AC=null;
 function audio(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
-function sfx(type){
+function sfx(type){if(window.__fbMuted)return;
   const ac=audio();if(!ac)return;
   const o=ac.createOscillator(),g=ac.createGain();
   o.connect(g);g.connect(ac.destination);
@@ -622,6 +628,7 @@ function render(){
 let lastT=0;
 function loop(t){
   const rawDt=Math.min((t-lastT)/1000||0,0.05);lastT=t;
+  if(window.__fbPaused){requestAnimationFrame(loop);return;} // [w5b] pause freeze: no sim update, no re-render
   // hit-stop
   let dt=rawDt;
   if(hitStop>0){hitStop-=rawDt;dt=rawDt*0.1;}
@@ -675,6 +682,18 @@ function showIntro(){ // BEGINNING name placement #1
 obtn.onclick=()=>{showMathGate();};
 showIntro();
 requestAnimationFrame(loop);
+
+/* [w5b] pause + mute controls (were missing entirely).
+   Pause: the main loop early-returns before any sim update while
+   window.__fbPaused is set, so gameplay state is fully frozen and the canvas
+   is not re-rendered; the "⏸ Paused" overlay shows. Resume restores play.
+   Mute: the tone/noise/sfx entry points check window.__fbMuted, and the
+   game's AudioContext is suspended/resumed with the toggle. */
+const __pb=document.getElementById('pauseBtn'),__mb=document.getElementById('muteBtn'),__pt=document.getElementById('pausedTxt');
+function __setPaused(v){if(v&&G.state!=='play')return;window.__fbPaused=!!v;__pb.textContent=window.__fbPaused?'▶':'⏸';__pt.classList.toggle('hidden',!window.__fbPaused);}
+__pb.addEventListener('click',e=>{e.stopPropagation();__setPaused(!window.__fbPaused);});
+__mb.addEventListener('click',e=>{e.stopPropagation();window.__fbMuted=!window.__fbMuted;__mb.textContent=window.__fbMuted?'🔇':'🔊';try{if(typeof AC!=='undefined'&&AC){if(window.__fbMuted)AC.suspend();else AC.resume();}}catch(err){}});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__setPaused(!window.__fbPaused);if(e.key==='m'||e.key==='M')__mb.click();});
 </script>
 </body>
 </html>
