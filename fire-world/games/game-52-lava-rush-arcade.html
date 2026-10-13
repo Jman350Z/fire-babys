@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lava Rush Arcade — by Jman350Z & fire team</title>
 <meta name="description" content="Dodge the lava! Endless rush. A Fire Babys arcade game.">
@@ -33,6 +34,9 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0m</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🌋 LAVA RUSH ARCADE</h1>
@@ -53,7 +57,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -84,28 +88,30 @@ function spawnObstacle(){
   const r=Math.random();
   const y=GY();
   if(r<0.35)G.obstacles.push({type:'geyser',x:W+40,y,t:0,warn:0.9,w:56,h:120});
-  else if(r<0.6)G.obstacles.push({type:'rock',x:W+40,y:y-50,w:50,h:50});
+  else if(r<0.6)G.obstacles.push({type:'rock',x:W+40,y:y-25,w:50,h:50}); // centre raised: triangle bottom now rests on the ground line (was floating 25px)
   else if(r<0.8)G.obstacles.push({type:'lowbar',x:W+40,y:y-96,w:44,h:44});
   else G.stars.push({x:W+40,y:y-60-Math.random()*120,t:Math.random()*6,taken:false});
 }
 function doJump(){
-  if(G.state!=='play'||G.dead||G.jumping)return;
+  if(G.state!=='play'||G.dead)return;
+  if(G.jumping){G._jumpBuf=0.13;return;} // jump buffering: a press just before landing still counts
   G.jumping=true;G.vy=-780;sfx.jump();
 }
 function doSlide(){
-  if(G.state!=='play'||G.dead||G.jumping)return;
+  if(G.state!=='play'||G.dead)return;
+  if(G.jumping){G.vy=Math.max(G.vy,1500);G._slam=true;sfx.slide();return;} // air-slam into a slide on landing
   G.sliding=true;G.slideT=0.55;sfx.slide();
 }
-canvas.addEventListener('pointerdown',e=>{G._sy=e.clientY;G._st=performance.now();});
-canvas.addEventListener('pointerup',e=>{
-  if(G.state!=='play')return;
-  if(G._sy===undefined)return;
-  const dy=e.clientY-G._sy,dt=performance.now()-G._st;
-  if(dy>50&&dt<400)doSlide();else doJump();
+canvas.addEventListener('pointerdown',e=>{G._sy=e.clientY;G._st=performance.now();G._slid=false;
+  if(G.state==='play')doJump();}); // jump fires on tap-DOWN (was: on release = input lag); a downward swipe then slams into a slide
+canvas.addEventListener('pointermove',e=>{
+  if(G._sy===undefined||G._slid)return;
+  if(e.clientY-G._sy>45){G._slid=true;doSlide();}
 });
+canvas.addEventListener('pointerup',()=>{G._sy=undefined;});
 addEventListener('keydown',e=>{
   if(e.key===' '||e.key==='ArrowUp'){doJump();e.preventDefault();}
-  if(e.key==='ArrowDown')doSlide();
+  if(e.key==='ArrowDown'){doSlide();e.preventDefault();}
 });
 const particles=[],floaters=[];
 for(let i=0;i<80;i++)particles.push({a:false});
@@ -133,13 +139,15 @@ function die(){
   },700);
 }
 function update(dt){
-  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  G.time+=dt;if(G._jumpBuf>0)G._jumpBuf-=dt;G.shake=Math.max(0,G.shake-dt*3);
   G.speed=Math.min(800,420+G.dist*1.1);
   G.dist+=G.speed*dt/50;
   // physics
   if(G.jumping){
     G.vy+=2100*dt;G.py+=G.vy*dt;
-    if(G.py>=GY()){G.py=GY();G.vy=0;G.jumping=false;}
+    if(G.py>=GY()){G.py=GY();G.vy=0;G.jumping=false;
+      if(G._jumpBuf>0){G._jumpBuf=0;G.jumping=true;G.vy=-780;sfx.jump();}
+      else if(G._slam){G._slam=false;G.sliding=true;G.slideT=0.5;}}
   }
   if(G.sliding){G.slideT-=dt;if(G.slideT<=0)G.sliding=false;}
   G.spawnT-=dt*G.speed/420;
@@ -158,7 +166,7 @@ function update(dt){
         const gTop=o.y-130;
         if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>gTop&&pTop<o.y)die();
       }else{
-        if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>o.y-30)die();
+        if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>o.y-14)die(); // vent kill height now matches the visible vent (was an invisible 30px)
       }
     }else if(o.type==='rock'){
       if(px+18>o.x-o.w/2&&px-18<o.x+o.w/2&&pBot>o.y-o.h/2&&pTop<o.y+o.h/2)die();
@@ -191,7 +199,7 @@ function update(dt){
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
-  if(Math.random()<0.06)updateHUD();
+  G._hudT=(G._hudT||0)+dt;if(G._hudT>0.1){G._hudT=0;updateHUD();}
 }
 let mathAnswer=0;
 function showMathGate(){
@@ -343,11 +351,23 @@ function render(){
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.dead)update(dt);else G.time+=dt;
+  if(G.state==='play'&&!G.dead)update(dt);else{G.time+=dt;
+    for(const p of particles){if(!p.a)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+    for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}}
   render();
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
 </script>
 </body>

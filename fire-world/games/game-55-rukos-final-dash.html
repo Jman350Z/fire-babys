@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruko's Final Dash — by Jman350Z & fire team</title>
 <meta name="description" content="The grand finale! Epic boss dash. A Fire Babys game.">
@@ -38,6 +39,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="bossbar"><div class="lbl" id="bossname">🔥 ASH TITAN</div><div id="bosstrack"><div id="bossfill"></div></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🔥 RUKO'S FINAL DASH</h1>
@@ -58,7 +62,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -79,7 +83,7 @@ const BOSSES=[
 ];
 const G={state:'title',score:0,lives:3,bossIdx:0,
   bossHp:8,bossX:0,bossT:0,atkTimer:2,open:false,openT:0,
-  px:0,dashX:0,dashT:0,fireballs:[],time:0,shake:0,dead:false,hitT:0,combo:0};
+  px:0,dashX:0,dashT:0,fireballs:[],time:0,shake:0,dead:false,hitT:0,combo:0,invT:0};
 function startBoss(n){
   const B=BOSSES[n];
   G.bossIdx=n;G.bossHp=B.hp;G.bossX=W/2;G.bossT=0;
@@ -95,7 +99,7 @@ function updBoss(){
 }
 function reset(){
   G.score=0;G.lives=3;G.px=W/2;G.dashX=0;G.dashT=0;G.combo=0;
-  G.time=0;G.shake=0;G.dead=false;
+  G.time=0;G.shake=0;G.dead=false;G.invT=0;
   startBoss(0);
   updateHUD();
 }
@@ -145,6 +149,9 @@ function doDash(){
     if(dmg===2){sfx.burst();burst(G.bossX,H*0.3,'#ffd23f',20);spawnText(G.bossX,H*0.22,'\u{1F4A5} EMBER BURST +'+pts,'#ffd23f');}
     else{sfx.hit();burst(G.bossX,H*0.3,'#ffd23f',12);spawnText(G.bossX,H*0.22,'+'+pts,'#ffd23f');}
     if(G.bossHp<=0){bossDown();return;}
+  }else{ // whiff feedback: say WHY there was no damage instead of a silent empty dash
+    sfx.dodge();
+    spawnText(G.px,PY()-56,G.open?'TOO FAR!':'WAIT FOR ⚡ RING!','#9ad1ff');
   }
 }
 const particles=[],floaters=[];
@@ -193,8 +200,8 @@ function bossDown(){
   G.state='bossdown';
 }
 function hurt(){
-  if(G.dead)return;
-  G.lives--;updateHUD();sfx.hurt();G.shake=0.45;
+  if(G.dead||G.invT>0)return; // i-frames: stacked fireball explosions could drain all 3 lives in one tick
+  G.lives--;G.invT=1;updateHUD();sfx.hurt();G.shake=0.45;
   burst(G.px,PY(),'#ff4a5a',12);
   if(G.lives<=0){
     G.dead=true;
@@ -207,7 +214,7 @@ function hurt(){
   }
 }
 function update(dt){
-  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.hitT=Math.max(0,G.hitT-dt);
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.hitT=Math.max(0,G.hitT-dt);G.invT=Math.max(0,G.invT-dt);
   if(G.state==='bossdown'){ // defeated boss must stop attacking while the victory overlay is pending
     for(const p of particles){if(!p.a)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
     for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
@@ -331,6 +338,7 @@ function render(){
   if(!G.dead){
     const py=PY();
     ctx.save();ctx.translate(G.px,py);
+    if(G.invT>0)ctx.globalAlpha=0.45+0.35*Math.sin(G.time*30); // flicker while invincible
     if(G.dashT>0){
       // dash trail
       ctx.fillStyle='rgba(255,210,63,0.5)';
@@ -373,6 +381,16 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
 </script>
 </body>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Zenith — by Jman350Z & fire team</title>
 <meta name="description" content="Reach the zenith! Climb the volcano. A Fire Babys climber.">
@@ -35,10 +36,13 @@ canvas{display:block;width:100%;height:100%}
 <div class="pill" id="best">🏆 0m</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⛰️ BLAZE'S ZENITH</h1>
-<div id="obody"><p>Climb the volcano!</p><p><b>TAP LEFT/RIGHT</b> side of screen (or <b>◀ ▶</b>) to hop between platforms! Grab ⭐, avoid 🪨 crumbling rocks. Reach the peak flag 4 times!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Climb the volcano!</p><p><b>TAP LEFT/RIGHT</b> side of screen (or <b>◀ ▶</b>) to hop between platforms — <b>HOLD</b> a side to steer mid-air! Grab ⭐, avoid 🪨 crumbling rocks. Reach the peak flag 4 times!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Climb high — smoke rises, stay low!</div>
 <button id="obtn">▶ PLAY</button>
@@ -55,7 +59,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -82,13 +86,13 @@ function genPeak(n){
   let x=W/2;
   const total=14+n*3;
   for(let i=1;i<total;i++){
-    x+=(Math.random()-0.5)*W*0.5;
+    x+=Math.max(-290,Math.min(290,(Math.random()-0.5)*W*0.5)); // [gamer-check b10] cap the sideways step to what one steered hop can actually cover (~350px): on wide screens the step scaled with W but hop physics didn't, leaving far platforms unreachable
     x=Math.max(70,Math.min(W-70,x));
-    y-=gap*(0.85+Math.random()*0.3);
+    y-=gap*(0.85+Math.random()*0.2);
     const r=Math.random();
     const type=r<0.12?'crumble':r<0.24?'move':'solid';
     G.plats.push({x,y,w:type==='move'?100:80+Math.random()*50,type,t:Math.random()*6,phase:Math.random()*6,dir:Math.random()<0.5?-1:1});
-    if(Math.random()<0.4)G.plats[G.plats.length-1].star={x:x+(Math.random()-0.5)*60,y:y-50,t:Math.random()*6};
+    if(Math.random()<0.4){const so=(Math.random()-0.5)*60;G.plats[G.plats.length-1].star={x:x+so,y:y-50,t:Math.random()*6,off:so};}
   }
   G.flagY=y-80;
   G.platIdx=0;
@@ -102,15 +106,32 @@ function updateHUD(){
 }
 function hop(dir){
   if(G.state!=='play'||G.dead||!G.grounded)return; // was: hoppable mid-air = infinite flight
-  G.vx=dir*330;
-  G.vy=-640;
+  G.vx=dir*260; // gentler base impulse; HOLD steering (below) supplies the rest — a fixed full-power hop overshot near platforms and couldn't reach far ones
+  G.vy=-815; // hop apex was 120px vs platform gaps of 134-182px: most hops were physically impossible (height stayed 0m in play-tests)
   G.grounded=false;
   sfx.hop();
 }
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play')return;
   const rect=canvas.getBoundingClientRect();
-  hop(e.clientX-rect.left<W/2?-1:1);
+  const d=e.clientX-rect.left<W/2?-1:1;
+  G._holdDir=d; // [gamer-check b10] holding steers mid-air (genre standard); a one-shot hop could not be corrected
+  hop(d);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!G._holdDir)return; // dragging across the midline while holding re-aims the steering
+  const rect=canvas.getBoundingClientRect();
+  G._holdDir=e.clientX-rect.left<W/2?-1:1;
+});
+addEventListener('pointerup',()=>{G._holdDir=0;});
+addEventListener('pointercancel',()=>{G._holdDir=0;});
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a')G._keyDir=-1;
+  if(e.key==='ArrowRight'||e.key==='d')G._keyDir=1;
+});
+addEventListener('keyup',e=>{
+  if((e.key==='ArrowLeft'||e.key==='a')&&G._keyDir===-1)G._keyDir=0;
+  if((e.key==='ArrowRight'||e.key==='d')&&G._keyDir===1)G._keyDir=0;
 });
 addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'||e.key==='a')hop(-1);
@@ -126,26 +147,31 @@ function update(dt){
     p.t+=dt;
     if(p.type==='move')p.x+=p.dir*90*dt;
     if(p.x<60||p.x>W-60)p.dir*=-1;
-    if(p.star)p.star.t+=dt*3;
+    if(p.star){p.star.t+=dt*3;if(p.type==='move'&&!p.star.taken)p.star.x=p.x+(p.star.off||0);} // star rides its moving platform (was left behind in mid-air)
   }
   // physics
   G.vy+=1700*dt;
   if(G.vy<-10)G.grounded=false;
   G.px+=G.vx*dt;G.py+=G.vy*dt;
   G.vx*=Math.pow(0.3,dt);
+  const sd=G._holdDir||G._keyDir||0; // mid-air steering toward the held side
+  if(sd&&!G.grounded){G.vx+=sd*1300*dt;G.vx=Math.max(-350,Math.min(350,G.vx));}
   // wrap x
   if(G.px<-20)G.px=W+20;
   if(G.px>W+20)G.px=-20;
   // land on platforms (falling only)
   if(G.vy>0){
     G.grounded=false;
+    const prevPy=G.py-G.vy*dt; // [gamer-check b10] swept landing: the old 22px position window could be tunnelled through in one step at low frame rates / high fall speeds
     for(let i=0;i<G.plats.length;i++){
       const p=G.plats[i];
       const pw=p.w/2;
-      if(G.px>p.x-pw&&G.px<p.x+pw&&G.py>p.y-6&&G.py<p.y+16){
-        G.py=p.y-6;G.vy=0;G.grounded=true;
+      if(G.px>p.x-pw&&G.px<p.x+pw&&prevPy<=p.y-2&&G.py>=p.y-6){
+        const fell=G.vy;G.py=p.y-6;G.vy=0;G.grounded=true;
+        if(fell>260)for(let j=0;j<4;j++){const pt=particles.find(q=>!q.a);if(!pt)break; // landing dust = impact feedback
+          pt.a=true;pt.x=G.px+(Math.random()-0.5)*22;pt.y=p.y;pt.vx=(Math.random()-0.5)*120;pt.vy=-Math.random()*60;pt.life=0.3;pt.max=0.3;pt.color='#cbb59a';pt.size=3;}
         if(p.type==='crumble'&&!p.crumbling){
-          p.crumbling=true;p.crT=0.35;sfx.crumble();
+          p.crumbling=true;p.crT=0.65;sfx.crumble(); // 0.35s crumble was too harsh for kids; genre standard ~0.6s+
         }
         break;
       }
@@ -177,8 +203,6 @@ function update(dt){
     if(h>G.height){G.height=h;updateHUD();}
   }
   // peak reached
-  if(G.py-G.camY<G.flagY-G.camY-(-G.camY)+0){/*noop*/}
-  const flagScreenY=G.flagY+G.camY;
   if(G.py< G.flagY){
     peakDone();return;
   }
@@ -283,7 +307,7 @@ function render(){
     let col1='#5a4a3a',col2='#2a1e12';
     if(p.type==='crumble'){col1='#8a6a4a';col2='#4a3a22';}
     if(p.type==='move'){col1='#4a6a8a';col2='#2a3a52';}
-    const alpha=p.crumbling?Math.max(0.2,p.crT/0.35):1;
+    const alpha=p.crumbling?Math.max(0.2,p.crT/0.65):1;
     ctx.globalAlpha=alpha;
     const g=ctx.createLinearGradient(0,sy-12,0,sy+12);
     g.addColorStop(0,col1);g.addColorStop(1,col2);
@@ -349,6 +373,16 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;genPeak(G.peak);G.state='play';});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
 </script>
 </body>

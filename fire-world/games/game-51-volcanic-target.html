@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Volcanic Target — by Jman350Z & fire team</title>
 <meta name="description" content="Hit the bullseye! Tap targets fast. A Fire Babys aim game.">
@@ -9,7 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
 #game{position:fixed;inset:0}
-canvas{display:block;width:100%;height:100%}
+canvas{display:block;width:100%;height:100%;cursor:crosshair}
 #hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
 .pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
 .pill.gold{color:#ffd23f}
@@ -36,6 +37,9 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <div id="timebar"><div id="timefill"></div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 VOLCANIC TARGET</h1>
@@ -56,7 +60,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -66,6 +70,7 @@ const sfx={
   bad(){tone(300,150,0.18,'sawtooth',0.12);},
   boom(){tone(160,40,0.4,'sawtooth',0.16);tone(90,30,0.5,'square',0.1,0.02);},
   tick(){tone(800,800,0.05,'square',0.07);},
+  miss(){tone(220,160,0.06,'sine',0.05);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',score:0,best:0,combo:1,comboT:0,
@@ -90,8 +95,8 @@ function spawnTarget(){
   const margin=70;
   G.targets.push({
     x:margin+Math.random()*(W-margin*2),
-    y:120+Math.random()*(H-320),
-    r:type==='small'?24:type==='gold'?34:44,
+    y:120+Math.random()*Math.max(60,H-320), // clamped: on short viewports the band could invert and spawn targets over the HUD
+    r:type==='small'?27:type==='gold'?34:44,
     type,life:type==='decoy'?1.4:Math.max(0.9,2-G.elapsed*0.012),
     maxLife:1,t:Math.random()*6,scale:0
   });
@@ -131,7 +136,7 @@ canvas.addEventListener('pointerdown',e=>{
       break;
     }
   }
-  if(!hitAny){G.combo=1;updateHUD();}
+  if(!hitAny){G.combo=1;sfx.miss();spawnText(x,y,'MISS','#9a93a8');updateHUD();}
 });
 const particles=[],floaters=[];
 for(let i=0;i<100;i++)particles.push({a:false});
@@ -147,7 +152,7 @@ function drawEmbers(){
     if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
     const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
     ctx.globalAlpha=0.10+0.14*tw;
-    ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff7a1a';ctx.shadowBlur=8;
+    ctx.fillStyle='#ff9a3a';ctx.shadowBlur=0;
     ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();
   }
   ctx.restore();ctx.globalAlpha=1;
@@ -181,7 +186,7 @@ function update(dt){
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
   for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
-  if(Math.random()<0.1)updateHUD();
+  document.getElementById('timefill').style.width=Math.max(0,G.time/DUR*100)+'%';
 }
 function gameOver(){
   G.state='over';
@@ -213,9 +218,11 @@ function showOverlay(title,body,lesson,btn,cb){
 }
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+let _bg51=null,_bg51k='';
 function render(){
-  const bg=ctx.createRadialGradient(W/2,H*0.4,50,W/2,H*0.5,Math.max(W,H)*0.8);
-  bg.addColorStop(0,'#1a0f24');bg.addColorStop(1,'#0d0a14');
+  const _k=W+'x'+H;
+  if(!_bg51||_bg51k!==_k){_bg51=ctx.createRadialGradient(W/2,H*0.4,50,W/2,H*0.5,Math.max(W,H)*0.8);_bg51.addColorStop(0,'#1a0f24');_bg51.addColorStop(1,'#0d0a14');_bg51k=_k;}
+  const bg=_bg51;
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
@@ -283,6 +290,16 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 document.getElementById('best').textContent='🏆 '+G.best;
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
 </script>
 </body>

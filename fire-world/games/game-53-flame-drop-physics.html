@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Flame Drop Physics — by Jman350Z & fire team</title>
 <meta name="description" content="Guide the falling flame! Physics puzzler. A Fire Babys game.">
@@ -42,7 +43,11 @@ canvas{display:block;width:100%;height:100%}
 <button class="tool sel" id="toolRamp">📐 Ramp</button>
 <button class="tool" id="toolFan">💨 Fan</button>
 <button class="tool" id="toolErase">🧽 Erase</button>
+<button class="tool" id="toolDrop" style="background:#2e7d32;border-color:#4caf50">⬇️ DROP</button>
 </div>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💧 FLAME DROP PHYSICS</h1>
@@ -64,7 +69,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 addEventListener('resize',resize);resize();
 let AC=null;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
-function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
@@ -92,7 +97,7 @@ function initLevel(n){
   const L=LEVELS[n-1];
   G.level=n;G.time=0;G.shake=0;
   G.fx=L.spawn.x*W;G.fy=L.spawn.y*H;G.vx=0;G.vy=0;
-  G.dropped=false;G.done=false;
+  G.dropped=false;G.done=false;G._stillT=0;G._ax=undefined;
   G.ramps=[];G.fans=[];G.itemsLeft=L.items;G.drawing=null;
   document.getElementById('level').textContent=`LV ${n}/6`;
   document.getElementById('items').textContent='🛠️ '+G.itemsLeft;
@@ -107,6 +112,7 @@ function setTool(t){
 document.getElementById('toolRamp').addEventListener('click',()=>setTool('ramp'));
 document.getElementById('toolFan').addEventListener('click',()=>setTool('fan'));
 document.getElementById('toolErase').addEventListener('click',()=>setTool('erase'));
+document.getElementById('toolDrop').addEventListener('click',()=>{if(G.state==='play')dropFlame();});
 canvas.addEventListener('pointerdown',e=>{
   if(G.state!=='play'||G.dropped||G.done)return;
   const rect=canvas.getBoundingClientRect();
@@ -139,7 +145,7 @@ canvas.addEventListener('pointerdown',e=>{
 canvas.addEventListener('pointermove',e=>{
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
-  if(G.drawing){G.drawing.x2=x;G.drawing.y2=y;sfx.draw();}
+  if(G.drawing){G.drawing.x2=x;G.drawing.y2=y;if(Math.hypot(x-(G._dsx||0),y-(G._dsy||0))>26){G._dsx=x;G._dsy=y;sfx.draw();}} // draw sfx was firing every pointermove (tone spam)
   if(G._fanDrag){G._fanDrag.x=x;G._fanDrag.y=y;}
 });
 canvas.addEventListener('pointerup',()=>{
@@ -176,7 +182,15 @@ function update(dt){
       G.vx+=Math.cos(a)*push*dt;G.vy+=Math.sin(a)*push*dt-300*dt;
     }
   }
+  const prevFy=G.fy; // [gamer-check b10] pre-step centre: wall-top landing test below uses this so a fast flame can't tunnel past the top face in one step
   G.fx+=G.vx*dt;G.fy+=G.vy*dt;
+  // [gamer-check b10] stuck detection: a flame resting on a flat wall/ramp never reached any terminal state = soft-lock.
+  // Position-anchor based (not speed): a resting flame micro-bounces, which kept resetting a speed timer.
+  if(G._ax===undefined||Math.hypot(G.fx-G._ax,G.fy-G._ay)>8){G._ax=G.fx;G._ay=G.fy;G._stillT=0;}
+  else{G._stillT=(G._stillT||0)+dt;
+    if(G._stillT>1.6&&!G.done){G.done=true;setTimeout(()=>{
+      showOverlay('🔥 FLAME STUCK!',`<p>The flame came to rest! Score: ${G.score}</p>`,'🔥 Fire Safety: Try a different ramp!','↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+    },300);}}
   const R=14;
   // user ramps (line collision)
   for(const r of G.ramps){
@@ -192,8 +206,7 @@ function update(dt){
       const nx=d>0.001?(G.fx-cx)/d:0,ny=d>0.001?(G.fy-cy)/d:-1; // guard d=0 (centre exactly on line) — was NaN soft-lock
       G.fx=cx+nx*(R+6);G.fy=cy+ny*(R+6);
       const dot=G.vx*nx+G.vy*ny;
-      if(dot<0){G.vx-=1.7*dot*nx;G.vy-=1.7*dot*ny;}
-      sfx.draw();
+      if(dot<0){G.vx-=1.7*dot*nx;G.vy-=1.7*dot*ny;if(dot<-140)sfx.draw();} // impact sound only on real hits (was: every contact frame)
     }
   }
   // static walls
@@ -201,9 +214,9 @@ function update(dt){
     const wx=w.x*W,wy=w.y*H,ww=w.w*W,wh=Math.max(8,w.h*H);
     if(G.fx+R>wx&&G.fx-R<wx+ww&&G.fy+R>wy&&G.fy-R<wy+wh){
       // bounce
-      if(G.vy>0&&G.fy<wy){G.fy=wy-R;G.vy*=-0.55;G.vx*=0.96;}
-      else{G.vx*=-0.7;G.fx+=G.fx<wx+ww/2?-4:4;}
-      if(Math.abs(G.vy)>40)sfx.draw();
+      if(G.vy>0&&prevFy<=wy+2){G.fy=wy-R;G.vy*=-0.55;G.vx*=0.96;} // was G.fy<wy: a fast flame could cross the whole top face in one step and get side-ejected instead of landing
+      else{G.vx*=-0.7;G.fx=G.fx<wx+ww/2?wx-R-1:wx+ww+R+1;} // positional push-out (was 4px/frame: frame-rate dependent)
+      if(Math.abs(G.vy)>160)sfx.draw();
     }
   }
   // side walls
@@ -307,10 +320,7 @@ canvas.addEventListener('pointerup',e=>{
   if(G.state!=='play'||G.dropped||G.drawing||G._fanDrag)return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
-  if(Math.hypot(x-G.fx,y-G.fy)<60){
-    const now=performance.now();
-    if(now-dropT<400)dropFlame();else dropT=now;
-  }
+  if(Math.hypot(x-G.fx,y-G.fy)<60)dropFlame(); // single tap drops (was: hidden double-tap; the overlay said 'TAP DROP')
 });
 function render(){
   const bg53=ctx.createLinearGradient(0,0,0,H);bg53.addColorStop(0,'#1b1030');bg53.addColorStop(0.6,'#120a20');bg53.addColorStop(1,'#0d0a14');ctx.fillStyle=bg53;ctx.fillRect(0,0,W,H);
@@ -348,7 +358,7 @@ function render(){
     ctx.fillStyle='rgba(255,138,58,0.2)';
     ctx.beginPath();ctx.arc(G.fx,G.fy,40+Math.sin(G.time*4)*4,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font='900 15px system-ui';ctx.textAlign='center';
-    ctx.fillText('DOUBLE-TAP',G.fx,G.fy-54);ctx.fillText('TO DROP',G.fx,G.fy-38);
+    ctx.fillText('TAP FLAME',G.fx,G.fy-54);ctx.fillText('OR ⬇️ DROP',G.fx,G.fy-38);
     ctx.textAlign='left';
   }
   // ramps
@@ -394,6 +404,16 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
 </script>
 </body>
