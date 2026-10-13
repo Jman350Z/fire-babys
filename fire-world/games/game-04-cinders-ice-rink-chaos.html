@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -89,9 +90,22 @@ function noise(dur,vol,delay=0,lp=3000){if(MUTED)return;const ac=audio();if(!ac)
 /* living ember backdrop (overhaul) */
 const embers=[];
 for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
+/* [w5b perf] Pre-baked glow sprites. Profiling (Chromium/SwiftShader, W2 rAF
+   method): this game ran at 10.0 FPS with ~26 non-zero shadowBlur sets/frame;
+   neutralising shadowBlur alone restored 59.9 FPS (fast siblings use <=1/frame).
+   The ember loop (24 shadowed fills/frame) and the per-block shadowBlur were
+   the hot-loop offenders, so both now blit a pre-rendered radial-glow sprite
+   with the same colours/falloff instead of paying a shadow pass per frame. */
+function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const gr=x.createRadialGradient(48,48,0,48,48,48);
+  gr.addColorStop(0,`rgba(${r},${g},${b},0.9)`);gr.addColorStop(0.35,`rgba(${r},${g},${b},0.38)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  x.fillStyle=gr;x.fillRect(0,0,96,96);return c;}
+const EMBER_SPRITE=makeGlowSprite('#ffa53a');
+const BLOCK_GLOW_ORANGE=makeGlowSprite('#ff7a2a'),BLOCK_GLOW_BLUE=makeGlowSprite('#7fd4ff');
 function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
-  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));ctx.shadowColor='#ff7a2a';ctx.shadowBlur=8;ctx.fillStyle='#ffa53a';
-    ctx.beginPath();ctx.arc(e.x,e.y,e.s,0,Math.PI*2);ctx.fill();}
+  for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));
+    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2);}
   ctx.restore();}
 function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
   if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
@@ -391,7 +405,7 @@ function render(){
   // ice blocks
   for(const b of G.blocks){
     ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.spin);
-    ctx.shadowColor=b.bomb?'#ff7a2a':'#7fd4ff';ctx.shadowBlur=b.held?22:13;
+    {const gr=b.r*(b.held?3.4:2.9);ctx.save();ctx.globalAlpha=0.55;ctx.drawImage(b.bomb?BLOCK_GLOW_ORANGE:BLOCK_GLOW_BLUE,-gr,-gr,gr*2,gr*2);ctx.restore();} // [w5b perf] pre-baked glow (was shadowBlur 13/22 per block per frame)
     const g=ctx.createLinearGradient(-b.r,-b.r,b.r,b.r);
     g.addColorStop(0,'rgba(220,240,255,0.95)');g.addColorStop(0.5,'rgba(140,200,240,0.9)');g.addColorStop(1,'rgba(90,140,190,0.9)');
     ctx.fillStyle=g;

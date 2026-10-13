@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -38,7 +39,7 @@ canvas{display:block;width:100%;height:100%}
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-<div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button></div>
+<div id="ctl"><button id="muteBtn" aria-label="Mute sound">🔊</button><button id="pauseBtn" aria-label="Pause">⏸️</button><button id="restartBtn" aria-label="Restart game">↻</button></div>
 <div id="overlay">
 <h1 id="otitle">🔮 MAGMA DROP PHYSICS</h1>
 <div id="obody"><p>Drop the magma ball!</p><p><b>TAP</b> anywhere at the top to drop a ball! It bounces through pegs into multiplier slots. Chain <b>bumper hits</b> for combo points. 10 balls — rack up the biggest score!</p></div>
@@ -238,6 +239,11 @@ const muteBtn=document.getElementById('muteBtn'),pauseBtn=document.getElementByI
 muteBtn.onclick=()=>{muted=!muted;muteBtn.textContent=muted?'🔇':'🔊';};
 function togglePause(){if(!(G.state==='play'))return;G.paused=!G.paused;pauseBtn.textContent=G.paused?'▶️':'⏸️';}
 pauseBtn.onclick=togglePause;
+/* [w5b] restart control (site standard pause/mute/restart) — wired to the same
+   reset path the game-over DROP AGAIN button uses: reset() + state='play'
+   (reset() also clears the paused flag and restores the pause label) */
+const restartBtn=document.getElementById('restartBtn');
+restartBtn.onclick=()=>{if(G.state==='title')return;reset();G.state='play';overlay.classList.add('hidden');};
 addEventListener('keydown',e=>{if(e.code==='KeyP')togglePause();});
 
 function render(){

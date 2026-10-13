@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -321,7 +322,10 @@ function render(){
     ctx.globalAlpha=1;
     if(p.star&&!p.star.taken){
       const bob=Math.sin(p.star.t)*4;
-      ctx.save();ctx.translate(p.star.x,p.star.y+bob+offY);
+      // [w5b] render-only clamp: a star above a near-top platform used to draw
+      // half-clipped at the screen's top edge; collection uses world coords
+      const starY=Math.max(14-(p.star.y+bob+offY),0);
+      ctx.save();ctx.translate(p.star.x,p.star.y+bob+offY+starY);
       ctx.scale(Math.abs(Math.cos(p.star.t*0.5))*0.4+0.6,1);
       const sg=ctx.createRadialGradient(-4,-4,2,0,0,12);
       sg.addColorStop(0,'#fff');sg.addColorStop(0.5,'#ffd23f');sg.addColorStop(1,'#a37a00');
@@ -361,7 +365,13 @@ function render(){
   }
   ctx.globalAlpha=1;
   if(G.state==='play'&&G.time<3){
-    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 17px system-ui';ctx.textAlign='center';
+    // [w5b] dark pill backdrop so the hint stays readable where a platform
+    // crosses behind it (its left end used to tuck behind a platform)
+    ctx.font='900 17px system-ui';ctx.textAlign='center';
+    const hw=ctx.measureText('TAP LEFT / RIGHT TO HOP!').width;
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.beginPath();ctx.roundRect(W/2-hw/2-12,H*0.5-20,hw+24,28,9);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.9)';
     ctx.fillText('TAP LEFT / RIGHT TO HOP!',W/2,H*0.5);
     ctx.textAlign='left';
   }

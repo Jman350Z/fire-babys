@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -56,7 +57,38 @@ const overlay=document.getElementById('overlay'),otitle=document.getElementById(
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
 let W,H,DPR,PZ,BX,BY,GRID;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
-  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layout();}
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layout();
+  if(typeof G!=='undefined'&&G.pieces&&G.pieces.length)reScatter();}
+/* [w5b] Non-overlapping scatter slots: a jittered grid over the whole visible
+   play area (margin 8, below the HUD). Slots outside the board come first so
+   pieces ring the board when there is room; every slot is fully on-screen and
+   no two slots overlap, on any viewport / puzzle size. */
+function scatterSlots(n){
+  const margin=8,top=64,step=PZ+10;
+  const cols=Math.max(1,Math.floor((W-margin*2-PZ)/step)+1);
+  const rows=Math.max(1,Math.floor((H-top-margin-PZ)/step)+1);
+  const bw=PZ*GRID,bx0=BX-4,by0=BY-4;
+  const outside=[],inside=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const cx=margin+PZ/2+c*step,cy=top+PZ/2+r*step;
+    const over=(cx+PZ/2>bx0&&cx-PZ/2<bx0+bw+8&&cy+PZ/2>by0&&cy-PZ/2<by0+bw+8);
+    // cells under the top-right control cluster or the bottom-right rating
+    // pill are last-resort too, so pieces stay grabbable, not just on-screen
+    const ui=(cx+PZ/2>W-190&&cy-PZ/2<120)||(cx+PZ/2>W-200&&cy+PZ/2>H-64)||(cx-PZ/2<132&&cy+PZ/2>H-58);
+    (over||ui?inside:outside).push({x:cx,y:cy});
+  }
+  const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const cells=shuf(outside).concat(shuf(inside));
+  const jmax=Math.max(0,(step-PZ)/2-2);
+  return cells.slice(0,n).map(s=>({
+    x:Math.max(PZ/2+margin,Math.min(W-PZ/2-margin,s.x+(Math.random()*2-1)*jmax)),
+    y:Math.max(top+PZ/2,Math.min(H-PZ/2-margin,s.y+(Math.random()*2-1)*jmax))}));
+}
+function reScatter(){
+  const free=G.pieces.filter(p=>!p.placed);
+  const slots=scatterSlots(free.length);
+  free.forEach((p,i)=>{if(G.drag===p)return;const s=slots[i];if(s){p.x=s.x;p.y=s.y;}});
+}
 function layout(){
   const n=[3,4,5][G.level-1]||3;
   GRID=n;
@@ -119,16 +151,11 @@ function initLevel(n){
   for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++)idx.push({r,c});
   // shuffle positions
   for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  const slots=scatterSlots(idx.length);
   idx.forEach((pos,i)=>{
-    // scattered around edges
-    const side=i%4;
-    let sx,sy;
-    if(side===0){sx=Math.random()*W;sy=H*0.08+Math.random()*H*0.08;}
-    else if(side===1){sx=Math.random()*W;sy=H*0.88+Math.random()*H*0.06;}
-    else if(side===2){sx=Math.random()*W*0.12;sy=H*0.25+Math.random()*H*0.5;}
-    else{sx=W*0.88+Math.random()*W*0.1;sy=H*0.25+Math.random()*H*0.5;}
-    sx=Math.max(PZ/2+6,Math.min(W-PZ/2-6,sx));
-    sy=Math.max(PZ/2+58,Math.min(H-PZ/2-6,sy));
+    // [w5b] scattered onto non-overlapping, fully on-screen slots (was: random
+    // edge bands that stacked pieces on top of each other and half off-screen)
+    const sx=slots[i]?slots[i].x:W/2,sy=slots[i]?slots[i].y:H/2;
     // home IS the target: a piece's picture fragment belongs in its home slot.
     // (Targets used to be re-shuffled after creation, so the finished picture
     // could never assemble and no slot visually matched its piece.)
