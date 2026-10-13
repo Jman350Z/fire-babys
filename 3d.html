@@ -2360,7 +2360,7 @@ function spawnFoes(comp, cx, cz){
     var hp=makeHpBar(boss?3.4:2.0); hp.position.y=R*2.1+0.9; g.add(hp); hp.set(1);
     scene.add(g);
     units.push({ group:g, side:'foe', name:f[0], cls:f[1], hp:f[2], maxHp:f[2],
-      atk:f[3], speed:3.4+Math.random()*0.8, range:2.3, cd:Math.random()*0.8, hpbar:hp,
+      atk:f[3], speed:4.4+Math.random()*0.5, range:2.3, cd:Math.random()*0.8, hpbar:hp,
       state:'seek', dead:false, lunge:0, lungeDir:null, boss:boss });
   });
   updateFoeCount();
@@ -2382,6 +2382,18 @@ function nearestHero(u){
     if(v.side==='hero'&&!v.dead){ var d=u.group.position.distanceTo(v.group.position);
       if(d<bd){ bd=d; best=v; } } }
   return best?{u:best,d:bd}:null;
+}
+/* HARD BOTS (2026-10-12): foes focus the weakest hero they can reach —
+   if a hero within 16 units is clearly the most hurt (by HP fraction),
+   finish that one; otherwise take the nearest, like before. Uses only
+   visible info (positions + HP bars). */
+function foePickTarget(u){
+  var weak=null, wf=2, wd=1e9;
+  for(var i=0;i<units.length;i++){ var v=units[i];
+    if(v.side==='hero'&&!v.dead){ var d=u.group.position.distanceTo(v.group.position);
+      if(d<16){ var f=v.hp/v.maxHp; if(f<wf){ wf=f; weak=v; wd=d; } } } }
+  if(weak && wf<0.999) return {u:weak,d:wd};
+  return nearestHero(u);
 }
 var HERO_COUNTER={ruko:'A', boulder:'D', sizzle:'C', cinder:'B'};
 var HERO_WEAK={ruko:'B', boulder:'A', sizzle:'D', cinder:'C'};
@@ -2505,7 +2517,7 @@ function updateBattle(dt, t){
       if(nf){ tgt=nf.u; dist=nf.d; tgtPos=tgt.group.position; }
       else if(strongHP>0){ tgtPos=new THREE.Vector3(stronghold.position.x,2,stronghold.position.z); dist=g.position.distanceTo(tgtPos); tgt='stronghold'; }
     } else {
-      var nh=nearestHero(u);
+      var nh=foePickTarget(u);
       if(nh){ tgt=nh.u; dist=nh.d; tgtPos=tgt.group.position; }
     }
     if(tgtPos){
@@ -2531,7 +2543,7 @@ function updateBattle(dt, t){
           g.rotation.y=Math.atan2(dir.x, dir.z);
           u.state='attack';
           if(u.cd<=0){
-            u.cd=u.side==='hero'?(u.spec.id==='sizzle'?1.5:1.1):1.4;
+            u.cd=u.side==='hero'?(u.spec.id==='sizzle'?1.5:1.1):1.05;
             u.lunge=0.28; u.lungeDir=dir.clone();
             var dmg=u.atk*(0.85+Math.random()*0.3);
             if(tgt==='stronghold'){ hitStronghold(dmg); }
@@ -3102,7 +3114,7 @@ function spawnRivals(round){
     var clss=['A','B','C','D'];
     units.push({ group:g, side:'foe', name:boss?'RIVAL CHAMP':'RIVAL CUB', cls:clss[i%4],
       hp:boss?230:70+round*25, maxHp:boss?230:70+round*25, atk:boss?18:8+round*3,
-      speed:4.2, range:2.4, cd:Math.random()*0.8, hpbar:hp, state:'seek', dead:false,
+      speed:5.0, range:2.4, cd:Math.random()*0.8, hpbar:hp, state:'seek', dead:false,
       lunge:0, lungeDir:null, boss:boss, spec:{id:'rival'} });
   }
   updateFoeCount();
@@ -6856,9 +6868,9 @@ function mpBotHits(msg, ax, az){
       try { b.net.sendAction({ kind:'blocked', data:{ by: msg.id } }); } catch(e){}
       continue;
     }
-    // 20% reactive block
-    if(Math.random() < 0.20){
-      b.blockUntil = now + 0.7;
+    // 45% reactive block (HARD bots, 2026-10-12 — was 20%)
+    if(Math.random() < 0.45){
+      b.blockUntil = now + 0.8;
       try { b.net.sendAction({ kind:'block', data:{ on: 1 } }); } catch(e){}
       if(rp){ rp.blocking = true; try { if(rp.shield) rp.shield.visible = true; } catch(e){} }
       try { b.net.sendAction({ kind:'blocked', data:{ by: msg.id } }); } catch(e){}
@@ -6936,7 +6948,7 @@ function mpBotTick(dt){
           x: Math.round(b.x*100), y: Math.round(b.z*100),
           data:{ dir: Math.round(b.dir*100) } });
       } catch(e){}
-      b.atkCd = 0.9 + Math.random()*0.9; // medium difficulty pacing
+      b.atkCd = 0.55 + Math.random()*0.35; // HARD difficulty pacing (2026-10-12)
       b.atkAnimT = 0.28;
       acted = true;
     }
@@ -6953,9 +6965,18 @@ function mpBotTick(dt){
         }
         tx = b.wx; tz = b.wz;
       }
+      // HARD bots (2026-10-12): strafe while closing on an enemy so they
+      // don't run a predictable straight line into attacks.
+      if(ex !== null && bd > 1.4){
+        b.strafeT = (b.strafeT || 0) - dt;
+        if(b.strafeT <= 0){ b.strafeT = 0.6 + Math.random()*0.7; b.strafeS = Math.random() < 0.5 ? -1 : 1; }
+        var sdx = ex - b.x, sdz = ez - b.z, sd = Math.hypot(sdx, sdz) || 1;
+        tx += (-sdz / sd) * 1.3 * (b.strafeS || 1);
+        tz += (sdx / sd) * 1.3 * (b.strafeS || 1);
+      }
       var mx = tx - b.x, mz = tz - b.z, md = Math.hypot(mx, mz);
       if(md > 0.3){
-        var step = Math.min(5.2*dt, md); // slightly slower than players
+        var step = Math.min(7.0*dt, md); // HARD: near player speed 7.5 (was 5.2)
         b.x += mx/md*step; b.z += mz/md*step;
         b.dir = Math.atan2(mx, mz);
         if(Math.random() < dt*0.2 && b.jumps === 0){ // playful hop
@@ -7911,7 +7932,7 @@ function mpBotTickCatch(b, dt){
     var mx = tx - b.x, mz = tz - b.z, md = Math.hypot(mx, mz);
     // stop at 1.5 units to avoid overlapping/stacking on top of targets
     if(md > 1.5){
-      var step = Math.min(5.2 * smul * dt, md - 1.5);
+      var step = Math.min(7.0 * smul * dt, md - 1.5);
       b.x += mx / md * step; b.z += mz / md * step;
       b.dir = Math.atan2(mx, mz);
       b.x = Math.max(-26, Math.min(26, b.x));
