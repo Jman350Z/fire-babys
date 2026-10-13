@@ -9,42 +9,49 @@
 <meta name="description" content="Play all 57 FREE Fire Babys games in one place! By Jman350Z & fire team.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--flame:#ff6a00;--ember:#e63900;--gold:#ffc93c;--cream:#fff7ec;--ink:#2b1a0e}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink)}
-.topbar{background:var(--ink);color:#fff;position:sticky;top:0;z-index:100}
-.topbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;max-width:1200px;margin:0 auto}
-.brand{color:#fff;font-weight:900;font-size:22px;text-decoration:none}
-.navlinks a{color:#fff;text-decoration:none;font-weight:700;margin-left:18px;font-size:15px}
-.hero{background:radial-gradient(1200px 400px at 50% -60px,#ffd9a0 0%,#ffab5e 38%,#ff7a1a 70%,#f2540a 100%);text-align:center;padding:50px 20px 40px}
-.hero h1{font-size:clamp(30px,6vw,52px);font-weight:900;margin-bottom:10px}
-.hero p{font-size:18px;font-weight:600;max-width:600px;margin:0 auto 20px}
+:root{--flame:#ff6a1a;--ember:#e8352c;--gold:#ffd76a;--amber:#ffb347;--cream:#ffe9d6;--ink:#1a0d06}
+::selection{background:rgba(255,106,26,.45);color:#fff}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1200px 620px at 50% -120px,rgba(255,106,26,.16),transparent 60%),#1a0d06;color:var(--cream)}
+.topbar{background:rgba(26,13,6,.96);border-bottom:2px solid rgba(255,106,26,.35);backdrop-filter:blur(6px);color:#ffe9d6;position:sticky;top:0;z-index:100}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;max-width:1200px;margin:0 auto;flex-wrap:wrap;gap:8px 16px}
+.brand{color:#ffb347;font-weight:900;font-size:22px;letter-spacing:1px;text-decoration:none}
+.navlinks a{color:#ffd9ae;text-decoration:none;font-weight:700;margin-left:18px;font-size:15px;transition:color .15s}
+.navlinks a:hover{color:#ff6a1a}
+.hero{background:radial-gradient(ellipse at 50% 0%,rgba(255,106,26,.24),transparent 65%);text-align:center;padding:50px 20px 40px;border-bottom:2px solid rgba(255,106,26,.25)}
+.hero h1{font-size:clamp(30px,6vw,52px);font-weight:900;letter-spacing:1px;margin-bottom:10px;color:#ffb347;text-shadow:0 4px 30px rgba(255,106,26,.35)}
+.hero p{font-size:18px;font-weight:600;max-width:600px;margin:0 auto 20px;color:#ffd9ae}
 .searchbar{max-width:500px;margin:0 auto;display:flex;gap:8px}
-.searchbar input{flex:1;padding:14px 18px;border:3px solid var(--ink);border-radius:999px;font-size:16px}
-.searchbar button{padding:14px 24px;background:var(--ink);color:#fff;border:none;border-radius:999px;font-size:16px;font-weight:800;cursor:pointer}
+.searchbar input{flex:1;min-width:0;padding:14px 18px;border:2px solid rgba(255,106,26,.45);background:rgba(0,0,0,.35);color:#ffe9d6;border-radius:999px;font-size:16px;outline:none}
+.searchbar input::placeholder{color:#a87f5c}
+.searchbar input:focus{border-color:#ff8c2e;box-shadow:0 0 0 3px rgba(255,140,46,.25)}
+.searchbar button{padding:14px 24px;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:2px solid #ff6a1a;box-shadow:0 4px 0 #a33c10;border-radius:999px;font-size:16px;font-weight:900;cursor:pointer}
 .filters{max-width:1200px;margin:24px auto;padding:0 20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.filter{background:#fff;border:2px solid var(--ink);border-radius:999px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:14px}
-.filter.active{background:var(--ink);color:#fff}
-#randomBtn{background:var(--flame);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:14px 32px;font-size:18px;font-weight:900;cursor:pointer;margin:10px auto;display:block}
-#randomBtn:active{transform:translateY(3px)}
+.filter{background:rgba(255,255,255,.05);border:2px solid rgba(255,106,26,.35);color:#ffe9d6;border-radius:999px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:14px;transition:transform .12s,border-color .12s}
+.filter:hover{border-color:#ffb347;transform:translateY(-1px)}
+.filter.active{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border-color:#ff6a1a}
+#randomBtn{background:linear-gradient(180deg,#ff9d5c,#e8352c);color:#fff;border:3px solid #ff6a1a;box-shadow:0 6px 0 #7c1d12,0 10px 24px rgba(232,53,44,.3);border-radius:999px;padding:14px 32px;font-size:18px;font-weight:900;cursor:pointer;margin:10px auto;display:block;transition:transform .08s,box-shadow .08s}
+#randomBtn:hover{transform:translateY(-2px)}
+#randomBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #7c1d12}
 .grid{max-width:1200px;margin:0 auto;padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
-.card{background:#fff;border:3px solid var(--ink);border-radius:18px;overflow:hidden;transition:transform .15s;cursor:pointer}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
-.card .thumb{height:110px;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,#fff3e0,#ffe0b2)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:2px solid rgba(255,106,26,.3);border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.35);transition:transform .15s,border-color .15s,box-shadow .15s;cursor:pointer}
+.card:hover{transform:translateY(-4px);border-color:rgba(255,179,71,.75);box-shadow:0 16px 36px rgba(0,0,0,.45),0 0 24px rgba(255,106,26,.18)}
+.card .thumb{height:110px;display:flex;align-items:center;justify-content:center;font-size:52px;background:radial-gradient(circle at 50% 35%,rgba(255,215,106,.35),transparent 70%),linear-gradient(135deg,rgba(255,140,46,.4),rgba(232,53,44,.3));text-shadow:0 4px 14px rgba(0,0,0,.4)}
 .card .body{padding:16px}
-.card .num{font-size:12px;font-weight:800;color:var(--ember);letter-spacing:1px}
-.card h3{font-size:18px;margin:6px 0}
-.card .mechanic{font-size:13px;color:#8a6a4a;font-style:italic;margin-bottom:6px}
-.card .stars{font-size:13px;color:#5b4632;margin-bottom:10px}
-.card .play{display:inline-block;background:var(--flame);color:#fff;font-weight:800;padding:12px 28px;border-radius:999px;text-decoration:none;font-size:16px}
-#gameFrame{position:fixed;inset:0;z-index:200;background:#000;display:none;flex-direction:column}
+.card .num{font-size:12px;font-weight:800;color:#ffb347;letter-spacing:1px}
+.card h3{font-size:18px;margin:6px 0;color:#ffd76a}
+.card .mechanic{font-size:13px;color:#c9a06a;font-style:italic;margin-bottom:6px}
+.card .stars{font-size:13px;color:#e8c9a8;margin-bottom:10px}
+.card .play{display:inline-block;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:2px solid #ff6a1a;box-shadow:0 4px 0 #a33c10;font-weight:900;padding:12px 28px;border-radius:999px;text-decoration:none;font-size:16px}
+#gameFrame{position:fixed;inset:0;z-index:200;background:#0c0502;display:none;flex-direction:column}
 #gameFrame.active{display:flex}
-#frameBar{background:var(--ink);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
-#frameBar button{background:var(--flame);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:800;cursor:pointer;font-size:15px}
+#frameBar{background:rgba(26,13,6,.98);border-bottom:2px solid rgba(255,106,26,.35);color:#ffe9d6;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+#frameBar button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:2px solid #ff6a1a;border-radius:10px;padding:10px 20px;font-weight:900;cursor:pointer;font-size:15px}
 #gameIframe{flex:1;border:none;width:100%}
-footer{background:var(--ink);color:#fff;text-align:center;padding:24px;margin-top:30px}
+footer{background:rgba(0,0,0,.25);border-top:2px solid rgba(255,106,26,.3);color:#d8b89a;text-align:center;padding:24px;margin-top:30px}
 .hidden{display:none!important}
-#noResults{text-align:center;padding:40px;font-size:18px;color:#8a6a4a}
-#count{text-align:center;font-weight:800;font-size:16px;margin-top:16px}
+#noResults{text-align:center;padding:40px;font-size:18px;color:#d8b89a}
+#count{text-align:center;font-weight:800;font-size:16px;margin-top:16px;color:#ffb347}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>

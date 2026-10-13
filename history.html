@@ -9,35 +9,40 @@
 <meta name="description" content="The official history of the Fire Babys — from the 7 kingdoms to the world stage. By Jman350Z & fire team.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--flame:#ff6a00;--ember:#e63900;--gold:#ffc93c;--cream:#fff7ec;--ink:#2b1a0e}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.7}
+:root{--flame:#ff6a1a;--ember:#ff8c2e;--gold:#ffd76a;--cream:#ffe9d6;--ink:#1a0d06}
+::selection{background:rgba(255,106,26,.45);color:#fff}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1200px 620px at 50% -120px,rgba(255,106,26,.16),transparent 60%),#1a0d06;color:var(--cream);line-height:1.7}
 .wrap{max-width:760px;margin:0 auto;padding:0 20px}
-nav.top{background:var(--ink);color:#fff}
-nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;max-width:1080px}
-.brand{color:#fff;font-weight:800;font-size:20px;text-decoration:none}
-nav.top a.navlink{color:#fff;text-decoration:none;font-weight:700;font-size:15px;margin-left:16px}
-.hero{background:radial-gradient(1200px 420px at 50% -60px,#ffd9a0 0%,#ffab5e 38%,#ff7a1a 70%,#f2540a 100%);text-align:center;padding:60px 20px 50px}
-.hero h1{font-size:clamp(32px,6vw,54px);font-weight:900;margin-bottom:12px}
-.hero p{font-size:18px;font-weight:600;max-width:600px;margin:0 auto}
+nav.top{position:sticky;top:0;z-index:100;background:rgba(26,13,6,.96);border-bottom:2px solid rgba(255,106,26,.35);backdrop-filter:blur(6px);color:#ffe9d6}
+nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;max-width:1080px;flex-wrap:wrap;gap:8px 16px}
+.brand{color:#ffb347;font-weight:900;letter-spacing:1px;font-size:20px;text-decoration:none}
+nav.top a.navlink{color:#ffd9ae;text-decoration:none;font-weight:700;font-size:15px;margin-left:16px;transition:color .15s}
+nav.top a.navlink:hover{color:#ff6a1a}
+.hero{background:radial-gradient(ellipse at 50% 0%,rgba(255,106,26,.24),transparent 65%);text-align:center;padding:60px 20px 50px;border-bottom:2px solid rgba(255,106,26,.25)}
+.hero h1{font-size:clamp(32px,6vw,54px);font-weight:900;letter-spacing:1px;margin-bottom:12px;color:#ffb347;text-shadow:0 4px 30px rgba(255,106,26,.35)}
+.hero p{font-size:18px;font-weight:600;max-width:600px;margin:0 auto;color:#ffd9ae}
 article{padding:40px 0}
-article h2{font-size:28px;font-weight:900;margin:36px 0 12px;color:var(--ember)}
+article h2{font-size:28px;font-weight:900;letter-spacing:.5px;margin:36px 0 12px;color:#ffb347}
 article h2:first-child{margin-top:0}
 article p{font-size:17px;margin-bottom:16px}
-article .character{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:20px;margin:20px 0}
-article .character h3{font-size:22px;margin-bottom:8px}
-article .character p{margin-bottom:0;font-size:15px}
+article strong{color:#ffd76a}
+article .character{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:2px solid rgba(255,106,26,.3);border-radius:16px;padding:20px;margin:20px 0;box-shadow:0 10px 28px rgba(0,0,0,.3)}
+article .character h3{font-size:22px;margin-bottom:8px;color:#ffd76a}
+article .character p{margin-bottom:0;font-size:15px;color:#e8c9a8}
 .kingdoms{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin:20px 0}
-.kingdom{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:14px;text-align:center}
-.kingdom .emoji{font-size:36px}
-.kingdom h4{font-size:16px;margin:6px 0 4px}
-.kingdom p{font-size:13px;margin:0;color:#5b4632}
-.creator{text-align:center;background:#fff;border:3px dashed var(--ember);border-radius:14px;padding:16px;margin:30px 0;font-weight:800}
-footer{background:var(--ink);color:#fff;text-align:center;padding:24px;margin-top:20px}
+.kingdom{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:2px solid rgba(255,106,26,.3);border-radius:12px;padding:14px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.3);transition:transform .15s,border-color .15s}
+.kingdom:hover{transform:translateY(-3px);border-color:rgba(255,179,71,.7)}
+.kingdom .emoji{font-size:36px;filter:drop-shadow(0 4px 10px rgba(255,106,26,.35))}
+.kingdom h4{font-size:16px;margin:6px 0 4px;color:#ffd76a}
+.kingdom p{font-size:13px;margin:0;color:#d8b89a}
+.creator{text-align:center;background:rgba(255,255,255,.04);border:3px dashed rgba(255,179,71,.6);color:#ffd76a;border-radius:14px;padding:16px;margin:30px 0;font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+footer{background:rgba(0,0,0,.25);border-top:2px solid rgba(255,106,26,.3);color:#d8b89a;text-align:center;padding:24px;margin-top:20px}
 .timeline{border-left:4px solid var(--flame);margin:20px 0 20px 10px;padding-left:24px}
 .timeline .event{margin-bottom:20px;position:relative}
 .timeline .event::before{content:'🔥';position:absolute;left:-38px;top:0;font-size:20px}
-.timeline .event h4{font-size:18px;color:var(--ember)}
-.timeline .event p{font-size:15px;margin:4px 0 0}
+.timeline .event h4{font-size:18px;color:#ffb347}
+.timeline .event p{font-size:15px;margin:4px 0 0;color:#e8c9a8}
+@media(max-width:420px){article .character{padding:16px}.kingdoms{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
