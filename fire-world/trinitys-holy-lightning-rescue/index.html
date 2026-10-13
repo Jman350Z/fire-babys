@@ -371,14 +371,17 @@ function updateEnemies(dt){
     const b=G.boss;b.hitT-=dt;b.atkT-=dt;
     document.getElementById('bosshpfill').style.width=(b.hp/b.maxHp*100)+'%';
     const dx=P.x-b.x;
-    b.vx+=(Math.sign(dx)*100-b.vx)*Math.min(1,dt*2);
+    b.vx+=(Math.sign(dx)*160-b.vx)*Math.min(1,dt*2);
     b.x+=b.vx*dt;
     if(b.atkT<=0&&Math.abs(dx)<300){
-      b.atkT=2.2;sfx('boss');addShake(10,0.3);
-      // radial crystal shards
+      b.atkT=1.8;sfx('boss');addShake(10,0.3);
+      // HARD boss (2026-10-12): the crystal shard fan is AIMED at the
+      // player (fan centered on the direction to Trinity), not fixed —
+      // still fully dodgeable between the shards.
+      const _ba=Math.atan2(P.y-b.y,P.x-b.x);
       for(let i=0;i<6;i++){
-        const a=Math.PI*(i/6)+Math.PI;
-        const pr=POOL.spawnBolt(b.x,b.y,b.x+Math.cos(a)*400,b.y+Math.sin(a)*200);
+        const a=_ba+(i-2.5)*0.22;
+        const pr=POOL.spawnBolt(b.x,b.y,b.x+Math.cos(a)*400,b.y+Math.sin(a)*400);
       }
       // direct shard at player
       hurtPlayer(0); // shield check
