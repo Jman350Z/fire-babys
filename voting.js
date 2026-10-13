@@ -116,8 +116,15 @@
         host.innerHTML = '<span class="vote-note">Sign-in is unavailable right now.</span>';
         return;
       }
+      var renderTries = 0;
       function render() {
         if (!(window.google && google.accounts && google.accounts.id)) {
+          // GSI script may be blocked/slow; retry for ~6s, then say so
+          // instead of polling forever.
+          if (++renderTries > 20) {
+            host.innerHTML = '<span class="vote-note">Sign-in is unavailable right now.</span>';
+            return;
+          }
           setTimeout(render, 300);
           return;
         }
