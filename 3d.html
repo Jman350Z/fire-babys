@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-5NCPLkl89iE3JWI7zMgKrmxLGwJPeXGBV/WMixBFtts=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-EMMglCzGNHlBfB0hlhjFw+zAAUqjpVeb+r3WnGDrDd8=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc='; style-src 'unsafe-inline'; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-5NCPLkl89iE3JWI7zMgKrmxLGwJPeXGBV/WMixBFtts=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-EMMglCzGNHlBfB0hlhjFw+zAAUqjpVeb+r3WnGDrDd8=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-gM1ycRtlehMwqo+ojUfndqUD431Rc4tEavT7ASKnAVY=' 'sha256-wV4E/WlR5hhxsE3bbqjuX5nudpgX7sus17tMoFi42T8='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="https://firebabys.io/rating.js"></script>
 <title>Fire Babys 3D — Open World</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -39,7 +40,12 @@
   .bigbtn:active { transform:scale(.94); }
   /* TAP TO START rebuild: big touch target, instant tap response, no double-tap zoom */
   #startbtn{ touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-    min-height:64px; min-width:min(78vw,320px); }
+    min-height:64px; min-width:min(78vw,320px);
+    /* phone one-line fix (final pass): keep "TAP TO START 🔥" on one line inside the pill —
+       nowrap + inline-flex centering, with font/padding shrinking via the page's min()/vw
+       pattern so desktop (20px / 52px sides) is unchanged */
+    white-space:nowrap; display:inline-flex; align-items:center; justify-content:center;
+    font-size:min(20px,4.8vw); padding-left:min(52px,6vw); padding-right:min(52px,6vw); }
   #startbtn.tapped{ transform:scale(.92); filter:brightness(1.18); }
   .clabel { color:#ffb347; font-weight:800; letter-spacing:3px; font-size:12px; margin:16px 0 8px; }
   #pname { font:800 18px system-ui; padding:12px 16px; border-radius:12px; border:2px solid rgba(255,150,60,.5);
