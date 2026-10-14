@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
-<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ember Cascade — by Jman350Z & fire team</title>
-<meta name="description" content="Defend the keep! Place fire baby defenders in this tower defense battler. A Fire Babys game.">
+<meta name="description" content="Pop the ember cascade! Match glowing ember orbs, trigger chain reactions and clear every level. A Fire Babys game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -26,13 +25,8 @@ canvas{display:block;width:100%;height:100%}
 #mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
-#towerbar{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:10px}
-.tower{background:rgba(0,0,0,.65);border:3px solid #ff6a1a;border-radius:14px;padding:10px 14px;color:#fff;font-weight:800;font-size:14px;cursor:pointer;text-align:center;min-width:76px}
-.tower.sel{border-color:#ffd23f;background:rgba(80,40,0,.8)}
-.tower small{display:block;font-size:11px;color:#ffd23f}
 #sysbtns{position:fixed;top:56px;right:12px;z-index:11;display:flex;gap:8px}
 #sysbtns button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;width:44px;height:44px;font-size:19px;cursor:pointer;padding:0}
-#waveBtn{position:fixed;bottom:76px;right:12px;z-index:10;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;border-radius:999px;padding:12px 18px;font-size:15px;font-weight:900;cursor:pointer;display:none;box-shadow:0 4px 0 #a33c10}
 </style>
 <style data-fbvis-cycle1>
 /* fbvis-cycle1: premium chrome pass — accent #ff6a1a / glow #ffd76a, presentation only */
@@ -58,51 +52,38 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <body>
 <div id="game">
 <div id="hud">
-<div class="pill gold" id="fire">🔥 150</div>
-<div class="pill" id="wave">🌊 Wave 1/13</div>
-<div class="pill" id="lives">❤️ 10</div>
+<div class="pill gold" id="fire">⭐ 0</div>
+<div class="pill" id="wave">🧩 Level 1/12</div>
+<div class="pill" id="lives">👆 Moves 18</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
-<div id="towerbar">
-<div class="tower sel" data-t="shooter">🔥 Shooter<small>50🔥</small></div>
-<div class="tower" data-t="frost">❄️ Frost<small>75🔥</small></div>
-<div class="tower" data-t="cannon">💣 Cannon<small>125🔥</small></div>
-<div class="tower" data-t="storm">⚡ Storm<small>150🔥</small></div>
-</div>
 <div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart">↻</button></div>
-<button id="waveBtn">⏩ WAVE NOW +🔥</button>
 <canvas id="c"></canvas>
 <div id="overlay">
-<h1 id="otitle">🏰 EMBER CASCADE</h1>
-<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> defend the keep!</p><p><b>Pick</b> a defender below, then <b>tap</b> a glowing tile to place it! They auto-blast rock invaders marching down 3 lanes. Survive 13 waves!</p><p>🔥 Shooter: fast sparks | ❄️ Frost: slows enemies | 💣 Cannon: big splash damage</p><p>⚡ New: <b>Storm</b> tower (150🔥) — lightning that chains to a second invader for half damage!</p><p>Tap a placed defender to <b>upgrade</b> it (100🔥, up to Lv3). During a break, tap <b>⏩ WAVE NOW</b> to start the next wave early for bonus 🔥!</p></div>
+<h1 id="otitle">🔥 EMBER CASCADE</h1>
+<div id="obody"><p><b>Blaze</b> & the Fire Babys filled the grove with glowing <b>ember orbs</b>!</p><p><b>Tap</b> a bunch of <b>2 or more</b> same-color orbs touching each other to pop them! Orbs above tumble down, columns slide together — and new bunches can pop <b>all by themselves</b> in a <b>CHAIN CASCADE</b> worth double, triple points!</p><p>🎯 Reach the <b>target score</b> before your moves run out. Clear all <b>12 levels</b>!</p><p>😊 Some orbs carry a Fire Baby face — pop one and it clears its <b>whole row</b> as a happy little treat! Dark <b>obsidian</b> blocks won't pop… but a chain pop right next to one cracks it!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: A good defense is the best plan — know your escape routes!</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Matches and lighters are tools for grown-ups — never toys!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
 </div>
 <script>
 'use strict';
 /* ============================================================
-   EMBER CASCADE v2 — AAA Rebuild
-   - 3-lane tower defense, 3 tower types, 8 waves
-   - Smart targeting, upgrade system, wave preview
+   EMBER CASCADE v3 — full redo (Jeff's order, games 6–11 pass)
+   Falling-ember cascade puzzle:
+   - Tap a connected group of 2+ same-color orbs to pop them.
+   - Orbs fall, columns slide, chain cascades multiply points.
+   - 12 levels: grid grows, colors 4→5→6, obsidian blockers,
+     Fire Baby face orbs that clear their row as a treat.
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
-let W,H,DPR,LANES_Y,COLS_X,GRID={cols:6,rows:3};
+let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
-  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);calcGrid();}
-function calcGrid(){
-  const top=H*0.18,bot=H*0.78;
-  LANES_Y=[top+(bot-top)*0.16,top+(bot-top)*0.5,top+(bot-top)*0.84];
-  // [w5b] the keep wall sits at COLS_X[0]-70 with a 25px half-width plus 12px
-  // crenellation arcs, so it needs >=107px of left room; at W*0.08 it was cut
-  // off on desktop (arcs) and pushed fully off-screen on phone widths.
-  const left=Math.max(W*0.08,118),right=W*0.92;
-  COLS_X=[];for(let i=0;i<GRID.cols;i++)COLS_X.push(left+(right-left)*i/(GRID.cols-1));
-}
-addEventListener('resize',resize);resize();
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);layout();}
+addEventListener('resize',resize);
 
 /* audio */
 let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
@@ -117,14 +98,20 @@ function noise(dur,vol,delay=0,lp=1500){if(MUTED)return;const ac=audio();if(!ac)
   const s=ac.createBufferSource();s.buffer=buf;const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp;
   const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
+const sfx={
+  pop(n){tone(480+Math.min(n,10)*45,900+Math.min(n,10)*60,0.12,'triangle',0.16);noise(0.08,0.12,0,2400);},
+  chain(k){const base=560+k*90;[0,1,2].forEach(i=>tone(base+i*130,base+i*130+220,0.13,'triangle',0.15,i*0.05));},
+  face(){[660,880,990,1320].forEach((f,i)=>tone(f,f,0.14,'sine',0.14,i*0.06));},
+  crack(){noise(0.16,0.22,0,900);tone(160,60,0.14,'sawtooth',0.1);},
+  bad(){tone(210,150,0.12,'square',0.07);},
+  click(){tone(600,600,0.06,'square',0.1);},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
+  lose(){[392,330,262].forEach((f,i)=>tone(f,f,0.22,'triangle',0.14,i*0.12));}
+};
 
-/* living ember backdrop (overhaul) */
+/* living ember backdrop */
 const embers=[];
-for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
-/* [w5c perf] Pre-baked glow sprites — the W5b-proven pattern copied from game-04:
-   the ember loop's 24 per-frame shadowBlur=8 fills collapsed FPS under software
-   rendering (10.0 FPS); blit a one-time radial-glow sprite instead. Colours,
-   falloff and alpha unchanged; no gameplay/balance changes. */
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W||400,300),y:Math.random()*Math.max(H||700,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
 function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   const gr=x.createRadialGradient(48,48,0,48,48,48);
@@ -133,250 +120,289 @@ function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.
 const EMBER_SPRITE=makeGlowSprite('#ffa53a');
 function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
   for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));
-    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2);} // [w5c perf] pre-baked glow (was shadowBlur=8 per ember per frame)
+    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2);}
   ctx.restore();}
 function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
   if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
-const sfx={
-  shoot(){tone(700,400,0.07,'square',0.06);},
-  frost(){tone(1200,800,0.15,'sine',0.08);},
-  boom(){noise(0.25,0.3,0,600);tone(120,40,0.2,'sawtooth',0.18);},
-  place(){tone(500,800,0.12,'triangle',0.15);},
-  kill(){noise(0.12,0.2,0,800);},
-  hurt(){tone(200,80,0.25,'sawtooth',0.2);},
-  win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
-  click(){tone(600,600,0.06,'square',0.1);}
-};
 
-/* towers */
-const TOWERS={
-  shooter:{cost:50,dmg:12,rate:0.5,range:220,color:'#ff6a1a',name:'Shooter'},
-  frost:{cost:75,dmg:6,rate:0.8,range:180,color:'#7fd4ff',name:'Frost',slow:0.5},
-  cannon:{cost:125,dmg:40,rate:1.4,range:200,color:'#ff4a00',name:'Cannon',splash:70},
-  storm:{cost:150,dmg:34,rate:1.2,range:210,color:'#c4a0ff',name:'Storm',chain:110},
-};
-
-/* state */
-const G={state:'title',fire:150,wave:0,lives:10,score:0,
-  grid:[],enemies:[],shots:[],time:0,selTower:'shooter',
-  waveActive:false,spawnQ:[],spawnT:0,breakT:0,paused:false};
-function initGrid(){
-  G.grid=[];
-  for(let r=0;r<GRID.rows;r++)for(let c=0;c<GRID.cols;c++)
-    G.grid.push({r,c,tower:null});
-}
-function reset(){
-  G.fire=150;G.wave=0;G.lives=10;G.score=0;
-  G.enemies=[];G.shots=[];G.waveActive=false;G.breakT=2;G.paused=false;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
-  initGrid();updateHUD();
-}
-function updateHUD(){
-  document.getElementById('fire').textContent='🔥 '+Math.floor(G.fire);
-  document.getElementById('wave').textContent=`🌊 Wave ${Math.min(G.wave+1,13)}/13`;
-  document.getElementById('lives').textContent='❤️ '+G.lives;
-}
-function startWave(n){
-  G.wave=n;G.waveActive=true;G.spawnQ=[];
-  const count=4+n*3;
-  for(let i=0;i<count;i++){
-    const lane=Math.floor(Math.random()*3);
-    const r=Math.random();
-    let type='grunt';
-    if(n>=5&&r<0.2)type='tank';
-    else if(n>=3&&r<0.4)type='fast';
-    G.spawnQ.push({lane,type,delay:i*(1.2-Math.min(n*0.08,0.6))});
-  }
-  updateHUD();
-  spawnText(W/2,H*0.3,`WAVE ${n}!`,'#ff6a1a');
-}
-function spawnEnemy(lane,type){
-  const hpMul={grunt:1,fast:0.6,tank:3}[type];
-  const base=20+G.wave*10;
-  G.enemies.push({
-    lane,x:W+40,y:LANES_Y[lane],
-    hp:base*hpMul,maxHp:base*hpMul,
-    speed:{grunt:45,fast:90,tank:28}[type]*(1+G.wave*0.06),
-    type,slowT:0,r:{grunt:18,fast:14,tank:28}[type],
-    score:{grunt:20,fast:30,tank:80}[type],
-  });
-}
-
-/* input */
-document.querySelectorAll('.tower').forEach(el=>{
-  el.addEventListener('click',()=>{
-    document.querySelectorAll('.tower').forEach(x=>x.classList.remove('sel'));
-    el.classList.add('sel');G.selTower=el.dataset.t;sfx.click();
-  });
-});
-canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play')return;
-  // find grid cell
-  let best=null,bd=1e9;
-  for(const g of G.grid){
-    const x=COLS_X[g.c],y=LANES_Y[g.r];
-    const d=Math.hypot(e.clientX-x,e.clientY-y);
-    if(d<bd){bd=d;best=g;}
-  }
-  const snapR=Math.max(64,(COLS_X[1]-COLS_X[0])*0.48);
-  if(!best||bd>snapR){spawnText(W/2,H*0.86,'Tap a glowing circle!','#ffffff');tone(200,150,0.1,'square',0.07);return;} // [w5b] hint goes to the clear band below the lanes (was: at the tap point, where a placed defender in lane 2 covered it)
-  if(best.tower){
-    // upgrade: double damage for 100 fire
-    if(best.tower.lvl>=3){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'MAX LEVEL','#ffd23f');return;}
-    if(G.fire<100){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'Need 100🔥 to upgrade','#ff9a5a');return;}
-    if(G.fire>=100&&best.tower.lvl<3){
-      G.fire-=100;best.tower.lvl++;
-      best.tower.dmg*=1.6;
-      sfx.place();spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'⬆ LV'+best.tower.lvl,'#ffd23f');
-      updateHUD();
-    }
-    return;
-  }
-  const T=TOWERS[G.selTower];
-  if(G.fire<T.cost){spawnText(COLS_X[best.c],LANES_Y[best.r]-30,'Need '+T.cost+'🔥','#ff4a5a');return;}
-  G.fire-=T.cost;
-  best.tower={type:G.selTower,dmg:T.dmg,rate:T.rate,range:T.range,cool:0,lvl:1,
-    slow:T.slow||0,splash:T.splash||0,chain:T.chain||0,color:T.color};
-  sfx.place();
-  for(let i=0;i<8;i++)spawnP(COLS_X[best.c],LANES_Y[best.r],(Math.random()-0.5)*150,(Math.random()-0.5)*150,0.4,T.color,3);
-  updateHUD();
-});
-
-/* update */
+/* particles + floaters (pooled, same pattern as before) */
 const particles=[],floaters=[];
-for(let i=0;i<200;i++)particles.push({a:false});
-for(let i=0;i<20;i++)floaters.push({a:false});
+for(let i=0;i<220;i++)particles.push({a:false});
+for(let i=0;i<24;i++)floaters.push({a:false});
 function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p)return;
   p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
-function spawnText(x,y,txt,color='#ffd23f'){const f=floaters.find(f=>!f.a);if(!f)return;
-  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1.3;}
+function spawnText(x,y,txt,color='#ffd23f',size){const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1.3;f.size=size||20;}
+function burst(x,y,color,n,pow){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=(0.3+Math.random()*0.7)*pow;
+  spawnP(x,y,Math.cos(a)*sp,Math.sin(a)*sp-40,0.45+Math.random()*0.3,color,2.5+Math.random()*2.5);}}
 
-function update(dt){
-  G.time+=dt;
-  G.fire+=dt*4; // passive income
-  // wave flow
-  if(!G.waveActive){
-    G.breakT-=dt;
-    if(G.breakT<=0){
-      if(G.wave>=13){gameWin();return;}
-      startWave(G.wave+1);
-    }
-  }else{
-    // spawn queue
-    for(const s of G.spawnQ)s.delay-=dt;
-    const ready=G.spawnQ.filter(s=>s.delay<=0);
-    for(const s of ready){spawnEnemy(s.lane,s.type);G.spawnQ.splice(G.spawnQ.indexOf(s),1);}
-    if(G.spawnQ.length===0&&G.enemies.length===0){
-      G.waveActive=false;G.breakT=4;
-      G.fire+=40+G.wave*10;
-      spawnText(W/2,H*0.4,`+${Math.round(40+G.wave*10)}🔥`,'#ffd23f');
-      updateHUD();
+/* orb palette — flame colors + cool teal + violet (spec order) */
+const PALETTE=[
+  {id:0,name:'orange', body:'#ff7a1a',deep:'#c2430a',glow:'#ffa53a',ink:'#4a1c02'},
+  {id:1,name:'gold',   body:'#ffc21f',deep:'#c78d06',glow:'#ffe066',ink:'#4a3200'},
+  {id:2,name:'red',    body:'#ff4040',deep:'#b01e1e',glow:'#ff7a5c',ink:'#4a0d0d'},
+  {id:3,name:'teal',   body:'#17c3b2',deep:'#0a7a70',glow:'#5ee8d8',ink:'#063a35'},
+  {id:4,name:'violet', body:'#9b5de5',deep:'#5f2ea6',glow:'#c99aff',ink:'#2a0d4a'}
+];
+const OBS=-1; // obsidian blocker cell value
+
+/* levels: cols x rows, colors in play, move budget, score target, blockers */
+const LEVELS=[
+  {cols:6,rows:7, colors:4,moves:18,target:700, obs:0},
+  {cols:6,rows:7, colors:4,moves:18,target:850, obs:0},
+  {cols:7,rows:7, colors:4,moves:19,target:1050,obs:0},
+  {cols:7,rows:8, colors:4,moves:20,target:1250,obs:0},
+  {cols:7,rows:8, colors:5,moves:20,target:1400,obs:0},
+  {cols:8,rows:8, colors:5,moves:21,target:1650,obs:0},
+  {cols:8,rows:9, colors:5,moves:21,target:1900,obs:3},
+  {cols:8,rows:9, colors:5,moves:22,target:2150,obs:4},
+  {cols:9,rows:9, colors:5,moves:22,target:2450,obs:5},
+  {cols:9,rows:10,colors:5,moves:23,target:2750,obs:6},
+  {cols:9,rows:10,colors:5,moves:23,target:3100,obs:7},
+  {cols:10,rows:10,colors:5,moves:24,target:3500,obs:8}
+];
+const FACE_CHANCE=0.045; // share of fresh orbs that carry a happy Fire Baby face
+
+/* state */
+const G={state:'title',paused:false,time:0,
+  level:1,score:0,moves:0,target:0,stars:0,
+  cols:6,rows:7,board:[],face:null,animating:false,
+  scoresQueue:[],phase:'idle',phaseT:0,chainK:0,lastGain:0,totalLevels:LEVELS.length};
+const geo={x0:0,y0:0,cell:40};
+const falling=[]; // visual-only falling orbs
+let popSet=new Set(),popT=0,chainBannerT=0,glowSet=new Set(),glowPulse=0;
+function cellCX(c){return geo.x0+(c+0.5)*geo.cell;}
+function cellCY(r){return geo.y0+(r+0.5)*geo.cell;}
+function layout(){
+  const L=LEVELS[Math.min(G.level,LEVELS.length)-1];
+  const bw=Math.min(W*0.94,430),bh=Math.min(H*0.70,600);
+  geo.cell=Math.max(24,Math.floor(Math.min(bw/L.cols,bh/L.rows)));
+  const gw=geo.cell*L.cols,gh=geo.cell*L.rows;
+  geo.x0=Math.round((W-gw)/2);geo.y0=Math.round(Math.max(64,(H-gh)/2-6));
+}
+function idx(c,r){return r*G.cols+c;}
+function cellAt(c,r){if(c<0||r<0||c>=G.cols||r>=G.rows)return null;return G.board[idx(c,r)];}
+function newOrb(colors){return {v:Math.floor(Math.random()*colors),face:Math.random()<FACE_CHANCE,pop:0};}
+function fillBoard(){
+  const L=LEVELS[G.level-1];
+  G.cols=L.cols;G.rows=L.rows;G.board=[];
+  for(let r=0;r<G.rows;r++)for(let c=0;c<G.cols;c++)G.board.push(newOrb(L.colors));
+  // sprinkle obsidian blockers in the lower-middle of the board
+  let placed=0,guard=0;
+  while(placed<L.obs&&guard++<300){
+    const c=1+Math.floor(Math.random()*(G.cols-2));
+    const r=Math.floor(G.rows*0.45)+Math.floor(Math.random()*(G.rows-Math.floor(G.rows*0.45)));
+    const i=idx(c,r);
+    if(G.board[i].v!==OBS){G.board[i]={v:OBS,face:false,pop:0};placed++;}
+  }
+}
+function flood(c,r,val,seen){
+  const stack=[[c,r]];seen.add(idx(c,r));const out=[];
+  while(stack.length){
+    const cur=stack.pop();out.push(cur);
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(const d of dirs){
+      const nc=cur[0]+d[0],nr=cur[1]+d[1];
+      if(nc<0||nr<0||nc>=G.cols||nr>=G.rows)continue;
+      const i=idx(nc,nr);
+      if(seen.has(i))continue;
+      const cell=G.board[i];
+      if(cell&&cell.v===val){seen.add(i);stack.push([nc,nr]);}
     }
   }
-  // towers shoot
-  for(const g of G.grid){
-    if(!g.tower)continue;
-    const t=g.tower;t.cool-=dt;
-    if(t.cool>0)continue;
-    const tx=COLS_X[g.c],ty=LANES_Y[g.r];
-    // find target: furthest along (closest to keep)
-    let best=null,bd=1e9;
-    for(const e of G.enemies){
-      const d=Math.hypot(e.x-tx,e.y-ty);
-      if(d<t.range&&e.x<bd){bd=e.x;best=e;}
-    }
-    if(best){
-      t.cool=t.rate;
-      G.shots.push({x:tx,y:ty-10,tx:best.x,ty:best.y,tgt:best,t:0,dur:0.12,
-        dmg:t.dmg,slow:t.slow,splash:t.splash,chain:t.chain||0,color:t.color,tower:t});
-      if(t.type==='frost')sfx.frost();else if(t.type==='storm'){tone(1400,300,0.12,'sawtooth',0.08);}else sfx.shoot();
+  return out;
+}
+function groupAt(c,r){
+  const cell=cellAt(c,r);
+  if(!cell||cell.v===OBS)return null;
+  const seen=new Set(),cells=flood(c,r,cell.v,seen);
+  return {val:cell.v,cells};
+}
+function findAutoGroup(minSize){
+  const seen=new Set();
+  for(let r=0;r<G.rows;r++)for(let c=0;c<G.cols;c++){
+    const i=idx(c,r),cell=G.board[i];
+    if(!cell||cell.v===OBS||seen.has(i))continue;
+    const cells=flood(c,r,cell.v,seen);
+    if(cells.length>=minSize)return cells;
+  }
+  return null;
+}
+function findAnyGroup(){return findAutoGroup(2);}
+function rowFaceCell(cells){
+  for(const cr of cells){const cell=G.board[idx(cr[0],cr[1])];if(cell&&cell.face)return cr;}
+  return null;
+}
+function popScore(n,k){
+  let s=0;
+  const mult=Math.min(k,5); // chain multiplier caps at x5 — keeps cascades big but bounded
+  if(k===1)s=n*10+(n>=3?(n-2)*(n-2)*5:0);
+  else if(n<3)s=0;
+  else s=(n*10+(n-2)*(n-2)*5)*mult;
+  return s;
+}
+function collectPops(cells,addRow){
+  const set=new Set();
+  for(const cr of cells)set.add(idx(cr[0],cr[1]));
+  if(addRow!==null&&addRow!==undefined){
+    for(let c=0;c<G.cols;c++){
+      const cell=G.board[idx(c,addRow)];
+      if(cell&&cell.v!==OBS)set.add(idx(c,addRow));
     }
   }
-  // projectiles (instant beam visual)
-  for(const s of G.shots){
-    s.t+=dt;
-    if(s.t>=s.dur){
-      s.done=true;
-      // hit the tracked target where it is NOW (fallback: any enemy near the aim point)
-      if(s.tgt&&!s.tgt.dead){s.tx=s.tgt.x;s.ty=s.tgt.y;damageEnemy(s.tgt,s.dmg,s);}
-      else for(const e of G.enemies){
-        if(!e.dead&&Math.hypot(e.x-s.tx,e.y-s.ty)<30){
-          damageEnemy(e,s.dmg,s);
-          break;
+  return set;
+}
+function adjacentObsidian(set){
+  const out=new Set();
+  for(const i of set){
+    const c=i%G.cols,r=(i/G.cols)|0;
+    const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+    for(const d of dirs){
+      const nc=c+d[0],nr=r+d[1];
+      if(nc<0||nr<0||nc>=G.cols||nr>=G.rows)continue;
+      const cell=G.board[idx(nc,nr)];
+      if(cell&&cell.v===OBS)out.add(idx(nc,nr));
+    }
+  }
+  return out;
+}
+function applyGravity(){
+  for(let c=0;c<G.cols;c++){
+    let write=G.rows-1;
+    for(let r=G.rows-1;r>=0;r--){
+      const cell=G.board[idx(c,r)];
+      if(cell&&cell.v===OBS){write=r-1;continue;}
+      if(cell){if(write!==r){G.board[idx(c,write)]=cell;G.board[idx(c,r)]=null;}write--;}
+    }
+    for(let r=write;r>=0;r--)G.board[idx(c,r)]=null;
+  }
+  // columns slide together: wholly empty columns shift right, orbs slide left
+  let wc=0;
+  for(let c=0;c<G.cols;c++){
+    let empty=true;
+    for(let r=0;r<G.rows;r++)if(G.board[idx(c,r)]){empty=false;break;}
+    if(!empty){
+      if(wc!==c)for(let r=0;r<G.rows;r++){G.board[idx(wc,r)]=G.board[idx(c,r)];G.board[idx(c,r)]=null;}
+      wc++;
+    }
+  }
+}
+function refill(){
+  const L=LEVELS[G.level-1];
+  for(let c=0;c<G.cols;c++){
+    let segStart=0;
+    for(let r=0;r<=G.rows;r++){
+      const atObs=r<G.rows&&G.board[idx(c,r)]&&G.board[idx(c,r)].v===OBS;
+      if(r===G.rows||atObs){
+        // segment [segStart, r-1]: after gravity its gaps sit at the top
+        let n=0;for(let rr=segStart;rr<r;rr++)if(!G.board[idx(c,rr)])n++;
+        let k=0;
+        for(let rr=segStart;rr<r;rr++){
+          if(!G.board[idx(c,rr)]){
+            const orb=newOrb(L.colors);G.board[idx(c,rr)]=orb;k++;
+            falling.push({c,r:rr,v:orb.v,face:orb.face,dy:-(n-k+1)*geo.cell,t:0});
+          }
         }
+        segStart=r+1;
       }
     }
   }
-  G.shots=G.shots.filter(s=>!s.done);
-  // enemies move
-  for(const e of G.enemies){
-    if(e.dead)continue;
-    const sp=e.slowT>0?e.speed*0.5:e.speed;
-    e.slowT-=dt;e.flash=Math.max(0,(e.flash||0)-dt);
-    e.x-=sp*dt;
-    e.wob=(e.wob||0)+dt*6;
-    if(e.x<COLS_X[0]-40){
-      e.dead=true;G.lives--;
-      sfx.hurt();updateHUD();
-      spawnText(60,LANES_Y[e.lane],'-1 ❤️','#ff4a5a');
-      for(let i=0;i<10;i++)spawnP(60,LANES_Y[e.lane],(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.5,'#ff4a5a',4);
-      if(G.lives<=0){gameOver();return;}
+}
+function settle(){applyGravity();refill();}
+
+/* turn resolution — state machine inside resolveStep */
+function updateHUD(){
+  document.getElementById('fire').textContent='⭐ '+G.score;
+  document.getElementById('wave').textContent=`🧩 Level ${Math.min(G.level,G.totalLevels)}/${G.totalLevels}`;
+  document.getElementById('lives').textContent=`👆 Moves ${G.moves}`;
+}
+function startLevel(lv){
+  G.level=lv;const L=LEVELS[lv-1];
+  G.target=L.target;G.score=0;G.moves=L.moves;G.chainK=0;G.lastGain=0;
+  G.phase='idle';G.animating=false;popSet=new Set();falling.length=0;glowSet=new Set();
+  fillBoard();settle();layout();updateHUD();
+}
+function resolveStep(){
+  if(G.phase==='pop'){
+    // collect & score the pop group
+    const n=popSet.size;
+    const gain=popScore(n,G.chainK);
+    G.score+=gain;G.lastGain=gain;
+    if(G.chainK>1)sfx.chain(G.chainK);else sfx.pop(n);
+    if(n>=6)spawnText(W/2,H*0.20,'BOOM!','#ffd23f',30);
+    if(G.chainK>1){chainBannerT=1.1;spawnText(W/2,H*0.26,`CHAIN x${G.chainK}!`,'#c99aff',26);}
+    // bursts + optional row-face + obsidian cracks
+    for(const i of popSet){
+      const c=i%G.cols,r=(i/G.cols)|0;
+      const cell=G.board[i];
+      const pal=cell?PALETTE[cell.v]:null;
+      burst(cellCX(c),cellCY(r),pal?pal.glow:'#ffd76a',n>=6?10:5,150+n*8);
     }
+    const frc=rowFaceCell([...popSet].map(i=>[i%G.cols,(i/G.cols)|0]));
+    const addRow=frc?frc[1]:null;
+    const full=collectPops([...popSet].map(i=>[i%G.cols,(i/G.cols)|0]),addRow);
+    if(addRow!==null&&addRow!==undefined){sfx.face();spawnText(W/2,H*0.34,'FIRE BABY ROW!','#7dff8a',24);}
+    for(const i of full)G.board[i]=null;
+    if(full.size>popSet.size)for(let c=0;c<G.cols;c++)burst(cellCX(c),cellCY(addRow),PALETTE[(c%PALETTE.length)].glow,4,120);
+    const cracked=adjacentObsidian(full);
+    if(cracked.size){sfx.crack();for(const i of cracked){G.board[i]=null;burst(cellCX(i%G.cols),cellCY((i/G.cols)|0),'#8a8a9a',8,130);spawnText(cellCX(i%G.cols),cellCY((i/G.cols)|0),'CRACK!','#cfd4e6',18);}}
+    G.phase='settle';G.phaseT=0.22;
+    updateHUD();
+    return;
   }
-  G.enemies=G.enemies.filter(e=>!e.dead);
-  if(Math.floor(G.time*2)!==Math.floor((G.time-dt)*2))updateHUD();
-}
-function killCheck(e){
-  if(e.hp<=0&&!e.dead){
-    e.dead=true;G.score+=e.score;G.fire+=8;
-    sfx.kill();
-    spawnText(e.x,e.y-20,'+'+e.score,'#ffd23f');
-    for(let i=0;i<10;i++)spawnP(e.x,e.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#8a6a4a',4);
-  }
-}
-function damageEnemy(e,dmg,s){
-  if(e.dead)return;
-  e.hp-=dmg;e.flash=0.12;
-  if(s.slow)e.slowT=2;
-  for(let i=0;i<5;i++)spawnP(e.x,e.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,s.color,3);
-  if(s.splash){
-    sfx.boom();
-    for(const o of G.enemies){
-      if(o!==e&&!o.dead&&Math.hypot(o.x-e.x,o.y-e.y)<s.splash){o.hp-=dmg*0.6;killCheck(o);}
+  if(G.phase==='settle'){applyGravity();G.phase='check';return;}
+  if(G.phase==='check'){
+    // chains form ONLY from the fall/slide — fresh refills never chain,
+    // which is what makes cascades exciting instead of endless
+    const auto=findAutoGroup(3);
+    if(auto){
+      G.chainK++;popSet=new Set(auto.map(cr=>idx(cr[0],cr[1])));
+      for(const cr of auto){const i=idx(cr[0],cr[1]);const cell=G.board[i];if(cell)cell.pop=1;}
+      popT=0.28;G.phase='pop';G.phaseT=0.28;
+      return;
     }
-    for(let i=0;i<12;i++){const a=Math.random()*Math.PI*2;
-      spawnP(e.x,e.y,Math.cos(a)*250,Math.sin(a)*250,0.5,'#ff6a00',5);}
+    refill();
+    G.phase='idle';G.animating=false;
+    glowPulse=0.6;glowSet=new Set();
+    const hint=findAnyGroup();
+    if(hint)for(const cr of hint)glowSet.add(idx(cr[0],cr[1]));
+    if(G.score>=G.target){levelClear();return;}
+    if(G.moves<=0){levelFail();return;}
+    updateHUD();
+    return;
   }
-  // Storm chain lightning: zap nearest other invader in chain range for half damage
-  if(s.chain){
-    let near=null,nd=1e9;
-    for(const o of G.enemies){if(o===e||o.dead)continue;
-      const d=Math.hypot(o.x-e.x,o.y-e.y);if(d<s.chain&&d<nd){nd=d;near=o;}}
-    if(near){near.hp-=dmg*0.5;killCheck(near);
-      for(let i=0;i<6;i++)spawnP(near.x,near.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#c4a0ff',3);}
-  }
-  killCheck(e);
 }
-function gameWin(){
-  G.state='clear';sfx.win();
-  const bonus=G.lives*100;G.score+=bonus;
-  setTimeout(()=>{
-    showOverlay('🏆 KEEP DEFENDED!',
-      `<p>All 13 waves survived!</p><p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Lives left: ${G.lives} (+${bonus})</p>`,
-      '🔥 Fire Safety: A good defense is the best plan — know your escape routes!',
-      '↻ PLAY AGAIN',()=>{reset();G.state='play';});
-  },600);
+function tapOrb(c,r){
+  if(G.state!=='play'||G.paused||G.animating)return;
+  if(c<0||r<0||c>=G.cols||r>=G.rows)return;
+  const g=groupAt(c,r);
+  if(!g){sfx.bad();spawnText(e_clientX(),e_clientY(),'Need 2+ touching!','#ff9a5a',16);return;}
+  if(g.cells.length<2){sfx.bad();spawnText(e_clientX(),e_clientY(),'Need 2+ touching!','#ff9a5a',16);return;}
+  G.moves--;
+  G.chainK=1;
+  popSet=new Set(g.cells.map(cr=>idx(cr[0],cr[1])));
+  for(const cr of g.cells){const cell=G.board[idx(cr[0],cr[1])];if(cell)cell.pop=1;}
+  popT=0.28;G.phase='pop';G.phaseT=0.28;G.animating=true;
+  updateHUD();
 }
-function gameOver(){
-  G.state='over';sfx.hurt();
-  setTimeout(()=>{
-    showOverlay('💥 KEEP OVERRUN!',
-      `<p>The invaders broke through on wave ${G.wave}!</p><p>Score: ${G.score}</p>`,
-      '🔥 Fire Safety: A good defense is the best plan — know your escape routes!',
-      '↻ TRY AGAIN',()=>{reset();G.state='play';});
-  },600);
+let _lastX=W/2,_lastY=H/2;
+function e_clientX(){return _lastX;}function e_clientY(){return _lastY;}
+canvas.addEventListener('pointerdown',e=>{
+  _lastX=e.clientX;_lastY=e.clientY;
+  if(G.state!=='play'||G.paused||G.animating)return;
+  const c=Math.floor((e.clientX-geo.x0)/geo.cell),r=Math.floor((e.clientY-geo.y0)/geo.cell);
+  tapOrb(c,r);
+});
+
+/* stars */
+function starCount(lv,score){
+  const t=LEVELS[lv-1].target;
+  if(score>=t*1.6)return 3;
+  if(score>=t*1.25)return 2;
+  return 1;
 }
 
-/* overlay */
+/* overlay screens */
 let mathAnswer=0;
 function showMathGate(){
   const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
@@ -393,106 +419,173 @@ function showOverlay(title,body,lesson,btn,cb){
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+function startGame(){audio();startLevel(1);G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
+function levelClear(){
+  const stars=starCount(G.level,G.score);G.stars=stars;
+  sfx.win();
+  if(G.level>=G.totalLevels){
+    G.state='over';
+    setTimeout(()=>{showOverlay('🏆 CASCADE MASTER!',
+      `<p>You cleared all <b>12 levels</b> of Ember Cascade!</p><p style="font-size:26px">${'⭐'.repeat(3)}</p>`,
+      '🔥 Fire Safety: Matches and lighters are tools for grown-ups — never toys!',
+      '↻ PLAY AGAIN',()=>{startLevel(1);G.state='play';});},500);
+  }else{
+    G.state='clear';const next=G.level+1;
+    setTimeout(()=>{showOverlay(`✅ LEVEL ${G.level} CLEAR!`,
+      `<p>Target <b>${G.target}</b> smashed with <b>${G.score}</b> points!</p><p style="font-size:26px">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</p><p>Moves left: ${G.moves}</p>`,
+      '🔥 Fire Safety: A clear head solves any puzzle — stay calm and think!',
+      `▶ LEVEL ${next}`,()=>{startLevel(next);G.state='play';});},500);
+  }
+}
+function levelFail(){
+  G.state='over';sfx.lose();
+  setTimeout(()=>{showOverlay('💥 OUT OF MOVES!',
+    `<p>So close! You reached <b>${G.score}</b> of the <b>${G.target}</b> target.</p><p>Try bigger bunches — and watch for chain cascades!</p>`,
+    '🔥 Fire Safety: If at first you don\'t succeed, try a safer plan — never give up!',
+    '↻ TRY AGAIN',()=>{startLevel(G.level);G.state='play';});},500);
+}
 
-/* pause / mute / restart / wave-now (gamer-check batch 03) */
+/* pause / mute / restart */
 function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
 document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
 const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
 muteBtnEl.addEventListener('click',e=>{e.currentTarget.blur();MUTED=!MUTED;muteBtnEl.textContent=MUTED?'🔇':'🔊';try{localStorage.setItem('fb_muted',MUTED?'1':'0');}catch(err){}if(!MUTED)sfx.click();});
-document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();reset();G.state='play';overlay.classList.add('hidden');});
-const waveBtnEl=document.getElementById('waveBtn');
-waveBtnEl.addEventListener('click',e=>{e.currentTarget.blur();if(G.state!=='play'||G.waveActive||G.paused)return;const bonus=Math.max(0,Math.ceil(G.breakT))*5;G.fire+=bonus;spawnText(W/2,H*0.3,'⏩ EARLY WAVE +'+bonus+'🔥','#ffd23f');G.breakT=0;sfx.click();updateHUD();});
+document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarget.blur();if(G.state==='title')return;sfx.click();startLevel(G.level);G.state='play';overlay.classList.add('hidden');setPaused(false);});
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
+/* update */
+function update(dt){
+  G.time+=dt;
+  if(G.animating){
+    popT-=dt;
+    if(popT<=0)resolveStep();
+  }
+  if(chainBannerT>0)chainBannerT-=dt;
+  if(glowPulse>0)glowPulse-=dt;
+  updateEmbers(dt);
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  for(const fl of falling){
+    fl.t+=dt;
+    const dur=0.28;
+    if(fl.t>=dur){fl.done=true;}
+  }
+  for(let i=falling.length-1;i>=0;i--)if(falling[i].done)falling.splice(i,1);
+  // pop scale animation on marked orbs
+  for(let r=0;r<G.rows;r++)for(let c=0;c<G.cols;c++){
+    const cell=G.board[idx(c,r)];
+    if(cell&&cell.pop>0){cell.pop=Math.min(1.35,cell.pop+dt*3);}
+  }
+  render();
+}
+
 /* render */
+function drawFaceOrb(x,y,rad,ink){
+  // happy Fire Baby face, code-drawn: two bright eyes + a big cheerful grin
+  ctx.fillStyle=ink;
+  ctx.beginPath();ctx.arc(x-rad*0.34,y-rad*0.12,rad*0.11,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+rad*0.34,y-rad*0.12,rad*0.11,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=ink;ctx.lineWidth=Math.max(2,rad*0.10);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+rad*0.08,rad*0.42,Math.PI*0.18,Math.PI*0.82);ctx.stroke();
+  // rosy cheeks
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath();ctx.arc(x-rad*0.52,y+rad*0.24,rad*0.13,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+rad*0.52,y+rad*0.24,rad*0.13,0,Math.PI*2);ctx.fill();
+}
+function drawOrb(x,y,rad,cell,t){
+  const pal=PALETTE[cell.v];
+  const pulse=1+0.05*Math.sin(t*3+x*0.05+y*0.03);
+  let r=rad*pulse;
+  if(cell.pop>0)r=rad*(1+(cell.pop-1)*0.9);
+  // soft glow
+  ctx.save();
+  ctx.globalAlpha=cell.pop>0?0.85:0.5;
+  const spr=EMBER_SPRITE;
+  ctx.drawImage(spr,x-r*2.1,y-r*2.1,r*4.2,r*4.2);
+  ctx.restore();
+  // flame-teardrop body: round bottom, soft point at top
+  const g=ctx.createRadialGradient(x-r*0.35,y-r*0.4,r*0.15,x,y+r*0.1,r*1.15);
+  g.addColorStop(0,'#ffffff');g.addColorStop(0.35,pal.body);g.addColorStop(1,pal.deep);
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(x,y-r*1.12);
+  ctx.bezierCurveTo(x+r*0.85,y-r*0.55,x+r*0.95,y+r*0.25,x+r*0.62,y+r*0.72);
+  ctx.bezierCurveTo(x+r*0.35,y+r*0.98,x-r*0.35,y+r*0.98,x-r*0.62,y+r*0.72);
+  ctx.bezierCurveTo(x-r*0.95,y+r*0.25,x-r*0.85,y-r*0.55,x,y-r*1.12);
+  ctx.fill();
+  ctx.strokeStyle='rgba(60,20,0,0.55)';ctx.lineWidth=2;ctx.stroke();
+  // inner sparkle
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.beginPath();ctx.arc(x-r*0.3,y-r*0.18,r*0.16,0,Math.PI*2);ctx.fill();
+  if(cell.face)drawFaceOrb(x,y+r*0.08,r,pal.ink);
+  if(cell.pop>0){
+    ctx.strokeStyle='rgba(255,255,255,'+(0.9-(cell.pop-1)*1.4)+')';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(x,y,r*1.15,0,Math.PI*2);ctx.stroke();
+  }
+}
+function drawObsidian(x,y,rad){
+  ctx.fillStyle='#23202a';
+  const s=rad*1.7;
+  ctx.beginPath();
+  if(ctx.roundRect)ctx.roundRect(x-s/2,y-s/2,s,s,6);else ctx.rect(x-s/2,y-s/2,s,s);
+  ctx.fill();
+  ctx.strokeStyle='#4a4458';ctx.lineWidth=2;ctx.stroke();
+  ctx.strokeStyle='rgba(160,150,190,0.35)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x-s*0.28,y-s*0.1);ctx.lineTo(x+s*0.05,y+s*0.18);ctx.lineTo(x+s*0.3,y-s*0.22);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.10)';
+  ctx.beginPath();ctx.arc(x-s*0.2,y-s*0.25,3,0,Math.PI*2);ctx.fill();
+}
 function render(){
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#1a0d08');bg.addColorStop(0.5,'#2a1a0a');bg.addColorStop(1,'#1a0d08');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   drawEmbers();
-  // keep (castle) on left
-  const kx=COLS_X[0]-70;
-  ctx.fillStyle='#4a3a2a';
-  ctx.fillRect(kx-25,LANES_Y[0]-50,50,LANES_Y[2]-LANES_Y[0]+100);
-  ctx.fillStyle='#5a4a3a';
-  for(let i=0;i<3;i++){
-    ctx.beginPath();ctx.arc(kx-25+i*25,LANES_Y[0]-50,12,Math.PI,0);ctx.fill();
+  const L=LEVELS[Math.min(G.level,LEVELS.length)-1];
+  const gw=geo.cell*G.cols,gh=geo.cell*G.rows;
+  // board frame
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  if(ctx.roundRect)ctx.roundRect(geo.x0-8,geo.y0-8,gw+16,gh+16,14);else ctx.rect(geo.x0-8,geo.y0-8,gw+16,gh+16);
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,180,90,0.35)';ctx.lineWidth=2;ctx.stroke();
+  // target progress bar
+  const bw=gw,bx=geo.x0,by=geo.y0-30;
+  ctx.fillStyle='rgba(0,0,0,0.55)';
+  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw,12,6);else ctx.rect(bx,by,bw,12);ctx.fill();
+  const frac=Math.min(1,G.score/Math.max(1,G.target));
+  if(frac>0){
+    const pg=ctx.createLinearGradient(bx,0,bx+bw,0);
+    pg.addColorStop(0,'#ff6a1a');pg.addColorStop(1,'#ffd23f');
+    ctx.fillStyle=pg;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw*frac,12,6);else ctx.rect(bx,by,bw*frac,12);ctx.fill();
   }
-  ctx.fillStyle='#ff6a1a';
-  ctx.beginPath();ctx.arc(kx,LANES_Y[1],14+Math.sin(G.time*4)*2,0,Math.PI*2);ctx.fill();
-  // lanes
-  for(let r=0;r<3;r++){
-    const y=LANES_Y[r];
-    ctx.fillStyle='rgba(255,200,100,0.06)';
-    ctx.fillRect(COLS_X[0]-50,y-28,W,56);
-    ctx.strokeStyle='rgba(255,200,100,0.15)';ctx.lineWidth=2;ctx.setLineDash([16,16]);
-    ctx.beginPath();ctx.moveTo(COLS_X[0]-50,y);ctx.lineTo(W,y);ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  // grid slots
-  for(const g of G.grid){
-    const x=COLS_X[g.c],y=LANES_Y[g.r];
-    if(!g.tower){
-      ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.stroke();
-      ctx.fillStyle='rgba(255,255,255,0.06)';
-      ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.fill();
-    }else{
-      const t=g.tower;
-      // range indicator on recent placement
-      // tower base
-      ctx.fillStyle='#3a2a1a';
-      ctx.beginPath();ctx.arc(x,y+8,20,0,Math.PI*2);ctx.fill();
-      // fire baby
-      ctx.save();ctx.shadowColor=t.color;ctx.shadowBlur=14;
-      const bg2=ctx.createRadialGradient(x-5,y-18,3,x,y-10,18);
-      bg2.addColorStop(0,'#fff');bg2.addColorStop(0.4,t.color);bg2.addColorStop(1,'#a33c10');
-      ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(x,y-10,16,0,Math.PI*2);ctx.fill();
-      // face
-      ctx.fillStyle='#2b1a0e';
-      ctx.beginPath();ctx.arc(x-5,y-12,3,0,Math.PI*2);ctx.arc(x+5,y-12,3,0,Math.PI*2);ctx.fill();
-      // type icon
-      ctx.font='14px system-ui';ctx.textAlign='center';
-      ctx.fillText(t.type==='shooter'?'🔥':t.type==='frost'?'❄️':t.type==='storm'?'⚡':'💣',x,y+22);
-      ctx.textAlign='left';
-      ctx.restore();
-      // level pips
-      ctx.fillStyle='#ffd23f';
-      for(let i=0;i<t.lvl;i++)ctx.fillRect(x-12+i*9,y+26,7,4);
+  ctx.fillStyle='#ffe9d6';ctx.font='800 13px system-ui';ctx.textAlign='center';
+  ctx.fillText(`🎯 ${G.score} / ${L.target}`,W/2,by-6);
+  ctx.textAlign='left';
+  // hint shimmer on a suggested group when idle
+  const hinting=G.state==='play'&&!G.animating&&glowSet.size>0;
+  // cells with an active fall-in visual are drawn only by the falling pass
+  const fallingCells=new Set(falling.map(fl=>idx(fl.c,fl.r)));
+  // orbs
+  for(let r=0;r<G.rows;r++)for(let c=0;c<G.cols;c++){
+    const cell=G.board[idx(c,r)];
+    if(!cell)continue;
+    const x=cellCX(c),y=cellCY(r),rad=geo.cell*0.42;
+    if(cell.v===OBS){drawObsidian(x,y,rad);continue;}
+    if(fallingCells.has(idx(c,r)))continue;
+    drawOrb(x,y,rad,cell,G.time);
+    if(hinting&&glowSet.has(idx(c,r))){
+      ctx.strokeStyle='rgba(255,255,255,'+(0.35+0.3*Math.sin(G.time*6))+')';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.arc(x,y,rad*1.08,0,Math.PI*2);ctx.stroke();
     }
   }
-  // enemies
-  for(const e of G.enemies){
-    ctx.save();ctx.translate(e.x,e.y);
-    const wob=Math.sin(e.wob)*3;
-    // hp bar
-    const bw=e.r*2;
-    ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-bw/2,-e.r-14,bw,6);
-    ctx.fillStyle=e.hp/e.maxHp>0.5?'#4caf50':e.hp/e.maxHp>0.25?'#ff9800':'#f44336';
-    ctx.fillRect(-bw/2,-e.r-14,bw*Math.max(0,e.hp/e.maxHp),6);
-    if(e.slowT>0){
-      ctx.strokeStyle='rgba(127,212,255,0.8)';ctx.lineWidth=3;
-      ctx.beginPath();ctx.arc(0,wob,e.r+4,0,Math.PI*2);ctx.stroke();
-    }
-    const g=ctx.createRadialGradient(-6,-6+wob,4,0,wob,e.r);
-    if(e.type==='tank'){g.addColorStop(0,'#6a5a4a');g.addColorStop(1,'#2a1a0a');}
-    else if(e.type==='fast'){g.addColorStop(0,'#a08a6a');g.addColorStop(1,'#4a3a2a');}
-    else{g.addColorStop(0,'#8a7a6a');g.addColorStop(1,'#3a2a1a');}
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,wob,e.r,0,Math.PI*2);ctx.fill();
-    if(e.flash>0){ctx.globalAlpha=Math.min(0.75,e.flash/0.12*0.75);ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(0,wob,e.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
-    // eyes
-    ctx.fillStyle='#ff4a00';
-    ctx.beginPath();ctx.arc(-6,-4+wob,4,0,Math.PI*2);ctx.arc(6,-4+wob,4,0,Math.PI*2);ctx.fill();
-    ctx.restore();
-  }
-  // shots (beams)
-  for(const s of G.shots){
-    const a=1-s.t/s.dur;
-    ctx.strokeStyle=s.color;ctx.globalAlpha=a;ctx.lineWidth=4;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.tx,s.ty);ctx.stroke();
-    ctx.globalAlpha=1;
+  // falling (newly spawned) orbs slide in
+  for(const fl of falling){
+    const ease=Math.min(1,fl.t/0.28);
+    const yy=cellCY(fl.r)+fl.dy*(1-ease)*(1-ease);
+    drawOrb(cellCX(fl.c),yy,geo.cell*0.42,{v:fl.v,face:fl.face,pop:0},G.time);
   }
   // particles
   for(const p of particles){
@@ -501,23 +594,25 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
-  // wave break countdown
-  if(!G.waveActive&&G.state==='play'){
-    ctx.textAlign='center';ctx.font='900 20px system-ui';
-    ctx.fillStyle='#fff';
-    ctx.fillText(G.wave>=13?'':`Next wave in ${Math.ceil(G.breakT)}...`,W/2,H*0.12);
-    ctx.textAlign='left';
+  // chain banner
+  if(chainBannerT>0&&G.chainK>1){
+    ctx.textAlign='center';ctx.font='900 30px system-ui';
+    ctx.globalAlpha=Math.min(1,chainBannerT);
+    ctx.fillStyle='#000';ctx.fillText(`⛓ CHAIN x${G.chainK}!`,W/2+2,H*0.15+2);
+    ctx.fillStyle='#c99aff';ctx.fillText(`⛓ CHAIN x${G.chainK}!`,W/2,H*0.15);
+    ctx.globalAlpha=1;ctx.textAlign='left';
   }
-  // floaters — [w5b] drawn after everything else in the field (above towers and
-  // enemies) with a dark pill backdrop, so hint/feedback text is always readable
+  // floaters with dark pill backdrop
   ctx.textAlign='center';
   for(const f of floaters){
     if(!f.a)continue;
     const a=Math.min(1,f.life);
-    ctx.font='900 20px system-ui';
+    ctx.font='900 '+(f.size||20)+'px system-ui';
     const tw=ctx.measureText(f.txt).width;
     ctx.globalAlpha=a*0.72;ctx.fillStyle='#000';
-    ctx.beginPath();ctx.roundRect(f.x-tw/2-10,f.y-21,tw+20,28,9);ctx.fill();
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(f.x-tw/2-10,f.y-21,tw+20,28,9);else ctx.rect(f.x-tw/2-10,f.y-21,tw+20,28);
+    ctx.fill();
     ctx.globalAlpha=a;
     ctx.fillStyle='#000';ctx.fillText(f.txt,f.x+2,f.y+2);
     ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
@@ -530,15 +625,11 @@ function render(){
 let lastT=0;
 function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
-  if(G.state==='play'&&!G.paused)update(dt);else G.time+=dt;
-  waveBtnEl.style.display=(!G.waveActive&&G.state==='play'&&!G.paused)?'block':'none';
-  updateEmbers(dt);
-  for(const p of particles){if(!p.a)continue;
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
-  for(const f of floaters){if(!f.a)continue;f.y-=40*dt;f.life-=dt;if(f.life<=0)f.a=false;}
-  render();
+  if(!G.paused)update(dt);
   requestAnimationFrame(loop);
 }
+resize();
+fillBoard();
 requestAnimationFrame(loop);
 </script>
 </body>

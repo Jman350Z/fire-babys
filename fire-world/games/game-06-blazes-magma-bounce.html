@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
-<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Blaze's Magma Bounce — by Jman350Z & fire team</title>
-<meta name="description" content="Sumo showdown! Bump rock golems out of the magma ring. A Fire Babys physics battler.">
+<meta name="description" content="Blaze's Magma Bounce! Steer Blaze up the volcano bouncing on rising magma bubbles — grab ember stars, beat the rising lava, reach the goal height! A Fire Babys climbing game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -30,6 +29,9 @@ canvas{display:block;width:100%;height:100%}
 
 #ctlBtns{position:fixed;bottom:14px;right:12px;z-index:15;display:flex;gap:8px}
 #ctlBtns button{background:rgba(0,0,0,.62);color:#fff;border:2px solid rgba(255,255,255,.55);border-radius:12px;min-width:48px;min-height:48px;font-size:20px;cursor:pointer}
+#steerL,#steerR{position:fixed;bottom:78px;z-index:14;background:rgba(0,0,0,.5);color:#fff;border:2px solid rgba(255,255,255,.45);border-radius:50%;width:62px;height:62px;font-size:26px;font-weight:900;cursor:pointer}
+#steerL{left:52px}
+#steerR{right:52px}
 #pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
 #pauseOv h2{font-size:34px;margin-bottom:14px}
 #pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
@@ -52,6 +54,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #back:hover{filter:brightness(1.35)}
 #ctlBtns button{background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);transition:filter .12s ease,transform .12s ease}
 #ctlBtns button:hover{filter:brightness(1.35)}
+#steerL,#steerR{background:linear-gradient(180deg,rgba(34,18,9,.85),rgba(14,7,3,.85));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45);transition:filter .12s ease,transform .12s ease}
+#steerL:active,#steerR:active{filter:brightness(1.6)}
 @media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
 </style>
 </head>
@@ -59,18 +63,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">ROUND 1/10</div>
-<div class="pill" id="foes">🪨 3 left</div>
+<div class="pill" id="level">LEVEL 1/12</div>
+<div class="pill" id="goal">⬆ 0m / 60m</div>
 </div>
 <div id="round" class="pill hidden"></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
 
 <div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
+<button id="steerL" aria-label="Steer left">◀</button>
+<button id="steerR" aria-label="Steer right">▶</button>
 <div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">💥 BLAZE'S MAGMA BOUNCE</h1>
-<div id="obody"><p><b>Boulder</b> & <b>Cinder</b> enter the sumo ring!</p><p><b>Fling</b> Blaze to BUMP rock golems out of the arena! Drag back and release. Last one in the ring wins!</p><p>🌋 Grab the <b>Magma Surge</b> orb — Blaze's bumps hit 25% harder for 8 seconds!</p></div>
+<div id="obody"><p><b>Blaze</b> climbs the volcano!</p><p><b>Bounce</b> off the rising magma bubbles to climb higher! Steer with <b>◀ ▶</b> or arrow keys, or <b>drag</b> on screen. Grab <b>⭐ ember stars</b> for points and energy!</p><p>🌋 The lava is <b>rising</b> — don't stall, and reach the <b>goal height</b> before your energy runs out!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Hot lava is like a real fire — never touch, always stay back!</div>
 <button id="obtn">▶ PLAY</button>
@@ -79,17 +85,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <script>
 'use strict';
 /* ============================================================
-   BLAZE'S MAGMA BOUNCE v2 — AAA Rebuild
-   - Sumo arena: fling to bump golems out of the ring
-   - Smart AI, 5 rounds, lava hazard, particles, shake
+   BLAZE'S MAGMA BOUNCE v3 — full rebuild
+   - Vertical climber: steer Blaze, bounce on rising magma bubbles
+   - 12 levels: goal height before energy runs out; rising lava
+   - Ember stars = points + energy; wind gusts on later levels
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
-let W,H,DPR,CX,CY,RING_R;
+let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
-  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
-  CX=W/2;CY=H*0.52;RING_R=Math.min(W,H)*0.36;}
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
 
 /* audio */
@@ -126,9 +132,11 @@ function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
 function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
   if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
 const sfx={
-  fling(){noise(0.15,0.25,0,1500);tone(300,700,0.12,'sine',0.12);},
-  bump(){noise(0.15,0.35,0,600);tone(150,60,0.12,'square',0.2);},
-  splash(){noise(0.4,0.4,0,400);tone(300,80,0.3,'sawtooth',0.2);},
+  pop(){noise(0.08,0.14,0,1800);tone(500,950,0.12,'sine',0.14);},
+  mega(){noise(0.12,0.2,0,1200);tone(300,1200,0.2,'sine',0.16);},
+  star(){tone(880,1320,0.15,'triangle',0.15);tone(1320,1760,0.1,'triangle',0.08,0.06);},
+  dunk(){noise(0.4,0.35,0,500);tone(400,90,0.35,'sawtooth',0.15);},
+  low(){tone(300,200,0.3,'sine',0.12);},
   win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
@@ -144,233 +152,210 @@ function spawnText(x,y,txt,color='#ffd23f',size=20){const f=floaters.find(f=>!f.
 let trauma=0,shakeX=0,shakeY=0;
 function addTrauma(t){trauma=Math.min(1,trauma+t);}
 
+/* levels: goal height (m), energy seconds, bubble density/size, lava rise px/s, wind gusts */
+const PX_PER_M=50,GRAV=1500,BOUNCE_V=1150,MEGA_V=1520;
+const LEVELS=[
+  {goal:60,time:45,bubbles:7,brMin:26,brMax:40,lava:6,wind:0},
+  {goal:80,time:50,bubbles:7,brMin:25,brMax:38,lava:8,wind:0},
+  {goal:100,time:55,bubbles:6,brMin:24,brMax:37,lava:11,wind:0},
+  {goal:120,time:60,bubbles:6,brMin:24,brMax:36,lava:14,wind:0},
+  {goal:145,time:65,bubbles:6,brMin:23,brMax:35,lava:17,wind:0},
+  {goal:170,time:70,bubbles:5,brMin:22,brMax:34,lava:20,wind:0},
+  {goal:200,time:75,bubbles:5,brMin:22,brMax:33,lava:23,wind:130},
+  {goal:230,time:80,bubbles:5,brMin:21,brMax:32,lava:26,wind:160},
+  {goal:265,time:85,bubbles:5,brMin:21,brMax:31,lava:28,wind:190},
+  {goal:300,time:90,bubbles:4,brMin:20,brMax:30,lava:30,wind:220},
+  {goal:340,time:95,bubbles:4,brMin:20,brMax:29,lava:32,wind:245},
+  {goal:380,time:100,bubbles:4,brMin:20,brMax:28,lava:35,wind:270}
+];
+
 /* state */
-const G={state:'title',round:1,score:0,roundStartScore:0,player:null,foes:[],time:0,dragging:false,dragX:0,dragY:0,roundT:0,surgeT:0,pickup:null,pickupT:8};
-function makeFighter(x,y,isPlayer,round){
-  return{x,y,vx:0,vy:0,r:isPlayer?26:24+round*2,isPlayer,
-    aiT:Math.random()*2,target:null,dead:false,outT:0,surgeT:0,
-    squash:0,flash:0,
-    speed:isPlayer?0:60+round*18+Math.random()*30,
-    aggro:Math.min(0.95,0.78+round*0.05)};
+const G={state:'title',level:1,score:0,levelStartScore:0,time:0,energy:0,energyMax:1,
+  blaze:{x:0,y:0,vx:0,vy:0,r:24,squash:0,soaked:false},
+  bubbles:[],stars:[],camY:0,lavaY:0,windPhase:0,steam:true,dunkT:0,dunkReason:'',
+  heightM:0,shownM:-1};
+const keys={left:false,right:false};
+let dragX=null;
+
+function newBubble(y){
+  const L=LEVELS[G.level-1];
+  const r=L.brMin+Math.random()*(L.brMax-L.brMin);
+  return{x:r+Math.random()*Math.max(1,W-2*r),y,r,
+    rise:22+Math.random()*30+L.lava*1.2,
+    mega:Math.random()<0.12,wob:Math.random()*6.28,pop:0};
 }
-function startRound(n){
-  G.round=n;G.roundStartScore=G.score;G.foes=[];G.roundT=0;G.surgeT=0;G.pickup=null;G.pickupT=8;
-  G.player=makeFighter(CX,CY-60,true,n);
-  const count=n<=5?2+Math.min(n,3):[5,5,6,6,7][n-6]; // [levels+] R6-10 foe counts per design
-  for(let i=0;i<count;i++){
-    const a=(i/count)*Math.PI*2-Math.PI/2;
-    G.foes.push(makeFighter(CX+Math.cos(a)*RING_R*0.55,CY+Math.sin(a)*RING_R*0.55,false,n));
+function newStar(y){
+  return{x:24+Math.random()*Math.max(1,W-48),y,r:13,spin:Math.random()*6.28,taken:false};
+}
+function startLevel(n){
+  const L=LEVELS[n-1];
+  G.level=n;G.levelStartScore=G.score;G.time=0;
+  G.energy=L.time;G.energyMax=L.time;G.steam=true;G.dunkT=0;
+  G.heightM=0;G.shownM=-1;G.windPhase=Math.random()*6.28;
+  G.lavaY=90;
+  const b=G.blaze;b.x=W/2;b.y=-40;b.vx=0;b.vy=0;b.r=24;b.squash=0;b.soaked=false;
+  G.camY=b.y-H*0.42;
+  G.bubbles=[];
+  // starter bubble right under Blaze
+  const sb=newBubble(b.y+b.r+30);sb.x=b.x;sb.mega=false;G.bubbles.push(sb);
+  for(let i=1;i<L.bubbles;i++){
+    const bb=newBubble(G.lavaY-60-Math.random()*(L.goal*PX_PER_M*0.6));
+    bb.x=bb.r+Math.random()*Math.max(1,W-2*bb.r);G.bubbles.push(bb);
   }
-  document.getElementById('level').textContent=`ROUND ${n}/10`;
-  updateFoesUI();
+  G.stars=[];
+  for(let i=0;i<4;i++)G.stars.push(newStar(b.y-120-Math.random()*H));
+  document.getElementById('level').textContent=`LEVEL ${n}/12`;
+  updateGoalUI();
   const rd=document.getElementById('round');
-  rd.textContent=`🥋 ROUND ${n} — ${count} GOLEMS!`;rd.classList.remove('hidden');
-  setTimeout(()=>rd.classList.add('hidden'),2000);
-}
-function updateFoesUI(){
-  const left=G.foes.filter(f=>!f.dead).length;
-  document.getElementById('foes').textContent=`🪨 ${left} left`;
+  rd.textContent=`⬆ LEVEL ${n} — REACH ${L.goal}m!`;rd.classList.remove('hidden');
+  setTimeout(()=>rd.classList.add('hidden'),2200);
 }
 function updateScoreUI(){document.getElementById('score').textContent='⭐ '+G.score;}
-
-/* physics + AI */
-function distToRingEdge(f){return Math.hypot(f.x-CX,f.y-CY);}
-function update(dt){
-  G.time+=dt;G.roundT+=dt;
-  const all=[G.player,...G.foes].filter(f=>!f.dead);
-  // player drag handled by input; apply friction
-  for(const f of all){
-    if(f.surgeT>0)f.surgeT-=dt;
-    if(f.isPlayer&&f.held){ // held players freeze, but the lava edge still counts (was a hold-to-cheat exploit)
-      const _hed=distToRingEdge(f);
-      if(_hed>RING_R+f.r){f.outT+=dt;
-        if(f.outT>0.25&&!f.dead){f.dead=true;sfx.splash();addTrauma(0.6);
-          spawnText(f.x,f.y-30,'💥 OUT!','#ff4a00');roundLost();}}
-      else f.outT=Math.max(0,f.outT-dt*2);
-      continue;}
-    // AI
-    if(!f.isPlayer&&G.state==='play'){
-      f.aiT-=dt;
-      const _esc=1+Math.min(1.5,Math.max(0,G.roundT-25)/40); // after 25s the golems charge harder so rounds resolve
-      // target: nearest opponent (player or other foe)
-      let best=null,bd=1e9;
-      for(const o of all){
-        if(o===f||o.dead)continue;
-        // prefer player slightly
-        const d=Math.hypot(o.x-f.x,o.y-f.y)-(o.isPlayer?30:0);
-        if(d<bd){bd=d;best=o;}
-      }
-      if(best){
-        const dx=best.x-f.x,dy=best.y-f.y,d=Math.hypot(dx,dy)||1;
-        // charge, but avoid running out of ring
-        const edgeD=distToRingEdge(f);
-        let mx=dx/d,my=dy/d;
-        if(edgeD>RING_R*0.85){
-          // steer back toward center
-          mx=mx*0.3+(CX-f.x)/edgeD*0.9;my=my*0.3+(CY-f.y)/edgeD*0.9;
-          const m=Math.hypot(mx,my)||1;mx/=m;my/=m;
-        }
-        // HARD bots (2026-10-12): contest the Magma Surge orb — the foe
-        // closest to it breaks off and takes it (unless the player is
-        // about to grab it first). A surged golem hits harder + faster.
-        let orbRun=false;
-        if(G.pickup&&G.player&&!G.player.dead){
-          const pd=Math.hypot(G.player.x-G.pickup.x,G.player.y-G.pickup.y);
-          const md2=Math.hypot(f.x-G.pickup.x,f.y-G.pickup.y);
-          let closest=true;
-          for(const o of G.foes){if(o!==f&&!o.dead&&Math.hypot(o.x-G.pickup.x,o.y-G.pickup.y)<md2){closest=false;break;}}
-          if(closest&&pd>130){
-            orbRun=true;
-            const od=Math.hypot(G.pickup.x-f.x,G.pickup.y-f.y)||1;
-            mx=(G.pickup.x-f.x)/od;my=(G.pickup.y-f.y)/od;
-            if(edgeD>RING_R*0.85){mx=mx*0.3+(CX-f.x)/edgeD*0.9;my=my*0.3+(CY-f.y)/edgeD*0.9;const m3=Math.hypot(mx,my)||1;mx/=m3;my/=m3;}
-          }
-        }
-        // dash occasionally — HARD: dashes LEAD the target (aim where
-        // the opponent is heading, visible info only), more often,
-        // from farther out, and never while running for the orb
-        if(!orbRun&&f.aiT<=0&&bd<230&&Math.random()<f.aggro){
-          const lead=Math.min(0.35,bd/600);
-          const lx=best.x+(best.vx||0)*lead-f.x,ly=best.y+(best.vy||0)*lead-f.y,ld=Math.hypot(lx,ly)||1;
-          let dmx=lx/ld,dmy=ly/ld;
-          if(edgeD>RING_R*0.85){dmx=dmx*0.3+(CX-f.x)/edgeD*0.9;dmy=dmy*0.3+(CY-f.y)/edgeD*0.9;const m2=Math.hypot(dmx,dmy)||1;dmx/=m2;dmy/=m2;}
-          f.vx+=dmx*f.speed*4*_esc;f.vy+=dmy*f.speed*4*_esc;f.aiT=0.8+Math.random()*0.9;
-          for(let i=0;i<6;i++)spawnP(f.x,f.y,(Math.random()-0.5)*150,(Math.random()-0.5)*150,0.3,'#8a6a4a',3);
-        }else{
-          f.vx+=mx*f.speed*dt*3*_esc*(f.surgeT>0?1.4:1);f.vy+=my*f.speed*dt*3*_esc*(f.surgeT>0?1.4:1);
-        }
-      }
-    }
-    // friction (stone on stone)
-    const _fr=Math.pow(0.985,dt*60);f.vx*=_fr;f.vy*=_fr; // dt-scaled friction
-    // cap speed
-    const sp=Math.hypot(f.vx,f.vy),max=f.isPlayer?900:(f.surgeT>0?660:500);
-    if(sp>max){f.vx=f.vx/sp*max;f.vy=f.vy/sp*max;}
-    f.x+=f.vx*dt;f.y+=f.vy*dt;
-    f.squash*=0.9;f.flash=Math.max(0,f.flash-dt*4);
-    // ring edge = lava!
-    const ed=distToRingEdge(f);
-    if(ed>RING_R+f.r){
-      f.outT+=dt;
-      if(f.outT>0.25&&!f.dead){
-        f.dead=true;
-        sfx.splash();addTrauma(f.isPlayer?0.6:0.35);
-        for(let i=0;i<20;i++){const a=Math.random()*Math.PI*2;
-          spawnP(f.x,f.y,Math.cos(a)*250,Math.sin(a)*250-100,0.8,'#ff4a00',4+Math.random()*4);}
-        spawnText(f.x,f.y-30,f.isPlayer?'💥 OUT!':'💥 SPLASH! +'+(200*G.round),f.isPlayer?'#ff4a00':'#7fd4ff');
-        if(!f.isPlayer){G.score+=200*G.round;updateScoreUI();}
-        updateFoesUI();
-        if(f.isPlayer)roundLost();
-        else if(G.foes.every(x=>x.dead))roundWon();
-      }
-    }else f.outT=Math.max(0,f.outT-dt*2);
-  }
-  // Magma Surge power-up orb
-  if(G.surgeT>0)G.surgeT-=dt;
-  if(!G.pickup){G.pickupT-=dt;
-    if(G.pickupT<=0){const a=Math.random()*Math.PI*2,rr=RING_R*0.45*Math.random();
-      G.pickup={x:CX+Math.cos(a)*rr,y:CY+Math.sin(a)*rr,r:16,t:0};}}
-  else{G.pickup.t+=dt;
-    if(G.player&&!G.player.dead&&Math.hypot(G.player.x-G.pickup.x,G.player.y-G.pickup.y)<G.player.r+G.pickup.r){
-      G.pickup=null;G.pickupT=10+Math.random()*4;G.surgeT=8;
-      tone(500,1400,0.25,'sine',0.16);tone(750,1800,0.2,'sine',0.1,0.07);
-      spawnText(G.player.x,G.player.y-40,'🌋 MAGMA SURGE!','#ff9a3a',20);
-      for(let i=0;i<12;i++)spawnP(G.player.x,G.player.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#ff9a3a',4);
-    }
-    // HARD bots (2026-10-12): a golem that reaches the orb first takes
-    // the Surge for itself (same 25% bump power, 5s, faster cap)
-    if(G.pickup){for(const f of G.foes){if(!f.dead&&Math.hypot(f.x-G.pickup.x,f.y-G.pickup.y)<f.r+G.pickup.r){
-      f.surgeT=5;G.pickup=null;G.pickupT=10+Math.random()*4;
-      tone(300,900,0.25,'sine',0.14);
-      spawnText(f.x,f.y-40,'🌋 GOLEM SURGE!','#ff6a8a',20);
-      for(let i=0;i<12;i++)spawnP(f.x,f.y,(Math.random()-0.5)*250,(Math.random()-0.5)*250,0.5,'#ff6a8a',4);
-      break;}}}
-  }
-  // collisions: bump!
-  for(let i=0;i<all.length;i++)for(let j=i+1;j<all.length;j++){
-    const a=all[i],b=all[j];
-    const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),min=a.r+b.r;
-    if(d<min&&d>0){
-      const nx=dx/d,ny=dy/d,overlap=(min-d)/2;
-      const total=a.r+b.r;
-      a.x-=nx*overlap*(b.r/total)*2;a.y-=ny*overlap*(b.r/total)*2;
-      b.x+=nx*overlap*(a.r/total)*2;b.y+=ny*overlap*(a.r/total)*2;
-      // momentum transfer
-      const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;
-      if(rel<0){
-        const imp=-rel*1.4;
-        // Magma Surge: bumps hit 25% harder while surging (player OR a surged golem)
-        const aFac=((a.isPlayer&&G.surgeT>0)||a.surgeT>0)?1.25:1, bFac=((b.isPlayer&&G.surgeT>0)||b.surgeT>0)?1.25:1;
-        a.vx-=nx*imp*(b.r/total)*bFac;a.vy-=ny*imp*(b.r/total)*bFac;
-        b.vx+=nx*imp*(a.r/total)*aFac;b.vy+=ny*imp*(a.r/total)*aFac;
-        a.squash=0.3;b.squash=0.3;a.flash=1;b.flash=1;
-        if(imp>150){sfx.bump();addTrauma(Math.min(0.35,imp/2000));
-          const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
-          for(let k=0;k<8;k++)spawnP(mx,my,(Math.random()-0.5)*300,(Math.random()-0.5)*300,0.4,'#ffb347',4);
-          spawnText(mx,my-20,imp>400?'POW!':'BUMP!','#fff',18);
-        }
-      }
-    }
-  }
+function updateGoalUI(){
+  const m=Math.floor(G.heightM),L=LEVELS[G.level-1];
+  document.getElementById('goal').textContent=`⬆ ${m}m / ${L.goal}m`;
+  G.shownM=m;
 }
-function roundWon(){
+
+/* game flow */
+function levelClear(){
   if(G.state!=='play')return;
   G.state='clear';sfx.win();
-  const bonus=G.round*300;G.score+=bonus;updateScoreUI();
+  const L=LEVELS[G.level-1];
+  const bonus=L.goal*2+Math.ceil(Math.max(0,G.energy))*10; // goal-height bonus + remaining energy x10
+  G.score+=bonus;updateScoreUI();
+  const frac=Math.max(0,G.energy)/G.energyMax;
+  const stars=frac>=0.45?'⭐⭐⭐':(frac>=0.2?'⭐⭐':'⭐');
   setTimeout(()=>{
-    if(G.round>=10){
-      showOverlay('🏆 SUMO CHAMPION!',
-        `<p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p><p>Undefeated through 10 rounds!</p>`,
+    if(G.level>=12){
+      showOverlay('🏆 VOLCANO CONQUERED!',
+        `<p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p><p>Blaze bounced all the way to the top — 380m!</p>`,
         '🔥 Fire Safety: You\'re a fire safety champion!',
-        '↻ PLAY AGAIN',()=>{G.score=0;updateScoreUI();startRound(1);G.state='play';});
+        '↻ PLAY AGAIN',()=>{G.score=0;updateScoreUI();startLevel(1);G.state='play';});
     }else{
-      showOverlay(`⭐ ROUND ${G.round} WON!`,
-        `<p>All golems splashed! +${bonus} bonus</p><p>Score: ${G.score}</p>`,
+      showOverlay(`⭐ LEVEL ${G.level} CLEARED! ${stars}`,
+        `<p>Goal height reached: ${L.goal}m!</p><p>Energy bonus: +${Math.ceil(Math.max(0,G.energy))*10} &nbsp;•&nbsp; Level bonus: +${L.goal*2}</p><p>Score: ${G.score}</p>`,
         '🔥 Fire Safety: Hot lava is like a real fire — never touch, always stay back!',
-        '▶ NEXT ROUND',()=>{startRound(G.round+1);G.state='play';});
+        '▶ NEXT LEVEL',()=>{startLevel(G.level+1);G.state='play';});
     }
-  },1000);
+  },900);
 }
-function roundLost(){
+function startDunk(reason){
   if(G.state!=='play')return;
-  G.state='over';
-  setTimeout(()=>{
-    showOverlay('💥 KNOCKED OUT!',
-      `<p>You got bumped into the lava!</p><p>Score: ${G.score}</p>`,
+  G.state='dunk';G.dunkT=0;G.dunkReason=reason;G.blaze.soaked=false;
+  sfx.dunk();addTrauma(0.5);
+  for(let i=0;i<22;i++){const a=Math.random()*Math.PI*2;
+    spawnP(G.blaze.x,G.lavaY,Math.cos(a)*280,Math.sin(a)*280-120,0.7,'#ff6a00',4+Math.random()*4);}
+}
+function updateDunk(dt){
+  G.dunkT+=dt;
+  const b=G.blaze;
+  if(G.dunkT<0.45){ // playful sink
+    b.y+=((G.lavaY+14)-b.y)*Math.min(1,dt*8);b.vx=0;b.vy=0;
+  }else{ // pops back up, soaked and giggling — never harmed
+    b.y+=((G.lavaY-b.r-4)-b.y)*Math.min(1,dt*10);
+    b.soaked=true;b.squash*=0.9;
+    if(Math.random()<0.5)spawnP(b.x+(Math.random()-0.5)*30,b.y-b.r,0,-80,0.5,'#7fd4ff',3);
+  }
+  G.camY+=((b.y-H*0.42)-G.camY)*Math.min(1,dt*5);
+  if(G.dunkT>=1.15){
+    G.state='over';
+    const why=G.dunkReason==='energy'?'Blaze ran out of steam — he\'s all tuckered out!':'Blaze took a playful dunk in the magma pool!';
+    showOverlay('💦 SPLASHED!',
+      `<p>${why} He's soaked, giggling, and ready to bounce again!</p><p>Height: ${Math.floor(G.heightM)}m &nbsp;•&nbsp; Score: ${G.score}</p>`,
       '🔥 Fire Safety: Hot lava is like a real fire — never touch, always stay back!',
-      '↻ TRY AGAIN',()=>{G.score=G.roundStartScore;updateScoreUI();startRound(G.round);G.state='play';}); // retry restores round-start score: no farming
-  },800);
+      '↻ TRY AGAIN',()=>{G.score=G.levelStartScore;updateScoreUI();startLevel(G.level);G.state='play';}); // retry restores level-start score: no farming
+  }
 }
 
-/* input: drag player to fling */
-canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play'||!G.player||G.player.dead)return;
-  const p=G.player;
-  if(Math.hypot(p.x-e.clientX,p.y-e.clientY)<p.r+30){
-    p.held=true;G.dragging=true;G.dragX=e.clientX;G.dragY=e.clientY;
-    canvas.setPointerCapture(e.pointerId);
+/* gameplay */
+function update(dt){
+  const L=LEVELS[G.level-1],b=G.blaze;
+  G.time+=dt;
+  // energy
+  if(G.steam){G.energy-=dt;
+    if(G.energy<=0){G.energy=0;G.steam=false;sfx.low();
+      spawnText(b.x,b.y-40,'😮‍💨 OUT OF STEAM!','#9ad4ff',20);}}
+  // wind gusts (later levels)
+  let windAcc=0;
+  if(L.wind>0){
+    windAcc=L.wind*Math.sin(G.time*0.7+G.windPhase)*(0.4+0.6*Math.abs(Math.sin(G.time*0.23)));
+    b.vx+=windAcc*dt;
+    if(Math.abs(windAcc)>40&&Math.random()<0.4)
+      spawnP(b.x+(windAcc>0?-30:30),b.y+(Math.random()-0.5)*60,windAcc*1.5,(Math.random()-0.5)*60,0.4,'#cfe8ff',2);
   }
-});
-canvas.addEventListener('pointermove',e=>{
-  if(!G.dragging)return;
-  const p=G.player;
-  let dx=e.clientX-p.x,dy=e.clientY-p.y;
-  const max=120,d=Math.hypot(dx,dy);
-  if(d>max){dx=dx/d*max;dy=dy/d*max;}
-  G.dragX=p.x+dx;G.dragY=p.y+dy;
-});
-function releaseFling(){
-  const p=G.player;if(!p||!G.dragging)return;
-  p.held=false;G.dragging=false;
-  const dx=p.x-G.dragX,dy=p.y-G.dragY,pow=Math.hypot(dx,dy);
-  if(pow<20)return;
-  p.vx=dx/pow*Math.min(pow,120)*8;
-  p.vy=dy/pow*Math.min(pow,120)*8;
-  p.squash=0.35;
-  sfx.fling();addTrauma(0.2);
+  // controls: keys
+  const ACC=2600,MAXV=430;
+  if(keys.left)b.vx-=ACC*dt;
+  if(keys.right)b.vx+=ACC*dt;
+  if(dragX!==null){ // touch/pointer drag steering
+    const want=Math.max(-MAXV,Math.min(MAXV,(dragX-b.x)*10));
+    b.vx+=(want-b.vx)*Math.min(1,dt*10);
+  }
+  b.vx=Math.max(-MAXV,Math.min(MAXV,b.vx));
+  // gravity
+  b.vy+=GRAV*dt;
+  b.x+=b.vx*dt;b.y+=b.vy*dt;
+  b.squash*=Math.pow(0.02,dt);
+  // walls
+  if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*0.5;}
+  if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*0.5;}
+  // bubbles rise + recycle around Blaze's band
+  const bandTop=b.y-H*0.75,bandBot=Math.min(b.y+H*0.55,G.lavaY-30);
+  for(const u of G.bubbles){
+    u.y-=u.rise*dt;u.wob+=dt*2;
+    if(u.pop>0)u.pop-=dt;
+    if(u.y<bandTop-120||u.y>bandBot+160||u.y>G.lavaY-u.r*0.4){
+      const nb=newBubble(bandTop+Math.random()*Math.max(40,bandBot-bandTop));
+      Object.assign(u,nb);
+    }
+  }
+  // bounce on bubbles
+  if(G.steam){
+    for(const u of G.bubbles){
+      const dx=b.x-u.x,dy=b.y-u.y,d=Math.hypot(dx,dy);
+      if(b.vy>0&&b.y<u.y+d*u.r*0.2&&d<b.r+u.r*0.9){
+        b.y=u.y-(b.r+u.r*0.9);
+        b.vy=u.mega?-MEGA_V:-BOUNCE_V;
+        b.squash=0.35;
+        u.pop=0.15;
+        if(u.mega){sfx.mega();G.score+=50;spawnText(b.x,b.y-40,'MEGA BOUNCE! +50','#ffd23f',22);addTrauma(0.25);}
+        else sfx.pop();
+        for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2;
+          spawnP(u.x,u.y,Math.cos(a)*180,Math.sin(a)*180-60,0.5,'#ff9a3a',3+Math.random()*3);}
+        updateScoreUI();
+        break;
+      }
+    }
+  }
+  // stars: spin, collect, recycle ahead
+  for(const s of G.stars){
+    s.spin+=dt*4;
+    if(s.taken)continue;
+    const d=Math.hypot(b.x-s.x,b.y-s.y);
+    if(d<b.r+s.r){
+      s.taken=true;G.score+=100;G.energy=Math.min(G.energyMax,G.energy+3);
+      sfx.star();spawnText(s.x,s.y,'+100 ⭐','#ffd23f',20);
+      for(let i=0;i<8;i++){const a=Math.random()*Math.PI*2;
+        spawnP(s.x,s.y,Math.cos(a)*140,Math.sin(a)*140-40,0.4,'#ffd23f',3);}
+      updateScoreUI();
+    }
+    if(s.taken||s.y>G.camY+H+60||s.y<b.y-H*1.2){
+      const ns=newStar(b.y-160-Math.random()*H*0.8);
+      Object.assign(s,ns);
+    }
+  }
+  // height + goal
+  G.heightM=Math.max(G.heightM,-b.y/PX_PER_M);
+  if(Math.floor(G.heightM)!==G.shownM)updateGoalUI();
+  // rising lava — the pressure
+  G.lavaY-=L.lava*dt;
+  // camera follows Blaze
+  G.camY+=((b.y-H*0.42)-G.camY)*Math.min(1,dt*5);
+  // lose: lava catches Blaze
+  if(b.y+b.r*0.55>G.lavaY)startDunk(G.steam?'lava':'energy');
+  if(G.heightM>=L.goal)levelClear();
 }
-canvas.addEventListener('pointerup',releaseFling);
-canvas.addEventListener('pointercancel',releaseFling);
 
 /* overlay */
 let mathAnswer=0;
@@ -389,123 +374,172 @@ function showOverlay(title,body,lesson,btn,cb){
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
-function startGame(){audio();G.score=0;updateScoreUI();startRound(1);G.state='play';overlay.classList.add('hidden');}
+function startGame(){audio();G.score=0;updateScoreUI();startLevel(1);G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 
+/* input */
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  dragX=e.clientX;
+});
+canvas.addEventListener('pointermove',e=>{if(dragX!==null)dragX=e.clientX;});
+canvas.addEventListener('pointerup',()=>{dragX=null;});
+canvas.addEventListener('pointercancel',()=>{dragX=null;});
+function bindSteer(id,key){
+  const el=document.getElementById(id);
+  el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointerup',()=>{keys[key]=false;});
+  el.addEventListener('pointercancel',()=>{keys[key]=false;});
+}
+bindSteer('steerL','left');bindSteer('steerR','right');
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){keys.left=true;e.preventDefault();}
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){keys.right=true;e.preventDefault();}
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')keys.right=false;
+});
+
 /* render */
-function drawFighter(f){
-  ctx.save();ctx.translate(f.x,f.y);
-  ctx.scale(1+f.squash,1-f.squash);
-  if(f.isPlayer){
-    // Blaze (hero glow)
-    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
-    const g=ctx.createRadialGradient(-8,-10,5,0,0,f.r);
-    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();
-    // flame
-    ctx.fillStyle='#ff4a00';
-    const w=Math.sin(G.time*10)*4;
-    ctx.beginPath();ctx.moveTo(-10,-f.r+4);ctx.quadraticCurveTo(w,-f.r-16,10,-f.r+4);
-    ctx.quadraticCurveTo(0,-f.r-6,-10,-f.r+4);ctx.fill();
-    // face
+function drawBlaze(){
+  const b=G.blaze,x=b.x,sy=b.y-G.camY;
+  ctx.save();ctx.translate(x,sy);
+  ctx.scale(1+b.squash,1-b.squash);
+  // body: approved code-art Blaze — round flame-teardrop Fire Baby
+  const g=ctx.createRadialGradient(-8,-10,5,0,0,b.r);
+  g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,b.r,0,Math.PI*2);ctx.fill();
+  // flame tuft on top
+  ctx.fillStyle='#ff4a00';
+  const w=Math.sin(G.time*10)*4;
+  ctx.beginPath();ctx.moveTo(-10,-b.r+4);ctx.quadraticCurveTo(w,-b.r-16,10,-b.r+4);
+  ctx.quadraticCurveTo(0,-b.r-6,-10,-b.r+4);ctx.fill();
+  if(b.soaked){
+    // soaked but smiling — never harmed
+    ctx.fillStyle='#7fd4ff';
+    ctx.beginPath();ctx.arc(-b.r*0.5,-2,4,0,Math.PI*2);ctx.arc(b.r*0.45,4,3.4,0,Math.PI*2);ctx.arc(0,-b.r*0.7,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(-8,-4,6,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
+    ctx.beginPath();ctx.arc(8,-4,6,Math.PI*1.15,Math.PI*1.85);ctx.stroke();
+    ctx.beginPath();ctx.arc(0,4,9,0.2,Math.PI-0.2);ctx.stroke(); // big grin
+  }else{
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(-8,-4,4,0,Math.PI*2);ctx.arc(8,-4,4,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;ctx.lineCap='round';
     ctx.beginPath();ctx.arc(0,6,8,0.3,Math.PI-0.3);ctx.stroke();
-  }else{
-    // rock golem
-    const g=ctx.createRadialGradient(-8,-8,5,0,0,f.r);
-    g.addColorStop(0,'#8a7a6a');g.addColorStop(1,'#3a2a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#2a1a0a';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(0,0,f.r-2,0,Math.PI*2);ctx.stroke();
-    // angry eyes
-    ctx.fillStyle=f.flash>0?'#ff4a00':'#ffb347';
-    ctx.beginPath();ctx.arc(-9,-6,5,0,Math.PI*2);ctx.arc(9,-6,5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#1a0a0a';
-    ctx.beginPath();ctx.arc(-9,-6,2.5,0,Math.PI*2);ctx.arc(9,-6,2.5,0,Math.PI*2);ctx.fill();
-    // mouth
-    ctx.strokeStyle='#1a0a0a';ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(-10,10);ctx.lineTo(10,10);ctx.stroke();
-    // cracks
-    ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(-f.r*0.5,-f.r*0.7);ctx.lineTo(0,-f.r*0.2);ctx.lineTo(f.r*0.4,-f.r*0.6);ctx.stroke();
   }
-  if(f.flash>0){ctx.globalAlpha=f.flash*0.5;ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(0,0,f.r,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+  ctx.restore();
+}
+function drawBubble(u){
+  const sy=u.y-G.camY;
+  if(sy<-60||sy>H+60)return;
+  ctx.save();ctx.translate(u.x,sy);
+  const g=ctx.createRadialGradient(-u.r*0.3,-u.r*0.3,u.r*0.1,0,0,u.r);
+  g.addColorStop(0,'rgba(255,220,150,0.95)');
+  g.addColorStop(0.45,'rgba(255,140,40,0.85)');
+  g.addColorStop(1,'rgba(200,60,10,0.9)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,u.r*(u.pop>0?1.25:1),0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(255,240,200,0.7)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,u.r*0.72,Math.PI*1.1,Math.PI*1.6);ctx.stroke();
+  if(u.mega){
+    ctx.strokeStyle='rgba(255,215,63,0.9)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(0,0,u.r+4+Math.sin(G.time*6)*2,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawStar(s){
+  const sy=s.y-G.camY;
+  if(sy<-40||sy>H+40||s.taken)return;
+  ctx.save();ctx.translate(s.x,sy);ctx.rotate(Math.sin(s.spin)*0.25);
+  ctx.fillStyle='#ffd23f';
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=-Math.PI/2+i*Math.PI*2/5,a2=a+Math.PI/5;
+    ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);
+    ctx.lineTo(Math.cos(a2)*s.r*0.45,Math.sin(a2)*s.r*0.45);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff3c4';
+  ctx.beginPath();ctx.arc(-s.r*0.25,-s.r*0.25,s.r*0.2,0,Math.PI*2);ctx.fill();
   ctx.restore();
 }
 function render(){
-  // arena background: dark volcano
-  const bg=ctx.createRadialGradient(CX,CY,50,CX,CY,Math.max(W,H));
+  const b=G.blaze,L=LEVELS[G.level-1];
+  const bg=ctx.createRadialGradient(W/2,H*0.4,50,W/2,H*0.4,Math.max(W,H));
   bg.addColorStop(0,'#3a1a0a');bg.addColorStop(0.6,'#1a0d08');bg.addColorStop(1,'#0a0505');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // volcano silhouette layers (parallax on climb)
+  ctx.save();
+  for(let li=0;li<2;li++){
+    const off=((G.camY*(0.15+li*0.15))%(W*2)+W*2)%(W*2);
+    ctx.fillStyle=li===0?'rgba(60,25,12,0.55)':'rgba(38,16,9,0.7)';
+    ctx.beginPath();ctx.moveTo(0,H);
+    for(let x=0;x<=W;x+=40){
+      const wx=x+off;
+      const h=H*0.55-li*H*0.08-Math.abs(Math.sin(wx*0.011+li*2))*H*0.22;
+      ctx.lineTo(x,h);
+    }
+    ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+  }
+  ctx.restore();
   drawEmbers();
   ctx.save();
   if(trauma>0)ctx.translate(shakeX,shakeY);
-  // lava around ring
-  const lava=ctx.createRadialGradient(CX,CY,RING_R*0.9,CX,CY,RING_R*2.2);
-  lava.addColorStop(0,'rgba(255,74,0,0)');lava.addColorStop(0.55,'#ff4a00');lava.addColorStop(0.75,'#ff8a00');lava.addColorStop(1,'#5a1a00');
-  ctx.fillStyle=lava;
-  ctx.beginPath();ctx.arc(CX,CY,RING_R*2.2,0,Math.PI*2);ctx.fill();
-  // lava bubbles
-  for(let i=0;i<12;i++){
-    const a=i*0.7+G.time*0.3,r2=RING_R*1.4+Math.sin(G.time+i)*20;
-    const bx=CX+Math.cos(a)*r2,by=CY+Math.sin(a)*r2;
-    ctx.fillStyle='#ffdd44';ctx.globalAlpha=0.6;
-    ctx.beginPath();ctx.arc(bx,by,4+Math.sin(G.time*5+i)*2,0,Math.PI*2);ctx.fill();
+  // altitude ticks
+  const topM=Math.ceil((-G.camY)/PX_PER_M)+10,botM=Math.max(0,Math.floor((-G.camY-H)/PX_PER_M)-2);
+  ctx.fillStyle='rgba(255,233,200,0.5)';ctx.font='700 12px system-ui';ctx.textAlign='left';
+  for(let m=botM;m<=topM;m++){
+    if(m%20!==0||m===0)continue;
+    const sy=-m*PX_PER_M-G.camY;
+    ctx.fillRect(8,sy,26,2);
+    ctx.fillText(m+'m',38,sy+4);
   }
-  ctx.globalAlpha=1;
-  // stone ring platform
-  const rg=ctx.createRadialGradient(CX-RING_R*0.3,CY-RING_R*0.3,RING_R*0.2,CX,CY,RING_R);
-  rg.addColorStop(0,'#6a5a4a');rg.addColorStop(0.85,'#4a3a2a');rg.addColorStop(1,'#2a1a0a');
-  ctx.fillStyle=rg;
-  ctx.beginPath();ctx.arc(CX,CY,RING_R,0,Math.PI*2);ctx.fill();
-  // ring edge glow (danger!)
-  ctx.strokeStyle='#ff4a00';ctx.lineWidth=6;
-  ctx.globalAlpha=0.6+Math.sin(G.time*4)*0.3;
-  ctx.beginPath();ctx.arc(CX,CY,RING_R,0,Math.PI*2);ctx.stroke();
-  ctx.globalAlpha=1;
-  // center emblem
-  ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(CX,CY,RING_R*0.35,0,Math.PI*2);ctx.stroke();
-  // drag indicator
-  if(G.dragging&&G.player&&!G.player.dead){
-    const p=G.player;
-    ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=4;ctx.setLineDash([10,8]);
-    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(G.dragX,G.dragY);ctx.stroke();
-    ctx.setLineDash([]);
-    const pow=Math.hypot(p.x-G.dragX,p.y-G.dragY);
-    ctx.fillStyle='#fff';ctx.font='900 16px system-ui';ctx.textAlign='center';
-    ctx.fillText('FLING!',p.x,p.y-40);
-    ctx.textAlign='left';
+  // goal flag
+  const goalSy=-L.goal*PX_PER_M-G.camY;
+  if(goalSy>-80&&goalSy<H+80){
+    ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=3;ctx.setLineDash([12,10]);
+    ctx.beginPath();ctx.moveTo(0,goalSy);ctx.lineTo(W,goalSy);ctx.stroke();ctx.setLineDash([]);
+    const fx=W-46;
+    ctx.strokeStyle='#8a5a3a';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(fx,goalSy);ctx.lineTo(fx,goalSy-56);ctx.stroke();
+    const wv=Math.sin(G.time*8)*4;
+    ctx.fillStyle='#3fae5a';
+    ctx.beginPath();ctx.moveTo(fx,goalSy-56);ctx.lineTo(fx+44+wv,goalSy-44);ctx.lineTo(fx,goalSy-32);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 15px system-ui';ctx.textAlign='center';
+    ctx.fillText(`GOAL ${L.goal}m`,W/2,goalSy-12);
   }
-  // Magma Surge orb
-  if(G.pickup){const pk=G.pickup;
-    ctx.save();ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
-    ctx.fillStyle='#ff9a3a';ctx.beginPath();ctx.arc(pk.x,pk.y,pk.r+Math.sin(pk.t*5)*2,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(pk.x,pk.y,7,0,Math.PI*2);ctx.fill();ctx.restore();}
-  if(G.surgeT>0&&G.player&&!G.player.dead){
-    ctx.strokeStyle='rgba(255,154,58,0.8)';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(G.player.x,G.player.y,G.player.r+7+Math.sin(G.time*8)*2,0,Math.PI*2);ctx.stroke();}
-  // fighters (foes first, player on top)
-  for(const f of G.foes)if(!f.dead)drawFighter(f);
-  if(G.player&&!G.player.dead)drawFighter(G.player);
-  // out-of-ring warning for player
-  if(G.player&&!G.player.dead&&G.state==='play'){
-    const ed=distToRingEdge(G.player);
-    if(ed>RING_R*0.8){
-      ctx.fillStyle=`rgba(255,74,0,${0.3+Math.sin(G.time*10)*0.2})`;
-      ctx.font='900 22px system-ui';ctx.textAlign='center';
-      ctx.fillText('⚠️ DANGER!',CX,CY-RING_R-20);
-      ctx.textAlign='left';
+  // stars + bubbles
+  for(const s of G.stars)drawStar(s);
+  for(const u of G.bubbles)drawBubble(u);
+  drawBlaze();
+  // lava: drawn after Blaze so a dunk reads as going under
+  const lavaSy=G.lavaY-G.camY;
+  if(lavaSy<H+120){
+    const lg=ctx.createLinearGradient(0,lavaSy,0,H+120);
+    lg.addColorStop(0,'#ffd23f');lg.addColorStop(0.06,'#ff8a00');lg.addColorStop(0.35,'#ff4a00');lg.addColorStop(1,'#5a1a00');
+    ctx.fillStyle=lg;ctx.fillRect(0,lavaSy,W,H+120-lavaSy);
+    // churning surface
+    for(let i=0;i<14;i++){
+      const wx=(i*97+G.time*60*(1+i%3))% (W+60)-30;
+      const wy=lavaSy+Math.sin(G.time*3+i)*5;
+      ctx.fillStyle='rgba(255,230,150,0.75)';
+      ctx.beginPath();ctx.arc(wx,wy,3+(i%3)*2,0,Math.PI*2);ctx.fill();
+    }
+  }
+  // wind indicator
+  if(L.wind>0){
+    const wv=Math.sin(G.time*0.7+G.windPhase);
+    if(Math.abs(wv)>0.25){
+      ctx.fillStyle='rgba(207,232,255,0.85)';ctx.font='900 26px system-ui';ctx.textAlign='center';
+      ctx.fillText(wv>0?'💨 ▶':'◀ 💨',W/2,110);
     }
   }
   // particles
   for(const p of particles){
     if(!p.a)continue;
     ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.size*(p.life/p.max),0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(p.x,p.y-G.camY,p.size*(p.life/p.max),0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
   ctx.textAlign='center';
@@ -513,12 +547,21 @@ function render(){
     if(!f.a)continue;
     ctx.globalAlpha=Math.min(1,f.life);
     ctx.font=`900 ${f.size||20}px system-ui`;ctx.fillStyle='#000';
-    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+    ctx.fillText(f.txt,f.x+2,f.y-G.camY+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y-G.camY);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  // energy bar (canvas-drawn, no DOM thrash)
+  const bw=Math.min(220,W*0.5),bx=W/2-bw/2,by=56;
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.fillRect(bx-4,by-4,bw+8,18);
+  const frac=Math.max(0,G.energy)/G.energyMax;
+  ctx.fillStyle=frac>0.5?'#3fae5a':(frac>0.25?'#ffd23f':'#ff4a00');
+  if(frac>0)ctx.fillRect(bx,by,Math.max(4,bw*frac),10);
+  ctx.fillStyle='#fff';ctx.font='900 13px system-ui';ctx.textAlign='center';
+  ctx.fillText('⏳ '+Math.ceil(Math.max(0,G.energy))+'s',W/2,by+9);
+  ctx.textAlign='left';
   ctx.restore();
 }
-
 
 /* gamer-check: pause + mute controls */
 const _pz=document.getElementById('pauseOv');
@@ -527,7 +570,7 @@ function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidd
 document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
 document.getElementById('resumeBtn').onclick=()=>{fbResume();};
 document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
-document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');G.score=G.roundStartScore||0;updateScoreUI();startRound(G.round);G.state='play';};
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');G.score=G.levelStartScore||0;updateScoreUI();startLevel(G.level);G.state='play';};
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
 
 /* loop */
@@ -538,7 +581,9 @@ function loop(t){
   trauma=Math.max(0,trauma-dt*1.8);
   const sh=trauma*trauma*18;
   shakeX=(Math.random()-0.5)*sh*2;shakeY=(Math.random()-0.5)*sh*2;
-  if(G.state==='play')update(dt);else G.time+=dt;
+  if(G.state==='play')update(dt);
+  else if(G.state==='dunk')updateDunk(dt);
+  else G.time+=dt;
   updateEmbers(dt);
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=400*dt;p.life-=dt;if(p.life<=0)p.a=false;}
@@ -546,6 +591,7 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
+startLevel(1);
 updateScoreUI();
 requestAnimationFrame(loop);
 </script>

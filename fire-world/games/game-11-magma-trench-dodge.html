@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
-<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,6 +15,8 @@ canvas{display:block;width:100%;height:100%}
 #hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
 .pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
 .pill.gold{color:#ffd23f}
+#hud2{position:fixed;top:104px;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:center}
+#hud2 .pill{font-size:14px;padding:6px 14px}
 #overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,0,.9);color:#fff;text-align:center;padding:24px}
 #overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;background:linear-gradient(180deg,#ffd76a,#ff6a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
 #overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
@@ -57,24 +58,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div class="pill" id="dist">🏃 0m</div>
 <div class="pill" id="best">🏆 0</div>
 </div>
+<div id="hud2"><div class="pill" id="lvl">LV 1/12</div><div class="pill" id="hp">❤️❤️❤️</div><div class="pill" id="sh">💧 0/2</div></div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound (M)">🔊</button><button id="restartBtn" title="Restart run">↻</button></div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">⚡ MAGMA TRENCH DODGE</h1>
-<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> sprint for their lives!</p><p><b>TAP anywhere</b> to jump! Tap again mid-air for a <b>double jump</b>! Dodge lava geysers, grab crystals. Hold for higher jumps!</p></div>
+<div id="obody"><p><b>Ruko</b> dives into the magma trench!</p><p><b>SWIPE</b> or tap a side — or use <b>◀ ▶ / A D</b> — to switch lanes. Bubbling glow means a geyser is about to ERUPT: be in a different lane! Grab 💧 water drops for points and shield. 3 hearts. 12 levels!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: When running from danger, look where you're going — don't look back!</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Real magma can reach 1,200°C — never go near lava. Admire volcanoes from far away, with a grown-up!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
 </div>
 <script>
 'use strict';
 /* ============================================================
-   MAGMA TRENCH DODGE v2 — AAA Rebuild
-   - One-tap runner: variable jump height, double jump
-   - Lava geysers with telegraphs, crystals, speed ramp
-   - Coyote time, jump buffering, particles, shake
+   MAGMA TRENCH DODGE v3 — 3-lane trench dodge-survival rebuild
+   - Lane switching (swipe / tap sides / arrows / A,D)
+   - Magma geysers telegraph (bubbles + rumble) then erupt
+   - Water drops refill a shield; shield absorbs one hit
+   - 3 hearts; 12 distance-goal levels; near-miss bonuses
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
@@ -83,8 +86,9 @@ let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
+function lerp(a,b,t){return a+(b-a)*t;}
 
-/* audio */
+/* audio (same helper contracts as shell) */
 let AC=null,MUTED=false;try{MUTED=localStorage.getItem('fb_muted')==='1';}catch(e){}
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
 function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
@@ -98,58 +102,78 @@ function noise(dur,vol,delay=0,lp=800){if(MUTED)return;const ac=audio();if(!ac)r
   const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   s.connect(f);f.connect(g);g.connect(ac.destination);s.start(t);}
 const sfx={
-  jump(){tone(350,700,0.12,'sine',0.14);},
-  djump(){tone(500,900,0.12,'sine',0.14);tone(700,1100,0.1,'sine',0.1,0.05);},
-  crystal(){tone(1200,1800,0.1,'sine',0.12);},
-  erupt(){noise(0.3,0.25,0,400);},
-  die(){noise(0.4,0.35,0,500);tone(300,60,0.4,'sawtooth',0.2);},
+  lane(){tone(300,520,0.08,'sine',0.12);},
+  drop(){tone(900,1500,0.1,'sine',0.12);tone(1500,2100,0.08,'sine',0.08,0.06);},
+  near(){tone(700,1400,0.15,'triangle',0.14);},
+  warn(){noise(0.35,0.14,0,150);},
+  erupt(){noise(0.32,0.26,0,400);},
+  soak(){tone(500,180,0.2,'square',0.1);noise(0.4,0.18,0.02,1200);},
+  hurt(){tone(250,75,0.35,'sawtooth',0.18);noise(0.25,0.2,0,500);},
+  clear(){tone(523,523,0.12,'triangle',0.14);tone(659,659,0.12,'triangle',0.14,0.12);tone(784,784,0.2,'triangle',0.14,0.24);},
+  over(){noise(0.45,0.3,0,450);tone(300,60,0.45,'sawtooth',0.18);},
   click(){tone(600,600,0.06,'square',0.1);}
 };
 
-const G={state:'title',score:0,dist:0,best:0,speed:380,time:0,
-  py:0,vy:0,jumps:0,coyote:0,buffer:0,holding:false,
-  obstacles:[],crystals:[],spawnT:0,crysT:0,dead:false,paused:false};
+/* level structure: 12 distance-goal levels */
+const NLEVELS=12;
+const LEVEL_GOALS=[150,200,250,300,360,420,480,550,620,700,780,900];
+function levelSpeed(l){return 0.55+(l-1)*0.045;}
+function warnZ(){return 1.1*G.speed;} /* ~1.1s of telegraph, constant across levels */
+
+/* perspective trench geometry */
+const HY=()=>H*0.20, HEROY=()=>H*0.78;
+function laneSpread(z){const t=Math.max(0,Math.min(1,z/1.2));return lerp(W*0.045,W*0.30,t);}
+function laneX(i,z){return W/2+(i-1)*laneSpread(z);}
+function laneY(z){const t=Math.max(0,Math.min(1,z/1.2));return lerp(HY(),HEROY(),t);}
+function laneScale(z){const t=Math.max(0,Math.min(1,z/1.2));return lerp(0.18,1,t);}
+
+const G={state:'title',score:0,dist:0,best:0,speed:levelSpeed(1),time:0,
+  level:1,levelDist:0,hearts:3,shield:0,shieldMeter:0,invuln:0,flash:0,shake:0,
+  heroLane:1,heroPos:1,lastSwitchT:-9,lastLane:1,
+  geysers:[],drops:[],geyserT:1.6,dropT:0.8,dead:false,paused:false,_df:0};
 try{G.best=parseInt(localStorage.getItem('trench_best')||'0',10)||0;}catch(e){}
-const groundY=()=>H*0.8;
-const GRAV=3000,JUMP_V=-1050;
 
 function reset(){
-  G.score=0;G.dist=0;G.speed=380;G.time=0;
-  G.py=0;G.vy=0;G.jumps=0;G.coyote=0;G.buffer=0;
-  G.obstacles=[];G.crystals=[];G.spawnT=1.2;G.crysT=0.5;G.dead=false;G.paused=false;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
+  G.score=0;G.dist=0;G.level=1;G.levelDist=0;G.hearts=3;G.shield=0;G.shieldMeter=0;
+  G.invuln=0;G.flash=0;G.shake=0;G.heroLane=1;G.heroPos=1;G.lastSwitchT=-9;G.lastLane=1;
+  G.geysers=[];G.drops=[];G.geyserT=1.6;G.dropT=0.8;G.speed=levelSpeed(1);
+  G.time=0;G.dead=false;G.paused=false;G._df=0;
+  const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
   document.getElementById('best').textContent='🏆 '+G.best;
-  updateHUD();
+  updateHUD();updateLevel();updateHP();updateShield();
 }
 function updateHUD(){
   document.getElementById('score').textContent='⭐ '+G.score;
   document.getElementById('dist').textContent='🏃 '+Math.floor(G.dist)+'m';
 }
-function doJump(){
-  if(G.state!=='play'||G.dead)return;
-  G.buffer=0.12; // buffer the input
-  G.holding=true;
-}
-function tryJump(){
-  if(G.jumps<2&&(G.py>=0||G.coyote>0||G.jumps===1)){
-    if(G.jumps===0){G.vy=JUMP_V;sfx.jump();}
-    else{G.vy=JUMP_V*0.92;sfx.djump();
-      for(let i=0;i<8;i++)spawnP(W*0.3,G.py+groundY(),(Math.random()-0.5)*200,(Math.random()-0.5)*100,0.4,'#7fd4ff',4);}
-    G.jumps++;G.coyote=0;G.buffer=0;G.holding=true;
-    for(let i=0;i<6;i++)spawnP(W*0.3,groundY(),(Math.random()-0.5)*150,-Math.random()*80,0.3,'#ffb347',3);
+function updateLevel(){document.getElementById('lvl').textContent='LV '+G.level+'/'+NLEVELS;}
+function updateHP(){document.getElementById('hp').textContent='❤️'.repeat(G.hearts)+'🖤'.repeat(3-G.hearts);}
+function updateShield(){document.getElementById('sh').textContent=G.shield>0?'🛡 READY':'💧 '+G.shieldMeter+'/2';}
+function heroScreenX(){return laneX(G.heroPos,0);}
+
+function switchLane(dir){
+  if(G.state!=='play'||G.dead||G.paused)return;
+  const nl=Math.max(0,Math.min(2,G.heroLane+dir));
+  if(nl!==G.heroLane){
+    G.lastLane=G.heroLane;G.heroLane=nl;G.lastSwitchT=G.time;sfx.lane();
+    for(let i=0;i<5;i++)spawnP(heroScreenX(),HEROY(),-dir*60+(Math.random()-0.5)*60,-Math.random()*90,0.3,'#ffb347',3);
   }
 }
-canvas.addEventListener('pointerdown',e=>{e.preventDefault();doJump();});
-function releaseJump(){
-  if(!G.holding)return; // idempotent: one release = one jump cut, wherever the release happens
-  G.holding=false;
-  // jump cut: reduce upward velocity for variable height
-  if(G.vy<-400)G.vy*=0.4;
-}
-canvas.addEventListener('pointerup',releaseJump);
-addEventListener('pointerup',releaseJump);
-addEventListener('pointercancel',releaseJump);
-addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp'){doJump();e.preventDefault();}});
-addEventListener('keyup',e=>{if(e.key===' '||e.key==='ArrowUp')releaseJump();});
+
+/* input: swipe / tap sides / arrows / A,D */
+let pStartX=null,pStartT=0;
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();pStartX=e.clientX;pStartT=performance.now();});
+canvas.addEventListener('pointerup',e=>{
+  if(pStartX===null)return;
+  const dx=e.clientX-pStartX;pStartX=null;
+  if(Math.abs(dx)>24)switchLane(dx>0?1:-1);
+  else switchLane(e.clientX<W/2?-1:1);
+});
+canvas.addEventListener('pointercancel',()=>{pStartX=null;});
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A'){switchLane(-1);e.preventDefault();}
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D'){switchLane(1);e.preventDefault();}
+});
 
 const particles=[];
 for(let i=0;i<150;i++)particles.push({a:false});
@@ -160,99 +184,139 @@ for(let i=0;i<10;i++)floaters.push({a:false});
 function spawnText(x,y,txt,color='#ffd23f'){const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;}
 
-function spawnObstacle(){
-  const r=Math.random();
-  const x=W+60;
-  if(r<0.5){
-    // lava geyser: telegraph then erupt
-    G.obstacles.push({type:'geyser',x,w:50,state:'warn',t:0.8,eruptT:0.6});
-  }else if(r<0.8){
-    // rock spike
-    G.obstacles.push({type:'spike',x,w:36,h:50+Math.random()*40});
-  }else{
-    // double spike
-    G.obstacles.push({type:'spike',x,w:36,h:45});
-    G.obstacles.push({type:'spike',x:x+50,w:36,h:45});
+function trySpawnGeyser(){
+  /* fairness: never cover all 3 lanes near the hero — at most 2 lanes threatened */
+  const covered=new Set(G.geysers.filter(g=>g.z>0&&g.z<0.95).map(g=>g.lane));
+  if(covered.size>=2)return;
+  const free=[0,1,2].filter(l=>!covered.has(l));
+  const lane=free[(Math.random()*free.length)|0];
+  G.geysers.push({lane:lane,z:1.4,warned:false,erupted:false,eruptT:0,seed:Math.random()*10,gone:false});
+}
+function spawnDrop(){
+  const lane=(Math.random()*3)|0;
+  G.drops.push({lane:lane,z:1.4,prevZ:1.4,spin:Math.random()*6,taken:false,missed:false,gone:false});
+}
+function collectDrop(d){
+  d.taken=true;d.gone=true;
+  G.score+=25;sfx.drop();
+  for(let i=0;i<8;i++)spawnP(laneX(d.lane,0),HEROY()-14,(Math.random()-0.5)*220,(Math.random()-0.5)*220,0.5,'#7fd4ff',4);
+  if(G.shield===0){
+    G.shieldMeter++;
+    if(G.shieldMeter>=2){G.shield=1;G.shieldMeter=0;spawnText(heroScreenX(),HEROY()-100,'SHIELD UP! 🛡','#7fd4ff');}
   }
+  updateHUD();updateShield();
+}
+function eruptAt(lane){
+  /* near-miss: hero dodged out of this lane at the last moment */
+  if(G.heroLane!==lane&&G.lastLane===lane&&(G.time-G.lastSwitchT)<0.45){
+    G.score+=20;updateHUD();sfx.near();
+    spawnText(heroScreenX(),HEROY()-100,'CLOSE! +20','#7fd4ff');
+  }
+  if(Math.round(G.heroPos)!==lane||G.invuln>0)return;
+  if(G.shield>0){
+    G.shield=0;G.invuln=1.4;updateShield();sfx.soak();
+    for(let i=0;i<16;i++)spawnP(heroScreenX(),HEROY()-24,(Math.random()-0.5)*170,-Math.random()*180,0.85,'#bfe8ff',5);
+    spawnText(heroScreenX(),HEROY()-100,'SOAKED! 💦','#bfe8ff');
+    return;
+  }
+  G.hearts--;updateHP();sfx.hurt();G.flash=1;G.shake=0.7;G.invuln=1.6;
+  spawnText(heroScreenX(),HEROY()-100,'OUCH! -1 ❤️','#ff8a8a');
+  if(G.hearts<=0)die();
 }
 function update(dt){
   G.time+=dt;
-  G.speed=Math.min(750,380+G.time*9);
-  G.dist+=G.speed*dt/45;
-  // buffered jump
-  G.buffer-=dt;G.coyote-=dt;
-  if(G.buffer>0)tryJump();
-  // variable jump: holding extends
-  if(G.holding&&G.vy<0)G.vy-=GRAV*0.35*dt;
-  // physics
-  G.vy+=GRAV*dt;G.py+=G.vy*dt;
-  if(G.py>=0){G.py=0;
-    if(G.vy>600){for(let i=0;i<5;i++)spawnP(W*0.3,groundY(),(Math.random()-0.5)*120,-Math.random()*60,0.25,'#8a6a4a',3);}
-    G.vy=0;G.jumps=0;G.coyote=0.1;}
-  const px=W*0.3,py=groundY()+G.py;
-  // spawn
-  G.spawnT-=dt;
-  if(G.spawnT<=0){spawnObstacle();G.spawnT=Math.max(0.7,1.6-G.time*0.012)+Math.random()*0.5;}
-  G.crysT-=dt;
-  if(G.crysT<=0){
-    G.crystals.push({x:W+40,y:groundY()-60-Math.random()*160,r:14,taken:false,spin:0});
-    G.crysT=0.8+Math.random()*1.2;
-  }
-  // obstacles
-  for(const o of G.obstacles){
-    o.x-=G.speed*dt;
-    if(o.type==='geyser'){
-      o.t-=dt;
-      if(o.state==='warn'&&o.t<=0){o.state='erupt';o.t=o.eruptT;sfx.erupt();}
-      else if(o.state==='erupt'&&o.t<=0){o.state='done';}
-      // collision during erupt
-      if(o.state==='erupt'){
-        const ex=o.x+o.w/2;
-        if(Math.abs(px-ex)<o.w/2+18&&py>groundY()-190){die();return;}
-        // eruption particles
-        if(Math.random()<0.6)spawnP(ex+(Math.random()-0.5)*30,groundY(),(Math.random()-0.5)*100,-300-Math.random()*200,0.5,'#ff4a00',5);
-      }
-    }else{
-      // spike collision
-      if(Math.abs(px-(o.x+o.w/2))<o.w/2+16&&py>groundY()-o.h+10){die();return;}
+  const sp=G.speed;
+  /* smooth lane switching (frame-rate independent) */
+  G.heroPos+=(G.heroLane-G.heroPos)*(1-Math.exp(-dt*11));
+  if(Math.abs(G.heroLane-G.heroPos)<0.002)G.heroPos=G.heroLane;
+  G.invuln=Math.max(0,G.invuln-dt);
+  G.flash=Math.max(0,G.flash-dt*2.2);
+  G.shake=Math.max(0,G.shake-dt*3);
+  /* distance: ~21 m/s on level 1, faster as speed ramps */
+  const dm=sp*dt*38;
+  G.levelDist+=dm;G.dist+=dm;
+  if(Math.floor(G.dist)!==G._df){G._df=Math.floor(G.dist);updateHUD();}
+  if(G.levelDist>=LEVEL_GOALS[G.level-1]){levelClear();return;}
+  /* spawns */
+  G.geyserT-=dt;
+  if(G.geyserT<=0){trySpawnGeyser();G.geyserT=Math.max(0.85,2.3-G.level*0.13)+Math.random()*0.4;}
+  G.dropT-=dt;
+  if(G.dropT<=0){spawnDrop();G.dropT=1.4+Math.random()*1.2;}
+  /* geysers */
+  const hx=heroScreenX(),hy2=HEROY();
+  for(const g of G.geysers){
+    g.z-=sp*dt;
+    if(!g.warned&&g.z<=warnZ()){g.warned=true;sfx.warn();}
+    if(g.warned&&!g.erupted){
+      if(Math.random()<0.45)spawnP(laneX(g.lane,g.z)+(Math.random()-0.5)*30,laneY(g.z),0,-120-Math.random()*90,0.35,'#ff7a2a',3);
     }
-    if(!o.passed&&o.x<px+18&&o.x+o.w>px-18){
-      // skimming an obstacle while airborne and LOW pays a near-miss bonus
-      const lowClearance=(o.type==='spike'&&py>groundY()-o.h-80)||(o.type==='geyser'&&o.state!=='warn');
-      if(lowClearance&&G.py<-15){o.passed=true;G.score+=10;updateHUD();spawnText(px,py-56,'CLOSE! +10','#7fd4ff');sfx.crystal();}
+    if(!g.erupted&&g.z<=0){
+      g.erupted=true;g.eruptT=0.55;sfx.erupt();
+      eruptAt(g.lane);
+      if(G.dead)return;
     }
-    if(o.x<-80)o.gone=true;
-  }
-  G.obstacles=G.obstacles.filter(o=>!o.gone&&o.state!=='done');
-  // crystals
-  for(const c of G.crystals){
-    c.x-=G.speed*dt;c.spin+=dt*4;
-    if(!c.taken&&Math.hypot(px-c.x,py-10-c.y)<34){
-      c.taken=true;G.score+=50;sfx.crystal();updateHUD();
-      for(let i=0;i<8;i++)spawnP(c.x,c.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.5,'#7fd4ff',4);
+    if(g.erupted){
+      g.eruptT-=dt;
+      if(Math.random()<0.7)spawnP(laneX(g.lane,g.z)+(Math.random()-0.5)*34,laneY(g.z)-10,(Math.random()-0.5)*110,-320-Math.random()*220,0.5,'#ff4a00',5);
     }
-    if(c.x<-40)c.taken=true;
+    if(g.z<-0.25||(g.erupted&&g.eruptT<=0&&g.z<-0.1))g.gone=true;
   }
-  G.crystals=G.crystals.filter(c=>!c.taken);
-  // run particles
-  if(G.py===0&&Math.random()<0.4)spawnP(px-15,groundY(),-G.speed*0.3,-Math.random()*60,0.3,'#8a6a4a',3);
-  if(Math.floor(G.dist)!==Math.floor(G.dist-G.speed*dt/45))updateHUD();
+  G.geysers=G.geysers.filter(g=>!g.gone);
+  /* water drops */
+  for(const d of G.drops){
+    d.prevZ=d.z;d.z-=sp*dt;d.spin+=dt*5;
+    if(!d.taken&&d.prevZ>0&&d.z<=0){
+      if(Math.round(G.heroPos)===d.lane)collectDrop(d);
+      else d.missed=true;
+    }
+    if(d.z<-0.15)d.gone=true;
+  }
+  G.drops=G.drops.filter(d=>!d.gone);
+  /* hero trail embers while running */
+  if(Math.random()<0.35)spawnP(hx-14+ (Math.random()-0.5)*10,hy2+16,-40,-Math.random()*50,0.3,'#ffb347',3);
 }
 function die(){
   if(G.dead)return;
-  G.dead=true;sfx.die();
-  for(let i=0;i<20;i++)spawnP(W*0.3,groundY()+G.py,(Math.random()-0.5)*400,(Math.random()-0.5)*400,0.7,'#ff6a1a',5);
+  G.dead=true;sfx.over();
+  for(let i=0;i<24;i++)spawnP(heroScreenX(),HEROY()-20,(Math.random()-0.5)*360,(Math.random()-0.5)*300,0.8,'#ff7a2a',5);
   const isBest=G.score>G.best;
   if(isBest){G.best=G.score;try{localStorage.setItem('trench_best',String(G.best));}catch(e){}}
   setTimeout(()=>{
+    document.getElementById('best').textContent='🏆 '+G.best;
     showOverlay('💥 WIPED OUT!',
-      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Distance: ${Math.floor(G.dist)}m</p><p>Best: ${G.best}</p>`,
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:24px;font-weight:900">Score: ${G.score}</p><p>Level reached: ${G.level} / ${NLEVELS}</p><p>Distance: ${Math.floor(G.dist)}m</p><p>Best: ${G.best}</p>`,
       '🔥 Fire Safety: When running from danger, look where you\'re going — don\'t look back!',
       '↻ RUN AGAIN',()=>{reset();G.state='play';});
   },700);
 }
+function levelClear(){
+  const done=G.level,bonus=100*done;
+  G.score+=bonus;updateHUD();sfx.clear();
+  const isBest=G.score>G.best;
+  if(isBest){G.best=G.score;try{localStorage.setItem('trench_best',String(G.best));}catch(e){}}
+  document.getElementById('best').textContent='🏆 '+G.best;
+  if(done>=NLEVELS){
+    G.state='over';
+    showOverlay('🏆 TRENCH MASTER!',
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 12 levels cleared!</p><p>Distance: ${Math.floor(G.dist)}m</p><p>Best: ${G.best}</p>`,
+      '🔥 Fire Safety: Geysers and volcanoes are amazing from far away — if the ground rumbles, move away and tell a grown-up!',
+      '↻ PLAY AGAIN',()=>{reset();G.state='play';});
+    return;
+  }
+  G.state='clear';
+  showOverlay('🌊 LEVEL '+done+' CLEAR!',
+    `<p style="font-size:22px;font-weight:900">Clear bonus +${bonus}</p><p>Score: ${G.score}</p><p>Total distance: ${Math.floor(G.dist)}m</p><p>Next goal: ${LEVEL_GOALS[done]}m — faster magma ahead!</p>`,
+    '🔥 Fire Safety: Real geysers erupt with super-hot water — always stay on the boardwalk and hold a grown-up\'s hand!',
+    'NEXT ▶',()=>{
+      G.level=done+1;G.levelDist=0;G.hearts=3;G.shield=0;G.shieldMeter=0;G.invuln=0;G.flash=0;
+      G.geysers=[];G.drops=[];G.geyserT=1.6;G.dropT=0.8;G.speed=levelSpeed(G.level);
+      G.heroLane=1;G.heroPos=1;G.lastSwitchT=-9;G.lastLane=1;
+      updateHUD();updateLevel();updateHP();updateShield();
+      G.state='play';
+    });
+}
 
-/* overlay */
+/* overlay (shell contract) */
 let mathAnswer=0;
 function showMathGate(){
   const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
@@ -272,7 +336,7 @@ function showOverlay(title,body,lesson,btn,cb){
 function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 
-/* pause / mute / restart (gamer-check batch 03) */
+/* pause / mute / restart (shell contracts) */
 function setPaused(p){G.paused=!!(p&&G.state==='play');const b=document.getElementById('pauseBtn');if(b)b.textContent=G.paused?'▶':'⏸';}
 document.getElementById('pauseBtn').addEventListener('click',e=>{e.currentTarget.blur();setPaused(!G.paused);sfx.click();});
 const muteBtnEl=document.getElementById('muteBtn');muteBtnEl.textContent=MUTED?'🔇':'🔊';
@@ -281,12 +345,8 @@ document.getElementById('restartBtn').addEventListener('click',e=>{e.currentTarg
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')setPaused(!G.paused);if(e.key==='m'||e.key==='M')muteBtnEl.click();});
 
 /* render */
-/* living embers (overhaul) */
+/* living embers (shell background accent) */
 const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
-/* [w5c perf] Pre-baked glow sprites — the W5b-proven pattern copied from game-04:
-   the ember loop's 24 per-frame shadowBlur=8 fills collapsed FPS under software
-   rendering (10.0 FPS); blit a one-time radial-glow sprite instead. Colours,
-   falloff and alpha unchanged; no gameplay/balance changes. */
 function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   const gr=x.createRadialGradient(48,48,0,48,48,48);
@@ -296,124 +356,173 @@ const EMBER_SPRITE=makeGlowSprite('#ff9a3a');
 function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
   for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
     ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);
-    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,ex-r,ey-r,r*2,r*2);} // [w5c perf] pre-baked glow (was shadowBlur=8 per ember per frame)
+    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,ex-r,ey-r,r*2,r*2);}
   ctx.restore();}
-function render(){
-  const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#1a0d2a');sky.addColorStop(0.6,'#5a1a20');sky.addColorStop(1,'#8a2a10');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-  drawEmbers(W,H);
-  // distant volcanoes
-  ctx.fillStyle='#140a12';
-  for(let i=0;i<4;i++){
-    const vx=((i*400-G.time*G.speed*0.1)%(W+300)+(W+300))%(W+300)-150;
-    ctx.beginPath();ctx.moveTo(vx-90,groundY());ctx.lineTo(vx,groundY()-140);ctx.lineTo(vx+90,groundY());ctx.closePath();ctx.fill();
-    ctx.fillStyle='#ff4a00';
-    ctx.beginPath();ctx.ellipse(vx,groundY()-138,14,5,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#140a12';
-  }
-  const gy=groundY();
-  // ground
-  const gg=ctx.createLinearGradient(0,gy,0,H);
-  gg.addColorStop(0,'#4a2410');gg.addColorStop(1,'#1a0d08');
-  ctx.fillStyle=gg;ctx.fillRect(0,gy,W,H-gy);
-  // ground cracks with lava
+
+function drawTrench(hy,heroY){
+  /* trench floor: perspective quad between outer lane edges */
+  const fx0=laneX(0,1.2)-22,fx1=laneX(2,1.2)+22,bx0=laneX(0,0)-46,bx1=laneX(2,0)+46,by=heroY+H*0.16;
+  const fg=ctx.createLinearGradient(0,hy,0,by);
+  fg.addColorStop(0,'#2a1208');fg.addColorStop(0.55,'#4a2410');fg.addColorStop(1,'#5e2a0e');
+  ctx.fillStyle=fg;
+  ctx.beginPath();ctx.moveTo(fx0,hy);ctx.lineTo(fx1,hy);ctx.lineTo(bx1,by);ctx.lineTo(bx0,by);ctx.closePath();ctx.fill();
+  /* rocky walls left and right */
+  const wg=ctx.createLinearGradient(0,hy,0,by);
+  wg.addColorStop(0,'#0c0508');wg.addColorStop(1,'#241016');
+  ctx.fillStyle=wg;
+  ctx.beginPath();ctx.moveTo(0,hy);ctx.lineTo(fx0,hy);ctx.lineTo(bx0,by);ctx.lineTo(0,by);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(W,hy);ctx.lineTo(fx1,hy);ctx.lineTo(bx1,by);ctx.lineTo(W,by);ctx.closePath();ctx.fill();
+  /* magma glow creeping up the wall bases */
+  ctx.fillStyle='rgba(255,74,0,0.20)';
+  ctx.beginPath();ctx.moveTo(fx0,hy);ctx.lineTo(bx0,by);ctx.lineTo(bx0,by-26);ctx.lineTo(fx0,hy+6);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(fx1,hy);ctx.lineTo(bx1,by);ctx.lineTo(bx1,by-26);ctx.lineTo(fx1,hy+6);ctx.closePath();ctx.fill();
+  /* glowing lava cracks scrolling on the floor */
   ctx.fillStyle='#ff4a00';
-  for(let i=0;i<10;i++){
-    const cx=((i*239-G.time*G.speed)%(W+120)+(W+120))%(W+120)-60;
-    ctx.globalAlpha=0.5+Math.sin(G.time*6+i)*0.25;
-    ctx.fillRect(cx,gy+18+(i*37)%(H-gy-40),30,4);
+  for(let i=0;i<8;i++){
+    const z=((i*0.618+G.time*G.speed*0.55)%1.15);
+    const t=z/1.2,s=laneScale(z);
+    const cx=lerp(laneX(0,z)+16,laneX(2,z)-16,(i*0.377)%1);
+    ctx.globalAlpha=0.25+0.3*Math.sin(G.time*5+i*2)*0.5+0.2;
+    ctx.fillRect(cx,laneY(z)+10*s,26*s,3.5*s);
   }
   ctx.globalAlpha=1;
-  // crystals
-  for(const c of G.crystals){
-    ctx.save();ctx.translate(c.x,c.y);ctx.rotate(Math.sin(c.spin)*0.25);
-    const g=ctx.createLinearGradient(-c.r,-c.r,c.r,c.r);
-    g.addColorStop(0,'#d6f0ff');g.addColorStop(0.5,'#5ab8e8');g.addColorStop(1,'#2a78b8');
-    ctx.fillStyle=g;
+  /* lane guide lines */
+  ctx.strokeStyle='rgba(255,170,60,0.28)';ctx.lineWidth=2;
+  for(let i=0;i<3;i++){
+    ctx.beginPath();ctx.moveTo(laneX(i,1.2),hy);ctx.lineTo(laneX(i,0),by);ctx.stroke();
+  }
+  /* outer edge lines, brighter */
+  ctx.strokeStyle='rgba(255,120,30,0.5)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(fx0,hy);ctx.lineTo(bx0,by);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx1,hy);ctx.lineTo(bx1,by);ctx.stroke();
+}
+function drawGeyser(g){
+  const s=laneScale(g.z),x=laneX(g.lane,g.z),y=laneY(g.z);
+  if(g.erupted){
+    /* magma column */
+    const h=215*s;
+    const lg=ctx.createLinearGradient(0,y,0,y-h);
+    lg.addColorStop(0,'#ffdd44');lg.addColorStop(0.4,'#ff6a00');lg.addColorStop(1,'rgba(255,74,0,0.08)');
+    ctx.fillStyle=lg;
+    const wob=Math.sin(G.time*26+g.seed)*7*s,wdt=30*s;
     ctx.beginPath();
-    ctx.moveTo(0,-c.r);ctx.lineTo(c.r*0.7,0);ctx.lineTo(0,c.r);ctx.lineTo(-c.r*0.7,0);
+    ctx.moveTo(x-wdt,y);ctx.lineTo(x-wdt*0.6+wob,y-h);
+    ctx.lineTo(x+wdt*0.6+wob,y-h);ctx.lineTo(x+wdt,y);
     ctx.closePath();ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=2;ctx.stroke();
+    /* fiery crown */
+    ctx.fillStyle='rgba(255,180,40,0.85)';
+    ctx.beginPath();ctx.ellipse(x+wob,y-h,13*s,5*s,0,0,Math.PI*2);ctx.fill();
+  }else if(g.warned){
+    /* telegraph: bubbling glow in the lane + warning mark */
+    const a=0.45+Math.sin(G.time*14)*0.3;
+    ctx.fillStyle=`rgba(255,74,0,${a})`;
+    ctx.beginPath();ctx.ellipse(x,y+6*s,34*s,11*s,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(255,170,40,${a})`;
+    ctx.beginPath();ctx.ellipse(x,y+6*s,20*s,7*s,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 '+Math.round(22*s+4)+'px system-ui';ctx.textAlign='center';
+    ctx.fillText('!',x,y-16*s);
+    ctx.textAlign='left';
+  }
+}
+function drawDrop(d){
+  const s=laneScale(d.z),x=laneX(d.lane,d.z),y=laneY(d.z)-16*s+Math.sin(d.spin)*3*s,r=13*s;
+  ctx.save();ctx.translate(x,y);
+  const g=ctx.createLinearGradient(0,-r,0,r);
+  g.addColorStop(0,'#d6f4ff');g.addColorStop(0.5,'#5ab8e8');g.addColorStop(1,'#2273b8');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(0,-r*1.25);
+  ctx.quadraticCurveTo(r,r*0.5,0,r);
+  ctx.quadraticCurveTo(-r,r*0.5,0,-r*1.25);
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.75)';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.beginPath();ctx.ellipse(-r*0.3,0,r*0.18,r*0.3,-0.4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawHero(heroY){
+  if(G.dead)return;
+  const px=heroScreenX(),py=heroY;
+  const lean=(G.heroLane-G.heroPos)*0.45;
+  /* shadow */
+  ctx.fillStyle='rgba(0,0,0,0.32)';
+  ctx.beginPath();ctx.ellipse(px,py+26,24,7,0,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(px,py);ctx.rotate(lean);
+  if(G.invuln>0)ctx.globalAlpha=0.55+0.35*Math.sin(G.time*30);
+  /* running feet */
+  const lp=Math.sin(G.time*16)*7;
+  ctx.fillStyle='#8a2a10';
+  ctx.beginPath();ctx.ellipse(-9+lp,24,7,4.5,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(9-lp,24,7,4.5,0,0,Math.PI*2);ctx.fill();
+  /* flame-teardrop body (approved Fire Babys look) */
+  ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
+  const g=ctx.createRadialGradient(-7,-10,4,0,-2,27);
+  g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(0,-30);
+  ctx.quadraticCurveTo(17,-12,20,2);
+  ctx.quadraticCurveTo(22,18,10,23);
+  ctx.quadraticCurveTo(0,27,-10,23);
+  ctx.quadraticCurveTo(-22,18,-20,2);
+  ctx.quadraticCurveTo(-17,-12,0,-30);
+  ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='#7a1e08';ctx.lineWidth=2.5;ctx.stroke();
+  /* flame licks */
+  ctx.fillStyle='#ffcf3f';
+  const w=Math.sin(G.time*13)*2.5;
+  ctx.beginPath();ctx.moveTo(-6,-26);ctx.quadraticCurveTo(w,-40,5,-27);ctx.quadraticCurveTo(0,-32,-6,-26);ctx.fill();
+  /* face: determined hero (angry V brows, glaring eyes, brave grin) */
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=3;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-12,-8);ctx.lineTo(-4,-3);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(12,-8);ctx.lineTo(4,-3);ctx.stroke();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(-6.5,0.5,3.6,0,Math.PI*2);ctx.arc(6.5,0.5,3.6,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#c81e05';
+  ctx.beginPath();ctx.arc(-6.5,0.8,1.8,0,Math.PI*2);ctx.arc(6.5,0.8,1.8,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(-5,10);ctx.quadraticCurveTo(0,14,6,9);ctx.stroke();
+  ctx.restore();
+  /* shield bubble */
+  if(G.shield>0){
+    ctx.save();ctx.globalAlpha=0.5+0.18*Math.sin(G.time*6);
+    ctx.strokeStyle='#7fd4ff';ctx.lineWidth=3;
+    ctx.fillStyle='rgba(127,212,255,0.13)';
+    ctx.beginPath();ctx.arc(px,py-2,38,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.restore();
   }
-  // obstacles
-  for(const o of G.obstacles){
-    if(o.type==='geyser'){
-      const cx=o.x+o.w/2;
-      if(o.state==='warn'){
-        // telegraph: flashing warning
-        const a=0.4+Math.sin(G.time*15)*0.35;
-        ctx.fillStyle=`rgba(255,74,0,${a})`;
-        ctx.beginPath();ctx.ellipse(cx,gy,o.w/2+8,12,0,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#fff';ctx.font='900 20px system-ui';ctx.textAlign='center';
-        ctx.fillText('!',cx,gy-24);
-        ctx.textAlign='left';
-      }else if(o.state==='erupt'){
-        // lava column
-        const h=190;
-        const lg=ctx.createLinearGradient(0,gy,0,gy-h);
-        lg.addColorStop(0,'#ffdd44');lg.addColorStop(0.4,'#ff6a00');lg.addColorStop(1,'rgba(255,74,0,0.1)');
-        ctx.fillStyle=lg;
-        const wob=Math.sin(G.time*25)*8;
-        ctx.beginPath();
-        ctx.moveTo(cx-o.w/2,gy);ctx.lineTo(cx-o.w/2+wob,gy-h);
-        ctx.lineTo(cx+o.w/2+wob,gy-h);ctx.lineTo(cx+o.w/2,gy);
-        ctx.closePath();ctx.fill();
-      }
-    }else{
-      // rock spike
-      const sx=o.x,sy2=gy;
-      const g=ctx.createLinearGradient(sx,sy2,sx+o.w,sy2);
-      g.addColorStop(0,'#5a4a3a');g.addColorStop(0.5,'#8a7a6a');g.addColorStop(1,'#3a2a1a');
-      ctx.fillStyle=g;
-      ctx.beginPath();
-      ctx.moveTo(sx,sy2);ctx.lineTo(sx+o.w/2,sy2-o.h);ctx.lineTo(sx+o.w,sy2);
-      ctx.closePath();ctx.fill();
-      ctx.strokeStyle='#2a1a0a';ctx.lineWidth=2;ctx.stroke();
-    }
-  }
-  // player
-  if(!G.dead){
-    const px=W*0.3,py=gy+G.py;
-    const squash=G.py<0?Math.min(0.2,Math.abs(G.vy)/6000):0;
-    // shadow
-    ctx.fillStyle='rgba(0,0,0,0.3)';
-    ctx.beginPath();ctx.ellipse(px,gy+8,22*Math.max(0.4,1+G.py/400),6,0,0,Math.PI*2);ctx.fill();
-    ctx.save();ctx.translate(px,py);ctx.scale(1+squash,1-squash);
-    ctx.shadowColor='#ff7a2a';ctx.shadowBlur=18;
-    const g=ctx.createRadialGradient(-7,-8,4,0,0,24);
-    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();
-    // flame
-    ctx.fillStyle='#ff4a00';
-    const w=Math.sin(G.time*14)*4;
-    ctx.beginPath();ctx.moveTo(-10,-18);ctx.quadraticCurveTo(w,-36,10,-18);
-    ctx.quadraticCurveTo(0,-26,-10,-18);ctx.fill();
-    // face: determined
-    ctx.fillStyle='#2b1a0e';
-    ctx.beginPath();ctx.arc(-7,-4,3.5,0,Math.PI*2);ctx.arc(7,-4,3.5,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2.5;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(-6,8);ctx.lineTo(6,8);ctx.stroke();
-    // running legs
-    const lp=Math.sin(G.time*(G.py===0?20:8))*9;
-    ctx.strokeStyle='#a32a10';ctx.lineWidth=6;
-    if(G.py===0){
-      ctx.beginPath();ctx.moveTo(-7,16);ctx.lineTo(-7+lp,28);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(7,16);ctx.lineTo(7-lp,28);ctx.stroke();
-    }else{
-      ctx.beginPath();ctx.moveTo(-7,16);ctx.lineTo(-12,26);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(7,16);ctx.lineTo(12,24);ctx.stroke();
-    }
-    ctx.restore();
-  }
-  // particles
+}
+function render(){
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#160a1e');sky.addColorStop(0.5,'#4a1620');sky.addColorStop(1,'#8a2a10');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  drawEmbers(W,H);
+  const hy=HY(),heroY=HEROY();
+  /* distant volcano */
+  ctx.fillStyle='#120812';
+  const vx=W*0.5;
+  ctx.beginPath();ctx.moveTo(vx-110,hy);ctx.lineTo(vx,hy-92);ctx.lineTo(vx+110,hy);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff4a00';
+  ctx.beginPath();ctx.ellipse(vx,hy-90,15,4.5,0,0,Math.PI*2);ctx.fill();
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*10);
+  drawTrench(hy,heroY);
+  /* entities far-to-near */
+  const ents=[];
+  for(const g of G.geysers)ents.push({z:g.z,k:0,o:g});
+  for(const d of G.drops)ents.push({z:d.z,k:1,o:d});
+  ents.sort((a,b)=>b.z-a.z);
+  for(const e of ents){if(e.k===0)drawGeyser(e.o);else drawDrop(e.o);}
+  drawHero(heroY);
+  /* particles */
   for(const p of particles){
     if(!p.a)continue;
     ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  /* floaters */
   ctx.textAlign='center';
   for(const f of floaters){
     if(!f.a)continue;
@@ -422,6 +531,9 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  /* hurt flash */
+  if(G.flash>0){ctx.fillStyle=`rgba(255,40,20,${(G.flash*0.32).toFixed(3)})`;ctx.fillRect(-20,-20,W+40,H+40);}
+  ctx.restore();
   if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep running',W/2,H/2+32);ctx.textAlign='left';}
 }
 

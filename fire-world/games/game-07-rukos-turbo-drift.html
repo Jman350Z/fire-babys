@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
-<script src="https://firebabys.io/rating.js"></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruko's Turbo Drift — by Jman350Z & fire team</title>
-<meta name="description" content="Drop the beat! Tap notes in rhythm in this Fire Babys music game.">
+<meta name="description" content="Drift Ruko's lava-rock kart down a winding volcano track! Charge your drift, slingshot past checkpoint gates, and clear 10 stages in this Fire Babys racing game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#0d0a1a;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -34,6 +33,8 @@ canvas{display:block;width:100%;height:100%}
 #pauseOv{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.82);color:#fff;text-align:center}
 #pauseOv h2{font-size:34px;margin-bottom:14px}
 #pauseOv button{background:#ffd23f;color:#222;border:none;border-radius:999px;font-size:18px;font-weight:900;padding:13px 34px;margin:6px;cursor:pointer;min-height:48px;min-width:190px}
+#driftBtn{position:fixed;bottom:74px;right:12px;z-index:15;background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));color:#ffd23f;border:2px solid rgba(255,210,63,.75);border-radius:14px;min-width:76px;min-height:56px;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.45)}
+#driftBtn.on{background:#ffd23f;color:#7a2a00;border-color:#fff}
 </style>
 <style data-fbvis-cycle1>
 /* fbvis-cycle1: premium chrome pass — accent #7a4dff / glow #ff7ad9, presentation only */
@@ -60,214 +61,171 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="combo">🔥 x0</div>
-<div class="pill" id="acc">100%</div>
+<div class="pill" id="combo">⏱ 20s</div>
+<div class="pill" id="acc">🏁 1/10</div>
 </div>
 <button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
 <canvas id="c"></canvas>
-
+<button id="driftBtn" aria-label="Hold to drift">💨 DRIFT</button>
 <div id="ctlBtns"><button id="pauseBtn" aria-label="Pause game">⏸</button><button id="muteBtn" aria-label="Mute sound">🔊</button></div>
 <div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
-<h1 id="otitle">🎵 RUKO'S TURBO DRIFT</h1>
-<div id="obody"><p><b>Sizzle</b> & <b>Lord Inferno</b> drop the beat!</p><p>Notes fall down 4 lanes — <b>TAP</b> each lane when the note hits the glowing zone! Use <b>D F J K</b> keys or tap the lanes!</p><div id="songList"></div></div>
+<h1 id="otitle">🌋 RUKO'S TURBO DRIFT</h1>
+<div id="obody"><p><b>Ruko</b> is racing his lava-rock kart down the volcano!</p><p><b>STEER</b> with ⬅️ ➡️ or <b>A / D</b> (or drag on touch). <b>HOLD SPACE</b> (or hold 💨 DRIFT) while steering to drift and charge your boost — <b>RELEASE</b> to slingshot forward!</p><p>Blast through the glowing <b>checkpoint gates</b> to earn bonus time. Dodge the <b>lava pools</b> and <b>rock piles</b> — bonking one just spins you out!</p><p>Clear all <b>10 stages</b> before the timer runs dry!</p></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: Music makes everything fun — but never dance near a hot stove!</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Real volcanoes and lava are super dangerous — always admire them from a safe distance with a grown-up!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
 </div>
 <script>
 'use strict';
 /* ============================================================
-   RUKO'S TURBO DRIFT v2 — AAA Rebuild
-   - 4-lane rhythm game, generated beatmaps, 3 songs
-   - Perfect/Great/Miss judgments, combo, accuracy
-   - Beat-synced visuals, particle hits
+   RUKO'S TURBO DRIFT v3 — FULL REDO (Jeff's order: redo 6–11)
+   - Vertical-scrolling drift racer: Ruko in a lava-rock kart
+   - Hold-to-drift boost charge → release slingshot
+   - Checkpoint gates feed the timer; lava/rock = silly spin-out
+   - 10 stages: tighter track, faster scroll
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
-let W,H,DPR,LANE_W,LANE_X0,TARGET_Y;
+let W,H,DPR;
+function PY(){return H*0.62;} // kart's fixed screen line
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
-  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
-  LANE_W=Math.min(110,W/4.5);LANE_X0=W/2-LANE_W*2;TARGET_Y=H*0.82;}
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
 
-/* audio */
+/* audio — tone()/noise() Web Audio helpers, mute respected (SFX only, no music) */
 let AC=null,MUTED=false;
 function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
 function tone(f0,f1,dur,type,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
   const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+function noise(dur,vol,delay=0){if(MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const len=Math.max(1,Math.floor(ac.sampleRate*dur)),buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=ac.createBufferSource();s.buffer=buf;const g=ac.createGain();
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  s.connect(g);g.connect(ac.destination);s.start(t);}
+const sfx={
+  drift(){noise(0.22,0.09);},
+  boost(){tone(220,940,0.35,'sawtooth',0.15);tone(440,1500,0.3,'triangle',0.11,0.05);},
+  gate(){tone(660,990,0.12,'triangle',0.16);tone(990,1320,0.12,'sine',0.12,0.08);},
+  missGate(){tone(300,150,0.18,'square',0.1);},
+  spin(){tone(520,110,0.5,'sawtooth',0.15);noise(0.3,0.07);},
+  scrape(){noise(0.08,0.06);},
+  count(){tone(440,440,0.09,'square',0.12);},
+  go(){tone(880,880,0.28,'square',0.16);},
+  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.22,'triangle',0.15,i*0.1));},
+  stageClear(){[659,784,988,1175].forEach((f,i)=>tone(f,f,0.18,'triangle',0.15,i*0.09));},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
 
-/* living ember backdrop (overhaul) */
-const embers=[];
-for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
-/* [w5b perf] Pre-baked glow sprites. Profiling (Chromium/SwiftShader, W2 rAF
-   method): this game ran at 10.0 FPS with ~26 non-zero shadowBlur sets/frame;
-   neutralising shadowBlur alone restored 59.9 FPS (fast siblings use <=1/frame).
-   The ember loop (24 shadowed fills/frame) and the per-note shadowBlur were
-   the hot-loop offenders, so both now blit a pre-rendered radial-glow sprite
-   with the same colours/falloff instead of paying a shadow pass per frame. */
+/* living ember backdrop (pre-baked glow sprite — no per-frame shadowBlur) */
 function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
   const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
   const gr=x.createRadialGradient(48,48,0,48,48,48);
   gr.addColorStop(0,`rgba(${r},${g},${b},0.9)`);gr.addColorStop(0.35,`rgba(${r},${g},${b},0.38)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
   x.fillStyle=gr;x.fillRect(0,0,96,96);return c;}
 const EMBER_SPRITE=makeGlowSprite('#ffa53a');
+const LAVA_SPRITE=makeGlowSprite('#ff5a1f');
+const embers=[];
+for(let i=0;i<24;i++)embers.push({x:Math.random()*Math.max(W,300),y:Math.random()*Math.max(H,300),s:1+Math.random()*2.5,v:12+Math.random()*26,o:0.22+Math.random()*0.5});
 function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';
   for(const e of embers){ctx.globalAlpha=e.o*(0.6+0.4*Math.sin(G.time*3+e.x*0.05));
     const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2);}
   ctx.restore();}
 function updateEmbers(dt){for(const e of embers){e.y-=e.v*dt;e.x+=Math.sin((G.time+e.y)*0.02)*0.3;
   if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}}}
-const sfx={
-  perfect(){tone(1200,1600,0.08,'sine',0.15);tone(1800,2200,0.06,'sine',0.1,0.03);},
-  great(){tone(900,1200,0.08,'sine',0.12);},
-  miss(){tone(200,100,0.15,'sawtooth',0.12);},
-  beat(freq){tone(freq,freq,0.1,'triangle',0.13);},
-  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.09));},
-  click(){tone(600,600,0.06,'square',0.1);}
-};
 
-/* songs: generated beatmaps */
-const SONGS=[
-  {name:'🔥 Ember Groove',bpm:110,dur:45,diff:'Easy',base:[261,329,392,523]},
-  {name:'⚡ Lava Rush',bpm:140,dur:50,diff:'Medium',base:[293,369,440,587]},
-  {name:'🌋 Inferno Drop',bpm:170,dur:55,diff:'Hard',base:[329,415,493,659]},
-];
-function genBeatmap(song){
-  const notes=[];
-  const beatLen=60/song.bpm;
-  const totalBeats=Math.floor(song.dur/beatLen);
-  const diffMul=song.diff==='Easy'?0.5:song.diff==='Medium'?0.75:1;
-  for(let b=0;b<totalBeats;b++){
-    const r=Math.random();
-    if(r<diffMul){
-      const lane=Math.floor(Math.random()*4);
-      notes.push({lane,time:b*beatLen,freq:song.base[lane],hit:false,missed:false});
-      // doubles on hard
-      if(song.diff==='Hard'&&Math.random()<0.25){
-        const l2=(lane+1+Math.floor(Math.random()*3))%4;
-        notes.push({lane:l2,time:b*beatLen,freq:song.base[l2],hit:false,missed:false});
-      }
-    }
-  }
-  if(notes.length===0)notes.push({lane:1,time:beatLen*2,freq:song.base[1],hit:false,missed:false});
-  return notes;
-}
-
-/* state */
-const G={state:'title',song:0,notes:[],songTime:0,score:0,combo:0,maxCombo:0,
-  hits:0,misses:0,perfects:0,greats:0,time:0,laneFlash:[0,0,0,0],judgment:null,judgT:0};
-const NOTE_SPEED=420; // px per second
-const PERFECT_MS=0.07,GREAT_MS=0.14;
-
-function startSong(idx){
-  G.song=idx;G.notes=genBeatmap(SONGS[idx]);
-  G.songTime=-2; // 2s countdown
-  G.score=0;G.combo=0;G.maxCombo=0;G.hits=0;G.misses=0;G.perfects=0;G.greats=0;
-  G.judgment=null;G._lastBeat=-99;G.state='play';
-  overlay.classList.add('hidden');
-  updateHUD();
-}
-function updateHUD(){
-  document.getElementById('score').textContent='⭐ '+G.score;
-  document.getElementById('combo').textContent='🔥 x'+G.combo;
-  const total=G.hits+G.misses;
-  document.getElementById('acc').textContent=total?Math.round(G.hits/total*100)+'%':'100%';
-}
-function hitLane(lane){
-  if(G.state!=='play')return;
-  G.laneFlash[lane]=0.25;
-  // find closest unhit note in this lane
-  let best=null,bd=1e9;
-  for(const n of G.notes){
-    if(n.hit||n.missed||n.lane!==lane)continue;
-    const dt=Math.abs(n.time-G.songTime);
-    if(dt<bd){bd=dt;best=n;}
-  }
-  if(best&&bd<=GREAT_MS){
-    best.hit=true;
-    G.hits++;G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
-    if(bd<=PERFECT_MS){
-      G.perfects++;G.score+=300+G.combo*5;
-      G.judgment='PERFECT!';sfx.perfect();
-      burst(lane,'#ffd23f');
-    }else{
-      G.greats++;G.score+=150+G.combo*3;
-      G.judgment='GREAT';sfx.great();
-      burst(lane,'#7fd4ff');
-    }
-    G.judgT=0.5;
-    // play the note's tone
-    tone(best.freq,best.freq,0.15,'triangle',0.12);
-  }else{
-    // empty tap
-    G.judgment='';tone(300,200,0.05,'sine',0.05);
-  }
-  updateHUD();
-}
-function burst(lane,color){
-  const x=LANE_X0+lane*LANE_W+LANE_W/2;
-  for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2;
-    spawnP(x,TARGET_Y,Math.cos(a)*200,Math.sin(a)*200,0.4,color,3+Math.random()*3);}
-}
+/* particles (pooled) */
 const particles=[];
-for(let i=0;i<150;i++)particles.push({a:false});
+for(let i=0;i<160;i++)particles.push({a:false});
 function spawnP(x,y,vx,vy,life,color,size){const p=particles.find(p=>!p.a);if(!p)return;
   p.a=true;p.x=x;p.y=y;p.vx=vx;p.vy=vy;p.life=life;p.max=life;p.color=color;p.size=size;}
+function updateParticles(dt){for(const p of particles){if(!p.a)continue;
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}}
+function drawParticles(){for(const p of particles){if(!p.a)continue;
+  ctx.globalAlpha=Math.max(0,p.life/p.max)*(p.color==='smoke'?0.5:1);
+  ctx.fillStyle=p.color==='smoke'?'#cbb8a8':p.color;
+  ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=1;}
 
-/* input */
-const KEYMAP={d:0,f:1,j:2,k:3,arrowleft:0,arrowdown:1,arrowup:2,arrowright:3};
-addEventListener('keydown',e=>{
-  if(e.repeat)return; // held keys auto-repeat: don't phantom-hit notes
-  const k=e.key.toLowerCase();
-  if(k in KEYMAP){hitLane(KEYMAP[k]);e.preventDefault();}
-});
-canvas.addEventListener('pointerdown',e=>{
-  const lane=Math.floor((e.clientX-LANE_X0)/LANE_W);
-  if(lane>=0&&lane<4)hitLane(lane);
-});
+/* ================= track & stages ================= */
+const TOTAL_STAGES=10;
+function stSpeed(n){return 320+n*32;}                    // px/s — faster every stage
+function stHalfW(n){return Math.max(150-n*6,90);}        // tighter every stage
+function stAmp(n){return 56+n*14;}                       // windier every stage
+function stFreq(n){return 0.0085+n*0.0011;}              // curves come quicker
+function stGates(n){return 5+n;}                         // 6 → 15 gates
+function trackCX(wy,n){return W/2+stAmp(n)*Math.sin(wy*stFreq(n)+n*1.7);} // world-y → center x
+const GATE_GAP=620, GATE_HALF=72;
+const START_TIME=20, GATE_BONUS=7, MAX_TIME=32;
+const LESSONS=[
+  '🔥 Fire Safety: Real volcanoes and lava are super dangerous — always admire them from a safe distance with a grown-up!',
+  '🔥 Fire Safety: If your clothes ever catch fire — STOP, DROP, and ROLL!',
+  '🔥 Fire Safety: Matches and lighters are tools for grown-ups only — never play with them!',
+  '🔥 Fire Safety: Know TWO ways out of every room — that is your family escape plan!',
+  '🔥 Fire Safety: Smoke alarms beep to warn you — test them every month with a grown-up!',
+  '🔥 Fire safety: If you see smoke, get low and crawl under it to fresh air!',
+  '🔥 Fire Safety: Never hide during a fire — go outside and stay outside!',
+  '🔥 Fire Safety: Cool a burn with cool running water and tell a grown-up right away!',
+  '🔥 Fire Safety: Firefighters are helpers — never be afraid of them in their gear!',
+  '🔥 Fire Safety: Practice your home fire drill twice a year — racing is for Ruko, drills keep YOU safe!'
+];
 
-/* update */
-function update(dt){
-  G.time+=dt;
-  if(G.state!=='play')return;
-  G.songTime+=dt;
-  G.judgT-=dt;
-  for(let i=0;i<4;i++)G.laneFlash[i]=Math.max(0,G.laneFlash[i]-dt*3);
-  // beat pulse
-  const song=SONGS[G.song],beatLen=60/song.bpm;
-  const _bi=Math.floor(G.songTime/beatLen); // backing beat pulse (sfx.beat was dead code)
-  if(_bi!==G._lastBeat){G._lastBeat=_bi;if(G.songTime>-beatLen)sfx.beat(_bi%4===0?song.base[0]/2:song.base[0]/4+55);}
-  // miss detection
-  for(const n of G.notes){
-    if(!n.hit&&!n.missed&&G.songTime-n.time>GREAT_MS){
-      n.missed=true;G.misses++;G.combo=0;
-      G.judgment='MISS';G.judgT=0.5;sfx.miss();
-      updateHUD();
+/* ================= state ================= */
+const G={state:'title',stage:1,score:0,time:0,dist:0,timeLeft:START_TIME,
+  gatesHit:0,gatesTotal:0,driftBest:0,spins:0,countT:0,countShown:-1,
+  gates:[],obstacles:[],msg:'',msgT:0,msgColor:'#ffd23f'};
+const P={x:0,vx:0,drift:false,charge:0,driftTime:0,boost:0,spin:0,invuln:0,angle:0,driftSfxT:0};
+const keys={left:false,right:false,space:false};
+let touchSteerX=null,touchDrift=false;
+
+function buildStage(n){
+  G.gates=[];G.obstacles=[];
+  const total=stGates(n);G.gatesTotal=total;
+  let wy=900;
+  for(let i=0;i<total;i++){
+    G.gates.push({wy,done:false,hit:false});
+    // hazards sprinkled between this gate and the next
+    const hz=1+Math.floor(Math.random()*(1+Math.min(3,Math.floor(n/3)+1)))+ (n>=6?1:0);
+    for(let j=0;j<hz;j++){
+      const hy=wy+120+Math.random()*(GATE_GAP-240);
+      const cx=trackCX(hy,n),hw=stHalfW(n);
+      const off=(Math.random()*2-1)*(hw-46);
+      G.obstacles.push({wy:hy,off,lava:Math.random()<0.55,r:20+Math.random()*10});
     }
+    wy+=GATE_GAP;
   }
-  // song end
-  const lastNote=G.notes[G.notes.length-1];
-  if(lastNote&&G.songTime>lastNote.time+2)songComplete();
+  G.gatesHit=0;G.dist=0;G.timeLeft=START_TIME;G.msg='';G.msgT=0;
+  P.x=W/2;P.vx=0;P.drift=false;P.charge=0;P.driftTime=0;P.boost=0;P.spin=0;P.invuln=0;P.angle=0;
+  updateHUD(true);
 }
-function songComplete(){
-  G.state='clear';sfx.win();
-  const total=G.hits+G.misses;
-  const acc=total?G.hits/total:0;
-  const grade=acc>=0.95?'S':acc>=0.85?'A':acc>=0.7?'B':'C';
-  setTimeout(()=>{
-    showOverlay(`${grade} RANK! 🎵`,
-      `<p><b>${SONGS[G.song].name}</b></p><p>Score: ${G.score}</p><p>Max Combo: x${G.maxCombo}</p><p>Perfect: ${G.perfects} | Great: ${G.greats} | Miss: ${G.misses}</p><p>Accuracy: ${Math.round(acc*100)}%</p>`,
-      '🔥 Fire Safety: Music makes everything fun — but never dance near a hot stove!',
-      '↻ PLAY AGAIN',()=>{showSongs();});
-  },600);
+function startStage(n){
+  G.stage=n;buildStage(n);
+  G.state='count';G.countT=3.2;G.countShown=-1;
+  overlay.classList.add('hidden');
+  updateHUD(true);
+}
+function showStageIntro(n){
+  const extra=n===1?'<p>First stage — nice and wide. Learn the drift!</p>':n===TOTAL_STAGES?'<p>The FINAL stage — tightest track, fastest ride. You got this, Ruko!</p>':'<p>The track gets tighter and faster from here!</p>';
+  showOverlay(`🌋 STAGE ${n} OF ${TOTAL_STAGES}`,
+    `<p><b>${stGates(n)} checkpoint gates</b> ahead. Every gate = <b>+${GATE_BONUS} seconds</b>.</p>${extra}`,
+    LESSONS[(n-1)%LESSONS.length],
+    n===1?'🏁 START ENGINE':'🏁 GO STAGE '+n,
+    ()=>startStage(n));
 }
 
-/* overlay */
+/* ================= HUD / overlay ================= */
+const _hudCache={s:'',t:'',a:''};
+function updateHUD(force){
+  const s='⭐ '+Math.floor(G.score),t='⏱ '+Math.max(0,Math.ceil(G.timeLeft))+'s',a='🏁 '+G.stage+'/'+TOTAL_STAGES;
+  if(force||s!==_hudCache.s){document.getElementById('score').textContent=s;_hudCache.s=s;}
+  if(force||t!==_hudCache.t){document.getElementById('combo').textContent=t;_hudCache.t=t;}
+  if(force||a!==_hudCache.a){document.getElementById('acc').textContent=a;_hudCache.a=a;}
+}
 let mathAnswer=0;
 function showMathGate(){
   const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
@@ -276,132 +234,352 @@ function showMathGate(){
 }
 function checkMath(){
   if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
-    document.getElementById('mathgate').classList.add('hidden');showSongs();
+    document.getElementById('mathgate').classList.add('hidden');showStageIntro(1);
   }else document.getElementById('ma').value='';
 }
-function showSongs(){
-  otitle.innerHTML='🎵 PICK A SONG';
-  let h='';
-  SONGS.forEach((s,i)=>{h+=`<button class="songBtn" onclick="event.stopPropagation();pickSong(${i})">${s.name}<br><small>${s.diff} • ${s.bpm} BPM</small></button>`;});
-  obody.innerHTML=`<p>Tap notes when they hit the glowing zone!</p>${h}`;
-  obtn.style.display='none';
-  overlay.classList.remove('hidden');
-}
-function pickSong(i){sfx.click();audio();startSong(i);}
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
   obtn.textContent=btn;obtn.style.display='';
-  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  obtn.onclick=()=>{sfx.click();audio();overlay.classList.add('hidden');cb();};
   overlay.classList.remove('hidden');
 }
 obtn.onclick=()=>{showMathGate();};
 
-/* render */
-const LANE_COLORS=['#ff6a8a','#7fd4ff','#ffd23f','#9a7fd4'];
-const NOTE_GLOW=LANE_COLORS.map(c=>makeGlowSprite(c)); // [w5b perf] per-lane pre-baked note glows
-function render(){
-  // bg: concert stage
-  const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.7,'#1a1030');bg.addColorStop(1,'#0d0a1a');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  drawEmbers();
-  // stage lights
-  for(let i=0;i<4;i++){
-    const lx=LANE_X0+i*LANE_W+LANE_W/2;
-    const pulse=0.1+Math.sin(G.time*4+i)*0.05+G.laneFlash[i]*0.4;
-    const lg=ctx.createRadialGradient(lx,TARGET_Y,10,lx,TARGET_Y,200);
-    lg.addColorStop(0,LANE_COLORS[i]+Math.round(pulse*255).toString(16).padStart(2,'0'));
-    lg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=lg;ctx.fillRect(lx-200,TARGET_Y-200,400,400);
+/* ================= input ================= */
+const driftBtn=document.getElementById('driftBtn');
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a'){keys.left=true;e.preventDefault();}
+  else if(k==='arrowright'||k==='d'){keys.right=true;e.preventDefault();}
+  else if(k===' '){keys.space=true;e.preventDefault();}
+  if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play'||G.state==='count')fbPause();else if(G.state==='pause')fbResume();}
+});
+addEventListener('keyup',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')keys.left=false;
+  else if(k==='arrowright'||k==='d')keys.right=false;
+  else if(k===' ')keys.space=false;
+});
+canvas.addEventListener('pointerdown',e=>{touchSteerX=e.clientX;});
+canvas.addEventListener('pointermove',e=>{if(touchSteerX!==null)touchSteerX=e.clientX;});
+addEventListener('pointerup',()=>{touchSteerX=null;});
+addEventListener('pointercancel',()=>{touchSteerX=null;touchDrift=false;driftBtn.classList.remove('on');});
+driftBtn.addEventListener('pointerdown',e=>{e.preventDefault();touchDrift=true;driftBtn.classList.add('on');});
+driftBtn.addEventListener('pointerup',()=>{touchDrift=false;driftBtn.classList.remove('on');});
+driftBtn.addEventListener('pointerleave',()=>{touchDrift=false;driftBtn.classList.remove('on');});
+
+/* ================= gameplay ================= */
+function flashMsg(txt,color){G.msg=txt;G.msgColor=color||'#ffd23f';G.msgT=1.4;}
+function spinOut(){
+  P.spin=1.1;P.invuln=2.2;P.boost=0;P.drift=false;P.charge=0;P.driftTime=0;
+  G.timeLeft=Math.max(0,G.timeLeft-2);G.spins++;
+  sfx.spin();flashMsg('🌀 SPIN-OUT! −2s','#ff8a7a');
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;
+    spawnP(P.x+Math.cos(a)*26,PY()-44+Math.sin(a)*10,Math.cos(a)*40,-30,0.7,'#ffd23f',3);}
+}
+function releaseDrift(){
+  const charge=P.charge,dur=P.driftTime;
+  P.drift=false;P.charge=0;P.driftTime=0;
+  if(charge>=20){
+    P.boost=charge/100*1.8;
+    let pts=Math.round(dur*50)+Math.round(charge);
+    let label='💨 DRIFT BOOST +'+pts;
+    if(charge>=90){pts+=200;label='👑 DRIFT KING! +'+pts;}
+    else if(charge>=60){pts+=100;label='🔥 GREAT DRIFT! +'+pts;}
+    G.score+=pts;G.driftBest=Math.max(G.driftBest,Math.round(charge));
+    sfx.boost();flashMsg(label,'#ffd23f');
+    for(let i=0;i<14;i++)spawnP(P.x+(Math.random()*30-15),PY()+16,Math.random()*60-30,120+Math.random()*80,0.4,'#ffa53a',3+Math.random()*3);
   }
-  // lanes
-  for(let i=0;i<4;i++){
-    const x=LANE_X0+i*LANE_W;
-    ctx.fillStyle='rgba(255,255,255,0.04)';
-    ctx.fillRect(x,0,LANE_W,H);
-    ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=2;
-    ctx.strokeRect(x,0,LANE_W,H);
-    // target zone
-    const flash=G.laneFlash[i];
-    ctx.fillStyle=LANE_COLORS[i];ctx.globalAlpha=0.25+flash*2;
-    ctx.beginPath();ctx.roundRect(x+6,TARGET_Y-28,LANE_W-12,56,12);ctx.fill();
-    ctx.globalAlpha=1;
-    ctx.strokeStyle=LANE_COLORS[i];ctx.lineWidth=3;
-    ctx.beginPath();ctx.roundRect(x+6,TARGET_Y-28,LANE_W-12,56,12);ctx.stroke();
-    // key hint
-    ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='900 16px system-ui';ctx.textAlign='center';
-    ctx.fillText('DFJK'[i],x+LANE_W/2,TARGET_Y+52);
-    ctx.textAlign='left';
+}
+function update(dt){
+  G.time+=dt;
+  if(G.state==='count'){
+    G.countT-=dt;
+    const shown=Math.ceil(G.countT);
+    if(shown!==G.countShown&&shown>=0){G.countShown=shown;if(shown>0)sfx.count();else sfx.go();}
+    if(G.countT<=0)G.state='play';
+    return;
   }
-  if(G.state==='play'){
-    // notes
-    for(const n of G.notes){
-      if(n.hit||n.missed)continue;
-      const dt=n.time-G.songTime;
-      const y=TARGET_Y-dt*NOTE_SPEED;
-      if(y<-40||y>H+40)continue;
-      const x=LANE_X0+n.lane*LANE_W+LANE_W/2;
-      // approaching glow
-      if(dt<0.5){
-        ctx.fillStyle=LANE_COLORS[n.lane];ctx.globalAlpha=(0.5-dt)*0.8;
-        ctx.beginPath();ctx.arc(x,y,26,0,Math.PI*2);ctx.fill();
-        ctx.globalAlpha=1;
+  if(G.state!=='play')return;
+  const n=G.stage;
+  /* timer */
+  G.timeLeft-=dt;
+  if(G.timeLeft<=0){G.timeLeft=0;updateHUD();gameOver();return;}
+  /* steering input */
+  let dir=0;
+  if(keys.left)dir-=1;
+  if(keys.right)dir+=1;
+  if(touchSteerX!==null){const dx=touchSteerX-P.x;dir=Math.max(-1,Math.min(1,dx/60));}
+  const wantDrift=(keys.space||touchDrift);
+  /* drift charge / release */
+  if(wantDrift&&P.spin<=0){
+    if(!P.drift){P.drift=true;P.driftTime=0;P.charge=0;}
+    P.driftTime+=dt;
+    if(Math.abs(dir)>0.05)P.charge=Math.min(100,P.charge+80*dt);
+    P.driftSfxT-=dt;
+    if(P.driftSfxT<=0){sfx.drift();P.driftSfxT=0.28;}
+    if(Math.random()<0.7)spawnP(P.x-P.vx*0.04,PY()+18,Math.random()*30-15,90,0.5,'smoke',4+Math.random()*4);
+  }else if(P.drift){releaseDrift();}
+  /* speed */
+  let speed=stSpeed(n);
+  if(P.boost>0){speed*=1.7;P.boost-=dt;
+    if(Math.random()<0.8)spawnP(P.x+(Math.random()*24-12),PY()+20,0,160,0.3,'#ff7a2a',3+Math.random()*3);}
+  if(P.drift)speed*=0.82;
+  if(P.spin>0)speed*=0.3;
+  G.dist+=speed*dt;
+  G.score+=speed*dt*0.05;
+  /* kart lateral physics — drifting is slippier + faster sideways */
+  const steerSpd=P.drift?560:430;
+  const target=dir*steerSpd;
+  const grip=P.drift?4.5:11;
+  P.vx+=(target-P.vx)*Math.min(1,grip*dt);
+  P.x+=P.vx*dt;
+  /* track walls at the kart line */
+  const cx=trackCX(G.dist,n),hw=stHalfW(n);
+  if(P.x<cx-hw+16){P.x=cx-hw+16;P.vx=Math.abs(P.vx)*0.35;if(P.spin<=0&&Math.abs(P.vx)>60)sfx.scrape();}
+  if(P.x>cx+hw-16){P.x=cx+hw-16;P.vx=-Math.abs(P.vx)*0.35;if(P.spin<=0&&Math.abs(P.vx)>60)sfx.scrape();}
+  /* spin + invulnerability timers */
+  if(P.spin>0){P.spin-=dt;P.angle+=11*dt;if(P.spin<=0)P.angle=0;}
+  if(P.invuln>0)P.invuln-=dt;
+  /* gates */
+  for(const gt of G.gates){
+    if(gt.done)continue;
+    if(gt.wy<=G.dist){
+      gt.done=true;
+      const gx=trackCX(gt.wy,n);
+      if(Math.abs(P.x-gx)<=GATE_HALF){
+        gt.hit=true;G.gatesHit++;
+        G.timeLeft=Math.min(MAX_TIME,G.timeLeft+GATE_BONUS);
+        G.score+=100;sfx.gate();flashMsg('🏁 GATE +100 · +'+GATE_BONUS+'s','#7dff8a');
+        for(let i=0;i<10;i++)spawnP(gx+(Math.random()*120-60),PY()-10,Math.random()*80-40,-60,0.5,'#7dff8a',3);
+        if(G.gatesHit>=G.gatesTotal){stageClear();return;}
+      }else{
+        G.timeLeft=Math.max(0,G.timeLeft-2);sfx.missGate();
+        flashMsg('💨 MISSED GATE −2s','#ff8a7a');
       }
-      ctx.save();{const gr=38;ctx.save();ctx.globalAlpha=0.6;ctx.drawImage(NOTE_GLOW[n.lane],x-gr,y-gr,gr*2,gr*2);ctx.restore();} // [w5b perf] pre-baked glow (was shadowBlur 14 per note per frame)
-      const g=ctx.createRadialGradient(x-6,y-8,4,x,y,20);
-      g.addColorStop(0,'#fff');g.addColorStop(0.5,LANE_COLORS[n.lane]);g.addColorStop(1,LANE_COLORS[n.lane]+'88');
-      ctx.fillStyle=g;
-      ctx.beginPath();ctx.arc(x,y,18,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
-      // music note symbol
-      ctx.fillStyle='#fff';ctx.font='900 16px system-ui';ctx.textAlign='center';
-      ctx.fillText('♪',x,y+6);ctx.textAlign='left';
-      ctx.restore();
-    }
-    // judgment
-    if(G.judgT>0&&G.judgment){
-      ctx.textAlign='center';
-      const jc=G.judgment==='PERFECT!'?'#ffd23f':G.judgment==='GREAT'?'#7fd4ff':'#ff4a5a';
-      ctx.font='900 32px system-ui';
-      ctx.globalAlpha=Math.min(1,G.judgT*2);
-      ctx.fillStyle='#000';ctx.fillText(G.judgment,W/2+2,H*0.35+2);
-      ctx.fillStyle=jc;ctx.fillText(G.judgment,W/2,H*0.35);
-      ctx.globalAlpha=1;ctx.textAlign='left';
-    }
-    // progress bar
-    const song=SONGS[G.song];
-    const prog=Math.max(0,Math.min(1,G.songTime/song.dur));
-    ctx.fillStyle='rgba(255,255,255,0.15)';
-    ctx.fillRect(W*0.1,20,W*0.8,6);
-    ctx.fillStyle='#ff7ad9';
-    ctx.fillRect(W*0.1,20,W*0.8*prog,6);
-    // countdown
-    if(G.songTime<0){
-      ctx.textAlign='center';ctx.font='900 64px system-ui';
-      ctx.fillStyle='#fff';
-      ctx.fillText(Math.ceil(-G.songTime),W/2,H*0.4);
-      ctx.textAlign='left';
     }
   }
-  // particles
-  for(const p of particles){
-    if(!p.a)continue;
-    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  /* hazards */
+  if(P.invuln<=0&&P.spin<=0){
+    for(const o of G.obstacles){
+      const dy=o.wy-G.dist;
+      if(dy<-40||dy>40)continue;
+      const ox=trackCX(o.wy,n)+o.off;
+      if(Math.abs(P.x-ox)<o.r+15){spinOut();break;}
+    }
   }
-  ctx.globalAlpha=1;
+  if(G.msgT>0)G.msgT-=dt;
+  updateHUD();
+}
+function stageClear(){
+  G.state='clear';
+  const timeBonus=Math.ceil(G.timeLeft)*10;
+  G.score+=timeBonus;
+  updateHUD(true);
+  sfx.stageClear();
+  const last=G.stage>=TOTAL_STAGES;
+  setTimeout(()=>{
+    if(last){gameWin();return;}
+    showOverlay(`🏁 STAGE ${G.stage} CLEAR!`,
+      `<p>Gates: <b>${G.gatesHit}/${G.gatesTotal}</b> · Spin-outs: ${G.spins}</p><p>Time bonus: <b>+${timeBonus}</b></p><p>Score: <b>${Math.floor(G.score)}</b></p>`,
+      LESSONS[G.stage%LESSONS.length],
+      '▶ STAGE '+(G.stage+1),
+      ()=>showStageIntro(G.stage+1));
+  },650);
+}
+function gameOver(){
+  G.state='over';updateHUD(true);
+  showOverlay('⏱ TIME UP!',
+    `<p>Ruko ran out of time on <b>Stage ${G.stage}</b> — gates hit: <b>${G.gatesHit}/${G.gatesTotal}</b>.</p><p>Tip: hold <b>SPACE</b> through the corners and release for a boost — boosts beat the clock!</p><p>Score: <b>${Math.floor(G.score)}</b></p>`,
+    LESSONS[(G.stage-1)%LESSONS.length],
+    '↻ RETRY STAGE '+G.stage,
+    ()=>startStage(G.stage));
+}
+function gameWin(){
+  G.state='win';sfx.win();
+  showOverlay('🏆 TURBO DRIFT CHAMPION!',
+    `<p>Ruko conquered all <b>10 stages</b> of the volcano!</p><p>Final Score: <b>${Math.floor(G.score)}</b></p><p>Best drift charge: <b>${G.driftBest}%</b> · Spin-outs: ${G.spins}</p>`,
+    '🔥 Fire Safety: You did it! Remember — real roads are not race tracks. Seatbelts every ride, every time!',
+    '↻ PLAY AGAIN',
+    ()=>{G.score=0;G.spins=0;G.driftBest=0;showStageIntro(1);});
 }
 
+/* ================= render ================= */
+function drawTrack(){
+  /* volcanic ground */
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#170b12');bg.addColorStop(0.6,'#241016');bg.addColorStop(1,'#170b12');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const n=G.stage,hw=stHalfW(n),step=26;
+  /* road segments (world-locked so curves scroll correctly) */
+  for(let y=-step;y<H+step;y+=step){
+    const wy=G.dist+(PY()-y);
+    const cx=trackCX(wy,n);
+    ctx.fillStyle='#33242f';
+    ctx.fillRect(cx-hw,y,hw*2,step+1);
+    /* glowing lava edges */
+    ctx.fillStyle='#ff5a1f';
+    ctx.fillRect(cx-hw-3,y,3,step+1);ctx.fillRect(cx+hw,y,3,step+1);
+    /* center dashes */
+    const dash=((wy%120)+120)%120;
+    if(dash<62){ctx.fillStyle='rgba(255,210,63,0.5)';ctx.fillRect(cx-3,y,6,step+1);}
+  }
+  drawEmbers();
+  /* hazards */
+  for(const o of G.obstacles){
+    const sy=PY()-(o.wy-G.dist);
+    if(sy<-70||sy>H+70)continue;
+    const ox=trackCX(o.wy,n)+o.off;
+    if(o.lava){
+      const r=o.r*2.6;
+      ctx.globalAlpha=0.85;ctx.drawImage(LAVA_SPRITE,ox-r,sy-r,r*2,r*2);ctx.globalAlpha=1;
+      ctx.fillStyle='#ff7a1f';ctx.beginPath();ctx.ellipse(ox,sy,o.r,o.r*0.62,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffb03a';ctx.beginPath();ctx.ellipse(ox-3,sy-2,o.r*0.55,o.r*0.32,0,0,Math.PI*2);ctx.fill();
+    }else{
+      ctx.fillStyle='#5a4a52';
+      ctx.beginPath();ctx.arc(ox-10,sy+6,11,0,Math.PI*2);ctx.arc(ox+11,sy+7,13,0,Math.PI*2);ctx.arc(ox+1,sy-6,12,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#77636e';
+      ctx.beginPath();ctx.arc(ox-3,sy-8,7,0,Math.PI*2);ctx.arc(ox+9,sy+2,6,0,Math.PI*2);ctx.fill();
+    }
+  }
+  /* gates */
+  for(const gt of G.gates){
+    if(gt.done)continue;
+    const sy=PY()-(gt.wy-G.dist);
+    if(sy<-80||sy>H+80)continue;
+    const gx=trackCX(gt.wy,n);
+    const pulse=0.65+0.35*Math.sin(G.time*6+gt.wy);
+    ctx.strokeStyle=`rgba(125,255,138,${0.55*pulse})`;ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(gx-GATE_HALF-14,sy);ctx.lineTo(gx+GATE_HALF+14,sy);ctx.stroke();
+    for(const sgn of [-1,1]){
+      const fx=gx+sgn*(GATE_HALF+14);
+      ctx.fillStyle='#3a2a33';ctx.fillRect(fx-3,sy-52,6,52);
+      ctx.fillStyle='#7dff8a';
+      ctx.beginPath();ctx.moveTo(fx,sy-52);ctx.lineTo(fx+sgn*20,sy-44);ctx.lineTo(fx,sy-36);ctx.closePath();ctx.fill();
+    }
+    ctx.fillStyle='rgba(125,255,138,0.95)';ctx.font='900 15px system-ui';ctx.textAlign='center';
+    ctx.fillText('🏁',gx,sy-8);ctx.textAlign='left';
+  }
+  /* boost meter */
+  if(P.drift||P.charge>0||P.boost>0){
+    const bw=Math.min(220,W*0.5),bx=W/2-bw/2,by=H-118;
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.beginPath();ctx.roundRect(bx-4,by-4,bw+8,20,10);ctx.fill();
+    const fill=P.boost>0?1:P.charge/100;
+    ctx.fillStyle=P.boost>0?'#7dff8a':(P.charge>=90?'#ffd23f':'#ff8a3a');
+    ctx.beginPath();ctx.roundRect(bx,by,bw*fill,12,6);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 11px system-ui';ctx.textAlign='center';
+    ctx.fillText(P.boost>0?'BOOST!!':'DRIFT ' + Math.round(P.charge)+'%',W/2,by+11);
+    ctx.textAlign='left';
+  }
+}
+function drawRukoKart(){
+  const x=P.x,y=PY();
+  const blink=P.invuln>0&&(Math.floor(G.time*14)%2===0);
+  ctx.save();
+  ctx.translate(x,y);
+  if(P.spin>0)ctx.rotate(P.angle);
+  else ctx.rotate(P.vx*0.00045+(P.drift?P.vx*0.0002:0));
+  if(blink)ctx.globalAlpha=0.45;
+  /* kart shadow */
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath();ctx.ellipse(0,22,40,10,0,0,Math.PI*2);ctx.fill();
+  /* lava-rock kart body */
+  ctx.fillStyle='#4a3230';ctx.beginPath();ctx.roundRect(-38,2,76,26,12);ctx.fill();
+  ctx.fillStyle='#5d4038';ctx.beginPath();ctx.roundRect(-38,2,76,12,10);ctx.fill();
+  ctx.strokeStyle='#ff7a2a';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-28,20);ctx.lineTo(-12,12);ctx.lineTo(2,19);ctx.lineTo(16,11);ctx.stroke();
+  /* wheels */
+  for(const wx of [-30,30]){
+    ctx.fillStyle='#22161a';ctx.beginPath();ctx.arc(wx,26,9,0,Math.PI*2);ctx.fill();
+    const r=22;
+    ctx.globalAlpha=0.8;ctx.drawImage(EMBER_SPRITE,wx-r,26-r,r*2,r*2);ctx.globalAlpha=blink?0.45:1;
+    ctx.fillStyle='#ffb03a';ctx.beginPath();ctx.arc(wx,26,3.5,0,Math.PI*2);ctx.fill();
+  }
+  /* seat */
+  ctx.fillStyle='#33242f';ctx.beginPath();ctx.roundRect(-16,-8,32,16,7);ctx.fill();
+  ctx.restore();
+  /* Ruko — round flame-teardrop Fire Baby, black skull headband, big grin */
+  ctx.save();
+  ctx.translate(x,y-26);
+  if(P.spin>0)ctx.rotate(Math.sin(G.time*18)*0.14);
+  if(blink)ctx.globalAlpha=0.45;
+  const R=19;
+  const fg=ctx.createRadialGradient(-5,-8,3,0,2,R+8);
+  fg.addColorStop(0,'#ffe259');fg.addColorStop(0.55,'#ffa53a');fg.addColorStop(1,'#ff5a1f');
+  ctx.fillStyle=fg;
+  ctx.beginPath();
+  ctx.moveTo(0,-R-11);
+  ctx.quadraticCurveTo(R*0.75,-R*0.45,R*0.92,R*0.25);
+  ctx.quadraticCurveTo(R, R*1.05,0,R*1.05);
+  ctx.quadraticCurveTo(-R,R*1.05,-R*0.92,R*0.25);
+  ctx.quadraticCurveTo(-R*0.75,-R*0.45,0,-R-11);
+  ctx.fill();
+  ctx.strokeStyle='rgba(122,42,0,0.55)';ctx.lineWidth=2;ctx.stroke();
+  /* headband */
+  ctx.fillStyle='#181018';
+  ctx.beginPath();
+  ctx.moveTo(-R*0.93,-R*0.28);ctx.quadraticCurveTo(0,-R*0.62,R*0.93,-R*0.28);
+  ctx.lineTo(R*0.97,-R*0.02);ctx.quadraticCurveTo(0,-R*0.34,-R*0.97,-R*0.02);
+  ctx.closePath();ctx.fill();
+  /* skull emblem */
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,-R*0.34,5.6,0,Math.PI*2);ctx.fill();
+  ctx.fillRect(-3.4,-R*0.34+3.4,6.8,3.6);
+  ctx.fillStyle='#181018';
+  ctx.beginPath();ctx.arc(-2.1,-R*0.36,1.5,0,Math.PI*2);ctx.arc(2.1,-R*0.36,1.5,0,Math.PI*2);ctx.fill();
+  /* eyes — happy determined slits */
+  ctx.strokeStyle='#5a2400';ctx.lineWidth=2.4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(-11,2);ctx.quadraticCurveTo(-7,-1,-3,2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(3,2);ctx.quadraticCurveTo(7,-1,11,2);ctx.stroke();
+  /* big grin */
+  ctx.strokeStyle='#7a2a00';ctx.lineWidth=2.6;
+  ctx.beginPath();ctx.arc(0,5,8,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+  ctx.fillStyle='#fff';
+  ctx.fillRect(-6.5,8.6,13,3.4);
+  ctx.strokeStyle='rgba(122,42,0,0.5)';ctx.lineWidth=1;ctx.strokeRect(-6.5,8.6,13,3.4);
+  ctx.restore();
+  /* dizzy stars while spinning */
+  if(P.spin>0){
+    ctx.fillStyle='#ffd23f';ctx.font='900 15px system-ui';ctx.textAlign='center';
+    for(let i=0;i<3;i++){const a=G.time*7+i*2.1;
+      ctx.fillText('⭐',x+Math.cos(a)*26,y-58+Math.sin(a)*7);}
+    ctx.textAlign='left';
+  }
+}
+function render(){
+  drawTrack();
+  drawParticles();
+  if(G.state!=='title')drawRukoKart();
+  /* center flash messages */
+  if(G.msgT>0&&G.state==='play'){
+    ctx.textAlign='center';
+    ctx.globalAlpha=Math.min(1,G.msgT*1.6);
+    ctx.font='900 26px system-ui';
+    ctx.fillStyle='#000';ctx.fillText(G.msg,W/2+2,H*0.3+2);
+    ctx.fillStyle=G.msgColor;ctx.fillText(G.msg,W/2,H*0.3);
+    ctx.globalAlpha=1;ctx.textAlign='left';
+  }
+  /* countdown */
+  if(G.state==='count'){
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,W,H);
+    ctx.font='900 76px system-ui';ctx.fillStyle='#ffd23f';
+    const t=Math.ceil(G.countT);
+    ctx.fillText(t>0?String(t):'GO!',W/2,H*0.42);
+    ctx.font='900 20px system-ui';ctx.fillStyle='#fff';
+    ctx.fillText('STAGE '+G.stage+' — '+G.gatesTotal+' gates',W/2,H*0.42+42);
+    ctx.textAlign='left';
+  }
+  /* boost-meter label uses roundRect-safe fallback already native */
+}
 
-/* gamer-check: pause + mute controls */
+/* gamer-check: pause + mute controls (same contracts as before) */
 const _pz=document.getElementById('pauseOv');
-function fbPause(){if(G.state==='play'){G.state='pause';_pz.classList.remove('hidden');}}
-function fbResume(){if(G.state==='pause'){G.state='play';_pz.classList.add('hidden');}}
+function fbPause(){if(G.state==='play'||G.state==='count'){G.prevState=G.state;G.state='pause';_pz.classList.remove('hidden');}}
+function fbResume(){if(G.state==='pause'){G.state=G.prevState||'play';_pz.classList.add('hidden');}}
 document.getElementById('pauseBtn').onclick=e=>{e.stopPropagation();fbPause();};
 document.getElementById('resumeBtn').onclick=()=>{fbResume();};
 document.getElementById('muteBtn').onclick=e=>{e.stopPropagation();MUTED=!MUTED;e.currentTarget.textContent=MUTED?'🔇':'🔊';};
-document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');startSong(G.song);};
-addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape'){if(G.state==='play')fbPause();else if(G.state==='pause')fbResume();}});
+document.getElementById('prestartBtn').onclick=()=>{_pz.classList.add('hidden');startStage(G.stage);};
 
 /* loop */
 let lastT=0;
@@ -409,8 +587,7 @@ function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   update(dt);
   updateEmbers(dt);
-  for(const p of particles){if(!p.a)continue;
-    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  updateParticles(dt);
   render();
   requestAnimationFrame(loop);
 }
