@@ -73,7 +73,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🧊 CINDER'S ICE RINK CHAOS</h1>
-<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> star in this frosty frenzy!</p><p><b>Drag</b> an ice block back and <b>release</b> to flick it! Smash every crystal target. Ice is slippery — plan your angles!</p><p>💥 The glowing orange <b>Ember Bomb Block</b> blasts every crystal within splash range!</p><div id="levelSel"></div></div>
+<div id="obody"><p><b>Blaze</b> & <b>Boulder</b> star in this frosty frenzy!</p><p><b>Drag</b> an ice block back and <b>release</b> to flick it! Smash every crystal target. Ice is slippery — plan your angles!</p><p>💥 When your ice smashes a diamond, it <b>EXPLODES</b> and can set off nearby diamonds in a chain! The glowing orange <b>Ember Bomb Block</b> has the biggest blast!</p><div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Ice and water can help cool a burn — run cool water on it and tell a grown-up!</div>
 <button id="obtn">▶ PLAY</button>
@@ -160,7 +160,7 @@ const G={state:'title',level:1,score:0,levelStartScore:0,shots:3,shotsUsed:0,com
 const ICE_FRICTION=0.995; // slippery!
 
 function buildLevel(n){
-  G.blocks=[];G.targets=[];G.shotsUsed=0;G.combo=0;
+  G.blocks=[];G.targets=[];G.shotsUsed=0;G.combo=0;boomQueue.length=0;booms.length=0;
   const cx=W/2,gy=H*0.82;
   const T=(x,y)=>G.targets.push({x,y,r:22,dead:false,wob:Math.random()*6});
   const B=(x,y)=>G.blocks.push({x,y,vx:0,vy:0,r:26,used:false,held:false,spin:0,vr:0});
@@ -228,9 +228,45 @@ function buildLevel(n){
 }
 function updateScoreUI(){document.getElementById('score').textContent='⭐ '+G.score;}
 
+/* ===== Jeff 2026-10-13: EVERY diamond explodes and chains to nearby diamonds =====
+   Direct ice hit still scores the normal combo points. An exploding diamond
+   blasts every diamond within CHAIN_R; those blow too after a short delay
+   (cascade feel). Chain kills pay a flat +50 each (same as the old Ember Bomb
+   splash), so scoring stays coherent. The Ember Bomb Block keeps its bigger
+   blast radius (130) for its direct hit. */
+const CHAIN_R=100,CHAIN_DELAY=0.09;
+const boomQueue=[]; // {t,delay,r}
+function diamondBlastFX(t,big){
+  for(let i=0;i<(big?18:12);i++){const a=Math.random()*Math.PI*2,sp=100+Math.random()*280;
+    spawnP(t.x,t.y,Math.cos(a)*sp,Math.sin(a)*sp,0.55,big?'#ff9a3a':'#aee2ff',3+Math.random()*4);}
+  booms.push({x:t.x,y:t.y,r:6,max:big?130:CHAIN_R,life:0.28,maxLife:0.28});
+}
+const booms=[];
+function killDiamond(t,cause,big){
+  // cause: 'hit' (scored by caller) | 'chain' (+50 flat, keeps chaining)
+  t.dead=true;noise(0.2,0.22,0,900);addTrauma(big?0.45:0.25);
+  if(cause==='chain'){G.score+=50;updateScoreUI();spawnText(t.x,t.y-20,'CHAIN +50','#ffb347',16);}
+  diamondBlastFX(t,big);
+  boomQueue.push({t,delay:CHAIN_DELAY,r:big?130:CHAIN_R});
+}
+function processBooms(dt){
+  for(const q of boomQueue){
+    q.delay-=dt;
+    if(q.delay<=0&&!q.done){q.done=true;
+      for(const o of G.targets){
+        if(o===q.t||o.dead)continue;
+        if(Math.hypot(o.x-q.t.x,o.y-q.t.y)<=q.r+o.r*0.4)killDiamond(o,'chain',false);
+      }
+    }
+  }
+  for(let i=boomQueue.length-1;i>=0;i--)if(boomQueue[i].done)boomQueue.splice(i,1);
+  for(let i=booms.length-1;i>=0;i--){const b=booms[i];b.life-=dt;b.r+=(b.max-b.r)*Math.min(1,dt*14);if(b.life<=0)booms.splice(i,1);}
+}
+
 /* physics */
 function update(dt){
   G.time+=dt;
+  processBooms(dt);
   G.comboT-=dt;if(G.comboT<=0)G.combo=0;
   for(const b of G.blocks){
     if(b.held)continue;
@@ -251,7 +287,6 @@ function update(dt){
       if(d<b.r+t.r){
         const speed=Math.hypot(b.vx,b.vy);
         if(speed>120){
-          t.dead=true;
           G.combo++;G.comboT=1.5;
           const pts=Math.round(100*(1+G.combo*0.3));
           G.score+=pts;updateScoreUI();
@@ -262,18 +297,9 @@ function update(dt){
             const a=Math.random()*Math.PI*2,sp=100+Math.random()*250;
             spawnP(t.x,t.y,Math.cos(a)*sp,Math.sin(a)*sp,0.6,'#aee2ff',3+Math.random()*4);
           }
-          // Ember Bomb Block splash: also smash nearby crystals (+50 each)
-          if(b.bomb){
-            for(const o of G.targets){
-              if(o===t||o.dead)continue;
-              if(Math.hypot(o.x-t.x,o.y-t.y)<=100){
-                o.dead=true;G.score+=50;updateScoreUI();
-                spawnText(o.x,o.y-20,'BOMB +50','#ff9a3a',16);sfx.shatter();
-                for(let k=0;k<10;k++){const a2=Math.random()*Math.PI*2,sp2=80+Math.random()*200;
-                  spawnP(o.x,o.y,Math.cos(a2)*sp2,Math.sin(a2)*sp2,0.5,'#ff9a3a',3+Math.random()*3);}
-              }
-            }
-          }
+          // Jeff 2026-10-13: the diamond EXPLODES and chains to nearby diamonds
+          // (Ember Bomb Block = bigger blast). Chain kills pay +50 each in killDiamond.
+          killDiamond(t,'hit',!!b.bomb);
           // bounce block (guard d===0: block dead-centre on target)
           const nx=d>0?(b.x-t.x)/d:1,ny=d>0?(b.y-t.y)/d:0;
           b.vx=nx*speed*0.5;b.vy=ny*speed*0.5;
@@ -299,7 +325,7 @@ function update(dt){
   if(G.state==='play'&&G.targets.every(t=>t.dead))levelComplete();
   // fail check
   const moving=G.blocks.some(b=>Math.hypot(b.vx,b.vy)>15);
-  if(G.state==='play'&&!moving&&!G.dragBlock&&(G.shots-G.shotsUsed)<=0&&!G.targets.every(t=>t.dead)){
+  if(G.state==='play'&&!moving&&!G.dragBlock&&boomQueue.length===0&&(G.shots-G.shotsUsed)<=0&&!G.targets.every(t=>t.dead)){
     G.failT=(G.failT||0)+dt;
     if(G.failT>1.2)levelFailed();
   }else G.failT=0;
@@ -439,6 +465,15 @@ function render(){
     ctx.fillRect(-6,-12,5,5);
     ctx.restore();
   }
+  // explosion rings (chain blasts)
+  for(const b of booms){
+    ctx.save();ctx.globalAlpha=Math.max(0,b.life/b.maxLife)*0.85;
+    ctx.strokeStyle='#ffd23f';ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.stroke();
+    ctx.strokeStyle='rgba(174,226,255,0.8)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r*0.7,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+  }
   // drag line
   if(G.dragBlock){
     ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=3;ctx.setLineDash([10,8]);
@@ -529,6 +564,28 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
+/* ===== MUSIC (Jeff 2026-10-13): 'Crystal Cascade' — Ice Rink's own track.
+   Synthesized Web Audio only. 122 BPM, sparkling sine-bell arpeggios over a soft
+   pulsing bass — icy and playful, with an 8th-note shaker drive for intensity.
+   Starts on first interaction; controlled by the existing 🔊 mute. ===== */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:122,
+ BASS:[45,0,0,0,0,0,45,0, 41,0,0,0,0,0,41,0, 48,0,0,0,0,0,48,0, 43,0,0,0,0,0,43,0],
+ LEAD:[81,84,88,84,81,84,88,93, 89,93,89,84,89,93,96,93, 84,88,91,88,84,88,91,88, 91,95,91,88,86,84,81,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.3,'triangle',0.07,d);
+  const l=this.LEAD[s];if(l){tone(_mf(l),_mf(l),0.24,'sine',0.055,d);tone(_mf(l)*2,_mf(l)*2,0.12,'sine',0.016,d);} // bell + harmonic sparkle
+  if(s%8===0)tone(110,45,0.13,'sine',0.12,d); // soft kick, once a bar
+  if(s%8===4)tone(130,50,0.13,'sine',0.1,d);
+  noise(0.03,0.02,d,7000); // shaker hat every 8th
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 updateScoreUI();
 requestAnimationFrame(loop);
 </script>

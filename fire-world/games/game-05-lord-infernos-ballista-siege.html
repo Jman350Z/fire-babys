@@ -7,7 +7,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Lord Inferno's Ballista Siege — by Jman350Z & fire team</title>
-<meta name="description" content="Man the sky-ballista! Blast through rock storms in this vertical shooter. A Fire Babys game.">
+<meta name="description" content="Man the sky-ballista! Blast the bad guys' sky-ships over the Fire Babys home world in this vertical shooter. A Fire Babys game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -76,7 +76,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🏹 LORD INFERNO'S BALLISTA SIEGE</h1>
-<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge rocks, blast enemies, grab power-ups!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><div id="levelSel"></div></div>
+<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge the bad guys' <b>sky-ships</b>, blast them out of the Fire Babys home-world skies, grab power-ups, and take down each level's <b>giant boss ship</b>!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never aim anything at a fire — get away and call for help!</div>
 <button id="obtn">▶ PLAY</button>
@@ -182,12 +182,88 @@ function spawnEnemy(){
   else Object.assign(base,{type:'tank',hp:4+lvl,vy:70+lvl*10,r:34,score:200});
   G.enemies.push(base);
 }
+/* ===== Jeff 2026-10-13: sky-ships + pilots, giant boss ships, home-world setting =====
+   Every level flies over a DIFFERENT part of the Fire Babys home world, with a
+   different enemy fleet palette and a DIFFERENT giant boss ship + boss pilot. */
+const LEVEL_THEMES=[
+ {place:'VOLCANO SLOPES',   sky:['#2a0d1e','#7a1e10','#c84818'], land:'#1c0a10', shape:'peaks',  hull:'#a83c1e',accent:'#ffd23f',pilot:'#8a5a3a'},
+ {place:'FROSTBITE KINGDOM',sky:['#0d2038','#2a5a7a','#7ab8d8'], land:'#12283a', shape:'peaks',  hull:'#5a8ab8',accent:'#aee8ff',pilot:'#c8d8e8'},
+ {place:'BUBBLE BAY KINGDOM',sky:['#0a2a3a','#14606a','#2a9a8a'],land:'#0a2430', shape:'waves',  hull:'#2a7a8a',accent:'#7ff0d8',pilot:'#6ab8a8'},
+ {place:'CINDER DESERT',    sky:['#2a1408','#8a4a10','#e89a3a'], land:'#241205', shape:'dunes',  hull:'#c88a2a',accent:'#ff5a2a',pilot:'#a87a4a'},
+ {place:'STORM SPIRE KINGDOM',sky:['#180a2a','#3a2a6a','#6a5aaa'],land:'#140a24', shape:'spires', hull:'#6a5aaa',accent:'#c8b8ff',pilot:'#9a8ac8'},
+ {place:'EMBER FOREST',     sky:['#0d2408','#2a5a1a','#6aaa3a'], land:'#0a1c05', shape:'trees',  hull:'#4a7a2a',accent:'#ffd23f',pilot:'#7a9a4a'},
+ {place:'CRYSTAL RIM',      sky:['#24082a','#6a1e6a','#c85ab8'], land:'#1c051c', shape:'spires', hull:'#a84a9a',accent:'#ffb8f0',pilot:'#c88ac0'},
+ {place:'LAVA FIELDS',      sky:['#2a0505','#7a1408','#e84a10'], land:'#1c0303', shape:'peaks',  hull:'#8a2a1a',accent:'#ff8a2a',pilot:'#b86a4a'},
+ {place:'ASHEN WASTES',     sky:['#1a1a1e','#4a4a55','#8a8a98'], land:'#101013', shape:'dunes',  hull:'#6a6a78',accent:'#ffb347',pilot:'#9a9aa5'},
+ {place:"LORD INFERNO'S KEEP",sky:['#30060a','#8a0d14','#ff6a1a'],land:'#20040a', shape:'spires', hull:'#b81e2a',accent:'#ffd23f',pilot:'#d88a6a'}
+];
+const BOSS_THEMES=[
+ {name:'CAPTAIN CINDERCLAW', hull:'#a83c1e',accent:'#ffd23f',skin:'#c86a3a',hat:'cap'},
+ {name:'ADMIRAL ICEBERG',    hull:'#5a8ab8',accent:'#aee8ff',skin:'#b8d0e0',hat:'crown'},
+ {name:'COMMODORE BUBBLES',  hull:'#2a7a8a',accent:'#7ff0d8',skin:'#5aa898',hat:'hood'},
+ {name:'GENERAL SANDSTORM',  hull:'#c88a2a',accent:'#ff5a2a',skin:'#a87a4a',hat:'turban'},
+ {name:'BARON VON VOLT',     hull:'#6a5aaa',accent:'#ffe94a',skin:'#9a8ac8',hat:'horns'},
+ {name:'COLONEL MOSSBACK',   hull:'#4a7a2a',accent:'#ffd23f',skin:'#7a9a4a',hat:'cap'},
+ {name:'DUCHESS GEMWRATH',   hull:'#a84a9a',accent:'#ffb8f0',skin:'#c88ac0',hat:'crown'},
+ {name:'WARLORD MAGMAR',     hull:'#8a2a1a',accent:'#ff8a2a',skin:'#b86a4a',hat:'horns'},
+ {name:'MARSHAL ASHFALL',    hull:'#6a6a78',accent:'#ffb347',skin:'#9a9aa5',hat:'hood'},
+ {name:'LORD INFERNO',       hull:'#b81e2a',accent:'#ffd23f',skin:'#e88a5a',hat:'crown'}
+];
+function theme(){return LEVEL_THEMES[(G.level-1)%10];}
+function bossTheme(){return BOSS_THEMES[(G.level-1)%10];}
+/* little bad-guy pilot: round head, angry brows, frown, themed hat */
+function drawPilot(x,y,r,skin,hat,accent){
+  ctx.fillStyle=skin;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#1a0d08';ctx.lineWidth=Math.max(1.5,r*0.16);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(x-r*0.75,y-r*0.45);ctx.lineTo(x-r*0.15,y-r*0.1);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x+r*0.75,y-r*0.45);ctx.lineTo(x+r*0.15,y-r*0.1);ctx.stroke();
+  ctx.fillStyle='#14100c';
+  ctx.beginPath();ctx.arc(x-r*0.32,y+r*0.08,r*0.17,0,Math.PI*2);ctx.arc(x+r*0.32,y+r*0.08,r*0.17,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x,y+r*0.72,r*0.4,Math.PI*1.15,Math.PI*1.85);ctx.stroke(); // frown
+  ctx.fillStyle=accent||'#ffd23f';
+  if(hat==='crown'){ctx.beginPath();ctx.moveTo(x-r*0.8,y-r*0.75);ctx.lineTo(x-r*0.8,y-r*1.25);ctx.lineTo(x-r*0.3,y-r*0.9);ctx.lineTo(x,y-r*1.3);ctx.lineTo(x+r*0.3,y-r*0.9);ctx.lineTo(x+r*0.8,y-r*1.25);ctx.lineTo(x+r*0.8,y-r*0.75);ctx.closePath();ctx.fill();}
+  else if(hat==='horns'){ctx.beginPath();ctx.moveTo(x-r*0.8,y-r*0.5);ctx.quadraticCurveTo(x-r*1.3,y-r*1.1,x-r*0.7,y-r*1.25);ctx.quadraticCurveTo(x-r*0.75,y-r*0.8,x-r*0.45,y-r*0.6);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(x+r*0.8,y-r*0.5);ctx.quadraticCurveTo(x+r*1.3,y-r*1.1,x+r*0.7,y-r*1.25);ctx.quadraticCurveTo(x+r*0.75,y-r*0.8,x+r*0.45,y-r*0.6);ctx.closePath();ctx.fill();}
+  else if(hat==='hood'){ctx.strokeStyle=accent||'#888';ctx.lineWidth=r*0.5;ctx.beginPath();ctx.arc(x,y-r*0.1,r*0.95,Math.PI*1.05,Math.PI*1.95);ctx.stroke();}
+  else if(hat==='turban'){ctx.beginPath();ctx.ellipse(x,y-r*0.8,r*0.95,r*0.5,0,0,Math.PI*2);ctx.fill();}
+  else{ctx.fillRect(x-r*0.85,y-r*1.05,r*1.7,r*0.4);ctx.fillRect(x-r*0.6,y-r*1.4,r*1.2,r*0.4);} // cap
+}
 function spawnBoss(){
-  const lvl=G.level;
-  G.boss={x:W/2,y:-80,vy:60,hp:20+lvl*12,maxHp:20+lvl*12,r:55,t:0,fireT:1.5,dead:false,type:'boss',score:1000};
+  const lvl=G.level,bt=bossTheme();
+  G.boss={x:W/2,y:-90,vy:60,hp:20+lvl*12,maxHp:20+lvl*12,r:55,t:0,fireT:1.5,volley:0,dead:false,type:'boss',score:1000};
   G.enemies.push(G.boss);
-  spawnText(W/2,H*0.3,'⚠️ BOSS!','#ff4a00');
+  spawnText(W/2,H*0.3,'⚠️ BOSS: '+bt.name+'!','#ff4a00');
+  spawnText(W/2,H*0.38,theme().place,'#ffd23f');
   sfx.hit();
+}
+/* Boss attack pattern is DIFFERENT every level (Jeff 2026-10-13):
+   L1 fan · L2 wide fan · L3 aimed shots · L4 spiral · L5 fan+aimed alternating ·
+   L6 aimed triple-bursts · L7 fast spiral · L8 ring burst + fan · L9 aimed+spiral ·
+   L10 Lord Inferno rotates fan / aimed / spiral / ring by volley. */
+function bossBolt(bo,a,spd){
+  G.enemies.push({x:bo.x,y:bo.y+40,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd+60,
+    hp:1,r:12,dead:false,t:0,type:'bolt',score:25});
+}
+function bossFire(bo){
+  const lvl=G.level;bo.volley++;
+  bo.fireT=Math.max(0.6,1.6-lvl*0.15);
+  const fan=(n,spread,spd)=>{for(let i=0;i<n;i++){const a=Math.PI/2+(i-(n-1)/2)*spread;bossBolt(bo,a,spd);}};
+  const aimed=(n,spd)=>{const base=Math.atan2(G.py-bo.y,G.px-bo.x);for(let i=0;i<n;i++)bossBolt(bo,base+(i-(n-1)/2)*0.14,spd);};
+  const spiral=(n,spd)=>{for(let i=0;i<n;i++){const a=Math.PI/2+Math.sin(bo.t*2.6)*0.9+(i-(n-1)/2)*0.5;bossBolt(bo,a,spd);}};
+  const ring=(n,spd)=>{for(let i=0;i<n;i++){const a=i/n*Math.PI*2+bo.t;bossBolt(bo,a,spd);}};
+  switch(lvl){
+    case 1: fan(3+lvl,0.35,180);break;
+    case 2: fan(6,0.42,180);break;
+    case 3: aimed(2,240);break;
+    case 4: spiral(3,190);bo.fireT=0.8;break;
+    case 5: bo.volley%2?fan(6,0.35,185):aimed(2,235);break;
+    case 6: aimed(3,250);bo.fireT=1.0;break;
+    case 7: spiral(4,200);bo.fireT=0.62;break;
+    case 8: bo.volley%3===0?ring(8,130):fan(6,0.38,185);break;
+    case 9: bo.volley%2?aimed(3,250):spiral(4,200);bo.fireT=0.85;break;
+    default:{const p=bo.volley%4;if(p===0)fan(8,0.36,195);else if(p===1)aimed(3,255);else if(p===2)spiral(4,205);else ring(10,135);bo.fireT=0.95;}
+  }
+  sfx.shoot();
 }
 function spawnPickup(x,y){
   const types=['hp','rapid','spread','shield','nova'];
@@ -249,21 +325,14 @@ function update(dt){
     if(bo.y<140)bo.y+=bo.vy*dt;
     else{bo.x=W/2+Math.sin(bo.t*1.2)*W*0.3;
       bo.fireT-=dt;
-      if(bo.fireT<=0){bo.fireT=Math.max(0.6,1.6-G.level*0.15);
-        for(let i=0;i<3+G.level;i++){
-          const a=Math.PI/2+(i-(3+G.level-1)/2)*0.35;
-          G.enemies.push({x:bo.x,y:bo.y+40,vx:Math.cos(a)*180,vy:Math.sin(a)*180+100,
-            hp:1,r:12,dead:false,t:0,type:'bolt',score:25});
-        }
-        sfx.shoot();
-      }
+      if(bo.fireT<=0)bossFire(bo);
     }
   }
   for(const e of G.enemies){
     if(e.dead||e===G.boss)continue;
     e.t+=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;
     if(e.type==='dart')e.x+=Math.sin(e.t*5)*120*dt;
-    if(e.y>H+60)e.dead=true;
+    if(e.y>H+60||(e.type==='bolt'&&(e.y<-90||e.x<-70||e.x>W+70)))e.dead=true;
     // hit player
     if(G.invuln<=0&&Math.hypot(e.x-G.px,e.y-G.py)<e.r+22){
       e.dead=true;damagePlayer(e.type==='tank'?25:15);
@@ -305,7 +374,7 @@ function killEnemy(e){
   G.score+=Math.round(pts);updateScoreUI();
   G.waveKills++;
   sfx.explode();addTrauma(e.type==='boss'?0.6:0.25);
-  explode(e.x,e.y,e.type==='bolt'?'#ff4a00':'#8a6a4a',e.type==='boss'?30:12);
+  explode(e.x,e.y,e.type==='bolt'?'#ff4a00':'#ff8a3a',e.type==='boss'?30:12);
   spawnText(e.x,e.y-20,'+'+Math.round(pts));
   if(Math.random()<0.18)spawnPickup(e.x,e.y);
   if(e.type==='boss'){
@@ -389,20 +458,36 @@ document.getElementById('levelSel').innerHTML=h;})();
 
 /* render */
 function render(){
+  const th=theme();
+  // HOME WORLD sky (ember dusk, tinted per kingdom) — NOT outer space
   const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#0d1a2a');sky.addColorStop(0.5,'#1a2a4a');sky.addColorStop(1,'#3a1a2a');
+  sky.addColorStop(0,th.sky[0]);sky.addColorStop(0.55,th.sky[1]);sky.addColorStop(1,th.sky[2]);
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-  drawEmbers();
-  // stars
-  ctx.fillStyle='rgba(255,255,255,0.5)';
-  for(let i=0;i<40;i++){
-    const sx=(i*197)%W,sy=(i*131+G.time*30)%H;
-    ctx.globalAlpha=0.2+((i*37)%50)/100;
-    ctx.fillRect(sx,sy,2,2);
+  // the great volcano on the horizon (home-world landmark), slow parallax
+  const vOff=(G.time*12)%(H*1.4);
+  ctx.fillStyle=th.land;
+  for(let k=-1;k<2;k++){
+    const vy=H*0.9-vOff+k*H*1.4;
+    if(vy<-H*0.4||vy>H+H*0.4)continue;
+    ctx.beginPath();ctx.moveTo(W*0.18,vy);ctx.lineTo(W*0.5,vy-H*0.34);ctx.lineTo(W*0.82,vy);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ff4a00';ctx.beginPath();ctx.ellipse(W*0.5,vy-H*0.335,W*0.045,H*0.012,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=th.land;
   }
-  ctx.globalAlpha=1;
-  // clouds scrolling
-  ctx.fillStyle='rgba(100,120,160,0.15)';
+  // scrolling kingdom silhouettes along the bottom (shape varies by level)
+  const gOff=(G.time*130)%110;
+  ctx.fillStyle=th.land;
+  ctx.fillRect(0,H-46,W,46);
+  for(let i=-1;i<W/110+2;i++){
+    const sx=i*110-gOff,base=H-46;
+    if(th.shape==='peaks'){ctx.beginPath();ctx.moveTo(sx,base);ctx.lineTo(sx+40,base-52-((i*37)%26));ctx.lineTo(sx+80,base);ctx.closePath();ctx.fill();}
+    else if(th.shape==='spires'){ctx.fillRect(sx+22,base-64-((i*29)%30),16,64+((i*29)%30));ctx.beginPath();ctx.moveTo(sx+16,base-64-((i*29)%30));ctx.lineTo(sx+30,base-84-((i*29)%30));ctx.lineTo(sx+44,base-64-((i*29)%30));ctx.closePath();ctx.fill();}
+    else if(th.shape==='trees'){ctx.beginPath();ctx.arc(sx+40,base-38,26+((i*23)%10),0,Math.PI*2);ctx.fill();ctx.fillRect(sx+36,base-30,8,30);}
+    else if(th.shape==='waves'){ctx.beginPath();ctx.ellipse(sx+50,base+4,62,16,0,Math.PI,Math.PI*2);ctx.fill();}
+    else{ctx.beginPath();ctx.ellipse(sx+55,base,58,20+((i*31)%12),0,Math.PI,Math.PI*2);ctx.fill();} // dunes
+  }
+  drawEmbers();
+  // drifting clouds over the kingdoms
+  ctx.fillStyle='rgba(255,190,140,0.13)';
   for(let i=0;i<5;i++){
     const cx=(i*311+G.time*40)%(W+200)-100,cy=(i*173)%(H*0.6);
     ctx.beginPath();ctx.ellipse(cx,cy,70,22,0,0,Math.PI*2);ctx.fill();
@@ -420,48 +505,94 @@ function render(){
     ctx.restore();
   }
   ctx.textBaseline='alphabetic';
-  // enemies
+  // enemies: ALL are flying sky-ships with a little bad-guy pilot (Jeff 2026-10-13)
+  const thE=theme();
   for(const e of G.enemies){
     ctx.save();ctx.translate(e.x,e.y);
+    const bob=Math.sin(e.t*3+e.x*0.05)*2;
     if(e.type==='boss'){
-      // boss: big demon rock
-      const g=ctx.createRadialGradient(-15,-15,10,0,0,e.r);
-      g.addColorStop(0,'#8a3a2a');g.addColorStop(1,'#3a1a1a');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#ff4a00';
-      ctx.beginPath();ctx.arc(-18,-10,8,0,Math.PI*2);ctx.arc(18,-10,8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#2a0a0a';
-      ctx.beginPath();ctx.arc(-18,-10,4,0,Math.PI*2);ctx.arc(18,-10,4,0,Math.PI*2);ctx.fill();
+      const bt=bossTheme(),R=e.r;
+      ctx.translate(0,bob);
+      // GIANT boss ship: wide hull, wing cannons, big dome with the angry boss inside
+      const bg2=ctx.createLinearGradient(0,-R,0,R);
+      bg2.addColorStop(0,bt.hull);bg2.addColorStop(1,'#1c0a06');
+      ctx.fillStyle=bg2;
+      ctx.beginPath();ctx.ellipse(0,R*0.25,R*1.55,R*0.62,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=bt.accent;ctx.lineWidth=4;ctx.stroke();
+      // wings + cannons
+      ctx.fillStyle=bt.hull;
+      ctx.beginPath();ctx.moveTo(-R*1.2,-R*0.1);ctx.lineTo(-R*1.85,R*0.45);ctx.lineTo(-R*1.1,R*0.55);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(R*1.2,-R*0.1);ctx.lineTo(R*1.85,R*0.45);ctx.lineTo(R*1.1,R*0.55);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#2a2a33';
+      ctx.fillRect(-R*1.75,R*0.4,10,20);ctx.fillRect(R*1.75-10,R*0.4,10,20);
+      // engine flames
+      const bf=12+Math.sin(G.time*26)*5;
+      const bfg=ctx.createLinearGradient(0,-R*0.5,0,-R*0.5-bf*2);
+      bfg.addColorStop(0,'#ffd23f');bfg.addColorStop(1,'rgba(255,106,0,0)');
+      ctx.fillStyle=bfg;
+      ctx.beginPath();ctx.moveTo(-R*0.5,-R*0.42);ctx.lineTo(-R*0.2,-R*0.42);ctx.lineTo(-R*0.35,-R*0.42-bf*2);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(R*0.2,-R*0.42);ctx.lineTo(R*0.5,-R*0.42);ctx.lineTo(R*0.35,-R*0.42-bf*2);ctx.closePath();ctx.fill();
+      // cockpit dome + THE BOSS (angry, sitting in the ship)
+      ctx.fillStyle='rgba(190,230,255,0.35)';
+      ctx.beginPath();ctx.arc(0,-R*0.28,R*0.62,Math.PI,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=bt.accent;ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(0,-R*0.28,R*0.62,Math.PI,Math.PI*2);ctx.stroke();
+      drawPilot(0,-R*0.34,R*0.42,bt.skin,bt.hat,bt.accent);
+      // boss name tag
+      ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(-R*0.95,R*0.98,R*1.9,17);
+      ctx.fillStyle=bt.accent;ctx.font='900 11px system-ui';ctx.textAlign='center';
+      ctx.fillText(bt.name,0,R*0.98+13);ctx.textAlign='left';
       // hp bar
-      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-e.r,-e.r-16,e.r*2,8);
-      ctx.fillStyle='#ff4a00';ctx.fillRect(-e.r,-e.r-16,e.r*2*(e.hp/e.maxHp),8);
-      // spikes
-      ctx.fillStyle='#5a2a1a';
-      for(let i=0;i<8;i++){const a=i*Math.PI/4+e.t;
-        ctx.beginPath();ctx.moveTo(Math.cos(a)*e.r*0.9,Math.sin(a)*e.r*0.9);
-        ctx.lineTo(Math.cos(a)*e.r*1.25,Math.sin(a)*e.r*1.25);
-        ctx.lineTo(Math.cos(a+0.3)*e.r*0.9,Math.sin(a+0.3)*e.r*0.9);ctx.fill();}
+      ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-R,-R-18,R*2,8);
+      ctx.fillStyle='#ff4a00';ctx.fillRect(-R,-R-18,R*2*(e.hp/e.maxHp),8);
     }else if(e.type==='dart'){
-      ctx.rotate(e.t*3);
-      ctx.fillStyle='#6a4a8a';
-      ctx.beginPath();ctx.moveTo(0,-e.r);ctx.lineTo(e.r*0.7,e.r);ctx.lineTo(-e.r*0.7,e.r);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#ff4a00';ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();
+      // DART SHIP: sleek, fast, pointed nose down, pilot in a slit cockpit
+      ctx.translate(0,bob);
+      const dg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      dg.addColorStop(0,thE.hull);dg.addColorStop(1,'#140a20');
+      ctx.fillStyle=dg;
+      ctx.beginPath();ctx.moveTo(0,e.r*1.25);ctx.lineTo(e.r*0.72,-e.r*0.7);ctx.lineTo(0,-e.r*0.35);ctx.lineTo(-e.r*0.72,-e.r*0.7);ctx.closePath();ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='rgba(190,230,255,0.5)';
+      ctx.beginPath();ctx.ellipse(0,-e.r*0.25,e.r*0.3,e.r*0.42,0,0,Math.PI*2);ctx.fill();
+      drawPilot(0,-e.r*0.25,e.r*0.3,thE.pilot,'hood',thE.accent);
+      const df=8+Math.sin(G.time*30+e.x)*3;
+      ctx.fillStyle='rgba(255,160,40,0.8)';
+      ctx.beginPath();ctx.moveTo(-4,-e.r*0.72);ctx.lineTo(4,-e.r*0.72);ctx.lineTo(0,-e.r*0.72-df*1.6);ctx.closePath();ctx.fill();
     }else if(e.type==='tank'){
-      const g=ctx.createRadialGradient(-10,-10,5,0,0,e.r);
-      g.addColorStop(0,'#7a6a5a');g.addColorStop(1,'#3a2a1a');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#ff4a00';ctx.lineWidth=3;
-      ctx.beginPath();ctx.arc(0,0,e.r*0.6,0,Math.PI*2);ctx.stroke();
+      // HAULER SHIP: big bulky freighter, twin domes, pilot up front
+      ctx.translate(0,bob);
+      const tg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      tg.addColorStop(0,thE.hull);tg.addColorStop(1,'#160d06');
+      ctx.fillStyle=tg;
+      ctx.beginPath();ctx.ellipse(0,0,e.r*1.25,e.r*0.85,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='rgba(20,12,6,0.6)';
+      ctx.fillRect(-e.r*1.1,-e.r*0.1,e.r*0.5,e.r*0.5);ctx.fillRect(e.r*0.6,-e.r*0.1,e.r*0.5,e.r*0.5); // cargo pods
+      ctx.fillStyle='rgba(190,230,255,0.45)';
+      ctx.beginPath();ctx.arc(0,-e.r*0.3,e.r*0.42,Math.PI,Math.PI*2);ctx.fill();
+      drawPilot(0,-e.r*0.32,e.r*0.3,thE.pilot,'cap',thE.accent);
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(0,e.r*0.28,e.r*0.5,0.2,Math.PI-0.2);ctx.stroke();
     }else if(e.type==='bolt'){
+      // boss fire-bolt (a shot, not a ship)
       ctx.fillStyle='#ff6a00';
       ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(0,0,e.r*0.5,0,Math.PI*2);ctx.fill();
     }else{
-      const g=ctx.createRadialGradient(-8,-8,4,0,0,e.r);
-      g.addColorStop(0,'#9a8a7a');g.addColorStop(1,'#4a3a2a');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,e.r,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(0,0,0,.3)';
-      ctx.beginPath();ctx.arc(-8,-6,5,0,Math.PI*2);ctx.fill();
+      // SCOUT SHIP: little saucer with the pilot right on top in a dome
+      ctx.translate(0,bob);
+      const sg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      sg.addColorStop(0,thE.hull);sg.addColorStop(1,'#160d08');
+      ctx.fillStyle=sg;
+      ctx.beginPath();ctx.ellipse(0,e.r*0.25,e.r*1.15,e.r*0.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=2;ctx.stroke();
+      // blinking rim lights
+      ctx.fillStyle=(Math.sin(G.time*8+e.x)>0)?thE.accent:'#ff4a4a';
+      for(let li=-1;li<=1;li++){ctx.beginPath();ctx.arc(li*e.r*0.62,e.r*0.32,3,0,Math.PI*2);ctx.fill();}
+      ctx.fillStyle='rgba(190,230,255,0.45)';
+      ctx.beginPath();ctx.arc(0,-e.r*0.12,e.r*0.52,Math.PI,Math.PI*2);ctx.fill();
+      drawPilot(0,-e.r*0.18,e.r*0.36,thE.pilot,'cap',thE.accent);
     }
     ctx.restore();
   }
@@ -555,6 +686,31 @@ function loop(t){
   render();
   requestAnimationFrame(loop);
 }
+/* ===== MUSIC (Jeff 2026-10-13): 'Siege of the Ember Keep' — Ballista Siege's
+   own track. Synthesized Web Audio only. 98 BPM, D minor: low saw drones, detuned
+   war-pads each bar, a dramatic square-wave war horn lead, heavy syncopated drums.
+   Starts on first interaction; controlled by the existing 🔊 mute. ===== */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:98,
+ BASS:[38,0,0,0,38,0,41,0, 34,0,0,0,34,0,38,0, 41,0,0,0,41,0,45,0, 33,0,0,0,40,0,45,0],
+ PAD:[50,46,53,45], // Dm, Bb, F, A roots (one pad chord per bar)
+ LEAD:[74,0,0,77,0,76,74,0, 72,0,74,0,0,0,69,0, 77,0,0,81,0,79,77,0, 76,0,74,0,72,0,74,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.16){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  if(s%8===0){const p=this.PAD[s/8]; // war pad: root + fifth, two detuned saws
+   tone(_mf(p),_mf(p),1.6,'sawtooth',0.02,d);tone(_mf(p)*1.005,_mf(p)*1.005,1.6,'sawtooth',0.02,d);
+   tone(_mf(p+7),_mf(p+7),1.6,'triangle',0.028,d);}
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.34,'sawtooth',0.075,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.3,'square',0.045,d);
+  if(s%8===0||s%8===3)tone(110,38,0.16,'sine',0.17,d); // war-drum kick
+  if(s%8===2||s%8===6){noise(0.1,0.09,d,1600);tone(180,110,0.08,'triangle',0.05,d);} // snare
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 updateScoreUI();
 requestAnimationFrame(loop);
 </script>
