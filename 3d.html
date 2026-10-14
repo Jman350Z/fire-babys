@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-5NCPLkl89iE3JWI7zMgKrmxLGwJPeXGBV/WMixBFtts=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-EMMglCzGNHlBfB0hlhjFw+zAAUqjpVeb+r3WnGDrDd8=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-F6gojk+upopx6RobQfQ3xAVgAw5E7vJKjHRFGiRkVD0=' 'sha256-wV4E/WlR5hhxsE3bbqjuX5nudpgX7sus17tMoFi42T8='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-peanl+oL0SIS6JZ2rS7QUGRBoKLITxrMQvlWYRueB3o=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
 <script src="https://firebabys.io/rating.js"></script>
@@ -273,7 +273,12 @@
     <input id="mpname" maxlength="14" placeholder="e.g. Blaze Fan" autocomplete="off">
     <div class="clabel">GAME MODE</div>
     <div id="mpmodesel" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;">
-      <button class="mpmodebtn on" data-mode="catch">🌊 SPLASH</button>
+      <button class="mpmodebtn on" data-mode="coop">🤝 CO-OP</button>
+      <button class="mpmodebtn" data-mode="2v2">⚔️ 2v2</button>
+      <button class="mpmodebtn" data-mode="4v4">⚔️ 4v4</button>
+      <button class="mpmodebtn" data-mode="6v6">⚔️ 6v6</button>
+      <button class="mpmodebtn" data-mode="7v7">⚔️ 7v7</button>
+      <button class="mpmodebtn" data-mode="15v15">⚔️ 15v15</button>
     </div>
     <button class="bigbtn" id="mpcreatebtn">CREATE LOBBY 🔥</button><br>
     <div class="clabel" style="margin-top:12px">— OR JOIN —</div>
@@ -399,7 +404,7 @@
   "use strict";
 
   var MAX_PLAYERS = 30;
-  var MODES = { "2v2": 4, "4v4": 8, "6v6": 12, "7v7": 14, "15v15": 30, "catch": 30 };
+  var MODES = { "2v2": 4, "4v4": 8, "6v6": 12, "7v7": 14, "15v15": 30 };
   var MOVE_HZ = 12;
   var PING_INTERVAL_MS = 20000;
   var RECONNECT_DELAYS = [1000, 2000, 5000, 10000]; // backoff steps
@@ -2865,10 +2870,15 @@ function avgSquadLevel(){
 
 /* ---------- mode hub ---------- */
 var MODES=[
-  {id:'splash', icon:'\uD83C\uDF0A', name:'SPLASH', desc:'Two teams. Two pools. Dunk your rivals! Last team standing wins.', start:startSplash}
+  {id:'story', icon:'\U0001F4D6', name:'STORY MODE', desc:'Six towns. One journey. Save the land.', start:startStoryMode},
+  {id:'free', icon:'\U0001F9ED', name:'FREE MODE', desc:'Roam the whole world. No gates, no rules.', start:startFreeMode},
+  {id:'practice', icon:'\U0001F3AF', name:'PRACTICE', desc:'Drill the Extinguish Matchup Matrix.', start:startPractice},
+  {id:'tournament', icon:'\U0001F3C6', name:'TOURNAMENTS', desc:'8-round bracket. Win the trophy.', start:startTournament},
+  {id:'rescue', icon:'\U0001F6A8', name:'RESCUE MODE', desc:'Save 5 trapped ember-pups before time runs out!', start:startRescue},
+  {id:'survival', icon:'\U0001F480', name:'SURVIVAL', desc:'Endless waves. How long can the crew last?', start:startSurvival},
+  {id:'leaderboard', icon:'\U0001F3C5', name:'LEADERBOARDS', desc:'Top Tamers & Tournament Champions.', start:showLeaderboards}
 ];
-// SPLASH ONLY (2026-10-05, Jeff's order): story/free/practice/tournament/rescue/survival
-// removed from the hub. Originals saved in workspace/fire-babys-modes-backup/2026-10-05/.
+// SPLASH dunk mode removed 2026-10-13 (Jeff's order — idea archived in workspace/splash-dunk-archive/).
 function renderHub(){
   var wrap=document.getElementById('hubbtns');
   wrap.innerHTML='';
@@ -2888,132 +2898,21 @@ function renderHub(){
     document.getElementById('hubov').style.display='none'; openCreation(); });
   wrap.appendChild(pb);
 }
-/* SPLASH ONLY (2026-10-05): boots the player straight into a SPLASH match.
-   Opens the multiplayer menu with SPLASH preselected, auto-creates a lobby,
-   fills it with bots, readies up, and starts. */
-function startSplash(){
-  try{ hideHub(); }catch(e){}
-  // Wait for MP system to be initialized before driving the UI
-  var _ssTries = 0;
-  var _ssIv = setInterval(function(){
-    _ssTries++;
-    var _mpOk = false;
-    try { _mpOk = !!window._mpInitDone && typeof startMultiplayer === 'function'; } catch(e){}
-    if(!_mpOk){
-      if(_ssTries > 30){ // 15s timeout: try force-init, then proceed anyway
-        clearInterval(_ssIv);
-        try { if(typeof mpInit === 'function' && !window._mpInitDone) mpInit(); } catch(e){}
-        try { if(typeof startMultiplayer === 'function') startMultiplayer(); } catch(e){}
-        // continue with the rest of the flow below via a direct call
-        _startSplashContinue();
-      }
-      return;
-    }
-    clearInterval(_ssIv);
-    _startSplashContinue();
-  }, 500);
-}
-function _startSplashContinue(){
-    try{ if(typeof startMultiplayer==='function') startMultiplayer(); }catch(e){}
-    try{
-      var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
-      if(cbtn) cbtn.click();
-    }catch(e){}
-    setTimeout(function(){
-      try{ document.getElementById('mpmenuov').style.display='none'; }catch(e){}
-      _cdlClick('#mpcreatebtn');
-      var iv2 = setInterval(function(){
-        var lov = document.getElementById('mplobbyov');
-        if(!(lov && lov.style.display === 'flex')) return;
-        clearInterval(iv2);
-        try {
-          var bf = document.getElementById('mpbotfill');
-          if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
-        } catch(e){}
-        _cdlClick('#mpreadybtn');
-        var iv3 = setInterval(function(){
-          var sb = document.getElementById('mpstartbtn');
-          if(sb && sb.style.display !== 'none'){ clearInterval(iv3); sb.click(); }
-        }, 1000);
-      }, 1000);
-    }, 900);
-}
 function showHub(){
-  // SPLASH ONLY (2026-10-05, Jeff's order): the hub is gone. Every path that
-  // used to return here now drops the player straight into a SPLASH match.
   state='HUB'; gameMode='hub';
-  ['victoryov','defeatov','lbov','hubov'].forEach(function(id){ try{ document.getElementById(id).style.display='none'; }catch(e){} });
-  try{ refreshNamePill(); }catch(e){}
-  startSplash();
-}
-/* Deep-link: 3d.html?mode=catch (alias ?mode=splash) — from the homepage PLAY SPLASH button.
-   The multiplayer code lives inside an IIFE, so its functions are NOT global.
-   The only global entry is window.FBMultiplayer.start(); everything else is
-   driven by clicking the real MP menu buttons (mode select, create, ready,
-   start) exactly like a player would. */
-var _catchDL = false;
-function _cdlClick(sel){
-  try{
-    var el = document.querySelector(sel);
-    if(el){ el.click(); return true; }
-  }catch(e){}
-  return false;
-}
-function catchDeepLink(){
-  var q = null;
-  try { q = new URLSearchParams(window.location.search).get('mode'); } catch(e){}
-  var ql = q ? q.toLowerCase() : '';
-  // SPLASH ONLY (Jeff's order): no ?mode param defaults to SPLASH too.
-  // Every entry point goes straight to a SPLASH match.
-  if(ql !== 'catch' && ql !== 'splash') ql = 'splash';
-  _catchDL = true;
-  var t0 = Date.now();
-  var iv = setInterval(function(){
-    var fb = null;
-    try { fb = window.FBMultiplayer; } catch(e){}
-    if(!fb || typeof fb.start !== 'function'){
-      // timeout after 15s: fall back to normal hub flow
-      if(Date.now() - t0 > 15000){
-        clearInterval(iv);
-        _catchDL = false;
-        try { if(typeof showHub === 'function') showHub(); } catch(e){}
-      }
-      return;
-    }
-    clearInterval(iv);
-    try { if(typeof fb.start === 'function') fb.start(); } catch(e){}
-    setTimeout(function(){
-      var cbtn = document.querySelector('.mpmodebtn[data-mode="catch"]');
-      if(cbtn) cbtn.click();
-      setTimeout(function(){
-        _cdlClick('#mpcreatebtn');
-        var t1 = Date.now();
-        var iv2 = setInterval(function(){
-          var lov = document.getElementById('mplobbyov');
-          var lobbyOpen = lov && lov.style.display === 'flex';
-          if(!lobbyOpen){
-            return;
-          }
-          clearInterval(iv2);
-          try {
-            var bf = document.getElementById('mpbotfill');
-            if(bf && !bf.checked){ bf.checked = true; bf.dispatchEvent(new Event('change')); }
-          } catch(e){}
-          _cdlClick('#mpreadybtn');
-          var t2 = Date.now();
-          var iv3 = setInterval(function(){
-            var sb = document.getElementById('mpstartbtn');
-            var vis = !!(sb && sb.style.display !== 'none');
-            if(vis){
-              clearInterval(iv3);
-              sb.click();
-              return;
-            }
-          }, 1000);
-        }, 1000);
-      }, 900);
-    }, 900);
-  }, 500);
+  if(!player) createSquad(0, 40); // first entry from title: spawn the squad before clearArena reads it
+  clearArena(); hideStronghold();
+  ['victoryov','defeatov','lbov'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('objbanner').style.display='none';
+  document.getElementById('expbar').style.display='none';
+  showJoy(false);
+  setObjective(null);
+  renderHub();
+  refreshNamePill();
+  document.getElementById('hubov').style.display='flex';
+  // SPLASH removed (2026-10-13, Jeff's order): old splash/catch deep-links
+  // now simply land on this hub — graceful fallback, no crash.
 }
 function hideHub(){ document.getElementById('hubov').style.display='none'; }
 function modeEnter(){
@@ -3617,7 +3516,7 @@ function animate(){
 
 var MP_SERVER = "wss://fire-babys-multiplayer.jeffpruden288.workers.dev";
 var net = null;              // FireBabysNet instance
-var mpMode = "catch";        // SPLASH ONLY (2026-10-05): all other modes removed
+var mpMode = "coop";         // selected mode for lobby creation (SPLASH removed 2026-10-13)
 var mpReady = false;         // local ready state
 var mpInGame = false;        // true when multiplayer game is running
 var remotePlayers = {};      // playerId -> { group, name, team, targetX, targetZ, targetDir }
@@ -6215,7 +6114,7 @@ function mpWireNet(){
 function mpRenderLobby(state){
   if(!state) return;
   document.getElementById('mplobbycode').textContent = 'CODE: ' + state.code;
-  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : (state.mode === 'catch' ? '🏃 SPLASH' : '⚔️ ' + state.mode.toUpperCase());
+  var modeLabel = state.mode === 'coop' ? '🤝 CO-OP' : '⚔️ ' + state.mode.toUpperCase();
   document.getElementById('mplobbymode').textContent = modeLabel + ' · ' + state.players.length + '/' + state.maxPlayers;
   document.getElementById('mplobbyerr').style.display = 'none';
 
@@ -6262,18 +6161,6 @@ function mpRenderLobby(state){
       canStart = false; label = '🎮 ADDING PLAYERS...';
     } else if(!isVersus){
       canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
-    } else if(state.mode === 'catch'){
-      var ccn = state.players.length;
-      var ccOk = ccn >= 4 && ccn <= 30 && ccn % 2 === 0;
-      if(ccOk){
-        canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
-      } else if(mpBotsEnabled && othersReady){
-        var ccTarget = Math.max(4, humans + (humans % 2 === 0 ? 0 : 1));
-        if(ccTarget <= 30 && ccTarget > humans){ canStart = true; label = '🎮 START WITH ' + (ccTarget - humans) + ' PLAYERS'; }
-        else { canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)'; }
-      } else {
-        canStart = false; label = '⏳ NEED 4-30 PLAYERS (EVEN NUMBER)';
-      }
     } else if(state.players.length === need){
       canStart = othersReady; label = othersReady ? '🚀 START GAME' : '⏳ WAITING FOR READY...';
     } else if(mpBotsEnabled && humans < need){
@@ -6285,9 +6172,7 @@ function mpRenderLobby(state){
     startBtn.disabled = !canStart;
     startBtn.textContent = label;
     // auto-start once bot fill completes (all present + ready)
-    var ccNeedMet = state.mode === 'catch'
-      ? (state.players.length >= 4 && state.players.length <= 30 && state.players.length % 2 === 0)
-      : state.players.length === need;
+    var ccNeedMet = state.players.length === need;
     if(mpBotStarting && ccNeedMet && allReady){
       mpBotStarting = false;
       try { net.start(); } catch(e){}
@@ -6507,7 +6392,6 @@ function spRefreshUI(){
 }
 /* ----- attack (multiplayer + single-player) ----- */
 function mpDoAttack(){
-  if(mpGameMode === 'catch') return; // SPLASH: grab-and-carry only, no attacks
   if(!combatActive() || mpBlocking || mpAtkCd > 0) return;
   if(mpInGame && mpKO) return;
   if(!mpInGame && (!player || !player.group || player.dead)) return;
@@ -6617,7 +6501,6 @@ function mpRespawn(){
   fbDressPlayer();
   var sx = 0, sz = 40;
   if(mpGameMode !== 'coop') sx = (mpMyTeam === 0 ? -6 : 6);
-  if(mpGameMode === 'catch'){ sx = 0; sz = (mpMyTeam === 0 ? -5 : 29); }
   try { player.group.position.x = sx; player.group.position.z = sz; } catch(e){}
   try { net.sendAction({ kind: 'respawn', data: { hp: mpHP } }); } catch(e){}
   if(typeof toast === 'function') toast('🔥 Back in the fight!');
@@ -6763,16 +6646,6 @@ function mpHostStart(){
   var isVersus = st.mode !== 'coop';
   var need = isVersus ? ((typeof FireBabysNet !== 'undefined' && FireBabysNet.MODES[st.mode]) || 0) : 0;
   var humans = st.players.filter(function(p){ return !mpIsBotName(p.name); }).length;
-  if(st.mode === 'catch'){
-    var ccn2 = st.players.length;
-    var ccOk2 = ccn2 >= 4 && ccn2 <= 30 && ccn2 % 2 === 0;
-    if(!ccOk2 && mpBotsEnabled){
-      var ccT2 = Math.max(4, humans + (humans % 2 === 0 ? 0 : 1));
-      if(ccT2 <= 30 && ccT2 > humans){ mpStartWithBots(ccT2 - humans); return; }
-    }
-    try { net.start(); } catch(e){}
-    return;
-  }
   if(isVersus && mpBotsEnabled && humans < need && st.players.length < need){
     mpStartWithBots(need - st.players.length);
   } else {
@@ -6920,7 +6793,6 @@ function mpBotTick(dt){
       }
       continue;
     }
-    if(mpGameMode === 'catch' && typeof mpBotTickCatch === 'function'){ mpBotTickCatch(b, dt); continue; }
     if(b.atkCd > 0) b.atkCd -= dt;
     // block expiry
     if(b.blockUntil && now >= b.blockUntil){
@@ -7039,9 +6911,7 @@ function mpOnHostChange(){
 
 /* ---------- game start ---------- */
 function mpOnGameStart(msg){
-  // SPLASH ONLY: force 'catch' mode. The server may not echo the mode back,
-  // and the old 'coop' default disables the score pill, timer, and team logic.
-  mpGameMode = 'catch';
+  mpGameMode = (msg && msg.mode) || 'coop';
   document.getElementById('mplobbyov').style.display = 'none';
   mpEnterGame();
 }
@@ -7056,9 +6926,9 @@ function mpEnterGame(){
   mpScores = { team0: 0, team1: 0 };
   mpKOs = { team0: 0, team1: 0 };
   // TEAM BALANCE: if all players are on the same team (server didn't split),
-  // force-split bots so SPLASH has actual enemies. Critical for versus modes.
+  // force-split bots so versus matches have actual enemies.
   try{
-    if(mpGameMode === 'catch' || mpGameMode === 'versus'){
+    if(mpGameMode === 'versus'){
       var allIds = [];
       if(net && net.playerId) allIds.push(net.playerId);
       for(var _bid in remotePlayers) allIds.push(_bid);
@@ -7104,9 +6974,6 @@ function mpEnterGame(){
 
   // Spawn local squad (just the player, no AI followers in multiplayer)
   mpSpawnLocal();
-  if(mpGameMode === 'catch' && player && player.group){
-    try{ player.group.position.set(0, 1.05, mpMyTeam === 0 ? -5 : 29); }catch(e){}
-  }
   mpEnsureShield();
   try {
     player.hpbar.set(1);
@@ -7114,30 +6981,10 @@ function mpEnterGame(){
     player.group.scale.set(1,1,1);
   } catch(e){}
   mpShowCombat(true);
-  // CATCH/SPLASH: attack becomes GRAB button (grab is proximity-based, button teaches the mechanic)
-  if(mpGameMode === 'catch'){
-    if(typeof mpCatchInit === 'function') mpCatchInit();
-    var _hab = document.getElementById('mpatkbtn');
-    if(_hab){
-      _hab.style.display = '';
-      _hab.textContent = '🤼';
-      _hab.setAttribute('aria-label', 'Grab');
-      _hab.title = 'Grab: stand next to an enemy with a teammate!';
-      if(!_hab._grabW){
-        _hab._grabW = true;
-        _hab.addEventListener('pointerdown', function(e){
-          e.preventDefault();
-          try { if(typeof toast === 'function') toast('🤼 Stand next to an enemy WITH a teammate to grab them!'); } catch(e2){}
-          try { if(typeof beep === 'function') beep(660, 0.08, 'square', 0.05); } catch(e2){}
-        });
-      }
-    }
-    var _hbb = document.getElementById('mpblkbtn'); if(_hbb) _hbb.style.display = 'none';
-  } else {
-    var _rab = document.getElementById('mpatkbtn');
-    if(_rab){ _rab.style.display = ''; _rab.textContent = '🔥'; _rab.setAttribute('aria-label', 'Attack'); }
-    var _rbb = document.getElementById('mpblkbtn'); if(_rbb) _rbb.style.display = '';
-  }
+  // Attack button: standard fire attack (the SPLASH grab button was removed with the mode, 2026-10-13)
+  var _rab = document.getElementById('mpatkbtn');
+  if(_rab){ _rab.style.display = ''; _rab.textContent = '🔥'; _rab.setAttribute('aria-label', 'Attack'); }
+  var _rbb = document.getElementById('mpblkbtn'); if(_rbb) _rbb.style.display = '';
 
   // Spawn remote players from lobby state (skip disconnected ghosts)
   if(net && net.state && net.state.players){
@@ -7154,8 +7001,7 @@ function mpEnterGame(){
       if(!bb.id) continue;
       bb.hp = 5; bb.ko = false; bb.koTimer = 0; bb.atkCd = 1 + Math.random()*2;
       bb.blockUntil = 0; bb.atkAnimT = 0;
-      if(mpGameMode === 'catch'){ bb.x = 0; bb.z = (bb.team === 0 ? -5 : 29); }
-      else { bb.x = (bb.team === 0 ? -6 : 6); bb.z = 40; }
+      bb.x = (bb.team === 0 ? -6 : 6); bb.z = 40;
       bb.dir = 0;
       bb.wx = bb.x; bb.wz = bb.z; bb.wanderT = 0;
       bb.jumpY = 0; bb.jumpV = 0; bb.jumps = 0;
@@ -7171,9 +7017,7 @@ function mpEnterGame(){
   }
 
   // Objective banner
-  if(mpGameMode === 'catch'){
-    setObjective('🏃 SPLASH — grab enemies with a teammate, dunk them in your pool! Last team standing wins!');
-  } else if(mpGameMode === 'coop'){
+  if(mpGameMode === 'coop'){
     setObjective('🤝 CO-OP — explore together! (fires are visual only in MP beta)');
   } else {
     var myColor = mpMyTeam === 0 ? 'BLUE' : 'RED';
@@ -7219,11 +7063,11 @@ function mpSpawnLocal(){
 }
 function mpSpawnRemote(p){
   if(remotePlayers[p.id] || !p) return;
-  // TEAM BALANCE: if this is a CATCH/SPLASH game and all existing players are on
-  // team 0, assign this newcomer to team 1 (alternating) so we always have enemies.
+  // TEAM BALANCE: if all existing players are on team 0, assign this newcomer
+  // to team 1 (alternating) so versus games always have enemies.
   // This runs on every join, so late-joining and rejoining bots get balanced.
   try{
-    if(mpInGame && (mpGameMode === 'catch' || mpGameMode === 'versus') && p){
+    if(mpInGame && mpGameMode === 'versus' && p){
       var _c0 = 0, _c1 = 0;
       if(net && net.playerId){
         if((typeof mpMyTeam === 'number' ? mpMyTeam : 0) === 0) _c0++; else _c1++;
@@ -7321,13 +7165,6 @@ function mpOnAction(msg){
     var team = rp ? rp.team : mpMyTeam;
     if(team === 0) mpScores.team0++; else mpScores.team1++;
     updateMpScoreboard();
-  }
-  if(msg.kind === 'catch_dunk' && mpGameMode === 'catch'){
-    if(!mpCatch) mpCatchInit();
-    mpCatchApplyDunk(msg.team, msg.victim, msg.vteam, msg.x/100, msg.z/100);
-    updateMpScoreboard();
-    if(mpCatch.suddenDeath || mpCatchRemaining(0) === 0 || mpCatchRemaining(1) === 0) mpCatch.over = true;
-    return;
   }
   // Show a small toast for remote extinguish actions
   if(msg.kind && typeof toast === 'function'){
@@ -7461,16 +7298,8 @@ function updateMpScoreboard(){
   var pill = document.getElementById('foepill');
   if(pill){
     pill.style.display = 'block'; // must override #foepill{display:none} in CSS
-    if(mpGameMode === 'catch' && mpCatch){
-      var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
-      var tsec = Math.max(0, Math.ceil(mpCatch.timer));
-      var tstr = Math.floor(tsec/60) + ':' + ('0' + (tsec%60)).slice(-2);
-      pill.innerHTML = '🏃 🔥 <b>' + r0 + '</b> — <b>' + r1 + '</b> 💧' +
-        (mpCatch.suddenDeath ? ' ⚡ SD' : ' ⏱️ ' + tstr);
-    } else {
       pill.innerHTML = '🔵 <b>' + mpKOs.team0 + '</b>💀 ' + mpScores.team0 + '🔥 — ' +
         mpScores.team1 + '🔥 <b>' + mpKOs.team1 + '</b>💀 🔴';
-    }
   }
 }
 
@@ -7492,7 +7321,7 @@ function mpSyncFrame(){
   for(var id in remotePlayers){
     var rp = remotePlayers[id];
     var g = rp.group.position;
-    var catchFrozen = (mpGameMode === 'catch' && mpCatch && mpCatch.caught[id]);
+    var catchFrozen = false;
     var dx = rp.targetX - g.x, dz = rp.targetZ - g.z;
     var d = Math.hypot(dx, dz);
     if(d > 0.05 && !catchFrozen){
@@ -7527,428 +7356,6 @@ function mpSyncFrame(){
     try { if(rp.hpbar) rp.hpbar.quaternion.copy(camera.quaternion); } catch(e){}
   }
 }
-/* ==================== SPLASH MODE ====================
-   Jeff's game (2v2 up to 15v15): two teammates within 3.5 units of an
-   enemy for 0.8s catch them (lifted, can't move). Carriers move at 55%
-   speed and drag the victim to their OWN team's swimming pool.
-   Teammates can rescue: 1 rescuer = carriers 50% slower, 2+ rescuers =
-   carriers fully stopped, then the victim breaks free after 1.5s.
-   Dunk the victim in your pool: they POOF into a steam cloud and are
-   ELIMINATED (no respawns). Last team standing wins. No KO combat. */
-var mpCatch = null;
-var CATCH_GRAB_R = 3.5, CATCH_GRAB_T = 0.8, CATCH_POOL_R = 6;
-var CATCH_TIME = 300;
-
-function mpCatchPools(){ return [{x:0, z:0, team:0}, {x:0, z:34, team:1}]; }
-function mpCatchPoolOf(team){ var z = mpCatchPools(); return z[team] || z[0]; }
-
-function mpCatchInit(){
-  mpCatch = { caught:{}, grabProg:{}, immunity:{}, eliminated:{}, timer:CATCH_TIME,
-              over:false, suddenDeath:false, meshes:[], effects:[] };
-  // hide story-biome clutter (dark slag walls) so the arena looks clean
-  try {
-    if(typeof scene !== 'undefined' && scene){
-      scene.traverse(function(o){
-        if(o && o.userData && o.userData.slagWall){ o.visible = false; }
-      });
-    }
-  } catch(e){}
-  var pools = mpCatchPools();
-  for(var i=0;i<pools.length;i++){
-    try{
-      /* pool deck ring */
-      var ring = new THREE.Mesh(
-        new THREE.RingGeometry(CATCH_POOL_R-0.5, CATCH_POOL_R+0.9, 48),
-        new THREE.MeshBasicMaterial({ color:0xf2f8ff, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
-      ring.rotation.x = -Math.PI/2; ring.position.set(pools[i].x, 0.18, pools[i].z);
-      ring.userData.poolRipple = true;
-      scene.add(ring); mpCatch.meshes.push(ring);
-      /* water */
-      var water = new THREE.Mesh(
-        new THREE.CircleGeometry(CATCH_POOL_R-0.5, 48),
-        new THREE.MeshBasicMaterial({ color:0x2e9fe8, transparent:true, opacity:0.85, side:THREE.DoubleSide }));
-      water.rotation.x = -Math.PI/2; water.position.set(pools[i].x, 0.14, pools[i].z);
-      water.userData.poolRipple = true;
-      scene.add(water); mpCatch.meshes.push(water);
-      /* inner sparkle */
-      var deep = new THREE.Mesh(
-        new THREE.CircleGeometry(CATCH_POOL_R-2.2, 48),
-        new THREE.MeshBasicMaterial({ color:0x9fdcff, transparent:true, opacity:0.5, side:THREE.DoubleSide }));
-      deep.rotation.x = -Math.PI/2; deep.position.set(pools[i].x, 0.16, pools[i].z);
-      deep.userData.poolRipple = true;
-      scene.add(deep); mpCatch.meshes.push(deep);
-    }catch(e){}
-  }
-}
-
-function mpCatchCleanup(){
-  if(mpCatch){
-    if(mpCatch.meshes){ for(var i=0;i<mpCatch.meshes.length;i++){ try{ scene.remove(mpCatch.meshes[i]); }catch(e){} } }
-    if(mpCatch.effects){ for(var j=0;j<mpCatch.effects.length;j++){ try{ scene.remove(mpCatch.effects[j].mesh); }catch(e){} } }
-  }
-  // restore story-biome walls
-  try {
-    if(typeof scene !== 'undefined' && scene){
-      scene.traverse(function(o){
-        if(o && o.userData && o.userData.slagWall){ o.visible = true; }
-      });
-    }
-  } catch(e){}
-  mpCatch = null;
-}
-
-/* every ACTIVE player with a live position: local + remotes (bots included) */
-function mpCatchPlayers(){
-  var out = [];
-  try{
-    if(typeof player !== 'undefined' && player && player.group && net && net.playerId &&
-       !(mpCatch && mpCatch.eliminated[net.playerId]))
-      out.push({ id: net.playerId, x: player.group.position.x, z: player.group.position.z,
-                 team: (typeof mpMyTeam==='number'?mpMyTeam:0), name: 'you' });
-    for(var id in remotePlayers){
-      if(mpCatch && mpCatch.eliminated[id]) continue;
-      var rp = remotePlayers[id];
-      if(!rp || !rp.group || !rp.group.visible) continue;
-      out.push({ id:id, x: rp.group.position.x, z: rp.group.position.z,
-                 team: (typeof rp.team==='number'?rp.team:0), name: rp.name || '?' });
-    }
-  }catch(e){}
-  return out;
-}
-
-function mpCatchGroupOf(id){
-  if(net && id === net.playerId) return (typeof player!=='undefined' && player) ? player.group : null;
-  var rp = remotePlayers[id]; return rp ? rp.group : null;
-}
-
-/* grey out a player's floating name tag */
-function mpCatchGreyName(id){
-  try{
-    var g = mpCatchGroupOf(id);
-    if(!g) return;
-    g.traverse(function(o){
-      if(o && o.isSprite && o.material){ o.material.color.setHex(0x8a8a8a); }
-    });
-  }catch(e){}
-}
-
-function mpCatchFree(vid){
-  if(!mpCatch) return;
-  delete mpCatch.caught[vid];
-  delete mpCatch.grabProg[vid];
-  try{
-    var g = mpCatchGroupOf(vid);
-    if(g && g.userData) g.userData.baseY = 1.05;
-    // restore name tag visibility
-    if(g) g.traverse(function(o){
-      if(o && o.isSprite && o.userData && o.userData.isNameTag){ o.visible = true; }
-    });
-  }catch(e){}
-}
-
-/* local player's catch role: {caught, carrier, eliminated, mul} */
-function mpCatchLocal(){
-  var res = { caught:false, carrier:false, eliminated:false, mul:1 };
-  if(!mpCatch || !net || !net.playerId) return res;
-  var me = net.playerId;
-  if(mpCatch.eliminated[me]){ res.eliminated = true; res.mul = 0; return res; }
-  if(mpCatch.caught[me]){ res.caught = true; res.mul = 0; return res; }
-  for(var vid in mpCatch.caught){
-    var c = mpCatch.caught[vid];
-    if(c.carriers[0] === me || c.carriers[1] === me){
-      res.carrier = true;
-      var r = c.rescuers || 0;
-      res.mul = 0.55 * (r === 1 ? 0.5 : 1) * (r >= 2 ? 0 : 1);
-      return res;
-    }
-  }
-  return res;
-}
-
-function mpCatchRemaining(team){
-  var n = 0;
-  try{
-    if(typeof player !== 'undefined' && player && player.group && net && net.playerId &&
-       (typeof mpMyTeam==='number'?mpMyTeam:0) === team && !(mpCatch && mpCatch.eliminated[net.playerId])) n++;
-    for(var id in remotePlayers){
-      var rp = remotePlayers[id];
-      if(!rp || !rp.group) continue;
-      if((typeof rp.team==='number'?rp.team:0) === team && !(mpCatch && mpCatch.eliminated[id])) n++;
-    }
-  }catch(e){}
-  return n;
-}
-
-/* big cartoon steam poof at x,z */
-function mpCatchPoof(x, z){
-  try{
-    var grp = new THREE.Group();
-    for(var i=0;i<7;i++){
-      var s = 1.2 + Math.random()*1.8;
-      var puff = new THREE.Mesh(
-        new THREE.SphereGeometry(s, 12, 10),
-        new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.85 }));
-      puff.position.set((Math.random()-0.5)*4, 1+Math.random()*3, (Math.random()-0.5)*4);
-      grp.add(puff);
-    }
-    grp.position.set(x, 0, z);
-    scene.add(grp);
-    if(mpCatch) mpCatch.effects.push({ mesh:grp, t:0 });
-    if(typeof beep === 'function'){ beep(300, 0.25, 'sine', 0.12); setTimeout(function(){ beep(150, 0.35, 'sine', 0.1); }, 120); }
-  }catch(e){}
-}
-
-function mpCatchTick(dt){
-  if(!mpCatch || mpCatch.over || !mpInGame || !net) return;
-  var now = (typeof clock !== 'undefined') ? clock.elapsedTime : 0;
-  /* TEAM BALANCE ENFORCER (throttled): if all players ended up on team 0
-     (server didn't split, bots joined late, or rejoin cleared state),
-     force-split so SPLASH always has two opposing teams. */
-  try{
-    if(!mpCatch._tbNext || now >= mpCatch._tbNext){
-      mpCatch._tbNext = now + 3;
-      var _t0 = 0, _t1 = 0, _ids = [];
-      if(net && net.playerId){
-        _ids.push(net.playerId);
-        if((typeof mpMyTeam === 'number' ? mpMyTeam : 0) === 0) _t0++; else _t1++;
-      }
-      for(var _rid in remotePlayers){
-        var _rr = remotePlayers[_rid];
-        if(!_rr || !_rr.group) continue;
-        _ids.push(_rid);
-        if((typeof _rr.team === 'number' ? _rr.team : 0) === 0) _t0++; else _t1++;
-      }
-      if(_ids.length >= 2 && (_t0 === 0 || _t1 === 0)){
-        // all on one team: split bots, keep local player where they are
-        var _bots = [];
-        for(var _bi = 0; _bi < _ids.length; _bi++){
-          if(_ids[_bi] !== net.playerId) _bots.push(_ids[_bi]);
-        }
-        var _targetT1 = Math.ceil(_bots.length / 2);
-        var _assigned = 0;
-        for(var _bj = 0; _bj < _bots.length && _assigned < _targetT1; _bj++){
-          // assign every other bot to team 1 for a balanced split
-          if(_bj % 2 === 1 && remotePlayers[_bots[_bj]]){
-            remotePlayers[_bots[_bj]].team = 1;
-            _assigned++;
-          }
-        }
-        // safety: if still none on team 1 (e.g. 1 bot), force the first bot over
-        if(_assigned === 0 && _bots.length > 0 && remotePlayers[_bots[0]]){
-          remotePlayers[_bots[0]].team = 1;
-        }
-      }
-    }
-  }catch(_e){}
-  /* pool ripple */
-  try{
-    for(var mi=0; mi<mpCatch.meshes.length; mi++){
-      var mm = mpCatch.meshes[mi];
-      if(mm && mm.userData && mm.userData.poolRipple)
-        mm.material.opacity = 0.55 + 0.3 * Math.abs(Math.sin(now * 2.4 + mm.position.x));
-    }
-  }catch(e){}
-  /* steam poof effects */
-  try{
-    for(var ei=mpCatch.effects.length-1; ei>=0; ei--){
-      var ef = mpCatch.effects[ei];
-      ef.t += dt;
-      var k = ef.t / 1.4;
-      ef.mesh.scale.setScalar(1 + k*2.2);
-      ef.mesh.position.y = k * 3;
-      ef.mesh.traverse(function(o){ if(o && o.material) o.material.opacity = Math.max(0, 0.85 * (1-k)); });
-      if(k >= 1){ scene.remove(ef.mesh); mpCatch.effects.splice(ei,1); }
-    }
-  }catch(e){}
-  /* match timer */
-  if(!mpCatch.suddenDeath){
-    mpCatch.timer -= dt;
-    if(mpCatch.timer <= 0){
-      var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
-      if(r0 !== r1){
-        mpCatch.over = true;
-        if(net.isHost){ try{ net.end({results:{note:'🏃 SPLASH — time!'}}); }catch(e2){} }
-        return;
-      }
-      mpCatch.suddenDeath = true;
-      if(typeof toast === 'function') toast('⚡ SUDDEN DEATH — next elimination wins!');
-    }
-  }
-  var plist = mpCatchPlayers();
-  var byId = {}; for(var i=0;i<plist.length;i++) byId[plist[i].id] = plist[i];
-  /* grab detection */
-  for(var vi=0; vi<plist.length; vi++){
-    var V = plist[vi];
-    if(mpCatch.caught[V.id]) continue;
-    if(mpCatch.immunity[V.id] && now < mpCatch.immunity[V.id]) continue;
-    var atk = [];
-    for(var ai=0; ai<plist.length; ai++){
-      var A = plist[ai];
-      if(A.id === V.id || A.team === V.team) continue;
-      if(Math.hypot(A.x - V.x, A.z - V.z) <= CATCH_GRAB_R) atk.push(A);
-    }
-    if(atk.length >= 2){
-      var gp = mpCatch.grabProg[V.id] || (mpCatch.grabProg[V.id] = {t:0});
-      gp.t += dt;
-      if(gp.t >= CATCH_GRAB_T){
-        atk.sort(function(a,b){
-          return Math.hypot(a.x-V.x, a.z-V.z) - Math.hypot(b.x-V.x, b.z-V.z);
-        });
-        mpCatch.caught[V.id] = { carriers:[atk[0].id, atk[1].id], team: atk[0].team, stopT:0, rescuers:0 };
-        delete mpCatch.grabProg[V.id];
-        try{
-          var vg0 = mpCatchGroupOf(V.id);
-          if(vg0 && vg0.userData) vg0.userData.baseY = 2.3;
-          // hide victim's name tag while carried to avoid label stacking with carrier
-          if(vg0) vg0.traverse(function(o){
-            if(o && o.isSprite && o.userData && o.userData.isNameTag){ o.visible = false; }
-          });
-        }catch(e2){}
-        if(typeof toast === 'function') toast('🙌 ' + mpDisplayName(V.name) + ' got CAUGHT!');
-        if(typeof beep === 'function') beep(440, 0.12, 'square', 0.07);
-      }
-    } else delete mpCatch.grabProg[V.id];
-  }
-  /* carried victims: validate carriers, rescue tug-of-war, pool dunk */
-  for(var vid in mpCatch.caught){
-    var c = mpCatch.caught[vid];
-    var Vp = byId[vid];
-    var c0 = byId[c.carriers[0]], c1 = byId[c.carriers[1]];
-    var c0ok = c0 && !mpCatch.caught[c.carriers[0]] && !mpCatch.eliminated[c.carriers[0]] &&
-               Math.hypot(c0.x-Vp.x, c0.z-Vp.z) <= 9;
-    var c1ok = c1 && !mpCatch.caught[c.carriers[1]] && !mpCatch.eliminated[c.carriers[1]] &&
-               Math.hypot(c1.x-Vp.x, c1.z-Vp.z) <= 9;
-    if(!Vp || !c0ok || !c1ok){ mpCatchFree(vid); continue; }
-    var rescuers = 0;
-    for(var ri=0; ri<plist.length; ri++){
-      var R = plist[ri];
-      if(R.id === vid || R.team !== Vp.team) continue;
-      if(Math.hypot(R.x-Vp.x, R.z-Vp.z) <= CATCH_GRAB_R) rescuers++;
-    }
-    c.rescuers = rescuers;
-    if(rescuers >= 2){
-      c.stopT += dt;
-      if(c.stopT >= 1.5){
-        mpCatchFree(vid);
-        mpCatch.immunity[vid] = now + 2;
-        if(typeof toast === 'function') toast('💪 ' + mpDisplayName(Vp.name) + ' was RESCUED!');
-        continue;
-      }
-    } else c.stopT = 0;
-    var mx = (c0.x + c1.x) / 2, mz = (c0.z + c1.z) / 2;
-    try{
-      var vg = mpCatchGroupOf(vid);
-      if(vg){ vg.position.x = mx; vg.position.z = mz; }
-    }catch(e2){}
-    if(net.isHost){
-      var pool = mpCatchPoolOf(c.team);
-      if(Math.hypot(mx - pool.x, mz - pool.z) <= CATCH_POOL_R) mpCatchDoDunk(c.team, vid, Vp.team, mx, mz);
-    }
-  }
-  updateMpScoreboard();
-}
-
-function mpCatchDoDunk(team, vid, vteam, x, z){
-  if(!mpCatch || mpCatch.over || mpCatch.eliminated[vid]) return;
-  try{ net.sendAction({ kind:'catch_dunk', team:team, victim:vid, vteam:vteam, x:Math.round(x*100), z:Math.round(z*100) }); }catch(e){}
-  mpCatchApplyDunk(team, vid, vteam, x, z);
-  var r0 = mpCatchRemaining(0), r1 = mpCatchRemaining(1);
-  if(r0 === 0 || r1 === 0 || mpCatch.suddenDeath){
-    mpCatch.over = true;
-    var winner = r0 === 0 ? 1 : 0;
-    try{ net.end({results:{note:'🏃 SPLASH — ' + (winner===0 ? '🔵 BLUE' : '🔴 RED') + ' team wins!'}}); }catch(e2){}
-  }
-}
-
-function mpCatchApplyDunk(team, vid, vteam, x, z){
-  if(!mpCatch || mpCatch.eliminated[vid]) return;
-  mpCatch.eliminated[vid] = true;
-  mpCatchFree(vid);
-  mpCatchPoof(x, z);
-  try{
-    var g = mpCatchGroupOf(vid);
-    if(g) g.visible = false;
-  }catch(e){}
-  mpCatchGreyName(vid);
-  /* host parks eliminated bots */
-  try{
-    if(net && net.isHost){
-      for(var i=0;i<mpBots.length;i++){
-        if(mpBots[i].id === vid){ mpBots[i].eliminated = true; break; }
-      }
-    }
-  }catch(e2){}
-  var nm = '?';
-  try{
-    if(net && vid === net.playerId) nm = 'you';
-    else { var rp = remotePlayers[vid]; nm = mpDisplayName(rp ? rp.name : '?'); }
-  }catch(e3){}
-  if(typeof toast === 'function') toast('💨 POOF! ' + nm + ' is OUT!');
-  updateMpScoreboard();
-}
-
-/* bot AI for CATCH: chase, gang-grab, carry to pool, rescue teammates */
-function mpBotTickCatch(b, dt){
-  if(!mpCatch || b.eliminated) return;
-  if(mpCatch.caught[b.id]) return; /* I'm caught: stay put */
-  if(mpCatch.eliminated[b.id]) return;
-  var plist = mpCatchPlayers();
-  var byId = {}; for(var i=0;i<plist.length;i++) byId[plist[i].id] = plist[i];
-  var carrying = null;
-  for(var vid in mpCatch.caught){
-    var cc = mpCatch.caught[vid];
-    if(cc.carriers[0] === b.id || cc.carriers[1] === b.id){ carrying = cc; break; }
-  }
-  var tx = null, tz = null, smul = 1;
-  if(carrying){
-    var pool = mpCatchPoolOf(carrying.team);
-    tx = pool.x; tz = pool.z;
-    var r = carrying.rescuers || 0;
-    smul = 0.55 * (r === 1 ? 0.5 : 1) * (r >= 2 ? 0 : 1);
-  } else {
-    var bv = null, bd = 1e9;
-    for(var vid2 in mpCatch.caught){
-      var Vp = byId[vid2];
-      if(!Vp || Vp.team !== b.team) continue;
-      var d = Math.hypot(Vp.x - b.x, Vp.z - b.z);
-      if(d < bd){ bd = d; bv = Vp; }
-    }
-    if(bv){ tx = bv.x; tz = bv.z; }
-    else {
-      var ex = null, ez = null, ed = 1e9;
-      for(var pi=0; pi<plist.length; pi++){
-        var P = plist[pi];
-        if(P.id === b.id || P.team === b.team) continue;
-        if(mpCatch.caught[P.id]) continue;
-        var pd = Math.hypot(P.x - b.x, P.z - b.z);
-        if(pd < ed){ ed = pd; ex = P.x; ez = P.z; }
-      }
-      if(ex !== null){ tx = ex; tz = ez; }
-      else {
-        b.wanderT -= dt;
-        if(b.wanderT <= 0){
-          b.wanderT = 2 + Math.random()*3;
-          b.wx = Math.max(-24, Math.min(24, b.x + (Math.random()-0.5)*22));
-          b.wz = Math.max(-100, Math.min(40, b.z + (Math.random()-0.5)*22));
-        }
-        tx = b.wx; tz = b.wz;
-      }
-    }
-  }
-  if(tx !== null){
-    var mx = tx - b.x, mz = tz - b.z, md = Math.hypot(mx, mz);
-    // stop at 1.5 units to avoid overlapping/stacking on top of targets
-    if(md > 1.5){
-      var step = Math.min(7.0 * smul * dt, md - 1.5);
-      b.x += mx / md * step; b.z += mz / md * step;
-      b.dir = Math.atan2(mx, mz);
-      b.x = Math.max(-26, Math.min(26, b.x));
-      b.z = Math.max(-108, Math.min(44, b.z));
-    }
-  }
-}
-/* ================== END SPLASH MODE ================== */
-
 /* Public: send an extinguish action (call from game code when player extinguishes) */
 function mpSendExtinguish(x, z){
   if(!mpInGame || !net) return;
@@ -7967,9 +7374,7 @@ function mpOnGameEnd(msg){
   mpExitGame();
   // show results
   var stats = '';
-  if(mpGameMode === 'catch'){
-    stats = '🏃 SPLASH — last team standing wins!';
-  } else if(mpGameMode !== 'coop'){
+  if(mpGameMode !== 'coop'){
     var w = mpScores.team0 > mpScores.team1 ? '🔵 BLUE TEAM WINS!' :
             mpScores.team1 > mpScores.team0 ? '🔴 RED TEAM WINS!' : "🤝 IT'S A TIE!";
     stats = w + '<br>Blue: ' + mpScores.team0 + ' — Red: ' + mpScores.team1;
@@ -7993,7 +7398,6 @@ function mpOnGameEnd(msg){
 }
 function mpExitGame(){
   mpShowCombat(false);
-  if(typeof mpCatchCleanup === 'function') mpCatchCleanup();
   var _cab = document.getElementById('mpatkbtn'); if(_cab) _cab.style.display = '';
   var _cbb = document.getElementById('mpblkbtn'); if(_cbb) _cbb.style.display = '';
   mpInGame = false;
@@ -8057,15 +7461,11 @@ function mpUpdateExplore(dt, t){
     if(mpFlipT <= 0){ try { player.group.rotation.x = 0; } catch(e){} }
   }
 
-  if(mpGameMode === 'catch' && typeof mpCatchTick === 'function'){ try{ mpCatchTick(dt); }catch(e){} }
   var mv = (typeof moveInput === 'function') ? moveInput() : {on:false,x:0,z:0};
   var bp = player.group.position;
   var catchMul = 1, catchHeld = false;
-  if(mpGameMode === 'catch' && mpCatch && typeof mpCatchLocal === 'function'){
-    try{ var lr = mpCatchLocal(); catchMul = lr.mul; catchHeld = lr.caught || lr.eliminated; }catch(e){}
-  }
   if(mv.on && !mpKO && !catchHeld){
-    var sp = (mpBlocking ? 3.75 : 7.5) * catchMul * dt; // blocking slows 50%; SPLASH carry/rescue slows
+    var sp = (mpBlocking ? 3.75 : 7.5) * catchMul * dt; // blocking slows 50%
     var nx = bp.x + mv.x*sp, nz = bp.z + mv.z*sp;
     nx = Math.max(-26, Math.min(26, nx)); nz = Math.max(-108, Math.min(44, nz));
     if(typeof resolveColliders === 'function'){
@@ -8084,13 +7484,8 @@ function mpUpdateExplore(dt, t){
   // stage pill
   try {
     document.getElementById('stagepill').textContent = '🌐 ' +
-      (mpGameMode === 'coop' ? 'CO-OP' : (mpGameMode === 'catch' ? 'SPLASH' : mpGameMode.toUpperCase()));
+      (mpGameMode === 'coop' ? 'CO-OP' : mpGameMode.toUpperCase());
   } catch(e){}
-  // SPLASH arena lighting: bright warm fog so the match stays readable
-  // (the open-world biome fog at the old field was nearly black-red)
-  if(mpGameMode === 'catch' && mpInGame && typeof scene !== 'undefined' && scene.fog){
-    try{ scene.fog.color.lerp(new THREE.Color(0xffd9a8), 1-Math.pow(0.2,dt)); }catch(e){}
-  }
 }
 
 /* ---------- init ---------- */
@@ -8795,14 +8190,9 @@ function startGame(){
       init();
       // SUCCESS: hide loading
       if(l) l.style.display = 'none';
-      // Deep-link ?mode=splash/?mode=catch goes straight to SPLASH via the MP UI
-      try { if(typeof catchDeepLink === 'function') catchDeepLink(); } catch(e){}
-      // SPLASH ONLY (Jeff's order 2026-10-05): skip character creation entirely,
-      // always go straight to the SPLASH flow via showHub()
-      if(typeof showHub === 'function') {
-        // Skip showHub if the deep-link already started the SPLASH flow
-        try { if(typeof _catchDL === 'undefined' || !_catchDL) showHub(); } catch(e){ showHub(); }
-      }
+      // Mode hub. (SPLASH removed 2026-10-13: old splash/catch deep-links
+      // now land on the hub — graceful fallback, no crash.)
+      if(typeof showHub === 'function') showHub();
     } catch(e) {
       // FAIL: hide loading, show error (never hang on black screen)
       if(l) l.style.display = 'none';
