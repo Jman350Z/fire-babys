@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-peanl+oL0SIS6JZ2rS7QUGRBoKLITxrMQvlWYRueB3o=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-/rxv21YhHiI4PvbL0VLOc2+sXY8hRZUqeyaxaV3Xe38=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
 <title>Fire Babys 3D — Open World</title>
@@ -2869,13 +2869,13 @@ function avgSquadLevel(){
 
 /* ---------- mode hub ---------- */
 var MODES=[
-  {id:'story', icon:'\U0001F4D6', name:'STORY MODE', desc:'Six towns. One journey. Save the land.', start:startStoryMode},
-  {id:'free', icon:'\U0001F9ED', name:'FREE MODE', desc:'Roam the whole world. No gates, no rules.', start:startFreeMode},
-  {id:'practice', icon:'\U0001F3AF', name:'PRACTICE', desc:'Drill the Extinguish Matchup Matrix.', start:startPractice},
-  {id:'tournament', icon:'\U0001F3C6', name:'TOURNAMENTS', desc:'8-round bracket. Win the trophy.', start:startTournament},
-  {id:'rescue', icon:'\U0001F6A8', name:'RESCUE MODE', desc:'Save 5 trapped ember-pups before time runs out!', start:startRescue},
-  {id:'survival', icon:'\U0001F480', name:'SURVIVAL', desc:'Endless waves. How long can the crew last?', start:startSurvival},
-  {id:'leaderboard', icon:'\U0001F3C5', name:'LEADERBOARDS', desc:'Top Tamers & Tournament Champions.', start:showLeaderboards}
+  {id:'story', icon:'📖', name:'STORY MODE', desc:'Six towns. One journey. Save the land.', start:startStoryMode},
+  {id:'free', icon:'🧭', name:'FREE MODE', desc:'Roam the whole world. No gates, no rules.', start:startFreeMode},
+  {id:'practice', icon:'🎯', name:'PRACTICE', desc:'Drill the Extinguish Matchup Matrix.', start:startPractice},
+  {id:'tournament', icon:'🏆', name:'TOURNAMENTS', desc:'8-round bracket. Win the trophy.', start:startTournament},
+  {id:'rescue', icon:'🚨', name:'RESCUE MODE', desc:'Save 5 trapped ember-pups before time runs out!', start:startRescue},
+  {id:'survival', icon:'💀', name:'SURVIVAL', desc:'Endless waves. How long can the crew last?', start:startSurvival},
+  {id:'leaderboard', icon:'🏅', name:'LEADERBOARDS', desc:'Top Tamers & Tournament Champions.', start:showLeaderboards}
 ];
 // SPLASH dunk mode removed 2026-10-13 (Jeff's order — idea archived in workspace/splash-dunk-archive/).
 function renderHub(){
