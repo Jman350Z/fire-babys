@@ -64,7 +64,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="game">
 <div id="hud">
 <div class="pill gold" id="score">⭐ 0</div>
-<div class="pill" id="level">LEVEL 1/10</div>
+<div class="pill" id="level">LEVEL 1/15</div>
 <div class="pill" id="wave">🌊 Wave 1</div>
 </div>
 <div id="hpbar"><div id="hpfill"></div></div>
@@ -75,7 +75,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="pauseOv" class="hidden"><h2>⏸ PAUSED</h2><button id="resumeBtn">▶ RESUME</button><button id="prestartBtn">↻ RESTART</button></div>
 <div id="overlay">
 <h1 id="otitle">🏹 LORD INFERNO'S BALLISTA SIEGE</h1>
-<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge the bad guys' <b>sky-ships</b>, blast them out of the Fire Babys home-world skies, grab power-ups, and take down each level's <b>giant boss ship</b>!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><div id="levelSel"></div></div>
+<div id="obody"><p><b>Ruko</b> & <b>Sizzle</b> man the sky-ballista!</p><p><b>Drag</b> to steer! Ballista auto-fires — dodge the bad guys' <b>sky-ships</b>, blast them out of the Fire Babys home-world skies, grab power-ups, and take down each level's <b>giant boss ship</b>!</p><p>✦ New power-up: <b>Ember Nova</b> — 4-way bolts for 10 seconds!</p><p>✦ Also new: <b>Twin Ballista</b> — double bolts, double trouble!</p><p>🆕 <b>15 levels now!</b> Fly all the way to Lord Inferno's <b>Horned Moon</b> fortress!</p><div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never aim anything at a fire — get away and call for help!</div>
 <button id="obtn">▶ PLAY</button>
@@ -86,7 +86,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 /* ============================================================
    LORD INFERNO'S BALLISTA SIEGE v2 — AAA Rebuild
    - Vertical shooter: drag to steer, auto-fire
-   - 5 levels, enemy waves, power-ups, boss fights
+   - 15 levels, enemy waves, power-ups, boss fights
+   - Levels 11–15 + the Horned Moon finale added 2026-10-15 (Jeff's order)
    - Particle explosions, trauma shake, layered audio
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
@@ -160,7 +161,7 @@ function reset(level){
   G.level=level;G.wave=1;G.waveKills=0;G.waveTarget=6+level*2;
   G.px=W/2;G.py=H*0.82;G.hp=100;G.maxHp=100;G.fireT=0;
   G.bullets=[];G.enemies=[];G.pickups=[];G.power=1;G.powerT=0;G.boss=null;G.invuln=0;
-  document.getElementById('level').textContent=`LEVEL ${level}/10`;
+  document.getElementById('level').textContent=`LEVEL ${level}/15`;
   document.getElementById('wave').textContent='🌊 Wave 1';
   updateHP();
 }
@@ -172,12 +173,24 @@ function spawnEnemy(){
   const lvl=G.level;
   const r=Math.random();
   let type='rock';
-  if(G.wave>=3&&r<0.25)type='dart';
-  else if(G.wave>=2&&r<0.45)type='tank';
+  if(lvl>=11){
+    /* Levels 11+: the fleets get new tricks — shielded carriers, weavers, splitters */
+    if(G.wave>=2&&r<0.16)type='carrier';
+    else if(r<0.38)type='splitter';
+    else if(r<0.62)type='weaver';
+    else if(G.wave>=3&&r<0.76)type='dart';
+    else if(G.wave>=2&&r<0.88)type='tank';
+  }else{
+    if(G.wave>=3&&r<0.25)type='dart';
+    else if(G.wave>=2&&r<0.45)type='tank';
+  }
   const x=40+Math.random()*(W-80);
   const base={x,y:-40,vx:(Math.random()-0.5)*60,dead:false,t:0};
   if(type==='rock')Object.assign(base,{type,hp:1+Math.floor(lvl/2),vy:120+lvl*20+Math.random()*60,r:24,score:50});
   else if(type==='dart')Object.assign(base,{type,hp:2,vy:200+lvl*25,r:18,score:100});
+  else if(type==='weaver')Object.assign(base,{type,hp:3+Math.floor(lvl/3),vy:150+lvl*12,r:22,score:150,bx:x,amp:55+Math.random()*55,ph:Math.random()*6.28});
+  else if(type==='splitter')Object.assign(base,{type,hp:5,vy:110+lvl*10,r:26,score:150});
+  else if(type==='carrier')Object.assign(base,{type,hp:12+lvl,vy:52+lvl*5,r:42,score:400,shieldHp:6,spawnT:2.5});
   else Object.assign(base,{type:'tank',hp:4+lvl,vy:70+lvl*10,r:34,score:200});
   G.enemies.push(base);
 }
@@ -194,7 +207,13 @@ const LEVEL_THEMES=[
  {place:'CRYSTAL RIM',      sky:['#24082a','#6a1e6a','#c85ab8'], land:'#1c051c', shape:'spires', hull:'#a84a9a',accent:'#ffb8f0',pilot:'#c88ac0'},
  {place:'LAVA FIELDS',      sky:['#2a0505','#7a1408','#e84a10'], land:'#1c0303', shape:'peaks',  hull:'#8a2a1a',accent:'#ff8a2a',pilot:'#b86a4a'},
  {place:'ASHEN WASTES',     sky:['#1a1a1e','#4a4a55','#8a8a98'], land:'#101013', shape:'dunes',  hull:'#6a6a78',accent:'#ffb347',pilot:'#9a9aa5'},
- {place:"LORD INFERNO'S KEEP",sky:['#30060a','#8a0d14','#ff6a1a'],land:'#20040a', shape:'spires', hull:'#b81e2a',accent:'#ffd23f',pilot:'#d88a6a'}
+ {place:"LORD INFERNO'S KEEP",sky:['#30060a','#8a0d14','#ff6a1a'],land:'#20040a', shape:'spires', hull:'#b81e2a',accent:'#ffd23f',pilot:'#d88a6a'},
+ /* Levels 11–15 (2026-10-15 expansion) */
+ {place:'THUNDERHEAD REACH', sky:['#0a1420','#2a3a4a','#5a7a8a'], land:'#0a1218', shape:'spires', hull:'#4a6a7a',accent:'#ffe94a',pilot:'#8aa8b8'},
+ {place:'CORAL CROWN KINGDOM',sky:['#1a2a4a','#7a4a6a','#e88a5a'],land:'#0d1a26', shape:'waves',  hull:'#2a8a7a',accent:'#ffb8a0',pilot:'#5ab8a0'},
+ {place:'OBSIDIAN DEEP',     sky:['#07040e','#1c1030','#3a2060'], land:'#0a0614', shape:'spires', hull:'#3a2a5a',accent:'#b89aff',pilot:'#7a68a8'},
+ {place:'THE BURNING GATE',   sky:['#160404','#4a0d08','#8a2410'], land:'#120202', shape:'peaks',  hull:'#7a1e14',accent:'#ffb347',pilot:'#c88a5a'},
+ {place:'THE HORNED MOON',    sky:['#030308','#0d0512','#240a18'], land:'#07030c', shape:'spires', hull:'#5a1020',accent:'#ff5a2a',pilot:'#e88a5a'}
 ];
 const BOSS_THEMES=[
  {name:'CAPTAIN CINDERCLAW', hull:'#a83c1e',accent:'#ffd23f',skin:'#c86a3a',hat:'cap'},
@@ -206,10 +225,16 @@ const BOSS_THEMES=[
  {name:'DUCHESS GEMWRATH',   hull:'#a84a9a',accent:'#ffb8f0',skin:'#c88ac0',hat:'crown'},
  {name:'WARLORD MAGMAR',     hull:'#8a2a1a',accent:'#ff8a2a',skin:'#b86a4a',hat:'horns'},
  {name:'MARSHAL ASHFALL',    hull:'#6a6a78',accent:'#ffb347',skin:'#9a9aa5',hat:'hood'},
- {name:'LORD INFERNO',       hull:'#b81e2a',accent:'#ffd23f',skin:'#e88a5a',hat:'crown'}
+ {name:'LORD INFERNO',       hull:'#b81e2a',accent:'#ffd23f',skin:'#e88a5a',hat:'crown'},
+ /* Boss captains for levels 11–14; level 15's LORD INFERNO entry pilots the Horned Moon */
+ {name:'ADMIRAL THUNDERJAW', hull:'#4a6a7a',accent:'#ffe94a',skin:'#8aa8b8',hat:'horns'},
+ {name:'DUCHESS TIDEWRATH',  hull:'#2a8a7a',accent:'#ffb8a0',skin:'#5ab8a0',hat:'crown'},
+ {name:'BARONESS VOIDGLASS', hull:'#3a2a5a',accent:'#b89aff',skin:'#7a68a8',hat:'hood'},
+ {name:'GENERAL DOOMGATE',   hull:'#7a1e14',accent:'#ffb347',skin:'#c88a5a',hat:'horns'},
+ {name:'LORD INFERNO',       hull:'#5a1020',accent:'#ffd23f',skin:'#e88a5a',hat:'crown'}
 ];
-function theme(){return LEVEL_THEMES[(G.level-1)%10];}
-function bossTheme(){return BOSS_THEMES[(G.level-1)%10];}
+function theme(){return LEVEL_THEMES[(G.level-1)%LEVEL_THEMES.length];}
+function bossTheme(){return BOSS_THEMES[(G.level-1)%BOSS_THEMES.length];}
 /* little bad-guy pilot: round head, angry brows, frown, themed hat */
 function drawPilot(x,y,r,skin,hat,accent){
   ctx.fillStyle=skin;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
@@ -229,6 +254,7 @@ function drawPilot(x,y,r,skin,hat,accent){
 }
 function spawnBoss(){
   const lvl=G.level,bt=bossTheme();
+  if(lvl===15){spawnMoonFortress(bt);return;}
   G.boss={x:W/2,y:-90,vy:60,hp:20+lvl*12,maxHp:20+lvl*12,r:55,t:0,fireT:1.5,volley:0,dead:false,type:'boss',score:1000};
   G.enemies.push(G.boss);
   spawnText(W/2,H*0.3,'⚠️ BOSS: '+bt.name+'!','#ff4a00');
@@ -249,6 +275,7 @@ function bossFire(bo){
   const fan=(n,spread,spd)=>{for(let i=0;i<n;i++){const a=Math.PI/2+(i-(n-1)/2)*spread;bossBolt(bo,a,spd);}};
   const aimed=(n,spd)=>{const base=Math.atan2(G.py-bo.y,G.px-bo.x);for(let i=0;i<n;i++)bossBolt(bo,base+(i-(n-1)/2)*0.14,spd);};
   const spiral=(n,spd)=>{for(let i=0;i<n;i++){const a=Math.PI/2+Math.sin(bo.t*2.6)*0.9+(i-(n-1)/2)*0.5;bossBolt(bo,a,spd);}};
+  const spiralR=(n,spd)=>{for(let i=0;i<n;i++){const a=Math.PI/2-Math.sin(bo.t*2.6)*0.9+(i-(n-1)/2)*0.5;bossBolt(bo,a,spd);}};
   const ring=(n,spd)=>{for(let i=0;i<n;i++){const a=i/n*Math.PI*2+bo.t;bossBolt(bo,a,spd);}};
   switch(lvl){
     case 1: fan(3+lvl,0.35,180);break;
@@ -260,13 +287,254 @@ function bossFire(bo){
     case 7: spiral(4,200);bo.fireT=0.62;break;
     case 8: bo.volley%3===0?ring(8,130):fan(6,0.38,185);break;
     case 9: bo.volley%2?aimed(3,250):spiral(4,200);bo.fireT=0.85;break;
+    /* Levels 11–14 (2026-10-15): denser, meaner twists on the classic patterns */
+    case 11: fan(5,0.32,195);fan(5,0.62,165);bo.fireT=1.15;break;              // double fan, wide + narrow
+    case 12: aimed(4,255);bo.fireT=0.95;break;                                 // quad aimed stream
+    case 13: bo.volley%2?spiral(5,210):spiralR(5,210);bo.fireT=0.7;break;      // twin spirals, alternating spin
+    case 14: ring(12,140);aimed(2,250);bo.fireT=1.05;break;                    // full ring + aimed punish
     default:{const p=bo.volley%4;if(p===0)fan(8,0.36,195);else if(p===1)aimed(3,255);else if(p===2)spiral(4,205);else ring(10,135);bo.fireT=0.95;}
   }
   sfx.shoot();
 }
 function spawnPickup(x,y){
-  const types=['hp','rapid','spread','shield','nova'];
+  const types=['hp','rapid','spread','shield','nova','twin'];
   G.pickups.push({x,y,vy:100,type:types[Math.floor(Math.random()*types.length)],t:0});
+}
+
+/* ============================================================
+   LEVEL 15 FINALE — THE HORNED MOON (2026-10-15, Jeff's order)
+   Our own original design: Lord Inferno (the game's villain) has
+   parked a gigantic horned moon-fortress over the home world —
+   a spherical battle-station with demonic horns, glowing ember
+   cracks, turret ring, and a huge central ember-eye cannon.
+   3 phases: (1) turret ring + escorts, (2) sweeping eye-beam,
+   (3) venting core — hit the core while it's exposed!
+   ============================================================ */
+const MOON_TURRETS=[[-84,20],[-58,74],[-20,94],[20,94],[58,74],[84,20]];
+function moonBolt(x,y,a,spd){
+  G.enemies.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd+40,
+    hp:1,r:12,dead:false,t:0,type:'bolt',score:25});
+}
+function spawnMoonFortress(bt){
+  G.boss={x:W/2,y:-150,vy:78,hp:260,maxHp:260,r:100,t:0,fireT:2,volley:0,dead:false,
+    type:'boss',kind:'moon',score:5000,phase:1,
+    turretT:1.8,turretIdx:0,turretFlash:-1,turretFlashT:0,
+    beamState:'idle',beamT:2.6,beamA:0,beamDir:1,
+    coreOpen:false,coreT:0,escortT:3.5,sealNoteT:0};
+  G.enemies.push(G.boss);
+  spawnText(W/2,H*0.28,'🌕 THE HORNED MOON RISES!','#ff4a00');
+  spawnText(W/2,H*0.36,"😈 LORD INFERNO: 'My fortress is UNBEATABLE!'",'#ffd23f');
+  sfx.hit();
+}
+/* damage a bullet does to the fortress: phases 1–2 the hull takes it;
+   phase 3 only the EXPOSED CORE takes damage (double); sealed = clang! */
+function moonHit(e,x,y){
+  if(e.phase<3)return 1;
+  if(!e.coreOpen)return 0;
+  return Math.hypot(x-e.x,y-(e.y+52))<42?2:0;
+}
+function moonUpdate(bo,dt){
+  bo.t+=dt;
+  if(bo.sealNoteT>0)bo.sealNoteT-=dt;
+  if(bo.turretFlashT>0)bo.turretFlashT-=dt;
+  if(bo.y<Math.min(178,H*0.24)){bo.y+=bo.vy*dt;return;} // still descending into position
+  bo.x=W/2+Math.sin(bo.t*0.45)*W*0.1;
+  /* phase by hull fraction */
+  const frac=bo.hp/bo.maxHp;
+  const np=frac>0.66?1:frac>0.33?2:3;
+  if(np!==bo.phase){
+    bo.phase=np;bo.beamState='idle';bo.beamT=2.0;
+    if(np===2){spawnText(W/2,H*0.34,"😈 'FEEL MY EMBER EYE!'",'#ff9a3a');sfx.hit();}
+    if(np===3){bo.coreOpen=true;bo.coreT=4;
+      spawnText(W/2,H*0.34,'⚠ THE CORE IS EXPOSED — HIT THE GLOWING CORE!','#7fd4ff');sfx.power();}
+  }
+  /* turret ring: rotating hardpoints fire aimed bolts (faster each phase) */
+  bo.turretT-=dt;
+  if(bo.turretT<=0){
+    bo.turretT=bo.phase===3?0.95:bo.phase===2?1.25:1.5;
+    const n=bo.phase===1?2:bo.phase===2?2:3;
+    for(let k=0;k<n;k++){
+      const idx=(bo.turretIdx+k*2)%6,[ox,oy]=MOON_TURRETS[idx];
+      const tx=bo.x+ox*bo.r/100,ty=bo.y+oy*bo.r/100;
+      const a=Math.atan2(G.py-ty,G.px-tx);
+      moonBolt(tx,ty,a,215);
+      if(k===0){bo.turretFlash=idx;bo.turretFlashT=0.18;}
+    }
+    bo.turretIdx=(bo.turretIdx+1)%6;
+    sfx.shoot();
+  }
+  /* phase 1: escort ships dribble out of the hangar bays */
+  if(bo.phase===1){
+    bo.escortT-=dt;
+    const live=G.enemies.filter(e=>!e.dead&&e!==bo&&e.type!=='bolt').length;
+    if(bo.escortT<=0&&live<3){
+      bo.escortT=4.2;
+      const s=Math.random()<0.5?-1:1;
+      G.enemies.push({type:'rock',x:bo.x+s*bo.r*0.8,y:bo.y+bo.r*0.5,vx:s*40,vy:150,
+        hp:3,r:24,dead:false,t:0,score:50});
+    }
+  }
+  /* phases 2–3: the ember-eye cannon — charge (telegraphed), then a sweeping beam */
+  if(bo.phase>=2){
+    bo.beamT-=dt;
+    if(bo.beamState==='idle'&&bo.beamT<=0){
+      bo.beamState='charge';bo.beamT=bo.phase===3?1.2:1.6;
+      spawnText(bo.x,bo.y+bo.r+30,'⚠ EYE CANNON CHARGING!','#ff4a00');
+      tone(180,880,bo.beamT,'sawtooth',0.07);
+    }else if(bo.beamState==='charge'&&bo.beamT<=0){
+      bo.beamState='fire';bo.beamT=bo.phase===3?2.0:2.4;bo.beamDir*=-1;
+      noise(0.5,0.25,0,900);tone(90,45,0.5,'sawtooth',0.15);
+    }else if(bo.beamState==='fire'){
+      const dur=bo.phase===3?2.0:2.4,pr=1-Math.max(0,bo.beamT)/dur;
+      bo.beamA=bo.beamDir*(-0.95+1.9*pr);
+      const ex=bo.x,ey=bo.y-6,dx=G.px-ex,dy=G.py-ey;
+      if(dy>10){
+        const dist=Math.hypot(dx,dy),ang=Math.atan2(dx,dy);
+        if(Math.abs(ang-bo.beamA)<Math.atan2(24,dist)+0.015)damagePlayer(16);
+      }
+      if(Math.random()<0.6)spawnP(ex+Math.sin(bo.beamA)*140,ey+Math.cos(bo.beamA)*140,
+        (Math.random()-0.5)*60,120,0.35,'#ff8a3a',3);
+      if(bo.beamT<=0){bo.beamState='idle';bo.beamT=bo.phase===3?1.9:2.6;}
+    }
+  }
+  /* phase 3: the core vents on a cycle — open 4s (hit it!), sealed 2.5s */
+  if(bo.phase===3){
+    bo.coreT-=dt;
+    if(bo.coreOpen&&Math.random()<0.35)
+      spawnP(bo.x+(Math.random()-0.5)*30,bo.y+52,(Math.random()-0.5)*40,-60-Math.random()*60,0.5,'#ffb347',3);
+    if(bo.coreT<=0){
+      bo.coreOpen=!bo.coreOpen;bo.coreT=bo.coreOpen?4:2.5;
+      spawnText(bo.x,bo.y+bo.r+30,bo.coreOpen?'⚠ CORE EXPOSED!':'😈 CORE SEALED!','#7fd4ff');
+      if(bo.coreOpen)sfx.power();
+    }
+  }
+}
+
+/* THE HORNED MOON — fortress renderer (original code-art, game's own style).
+   Drawn in local space: caller has already translated to (e.x, e.y). */
+function drawMoonFortress(e,bt){
+  const R=e.r;
+  const bob=Math.sin(e.t*3+e.x*0.05)*2;
+  ctx.translate(0,bob);
+  /* the sweeping ember-eye beam (under the hull rim glow, over the sky) */
+  if(e.beamState==='charge'||e.beamState==='fire'){
+    const ex=0,ey=-6,a=e.beamState==='fire'?e.beamA:e.beamDir*-0.95;
+    const len=H;
+    const dx=Math.sin(a),dy=Math.cos(a);
+    ctx.save();
+    if(e.beamState==='charge'){
+      const pl=0.5+0.5*Math.sin(G.time*22);
+      ctx.strokeStyle=`rgba(255,74,0,${0.25+0.3*pl})`;ctx.lineWidth=3;ctx.setLineDash([14,12]);
+      ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+dx*len,ey+dy*len);ctx.stroke();
+      ctx.setLineDash([]);
+    }else{
+      /* solid layered fills (no full-screen gradient — software renderers
+         choke on huge gradient polygons; this is the w5c perf lesson) */
+      const wdt=30+Math.sin(G.time*40)*5;
+      ctx.globalCompositeOperation='lighter';
+      const beamPoly=w=>{ctx.beginPath();
+        ctx.moveTo(ex-dy*6,ey+dx*6);
+        ctx.lineTo(ex+dx*len-dy*w,ey+dy*len+dx*w);
+        ctx.lineTo(ex+dx*len+dy*w,ey+dy*len-dx*w);
+        ctx.lineTo(ex+dy*6,ey-dx*6);
+        ctx.closePath();ctx.fill();};
+      ctx.fillStyle='rgba(255,90,20,0.30)';beamPoly(wdt*1.9);
+      ctx.fillStyle='rgba(255,170,70,0.65)';beamPoly(wdt);
+      ctx.fillStyle='rgba(255,240,200,0.85)';beamPoly(7);
+    }
+    ctx.restore();
+  }
+  /* hull: a great dark sphere banded in iron, rim-lit in ember */
+  const hg=ctx.createRadialGradient(-R*0.35,-R*0.4,R*0.15,0,0,R*1.15);
+  hg.addColorStop(0,'#5a2430');hg.addColorStop(0.55,'#33101c');hg.addColorStop(1,'#12040a');
+  ctx.fillStyle=hg;
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=bt.accent;ctx.lineWidth=3.5;ctx.stroke();
+  ctx.strokeStyle='rgba(255,150,80,0.28)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(0,0,R*0.99,R*0.36,0,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,0,R*0.36,R*0.99,0,0,Math.PI*2);ctx.stroke();
+  /* demonic horns — grand curved horns sweeping off the upper rim */
+  ctx.fillStyle='#20060e';
+  for(const s of [-1,1]){
+    ctx.beginPath();
+    ctx.moveTo(s*R*0.62,-R*0.66);
+    ctx.quadraticCurveTo(s*R*1.28,-R*1.05,s*R*1.34,-R*1.62);
+    ctx.quadraticCurveTo(s*R*0.98,-R*1.28,s*R*0.86,-R*0.88);
+    ctx.quadraticCurveTo(s*R*0.72,-R*0.72,s*R*0.62,-R*0.66);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(255,120,50,0.5)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#ff7a2a'; // ember-glowing horn tip
+    ctx.beginPath();ctx.arc(s*R*1.33,-R*1.6,4+Math.sin(G.time*7)*1.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#20060e';
+  }
+  /* glowing ember cracks crawling over the hull */
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const cracks=[[-0.75,0.3,-0.5,0.42,-0.58,0.62],[-0.8,-0.25,-0.55,-0.12,-0.62,0.05],[0.78,0.42,0.55,0.5,0.6,0.68],[0.72,-0.5,0.5,-0.38,0.56,-0.2]];
+  ctx.strokeStyle='rgba(255,106,26,0.85)';ctx.lineWidth=2;
+  for(const c of cracks){
+    ctx.beginPath();ctx.moveTo(c[0]*R,c[1]*R);ctx.lineTo(c[2]*R,c[3]*R);ctx.lineTo(c[4]*R,c[5]*R);ctx.stroke();
+    const gr=16;ctx.globalAlpha=0.5+0.3*Math.sin(G.time*5+c[0]*9);
+    ctx.drawImage(EMBER_SPRITE,c[2]*R-gr,c[3]*R-gr,gr*2,gr*2);
+  }
+  ctx.restore();
+  /* turret ring: six hardpoint domes around the lower rim */
+  for(let i=0;i<6;i++){
+    const [ox,oy]=MOON_TURRETS[i],tx=ox*R/100,ty=oy*R/100;
+    ctx.fillStyle='#3a1420';
+    ctx.beginPath();ctx.arc(tx,ty,13,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=bt.accent;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=(e.turretFlash===i&&e.turretFlashT>0)?'#fff2b0':'#ff4a00';
+    ctx.fillRect(tx-2.5,ty+6,5,10);
+    ctx.beginPath();ctx.arc(tx,ty,4.5,0,Math.PI*2);ctx.fill();
+  }
+  /* command dome: LORD INFERNO himself at the helm, glaring down */
+  ctx.fillStyle='rgba(190,230,255,0.32)';
+  ctx.beginPath();ctx.arc(0,-R*0.74,R*0.3,Math.PI,Math.PI*2);ctx.fill();
+  ctx.strokeStyle=bt.accent;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(0,-R*0.74,R*0.3,Math.PI,Math.PI*2);ctx.stroke();
+  drawPilot(0,-R*0.76,R*0.21,bt.skin,bt.hat,bt.accent);
+  /* THE EMBER EYE — central cannon; it glows as it charges */
+  const charge=e.beamState==='charge'?(1-Math.max(0,e.beamT)/(e.phase===3?1.2:1.6)):0;
+  const eyeGlow=e.beamState==='fire'?1:charge;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const egr=34+eyeGlow*30+Math.sin(G.time*6)*3;
+  ctx.globalAlpha=0.35+eyeGlow*0.55;
+  ctx.drawImage(EMBER_SPRITE,-egr,-6-egr,egr*2,egr*2);
+  ctx.restore();
+  const eg2=ctx.createRadialGradient(0,-6,2,0,-6,27);
+  eg2.addColorStop(0,'#fff3c8');eg2.addColorStop(0.45,'#ffb347');eg2.addColorStop(0.8,'#ff5a1a');eg2.addColorStop(1,'#7a1408');
+  ctx.fillStyle=eg2;
+  ctx.beginPath();ctx.arc(0,-6,26,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#ffd23f';ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle='#1c0505';
+  ctx.beginPath();ctx.arc(0,-6,10+eyeGlow*4,0,Math.PI*2);ctx.fill();
+  /* the core (phase 3): armored vent low on the hull — hit it while it's open! */
+  if(e.phase===3){
+    const cx=0,cy=52;
+    if(e.coreOpen){
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      const cgr=30+Math.sin(G.time*10)*5;
+      ctx.drawImage(EMBER_SPRITE,cx-cgr,cy-cgr,cgr*2,cgr*2);
+      ctx.restore();
+      const cg2=ctx.createRadialGradient(cx,cy,2,cx,cy,20);
+      cg2.addColorStop(0,'#ffffff');cg2.addColorStop(0.5,'#ffd23f');cg2.addColorStop(1,'#ff6a00');
+      ctx.fillStyle=cg2;
+      ctx.beginPath();ctx.arc(cx,cy,19,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    }else{
+      ctx.fillStyle='#40202c';
+      ctx.beginPath();ctx.arc(cx,cy,19,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=bt.accent;ctx.lineWidth=2.5;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx-13,cy-13);ctx.lineTo(cx+13,cy+13);
+      ctx.moveTo(cx+13,cy-13);ctx.lineTo(cx-13,cy+13);ctx.stroke();
+    }
+  }
+  /* name tag + hp bar (same treatment as the other boss ships) */
+  ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(-R*0.95,R*0.98,R*1.9,17);
+  ctx.fillStyle=bt.accent;ctx.font='900 11px system-ui';ctx.textAlign='center';
+  ctx.fillText('😈 LORD INFERNO — THE HORNED MOON',0,R*0.98+13);ctx.textAlign='left';
+  ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(-R,-R-18,R*2,8);
+  ctx.fillStyle='#ff4a00';ctx.fillRect(-R,-R-18,R*2*(e.hp/e.maxHp),8);
 }
 
 /* input: drag to steer */
@@ -294,11 +562,11 @@ function update(dt){
   // auto-fire
   G.fireT-=dt;
   if(G.fireT<=0){
-    G.fireT=G.power===2?0.12:G.power===4?0.20:0.18;
-    const n=G.power===3?3:G.power===4?4:1;
+    G.fireT=G.power===2?0.12:G.power===4?0.20:G.power===5?0.15:0.18;
+    const n=G.power===3?3:G.power===4?4:G.power===5?2:1;
     for(let i=0;i<n;i++){
       const off=(i-(n-1)/2)*14;
-      G.bullets.push({x:G.px+off,y:G.py-30,vx:G.power===4?(i-(n-1)/2)*140:off*8,vy:-700,dead:false}); // Nova fans its 4 bolts
+      G.bullets.push({x:G.px+off,y:G.py-30,vx:G.power===4?(i-(n-1)/2)*140:G.power===5?0:off*8,vy:-700,dead:false}); // Nova fans its 4 bolts; Twin fires 2 straight bolts
     }
     sfx.shoot();
   }
@@ -309,9 +577,24 @@ function update(dt){
     for(const e of G.enemies){
       if(e.dead)continue;
       if(Math.hypot(b.x-e.x,b.y-e.y)<e.r+6){
-        b.dead=true;e.hp--;
-        for(let i=0;i<4;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#ffd23f',3);
-        if(e.hp<=0)killEnemy(e);
+        b.dead=true;
+        if(e.type==='carrier'&&e.shieldHp>0){
+          /* shielded carrier: the shield drinks the hit first */
+          e.shieldHp--;
+          for(let i=0;i<4;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#7fd4ff',3);
+          if(e.shieldHp===0)spawnText(e.x,e.y-34,'SHIELD DOWN!','#7fd4ff');
+        }else{
+          let dmg=1;
+          if(e.kind==='moon')dmg=moonHit(e,b.x,b.y);
+          e.hp-=dmg;
+          if(dmg===0){
+            for(let i=0;i<3;i++)spawnP(b.x,b.y,(Math.random()-0.5)*160,(Math.random()-0.5)*160,0.25,'#aee8ff',3);
+            if(e.sealNoteT<=0){spawnText(e.x,e.y+e.r+20,'SEALED — WAIT FOR THE CORE!','#aee8ff');e.sealNoteT=1.2;}
+          }else{
+            for(let i=0;i<4;i++)spawnP(b.x,b.y,(Math.random()-0.5)*200,(Math.random()-0.5)*200,0.3,'#ffd23f',3);
+          }
+          if(e.hp<=0)killEnemy(e);
+        }
         break;
       }
     }
@@ -320,17 +603,31 @@ function update(dt){
   // enemies
   if(G.boss&&!G.boss.dead){
     const bo=G.boss;
-    bo.t+=dt;
-    if(bo.y<140)bo.y+=bo.vy*dt;
-    else{bo.x=W/2+Math.sin(bo.t*1.2)*W*0.3;
-      bo.fireT-=dt;
-      if(bo.fireT<=0)bossFire(bo);
+    if(bo.kind==='moon'){
+      moonUpdate(bo,dt);
+    }else{
+      bo.t+=dt;
+      if(bo.y<140)bo.y+=bo.vy*dt;
+      else{bo.x=W/2+Math.sin(bo.t*1.2)*W*0.3;
+        bo.fireT-=dt;
+        if(bo.fireT<=0)bossFire(bo);
+      }
     }
   }
   for(const e of G.enemies){
     if(e.dead||e===G.boss)continue;
     e.t+=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;
     if(e.type==='dart')e.x+=Math.sin(e.t*5)*120*dt;
+    if(e.type==='weaver')e.x=e.bx+Math.sin(e.t*2.8+e.ph)*e.amp; // weaver zigzags around its lane
+    if(e.type==='carrier'){
+      e.spawnT-=dt; // carrier keeps launching mini ships out of its bay
+      if(e.spawnT<=0&&G.enemies.length<12){
+        e.spawnT=3.4;
+        G.enemies.push({type:'mini',x:e.x+(Math.random()<0.5?-1:1)*e.r*0.7,y:e.y+e.r*0.6,
+          vx:(Math.random()-0.5)*80,vy:235+G.level*12,hp:1,r:14,dead:false,t:0,score:25});
+        spawnText(e.x,e.y+e.r+14,'SHIP LAUNCHED!','#ffb8a0');
+      }
+    }
     if(e.y>H+60||(e.type==='bolt'&&(e.y<-90||e.x<-70||e.x>W+70)))e.dead=true;
     // hit player
     if(G.invuln<=0&&Math.hypot(e.x-G.px,e.y-G.py)<e.r+22){
@@ -376,6 +673,17 @@ function killEnemy(e){
   explode(e.x,e.y,e.type==='bolt'?'#ff4a00':'#ff8a3a',e.type==='boss'?30:12);
   spawnText(e.x,e.y-20,'+'+Math.round(pts));
   if(Math.random()<0.18)spawnPickup(e.x,e.y);
+  if(e.type==='splitter'){
+    /* splitter breaks into two zippy mini ships */
+    for(const s of [-1,1])
+      G.enemies.push({type:'mini',x:e.x+s*18,y:e.y,vx:s*95,vy:200+G.level*10,
+        hp:1,r:14,dead:false,t:0,score:25});
+  }
+  if(e.kind==='moon'){
+    /* Lord Inferno bails out — comical retreat, villain-style */
+    spawnText(W/2,H*0.3,"😈 'I'LL BE BAAACK!'",'#ffd23f');
+    spawnText(W/2,H*0.38,'🚀 Lord Inferno flees in a tiny escape pod!','#7fd4ff');
+  }
   if(e.type==='boss'){
     for(let i=0;i<3;i++)spawnPickup(e.x+(Math.random()-0.5)*100,e.y);
     hitStop=0.3;
@@ -398,6 +706,7 @@ function applyPickup(type){
   else if(type==='rapid'){G.power=2;G.powerT=10;spawnText(G.px,G.py-40,'RAPID FIRE!','#7fd4ff');}
   else if(type==='spread'){G.power=3;G.powerT=10;spawnText(G.px,G.py-40,'SPREAD SHOT!','#ffd23f');}
   else if(type==='nova'){G.power=4;G.powerT=10;spawnText(G.px,G.py-40,'EMBER NOVA x4!','#ff9a3a');tone(300,900,0.2,'sawtooth',0.12);}
+  else if(type==='twin'){G.power=5;G.powerT=10;spawnText(G.px,G.py-40,'TWIN BALLISTA!','#ff7fd4');tone(500,1200,0.18,'square',0.1);}
   else{G.invuln=5;spawnText(G.px,G.py-40,'SHIELD!','#4caf50');}
 }
 function levelComplete(){
@@ -407,10 +716,10 @@ function levelComplete(){
   G.score+=hpBonus;updateScoreUI();
   const stars=G.hp>70?3:G.hp>35?2:1;
   setTimeout(()=>{
-    if(G.level>=10){
-      showOverlay('🏆 SIEGE MASTER!',
-        `<div class="stars">★★★</div><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
-        '🔥 Fire Safety: You\'re a fire safety champion!',
+    if(G.level>=15){
+      showOverlay('🌕 THE SKIES ARE SAFE!',
+        `<div class="stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p><b>The Horned Moon is beaten!</b> Lord Inferno fled in a tiny escape pod, shaking his fist all the way home. 🚀</p><p style="font-size:26px;font-weight:900">Final Score: ${G.score}</p>`,
+        '🔥 Fire Safety: You\'re a fire safety champion! Real heroes keep the skies AND their homes safe — test your smoke alarms every month!',
         '↻ PLAY AGAIN',()=>{reset(1);G.score=0;updateScoreUI();G.state='play';});
     }else{
       showOverlay(`⭐ LEVEL ${G.level} CLEAR!`,
@@ -452,7 +761,7 @@ function startGame(){audio();reset(pendingLevel||1);pendingLevel=0;G.score=0;upd
 let pendingLevel=0;
 function selLevel(n){sfx.click();pendingLevel=n;showMathGate();}
 obtn.onclick=()=>{showMathGate();};
-(function(){let h='';for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
+(function(){let h='';for(let i=1;i<=15;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
 document.getElementById('levelSel').innerHTML=h;})();
 
 /* render */
@@ -462,6 +771,19 @@ function render(){
   const sky=ctx.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,th.sky[0]);sky.addColorStop(0.55,th.sky[1]);sky.addColorStop(1,th.sky[2]);
   ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  // level 15: the Horned Moon itself hangs in the sky behind the fight
+  if(G.level===15){
+    const mx=W*0.8,my=H*0.15,mr=Math.min(58,W*0.11);
+    ctx.fillStyle='rgba(232,224,255,0.9)';
+    ctx.beginPath();ctx.arc(mx,my,mr,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(160,150,190,0.5)';
+    ctx.beginPath();ctx.arc(mx-mr*0.3,my-mr*0.2,mr*0.16,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(mx+mr*0.25,my+mr*0.3,mr*0.12,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(mx+mr*0.45,my-mr*0.35,mr*0.09,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2a0a14';
+    ctx.beginPath();ctx.moveTo(mx-mr*0.8,my-mr*0.55);ctx.quadraticCurveTo(mx-mr*1.25,my-mr*1.15,mx-mr*0.55,my-mr*1.2);ctx.quadraticCurveTo(mx-mr*0.72,my-mr*0.85,mx-mr*0.5,my-mr*0.62);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(mx+mr*0.8,my-mr*0.55);ctx.quadraticCurveTo(mx+mr*1.25,my-mr*1.15,mx+mr*0.55,my-mr*1.2);ctx.quadraticCurveTo(mx+mr*0.72,my-mr*0.85,mx+mr*0.5,my-mr*0.62);ctx.closePath();ctx.fill();
+  }
   // the great volcano on the horizon (home-world landmark), slow parallax
   const vOff=(G.time*12)%(H*1.4);
   ctx.fillStyle=th.land;
@@ -496,11 +818,11 @@ function render(){
   // pickups
   for(const p of G.pickups){
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.sin(p.t*4)*0.2);
-    const cols={hp:'#4caf50',rapid:'#7fd4ff',spread:'#ffd23f',shield:'#9a7fd4',nova:'#ff9a3a'};
+    const cols={hp:'#4caf50',rapid:'#7fd4ff',spread:'#ffd23f',shield:'#9a7fd4',nova:'#ff9a3a',twin:'#ff7fd4'};
     ctx.fillStyle=cols[p.type];ctx.strokeStyle='#fff';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.fillStyle='#fff';ctx.font='900 14px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText({hp:'+',rapid:'»',spread:'∴',shield:'◈',nova:'✦'}[p.type],0,1);
+    ctx.fillText({hp:'+',rapid:'»',spread:'∴',shield:'◈',nova:'✦',twin:'✚'}[p.type],0,1);
     ctx.restore();
   }
   ctx.textBaseline='alphabetic';
@@ -509,7 +831,9 @@ function render(){
   for(const e of G.enemies){
     ctx.save();ctx.translate(e.x,e.y);
     const bob=Math.sin(e.t*3+e.x*0.05)*2;
-    if(e.type==='boss'){
+    if(e.type==='boss'&&e.kind==='moon'){
+      drawMoonFortress(e,bossTheme());
+    }else if(e.type==='boss'){
       const bt=bossTheme(),R=e.r;
       ctx.translate(0,bob);
       // GIANT boss ship: wide hull, wing cannons, big dome with the angry boss inside
@@ -573,6 +897,63 @@ function render(){
       drawPilot(0,-e.r*0.32,e.r*0.3,thE.pilot,'cap',thE.accent);
       ctx.strokeStyle=thE.accent;ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(0,e.r*0.28,e.r*0.5,0.2,Math.PI-0.2);ctx.stroke();
+    }else if(e.type==='weaver'){
+      // WEAVER SHIP: crescent wings, darts side to side as it dives
+      ctx.translate(0,bob);
+      const wg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      wg.addColorStop(0,thE.hull);wg.addColorStop(1,'#12081c');
+      ctx.fillStyle=wg;
+      ctx.beginPath();ctx.moveTo(0,e.r*1.2);
+      ctx.quadraticCurveTo(e.r*1.5,e.r*0.5,e.r*1.35,-e.r*0.6);
+      ctx.quadraticCurveTo(e.r*0.5,-e.r*0.25,0,-e.r*0.4);
+      ctx.quadraticCurveTo(-e.r*0.5,-e.r*0.25,-e.r*1.35,-e.r*0.6);
+      ctx.quadraticCurveTo(-e.r*1.5,e.r*0.5,0,e.r*1.2);ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='rgba(190,230,255,0.5)';
+      ctx.beginPath();ctx.ellipse(0,-e.r*0.15,e.r*0.3,e.r*0.38,0,0,Math.PI*2);ctx.fill();
+      drawPilot(0,-e.r*0.15,e.r*0.28,thE.pilot,'hood',thE.accent);
+      const wf=7+Math.sin(G.time*30+e.x)*3;
+      ctx.fillStyle='rgba(255,160,40,0.8)';
+      ctx.beginPath();ctx.moveTo(-4,-e.r*0.55);ctx.lineTo(4,-e.r*0.55);ctx.lineTo(0,-e.r*0.55-wf*1.6);ctx.closePath();ctx.fill();
+    }else if(e.type==='carrier'){
+      // CARRIER SHIP: huge shielded freighter that launches mini ships
+      ctx.translate(0,bob);
+      const cg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      cg.addColorStop(0,thE.hull);cg.addColorStop(1,'#140a06');
+      ctx.fillStyle=cg;
+      ctx.beginPath();ctx.ellipse(0,0,e.r*1.5,e.r*0.82,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=3;ctx.stroke();
+      ctx.fillStyle='rgba(20,12,6,0.65)';
+      ctx.fillRect(-e.r*1.3,-e.r*0.05,e.r*0.6,e.r*0.55);ctx.fillRect(e.r*0.7,-e.r*0.05,e.r*0.6,e.r*0.55); // hangar bays
+      ctx.fillStyle=(Math.sin(G.time*6+e.x)>0)?'#ff4a4a':thE.accent;
+      ctx.beginPath();ctx.arc(-e.r*1.0,e.r*0.2,3.5,0,Math.PI*2);ctx.arc(e.r*1.0,e.r*0.2,3.5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(190,230,255,0.45)';
+      ctx.beginPath();ctx.arc(0,-e.r*0.32,e.r*0.45,Math.PI,Math.PI*2);ctx.fill();
+      drawPilot(0,-e.r*0.34,e.r*0.3,thE.pilot,'cap',thE.accent);
+      // shield bubble — visibly thins as the shield is shot away
+      if(e.shieldHp>0){
+        ctx.strokeStyle=`rgba(127,212,255,${0.25+0.45*(e.shieldHp/6)})`;
+        ctx.lineWidth=3;
+        ctx.beginPath();ctx.arc(0,0,e.r*1.62,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=1.5;
+        ctx.beginPath();ctx.arc(0,0,e.r*1.62,Math.PI*1.15,Math.PI*1.5);ctx.stroke();
+      }
+    }else if(e.type==='splitter'){
+      // SPLITTER POD: two fused halves with a glowing crack seam
+      ctx.translate(0,bob);
+      const pg=ctx.createLinearGradient(0,-e.r,0,e.r);
+      pg.addColorStop(0,thE.hull);pg.addColorStop(1,'#160a10');
+      ctx.fillStyle=pg;
+      ctx.beginPath();ctx.ellipse(0,0,e.r*1.05,e.r*0.9,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=thE.accent;ctx.lineWidth=2.5;ctx.stroke();
+      ctx.strokeStyle='#ffb347';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(0,-e.r*0.85);
+      ctx.lineTo(e.r*0.16,-e.r*0.3);ctx.lineTo(-e.r*0.14,e.r*0.1);ctx.lineTo(e.r*0.1,e.r*0.55);ctx.lineTo(0,e.r*0.85);ctx.stroke();
+      ctx.fillStyle='rgba(190,230,255,0.45)';
+      ctx.beginPath();ctx.arc(-e.r*0.45,-e.r*0.3,e.r*0.34,Math.PI,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(e.r*0.45,-e.r*0.3,e.r*0.34,Math.PI,Math.PI*2);ctx.fill();
+      drawPilot(-e.r*0.45,-e.r*0.32,e.r*0.24,thE.pilot,'cap',thE.accent);
+      drawPilot(e.r*0.45,-e.r*0.32,e.r*0.24,thE.pilot,'hood',thE.accent);
     }else if(e.type==='bolt'){
       // boss fire-bolt (a shot, not a ship)
       ctx.fillStyle='#ff6a00';
