@@ -768,5 +768,22 @@ document.getElementById('best').textContent='🏆 '+G.best;
 buildLevel(1);
 requestAnimationFrame(loop);
 </script>
+
+<!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->
+<style id='fbCtlStyle'>
+#fbCtl{position:fixed;inset:0;z-index:12;pointer-events:none}
+#fbCtl .fbL{position:absolute;left:12px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
+#fbCtl .fbR{position:absolute;right:12px;display:flex;flex-direction:column-reverse;gap:10px;align-items:center}
+#fbCtl .fbtn{pointer-events:auto;width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,210,63,.9);background:radial-gradient(circle at 35% 28%,rgba(96,52,18,.93),rgba(24,12,4,.93));color:#fff;font-family:inherit;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);padding:0;margin:0;user-select:none;-webkit-user-select:none}
+#fbCtl .fbtn .fa{font-size:20px;line-height:1}
+#fbCtl .fbtn .fw{font-size:9px;letter-spacing:.5px;margin-top:1px}
+#fbCtl .fbtn.small{width:52px;height:52px}
+#fbCtl .fbtn.on,#fbCtl .fbtn:active{transform:scale(.92);filter:brightness(1.4)}
+#fbCtl .fbDia{position:absolute;left:12px;bottom:14px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:3px}
+#fbCtl .fbDia .fbtn{width:46px;height:46px;font-size:18px}
+#fbCtl .fbDia .sp{width:46px;height:46px}
+</style>
+<div id='fbCtl'><div class='fbL'><button class='fbtn' data-k='ArrowLeft' data-c='ArrowLeft' aria-label='LEFT'><span class='fa'>◀</span><span class='fw'>LEFT</span></button><button class='fbtn' data-k='ArrowRight' data-c='ArrowRight' aria-label='RIGHT'><span class='fa'>▶</span><span class='fw'>RIGHT</span></button></div><div class='fbR' style='bottom:78px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='JUMP' style='font-size:14px'>JUMP</button></div></div>
+<script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);})();</script>
 </body>
 </html>
