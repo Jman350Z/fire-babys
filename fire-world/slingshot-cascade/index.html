@@ -6,7 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Fire Babys Slingshot Cascade — by Jman350Z & fire team</title>
-<meta name="description" content="Launch Blaze from the slingshot! Smash crystal towers in this polished physics puzzler. A Fire Babys game.">
+<meta name="description" content="Launch Blaze from the slingshot! Knock the towers down and smash every skeleton in this polished physics puzzler. A Fire Babys game.">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#1a0d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
@@ -18,7 +18,7 @@ canvas{display:block;width:100%;height:100%}
 .pill.gold{color:#ffd23f}
 #combo{position:fixed;top:70px;left:50%;transform:translateX(-50%) scale(0);z-index:6;pointer-events:none;font-size:32px;font-weight:900;color:#ffd23f;text-shadow:0 3px 0 #000,0 0 20px #ff6a00;transition:transform .15s}
 #combo.pop{transform:translateX(-50%) scale(1.2)}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,0,.88);color:#fff;text-align:center;padding:24px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;background:rgba(15,5,0,.88);color:#fff;text-align:center;padding:24px}
 #overlay h1{font-size:clamp(28px,7vw,48px);font-weight:900;margin-bottom:12px;background:linear-gradient(180deg,#ffd76a,#ff6a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
 #overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px;color:#fff}
@@ -71,7 +71,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <body>
 <div id="game">
 <div id="hud">
-<div class="hud-left"><div class="pill gold" id="score">⭐ 0</div><div class="pill" id="level">LEVEL 1</div><div class="pill" id="skels">💀 0/0</div></div>
+<div class="hud-left"><div class="pill gold" id="score">⭐ 0</div><div class="pill" id="level">LEVEL 1</div><div class="pill" id="skels">💀 Skeletons: 0 left</div></div>
 <div class="hud-right"><div class="pill" id="shots">🎯 3</div><div class="pill" id="best">🏆 0</div></div>
 </div>
 <div id="combo"></div>
@@ -82,7 +82,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 SLINGSHOT CASCADE</h1>
-<div id="obody"><p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Smash every crystal tower. Fewer shots = more stars!</p>
+<div id="obody"><p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Your mission: smash <b>EVERY 💀 skeleton</b> — knock the towers down to get them! Fewer shots = more stars!</p>
 <div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!</div>
@@ -107,6 +107,14 @@ let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
 addEventListener('resize',resize);resize();
+
+/* [fbzoom 2026-10-15] Camera pulled back (Jeff: "too close zoomed in — back it
+   up a bit"). The play layer renders at FB_ZOOM about the ground centre,
+   widening the visible playfield by ~1/0.85 ≈ 18%. Physics, level layout and
+   HUD stay in world coords; pointer input is converted through toWorld() so
+   aiming, the trajectory preview and physics remain exactly consistent. */
+const FB_ZOOM=0.85;
+function toWorld(x,y){const px=W*0.5,py=groundY();return{x:px+(x-px)/FB_ZOOM,y:py+(y-py)/FB_ZOOM};}
 
 /* ---------------- Audio: layered synth ---------------- */
 let AC=null;
@@ -278,7 +286,7 @@ function buildLevel(n){
   }else{ // level 5 fortress
     SK(W*0.62,gy-147);SK(W*0.78,gy-147);SK(W*0.70,gy-226);SK(W*0.70,gy-285);
   }
-  document.getElementById('skels').textContent='💀 0/'+G.skels.length;
+  document.getElementById('skels').textContent='💀 Skeletons: '+G.skels.length+' left';
   G.sling={x:Math.max(90,W*0.14),y:gy-110};
   G.shotsUsed=0;G.combo=0;
   document.getElementById('level').textContent='LEVEL '+n+'/10';
@@ -380,7 +388,7 @@ function applyMagnet(pr,dt){
 function skelDie(s,cause){
   if(s.dead)return;s.dead=true;G.skelsSmashed++;
   G.score+=500;updateScoreUI();
-  document.getElementById('skels').textContent='💀 '+G.skelsSmashed+'/'+G.skels.length;
+  document.getElementById('skels').textContent='💀 Skeletons: '+(G.skels.length-G.skelsSmashed)+' left';
   sfx.shatter();addTrauma(0.25);
   spawnText(s.x,s.y-34,'💀 SKELETON SMASHED +500','#e8e8f0',20);
   for(let i=0;i<10;i++)spawnP(s.x,s.y,(Math.random()-0.5)*360,(Math.random()-0.5)*360,0.6,'#e8e8f0',4);
@@ -498,13 +506,15 @@ function updatePhysics(dt){
     }
   }
   updateSkels(dt);
-  // check win
-  if(G.state==='play'&&G.blocks.every(b=>b.dead))levelComplete();
+  // check win — Jeff 2026-10-15: the MISSION is the skeletons, not the bricks.
+  // Bricks are only what the skeletons stand on: the level is won the moment the
+  // LAST skeleton is smashed, even with towers still standing.
+  if(G.state==='play'&&G.skels.length>0&&G.skels.every(s=>s.dead))levelComplete();
   // check out of shots
   if(G.state==='play'&&G.projectiles.length===0&&!G.dragging&&G.shots-G.shotsUsed<=0&&G.pig===null){
     // small delay before fail
     G.failT=(G.failT||0)+dt;
-    if(G.failT>1.5&&!G.blocks.every(b=>b.dead))levelFailed();
+    if(G.failT>1.5&&!G.skels.every(s=>s.dead))levelFailed();
   }else G.failT=0;
 }
 function destroyBlock(b,by){
@@ -528,7 +538,7 @@ function showCombo(){
 
 /* ---------------- Input: drag slingshot ---------------- */
 let dragX=0,dragY=0;
-function getPos(e){const t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY};}
+function getPos(e){const t=e.touches?e.touches[0]:e;return toWorld(t.clientX,t.clientY);} // screen→world so drag/aim match the zoomed camera
 function slingReady(){return G.state==='play'&&!G.dragging&&G.projectiles.length===0&&(G.shots-G.shotsUsed)>0;}
 canvas.addEventListener('pointerdown',e=>{
   if(trySpecial())return; // mid-flight tap fires the hero special (once per launch)
@@ -579,7 +589,7 @@ function levelComplete(){
 function levelFailed(){
   G.state='fail';
   showOverlay('💥 OUT OF SHOTS',
-    `<p>So close! The towers still stand.</p><p>Score: ${G.score}</p>`,
+    `<p>So close! 💀 ${G.skels.length-G.skelsSmashed} skeleton${(G.skels.length-G.skelsSmashed)===1?'':'s'} still standing!</p><p>Score: ${G.score}</p>`,
     '🔥 Fire Safety: Never give up on safety — try again!',
     '↻ TRY AGAIN',()=>{G.score=Math.max(0,G.score-200);updateScoreUI();buildLevel(G.level);G.state='play';});
 }
@@ -616,7 +626,7 @@ function showTitle(){
   // level select (all unlocked for kids)
   let h='';
   for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
-  obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Smash every crystal tower — and crush the <b>💀 skeletons</b> hiding on them for +500 each! Fewer shots = more stars!</p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
+  obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Your mission: smash EVERY <b>💀 skeleton</b> (+500 each) to win the level! The towers are just what they stand on — knock bricks down to drop, crush and topple them. Fewer shots = more stars!</p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
   refreshHeroChips();
   obtn.textContent='▶ PLAY';
   obtn.onclick=()=>{showMathGate();};
@@ -737,11 +747,13 @@ function render(){
   ctx.save();
   if(trauma>0)ctx.translate(shakeX,shakeY);
   const gy=groundY();
-  // ground
+  // [fbzoom] pull the camera back: scale the whole play layer about the ground centre
+  ctx.translate(W*0.5,gy);ctx.scale(FB_ZOOM,FB_ZOOM);ctx.translate(-W*0.5,-gy);
+  // ground (drawn extra-wide so the zoomed-out view stays covered edge to edge)
   const gg=ctx.createLinearGradient(0,gy,0,H);
   gg.addColorStop(0,'#4a2a1a');gg.addColorStop(1,'#1a0d08');
-  ctx.fillStyle=gg;ctx.fillRect(0,gy,W,H-gy);
-  ctx.fillStyle='#5a3a24';ctx.fillRect(0,gy,W,6);
+  ctx.fillStyle=gg;ctx.fillRect(-W*0.3,gy,W*1.6,H-gy);
+  ctx.fillStyle='#5a3a24';ctx.fillRect(-W*0.3,gy,W*1.6,6);
   // grass tufts / rocks detail
   ctx.fillStyle='#3a2418';
   for(let i=0;i<20;i++){const rx=(i*197)%W;ctx.fillRect(rx,gy+14+(i*37)%30,8,4);}
@@ -916,5 +928,22 @@ const MUS={on:false,step:0,nextT:0,BPM:112,
 addEventListener('pointerdown',()=>MUS.start());
 addEventListener('keydown',()=>MUS.start());
 </script>
+
+<!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->
+<style id='fbCtlStyle'>
+#fbCtl{position:fixed;inset:0;z-index:12;pointer-events:none}
+#fbCtl .fbL{position:absolute;left:12px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
+#fbCtl .fbR{position:absolute;right:12px;display:flex;flex-direction:column-reverse;gap:10px;align-items:center}
+#fbCtl .fbtn{pointer-events:auto;width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,210,63,.9);background:radial-gradient(circle at 35% 28%,rgba(96,52,18,.93),rgba(24,12,4,.93));color:#fff;font-family:inherit;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);padding:0;margin:0;user-select:none;-webkit-user-select:none}
+#fbCtl .fbtn .fa{font-size:20px;line-height:1}
+#fbCtl .fbtn .fw{font-size:9px;letter-spacing:.5px;margin-top:1px}
+#fbCtl .fbtn.small{width:52px;height:52px}
+#fbCtl .fbtn.on,#fbCtl .fbtn:active{transform:scale(.92);filter:brightness(1.4)}
+#fbCtl .fbDia{position:absolute;left:12px;bottom:14px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:3px}
+#fbCtl .fbDia .fbtn{width:46px;height:46px;font-size:18px}
+#fbCtl .fbDia .sp{width:46px;height:46px}
+</style>
+<div id='fbCtl'><div class='fbR' style='bottom:14px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='POW' style='font-size:14px'>POW</button></div></div>
+<script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);var _rb=document.createElement('button');_rb.id='fbRestart';_rb.type='button';_rb.title='Restart';_rb.setAttribute('aria-label','Restart');_rb.textContent='↻';var _host=document.querySelector('#sysbtns');if(_host)_host.appendChild(_rb);else document.body.appendChild(_rb);_rb.addEventListener('click',function(){try{if(typeof __setPaused==='function')__setPaused(false);if(typeof buildLevel==='function'&&typeof G!=='undefined'){buildLevel(G.level);G.state='play';}}catch(err){}});})();</script>
 </body>
 </html>
