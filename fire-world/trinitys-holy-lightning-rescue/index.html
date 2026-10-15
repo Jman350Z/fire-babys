@@ -727,6 +727,54 @@ function __setPaused(v){if(v&&G.state!=='play')return;window.__fbPaused=!!v;__pb
 __pb.addEventListener('click',e=>{e.stopPropagation();__setPaused(!window.__fbPaused);});
 __mb.addEventListener('click',e=>{e.stopPropagation();window.__fbMuted=!window.__fbMuted;__mb.textContent=window.__fbMuted?'🔇':'🔊';try{if(typeof AC!=='undefined'&&AC){if(window.__fbMuted)AC.suspend();else AC.resume();}}catch(err){}});
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__setPaused(!window.__fbPaused);if(e.key==='m'||e.key==='M')__mb.click();});
+/* ===== MUSIC (Jeff 2026-10-15): 'Hymn of the Storm' — Trinity's Holy Lightning Rescue's own
+   track. Synthesized Web Audio only. 90 BPM, D lydian: a bell sine lead with
+   the game-04 harmonic sparkle, floating over soft triangle pads
+   (D-A-Bm-F#m) — a hymn with thunder far away.
+   Plays through guarded local tone()/noise() fallbacks (see below): this
+   shell's only audio helper is a one-shot sfx(). Freeze gate is the shell's
+   own window.__fbMuted / window.__fbPaused, Slingshot-style.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of trinitys-holy-lightning-rescue/index.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// This shell defines no tone()/noise() helpers (it uses a one-shot sfx()), so
+// the module carries guarded local fallbacks built on the shell's audio().
+// If the shell ever grows its own tone()/noise(), those win automatically.
+function _fbTone(f0,f1,dur,type,vol,delay){const ac=audio();if(!ac)return;const t=ac.currentTime+(delay||0);
+ const o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';
+ o.frequency.setValueAtTime(Math.max(20,f0),t);
+ if(f1&&f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+ g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+ o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+dur+0.02);}
+function _fbNoise(dur,vol,delay,lp){const ac=audio();if(!ac)return;const t=ac.currentTime+(delay||0);
+ const len=Math.max(1,(ac.sampleRate*dur)|0);const buf=ac.createBuffer(1,len,ac.sampleRate);
+ const ch=buf.getChannelData(0);for(let i=0;i<len;i++)ch[i]=Math.random()*2-1;
+ const src=ac.createBufferSource();src.buffer=buf;
+ const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp||1800;
+ const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+ src.connect(f);f.connect(g);g.connect(ac.destination);src.start(t);}
+const _tone=(typeof tone==='function')?tone:_fbTone;
+const _noise=(typeof noise==='function')?noise:_fbNoise;
+const MUS={on:false,step:0,nextT:0,BPM:90,
+ BASS:[50,0,0,0,0,0,0,0, 45,0,0,0,0,0,0,0, 47,0,0,0,0,0,0,0, 42,0,0,0,45,0,0,0],
+ LEAD:[74,0,0,78,0,0,81,0, 78,0,0,76,0,0,0,0, 74,0,0,78,0,0,83,0, 81,0,0,78,0,0,0,0],
+ PAD:[50,45,47,42],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(window.__fbMuted||window.__fbPaused){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  if(s%8===0){const p=this.PAD[s>>3];if(p){_tone(_mf(p),_mf(p),2.4,'triangle',0.016,d);_tone(_mf(p+7),_mf(p+7),2.4,'triangle',0.014,d);_tone(_mf(p+12),_mf(p+12),2.4,'sine',0.014,d);}} // soft pad chord
+  const b=this.BASS[s];if(b)_tone(_mf(b),_mf(b),0.6,'triangle',0.04,d);
+  const l=this.LEAD[s];if(l){_tone(_mf(l),_mf(l),0.4,'sine',0.045,d);
+   _tone(_mf(l)*2,_mf(l)*2,0.18,'sine',0.012,d);} // harmonic sparkle
+  if(s===0||s===16)_tone(105,45,0.13,'sine',0.07,d); // soft kick, twice a loop
+  if(s%8===4)_noise(0.03,0.008,d,7500); // distant shimmer tick
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 <script data-fbcycle2>
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */
