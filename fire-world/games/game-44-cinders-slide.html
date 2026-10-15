@@ -349,6 +349,37 @@ function loop(t){
 }
 resize();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Slippery Summit' — Cinder's Slide's own
+   track. Synthesized Web Audio only. 114 BPM, Bb major: a gliding sine lead
+   that slides a whole step into every note, up or down — nothing on this
+   track stands still.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): script-scope `muted` mutes, G.paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-44-cinders-slide.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — muted / G.paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(muted||G.paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:114,
+ BASS:[46,0,0,46,0,0,58,0, 43,0,0,43,0,0,55,0, 51,0,0,51,0,0,63,0, 41,0,0,41,0,0,53,0],
+ LEAD:[70,0,74,0,77,0,74,0, 74,0,79,0,77,0,74,0, 75,0,79,0,82,0,79,0, 77,0,74,0,72,0,74,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.2,'triangle',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l+(s%2?-2:2)),_mf(l),0.26,'sine',0.05,d); // slippery slide into every note
+  if(s%8===0||s%8===4)tone(115,45,0.11,'sine',0.11,d); // kick
+  if(s%8===2||s%8===6)tone(188,118,0.07,'triangle',0.05,d); // soft tone-only snare
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 <script data-fbcycle2>
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */

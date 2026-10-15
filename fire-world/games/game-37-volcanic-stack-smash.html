@@ -331,6 +331,37 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Stack Attack' — Volcanic Stack Smash's own
+   track. Synthesized Web Audio only. 126 BPM, F minor: a chunky square lead
+   — and the drums stack up bar by bar (kick, then snare, then hats), just
+   like the tower.
+   Freeze gate CONFIRMED at insertion (2026-10-15): script-scope `muted` mutes, G.paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-37-volcanic-stack-smash.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — muted / G.paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(muted||G.paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:126,
+ BASS:[41,0,41,41,0,41,0,0, 44,0,44,44,0,44,0,0, 37,0,37,37,0,37,0,0, 39,0,39,39,0,41,44,0],
+ LEAD:[65,0,68,0,65,0,0,0, 72,0,68,0,65,0,0,0, 73,0,72,0,68,0,65,0, 77,0,75,0,72,0,68,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);const bar=(s/8)|0;
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.13,'square',0.06,d);
+  const l=this.LEAD[s];if(l){tone(_mf(l),_mf(l),0.15,'square',0.05,d);
+   if(bar===3)tone(_mf(l+12),_mf(l+12),0.1,'square',0.012,d);} // top layer: octave double
+  if(s%8===0||s%8===4)tone(120,45,0.11,'sine',0.13,d); // kick from bar 1
+  if(bar>=1&&(s%8===2||s%8===6))noise(0.08,0.08,d,1800); // snare stacks in bar 2
+  if(bar>=2&&s%2===0)noise(0.02,0.016,d,6800); // hats stack in bar 3
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

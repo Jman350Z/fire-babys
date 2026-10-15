@@ -368,6 +368,38 @@ function loop(t){
 resize();buildBoard();
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Plink Plonk Magma' — Magma Drop Physics's own
+   track. Synthesized Web Audio only. 112 BPM, G major pentatonic: a plinky
+   sine-bell lead (with the game-09 octave shimmer) dripping down the scale,
+   bar after bar.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): script-scope `muted` mutes, G.paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-36-magma-drop-physics.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — muted / G.paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(muted||G.paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:112,
+ BASS:[43,0,0,0,50,0,0,0, 48,0,0,0,55,0,0,0, 40,0,0,0,47,0,0,0, 38,0,0,0,45,0,50,0],
+ LEAD:[83,0,79,0,76,0,74,0, 81,0,79,0,76,0,71,0, 79,0,76,0,74,0,71,0, 74,0,71,0,69,0,67,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.2,'triangle',0.05,d);
+  const l=this.LEAD[s];if(l){tone(_mf(l),_mf(l),0.16,'sine',0.05,d);
+   tone(_mf(l)*2,_mf(l)*2,0.1,'sine',0.012,d);} // bell shimmer
+  if(s%8===0)tone(110,45,0.12,'sine',0.1,d); // soft kick
+  if(s%8===4)tone(150,90,0.1,'sine',0.05,d); // low plonk
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

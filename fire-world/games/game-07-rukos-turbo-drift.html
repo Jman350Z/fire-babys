@@ -592,6 +592,31 @@ function loop(t){
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Driftline Fever' — Ruko's Turbo Drift's
+   own track. Synthesized Web Audio only. 148 BPM, E minor: sawtooth ostinato
+   bass, gritty square racing lead, four-on-the-floor kick and hats on every
+   step — full-throttle drift energy.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-07-rukos-turbo-drift.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:148,
+ BASS:[40,40,0,40,40,0,40,40, 38,38,0,38,38,0,38,38, 36,36,0,36,36,0,36,36, 38,0,40,0,43,0,47,0],
+ LEAD:[76,0,79,0,83,0,79,0, 81,0,79,0,76,0,74,0, 72,0,76,0,79,0,81,0, 83,0,81,79,76,0,74,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.11,'sawtooth',0.06,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.13,'square',0.04,d);
+  if(s%2===0)tone(125,45,0.11,'sine',0.15,d); // four-on-the-floor
+  if(s%8===2||s%8===6)noise(0.08,0.09,d,1700); // snare
+  noise(0.02,0.018,d,7000); // driving hats
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

@@ -416,6 +416,39 @@ __bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.tex
 __br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;genPeak(G.peak);G.state='play';});
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Zenith' — Blaze's Zenith's own
+   track. Synthesized Web Audio only. 127 BPM, A major: a triumphant square
+   lead that climbs a bar higher every time, with double-time hats for the
+   summit push.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__FB_MUTED mutes, pause sets G.state='pause', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-54-blazes-zenith.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__FB_MUTED / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__FB_MUTED||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:127,
+ BASS:[45,0,57,0,45,0,57,0, 40,0,52,0,40,0,52,0, 42,0,54,0,42,0,54,0, 38,0,50,0,38,0,45,0],
+ LEAD:[69,0,73,0,76,0,0,0, 76,0,78,0,81,0,0,0, 81,0,85,0,88,0,85,0, 86,0,85,0,83,0,81,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);const bar=(s/8)|0;
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.13,'square',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.16,'square',0.05,d);
+  if(s%8===0||s%8===4)tone(120,45,0.11,'sine',0.13,d); // kick
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  if(bar<2){if(s%2===0)tone(6800,6800,0.015,'square',0.008,d);} // hats
+  else tone(6800,6800,0.015,'square',0.008,d); // double-time hats, bars 3-4
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

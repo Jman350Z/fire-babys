@@ -320,6 +320,37 @@ __bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.tex
 __br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Bullseye Basin' — Volcanic Target's own
+   track. Synthesized Web Audio only. 117 BPM, D dorian: a focused pluck
+   square lead, ticking hats and a sparse kick — breathe, aim, fire.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__FB_MUTED mutes, pause sets G.state='pause', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-51-volcanic-target.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__FB_MUTED / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__FB_MUTED||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:117,
+ BASS:[38,0,0,38,0,0,50,0, 41,0,0,41,0,0,53,0, 36,0,0,36,0,0,48,0, 43,0,0,43,0,0,55,0],
+ LEAD:[74,0,0,77,0,74,0,0, 77,0,0,81,0,77,0,0, 79,0,0,76,0,74,0,0, 76,0,74,0,72,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.14,'square',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.12,'square',0.05,d);
+  tone(7000,7000,0.012,'square',0.007,d); // ticking hat click
+  if(s===0||s===16)tone(118,45,0.11,'sine',0.11,d); // sparse kick
+  if(s===12||s===28)tone(190,120,0.07,'triangle',0.06,d); // sparse tone-only snare
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

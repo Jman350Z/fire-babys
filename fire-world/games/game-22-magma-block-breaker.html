@@ -394,6 +394,31 @@ document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!
 document.getElementById('restartBtn').onclick=()=>{if(G.state==='play'){setPaused(false);reset();G.state='play';sfx.click();}};
 addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Tap Tempo' — Magma Tap Smash's own
+   track. Synthesized Web Audio only. 136 BPM, D major: a short, percussive
+   square lead over a kick-driven groove — it taps its foot the whole way
+   through.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-22-magma-block-breaker.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:136,
+ BASS:[38,0,38,50,0,38,0,0, 43,0,43,55,0,43,0,0, 47,0,47,59,0,47,0,0, 45,0,45,57,0,50,52,0],
+ LEAD:[74,74,0,78,0,74,0,0, 79,0,79,0,78,0,74,0, 78,0,0,81,0,78,0,0, 76,0,74,0,73,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||PAUSED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.13,'square',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.1,'square',0.05,d);
+  if(s%2===0)tone(120,45,0.11,'sine',0.12,d); // kick-driven groove
+  if(s%8===2||s%8===6)noise(0.08,0.08,d,1800); // snare
+  if(s%2===0)noise(0.02,0.016,d,6800); // hat
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

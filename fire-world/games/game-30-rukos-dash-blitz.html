@@ -385,6 +385,37 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Blitz Circuit' — Ruko's Dash Blitz's own
+   track. Synthesized Web Audio only. 158 BPM, B minor: the fastest sawtooth
+   arps on the site over driving hats — blink and the bar is gone.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__muted mutes, window.__paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-30-rukos-dash-blitz.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__muted / window.__paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__muted||window.__paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:158,
+ BASS:[47,47,0,47,47,0,47,47, 43,43,0,43,43,0,43,43, 38,38,0,38,38,0,38,38, 45,0,47,0,49,0,54,0],
+ LEAD:[71,74,78,83,78,74,71,74, 67,71,74,79,74,71,67,71, 74,78,81,86,81,78,74,78, 69,73,76,81,76,73,69,73],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.1,'sawtooth',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.1,'sawtooth',0.04,d);
+  if(s%2===0)tone(124,45,0.1,'sine',0.13,d); // driving kick
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  tone(7000,7000,0.012,'square',0.006,d); // driving hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

@@ -550,6 +550,31 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Trench Runner' — Magma Trench Dodge's
+   own track. Synthesized Web Audio only. 132 BPM, D phrygian: syncopated
+   sawtooth bass with that menacing ♭2 bite, sparse square stab lead,
+   off-beat war-kick and ticking hats — geyser-dodging tension.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-11-magma-trench-dodge.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:132,
+ BASS:[38,0,38,39,0,38,0,0, 38,0,38,39,0,41,0,0, 36,0,36,38,0,36,0,0, 34,0,38,0,41,0,43,0],
+ LEAD:[74,0,0,74,0,0,75,0, 74,0,0,0,0,70,0,0, 72,0,0,72,0,0,74,0, 75,0,0,74,0,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.paused||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.13,'sawtooth',0.065,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.14,'square',0.045,d);
+  if(s%8===0||s%8===3||s%8===6)tone(118,40,0.13,'sine',0.15,d); // syncopated kick
+  if(s%8===4)noise(0.08,0.08,d,1700); // snare
+  noise(0.018,0.016,d,7200); // ticking hats
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

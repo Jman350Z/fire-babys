@@ -486,6 +486,38 @@ resize();
 requestAnimationFrame(loop);
 window.__speed=1;
 document.getElementById('speedBtn').addEventListener('click',e=>{e.stopPropagation();window.__speed=window.__speed===1?2:1;e.currentTarget.textContent=window.__speed===2?'⏩2×':'⏩1×';});
+/* ===== MUSIC (Jeff 2026-10-15): 'Rampart Rock' — Boulder's Rampart's own
+   track. Synthesized Web Audio only. 100 BPM, D minor: a heavy sawtooth lead
+   over war pads (Dm-Bb-F-C) and syncopated war drums — a brand-new melody,
+   not the game-05 siege tune.
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__muted mutes, window.__paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-31-boulders-rampart.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__muted / window.__paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__muted||window.__paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:100,
+ BASS:[38,0,38,0,0,38,0,38, 46,0,46,0,0,46,0,0, 41,0,41,0,0,41,0,41, 36,0,38,0,41,0,43,0],
+ LEAD:[62,0,0,65,0,69,0,0, 70,0,0,69,0,65,0,0, 69,0,0,72,0,74,0,0, 72,0,69,0,65,0,62,0],
+ PAD:[38,46,41,36],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  if(s%8===0){const p=this.PAD[s>>3];if(p){tone(_mf(p),_mf(p),1.6,'sawtooth',0.016,d);tone(_mf(p)*1.006,_mf(p)*1.006,1.6,'sawtooth',0.016,d);tone(_mf(p+7),_mf(p+7),1.6,'triangle',0.02,d);}} // pad chord
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.15,'sawtooth',0.06,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.2,'sawtooth',0.05,d);
+  if(s%8===0||s%8===3||s%8===6)tone(115,40,0.13,'sine',0.15,d); // war-drum kick
+  if(s%8===4)noise(0.08,0.08,d,1700); // snare
+  if(s===30||s===31)noise(0.05,0.06,d,1700); // war roll into the loop
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 <script data-fbcycle2>
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */

@@ -317,6 +317,37 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+Math.floor(G.best/10)+'m';
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Bounce House Ember' — Ember Bounce 2D's own
+   track. Synthesized Web Audio only. 124 BPM, D major pentatonic: a rubbery
+   triangle lead over an octave- bounce bass — the whole track is on springs.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__muted mutes, window.__paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-27-ember-bounce-2d.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__muted / window.__paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__muted||window.__paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:124,
+ BASS:[38,50,38,50,38,50,38,50, 43,55,43,55,43,55,43,55, 47,59,47,59,47,59,47,59, 45,57,45,57,45,57,50,52],
+ LEAD:[74,0,78,0,81,0,78,0, 78,0,81,0,83,0,81,0, 83,0,81,0,78,0,81,0, 78,0,76,0,74,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.11,'triangle',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.15,'triangle',0.05,d);
+  if(s%8===0||s%8===4)tone(120,45,0.11,'sine',0.13,d); // kick
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  if(s%2===0)tone(6800,6800,0.015,'square',0.008,d); // hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

@@ -413,6 +413,30 @@ document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!
 addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
 resize();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Draw the Line' — Lava Line Draw's own
+   track. Synthesized Web Audio only. 100 BPM, C lydian: a gentle sine lead
+   and almost no drums at all — calm creative space for drawing your way out.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-25-lava-line-draw.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:100,
+ BASS:[36,0,0,0,0,0,0,0, 38,0,0,0,0,0,0,0, 43,0,0,0,0,0,0,0, 36,0,0,0,43,0,38,0],
+ LEAD:[72,0,74,0,78,0,76,0, 74,0,0,0,71,0,0,0, 76,0,79,0,81,0,79,0, 76,0,74,0,72,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||PAUSED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.5,'sine',0.045,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.3,'sine',0.05,d);
+  if(s%16===0)tone(100,45,0.12,'sine',0.08,d); // barely-there pulse, twice a loop
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

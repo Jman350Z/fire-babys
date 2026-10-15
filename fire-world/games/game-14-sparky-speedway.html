@@ -394,6 +394,32 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Volt Lap' — Sparky Speedway's own
+   track. Synthesized Web Audio only. 152 BPM, G major: a buzzy sawtooth
+   arpeggio lead rides a four-on-the- floor pulse — pure speedway voltage.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-14-sparky-speedway.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:152,
+ BASS:[43,43,55,43,43,43,55,43, 40,40,52,40,40,40,52,40, 36,36,48,36,36,36,48,36, 38,38,50,38,38,38,50,38],
+ LEAD:[67,71,74,79,74,71,67,71, 64,67,71,76,71,67,64,67, 60,64,67,72,67,64,60,64, 66,69,74,78,74,69,66,69],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.paused||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.11,'sawtooth',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.1,'sawtooth',0.04,d);
+  if(s%2===0)tone(122,45,0.11,'sine',0.14,d); // four-on-the-floor
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  tone(7000,7000,0.012,'square',0.006,d); // ticking hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

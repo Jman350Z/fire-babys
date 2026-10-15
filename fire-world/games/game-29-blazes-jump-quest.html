@@ -466,6 +466,37 @@ function loop(t){
 }
 resize();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Quest for the Peak' — Blaze's Jump Quest's own
+   track. Synthesized Web Audio only. 122 BPM, G major: a heroic square lead
+   with proper marching drums — the quest anthem every jump deserves.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__muted mutes, window.__paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-29-blazes-jump-quest.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__muted / window.__paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__muted||window.__paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:122,
+ BASS:[43,0,43,0,50,0,43,0, 48,0,48,0,55,0,48,0, 40,0,40,0,47,0,40,0, 38,0,38,0,45,0,50,0],
+ LEAD:[67,0,71,0,74,0,79,0, 76,0,74,0,72,0,0,0, 71,0,74,0,76,0,79,0, 78,0,74,0,71,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.14,'square',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.17,'square',0.05,d);
+  if(s%2===0)tone(118,45,0.1,'sine',0.11,d); // marching kick
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  if(s===30||s===31)tone(190,120,0.05,'triangle',0.05,d); // pickup roll into the loop
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 <script data-fbcycle2>
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */

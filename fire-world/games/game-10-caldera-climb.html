@@ -567,6 +567,33 @@ function loop(t){
 }
 resize();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Summit Fever' — Caldera Climb's own
+   track. Synthesized Web Audio only. 118 BPM, G dorian: the triangle lead
+   climbs higher every bar (just like the climb), pulsing square bass, and
+   drums that build bar by bar — sparse at the base, full at the summit.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-10-caldera-climb.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:118,
+ BASS:[43,0,43,0,43,0,46,0, 43,0,43,0,43,0,50,0, 39,0,39,0,39,0,46,0, 41,0,41,0,48,0,50,0],
+ LEAD:[67,0,70,0,74,0,0,0, 74,0,77,0,79,0,0,0, 79,0,82,0,86,0,0,0, 84,0,82,0,79,0,77,74],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.paused||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);const bar=(s/8)|0;
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.16,'square',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.22,'triangle',0.06,d);
+  if(s%8===0||s%8===4)tone(120,45,0.11,'sine',0.13,d); // kick
+  if(bar>=1&&(s%8===2||s%8===6))noise(0.08,0.08,d,1800); // snare joins bar 2+
+  if(bar===0){if(s%4===0)noise(0.02,0.015,d,6500);} // hats build with altitude
+  else if(bar===1){if(s%2===0)noise(0.02,0.018,d,6500);}
+  else noise(0.02,0.02,d,6500);
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

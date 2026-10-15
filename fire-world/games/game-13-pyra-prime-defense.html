@@ -492,6 +492,33 @@ function loop(t){
 }
 updateHUD();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Guardian of the Prime' — Pyra Prime Defense's own
+   track. Synthesized Web Audio only. 102 BPM, D dorian: a warm sawtooth lead
+   stands guard over game-05-style pads (Dm-C-F-G, one chord per bar) with
+   calm marching drums.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-13-pyra-prime-defense.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:102,
+ BASS:[38,0,50,0,38,0,50,0, 36,0,48,0,36,0,48,0, 41,0,53,0,41,0,53,0, 43,0,55,0,43,0,50,0],
+ LEAD:[62,0,65,0,69,0,65,0, 67,0,69,0,71,0,69,0, 65,0,69,0,72,0,69,0, 67,0,64,0,62,0,0,0],
+ PAD:[38,36,41,43],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.paused||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  if(s%8===0){const p=this.PAD[s>>3];if(p){tone(_mf(p),_mf(p),1.6,'sawtooth',0.016,d);tone(_mf(p)*1.006,_mf(p)*1.006,1.6,'sawtooth',0.016,d);tone(_mf(p+7),_mf(p+7),1.6,'triangle',0.02,d);}} // pad chord
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.2,'triangle',0.06,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.24,'sawtooth',0.045,d);
+  if(s%8===0||s%8===4)tone(118,45,0.12,'sine',0.12,d); // marching kick
+  if(s%8===2||s%8===6)noise(0.08,0.07,d,1800); // snare
+  if(s%4===0)noise(0.02,0.012,d,6800); // quiet hat
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

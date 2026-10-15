@@ -344,6 +344,40 @@ function loop(t){
 }
 resize();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Blockade Beatdown' — Boulder's Blockade's own
+   track. Synthesized Web Audio only. 98 BPM, C minor: the heaviest stomp on
+   the site — a low square lead, deep pads (Cm-Ab-Eb-Bb) and war drums that
+   shake the barricade.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): script-scope `muted` mutes, G.paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-43-boulders-blockade.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — muted / G.paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(muted||G.paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:98,
+ BASS:[36,0,0,36,0,36,0,0, 44,0,0,44,0,44,0,0, 39,0,0,39,0,39,0,0, 34,0,0,34,0,36,39,0],
+ LEAD:[48,0,51,0,0,55,0,0, 56,0,55,0,51,0,0,0, 55,0,58,0,0,55,0,0, 53,0,51,0,48,0,0,0],
+ PAD:[36,44,39,34],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  if(s%8===0){const p=this.PAD[s>>3];if(p){tone(_mf(p),_mf(p),1.6,'sawtooth',0.02,d);tone(_mf(p)*1.006,_mf(p)*1.006,1.6,'sawtooth',0.02,d);tone(_mf(p+7),_mf(p+7),1.6,'triangle',0.024,d);}} // pad chord
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.18,'square',0.065,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.24,'square',0.055,d);
+  if(s%8===0||s%8===3||s%8===6)tone(95,38,0.15,'sine',0.16,d); // war-drum kick
+  if(s%8===4)tone(85,55,0.12,'triangle',0.09,d); // low tom
+  if(s===14||s===30)tone(185,115,0.08,'triangle',0.08,d); // sparse tone-only snare
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 </body>
 </html>

@@ -416,6 +416,38 @@ __bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.tex
 __br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
 addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'The Final Dash' — Ruko's Final Dash's own
+   track. Synthesized Web Audio only. 160 BPM, D minor: a brand-new melody
+   with sequel energy to 'Panic at 154' — arps and four-on-the-floor at the
+   fastest tempo on the site.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__FB_MUTED mutes, pause sets G.state='pause', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-55-rukos-final-dash.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__FB_MUTED / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__FB_MUTED||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:160,
+ BASS:[38,38,38,38,38,38,38,38, 46,46,46,46,46,46,46,46, 43,43,43,43,43,43,43,43, 45,45,45,45,45,45,45,45],
+ LEAD:[74,77,81,86,81,77,74,77, 82,86,89,86,82,86,89,86, 79,82,86,81,86,82,79,82, 81,85,88,85,81,85,88,85],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.09,'sawtooth',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.09,'square',0.04,d);
+  if(s%2===0)tone(124,45,0.1,'sine',0.14,d); // four-on-the-floor
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  tone(7000,7000,0.012,'square',0.006,d); // hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

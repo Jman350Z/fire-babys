@@ -382,6 +382,36 @@ function loop(t){
 }
 document.getElementById('best').textContent='🏆 '+G.best;
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Deadeye Ember' — Inferno Aim's own
+   track. Synthesized Web Audio only. 118 BPM, A phrygian: sparse square
+   stabs with that flattened-second bite, and hats that tick like a scope
+   settling.
+   Freeze gate CONFIRMED at insertion (2026-10-15): script-scope `muted` mutes, G.paused pauses, and music only
+   plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-33-inferno-aim.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — muted / G.paused / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(muted||G.paused||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:118,
+ BASS:[45,0,0,45,46,0,45,0, 46,0,0,46,45,0,43,0, 45,0,0,45,46,0,45,0, 41,0,0,43,0,45,0,0],
+ LEAD:[69,0,0,0,70,0,0,0, 69,0,0,0,0,0,65,0, 69,0,0,0,72,0,70,0, 69,0,0,0,0,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.12,'square',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.12,'square',0.05,d);
+  noise(0.015,0.012,d,7200); // ticking hats
+  if(s===0||s===16)tone(118,45,0.11,'sine',0.12,d); // sparse kick
+  if(s===12||s===28)noise(0.07,0.06,d,1750); // sparse snare
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 <script data-fbcycle2>
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */

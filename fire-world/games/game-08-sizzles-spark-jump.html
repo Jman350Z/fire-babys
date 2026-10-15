@@ -767,6 +767,32 @@ function loop(t){
 document.getElementById('best').textContent='🏆 '+G.best;
 buildLevel(1);
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Charge & Leap' — Sizzle's Spark Jump's
+   own track. Synthesized Web Audio only. 104 BPM, A major: plucky square lead
+   with rests to think in (it's a precision game), soft triangle bass pulses,
+   sparse drums and a sparkle shimmer on the high notes.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-08-sizzles-spark-jump.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:104,
+ BASS:[45,0,0,45,0,0,45,0, 40,0,0,40,0,0,40,0, 42,0,0,42,0,0,42,0, 38,0,0,38,0,0,45,0],
+ LEAD:[69,0,73,0,0,76,0,0, 81,0,0,76,73,0,0,0, 78,0,81,0,0,85,0,81, 0,76,0,73,0,69,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.22,'triangle',0.06,d);
+  const l=this.LEAD[s];if(l){tone(_mf(l),_mf(l),0.16,'square',0.05,d);
+   if(l>=78)tone(_mf(l)*2,_mf(l)*2,0.1,'sine',0.014,d);} // sparkle on high notes
+  if(s%8===0)tone(115,45,0.12,'sine',0.12,d); // soft kick, once a bar
+  if(s%8===4)noise(0.06,0.05,d,1800); // gentle snare
+  if(s%4===2)noise(0.02,0.015,d,6500); // sparse hat
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->

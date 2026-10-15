@@ -594,6 +594,31 @@ function loop(t){
 startLevel(1);
 updateScoreUI();
 requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Bubble Bounce Boogie' — Blaze's Magma
+   Bounce's own track. Synthesized Web Audio only. 126 BPM, C major pentatonic
+   over a C–G–Am–F loop: octave-bounce square bass, playful triangle lead,
+   marching kick/snare/hats — bounce energy for a climbing game.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-06-blazes-magma-bounce.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+const MUS={on:false,step:0,nextT:0,BPM:126,
+ BASS:[36,0,48,0,36,0,48,0, 43,0,55,0,43,0,55,0, 45,0,57,0,45,0,57,0, 41,0,53,0,41,0,48,0],
+ LEAD:[72,0,76,0,79,0,76,0, 74,0,79,0,81,0,79,0, 81,0,84,0,81,0,79,0, 77,0,76,0,74,0,72,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(MUTED||G.state!=='play'){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.15,'square',0.05,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.2,'triangle',0.06,d);
+  if(s%8===0||s%8===4)tone(120,45,0.11,'sine',0.13,d); // marching kick
+  if(s%8===2||s%8===6)noise(0.08,0.08,d,1800); // snare
+  if(s%2===0)noise(0.025,0.02,d,6500); // hat
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
 </script>
 
 <!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->
