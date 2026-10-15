@@ -222,7 +222,7 @@ obtn.onclick=()=>{showMathGate();};
 const EMBER_SEEDS=Array.from({length:24},(_,i)=>({x:(i*0.61803)%1,y:(i*0.754877)%1,s:1+((i*7)%3),v:12+((i*13)%24),d:((i*29)%20)-10}));
 function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';const t=(typeof G!=='undefined'&&G.time)||0;
   for(const e of EMBER_SEEDS){const ey=bh-((e.y*bh+t*e.v)%bh);const ex=e.x*bw+Math.sin(t*0.7+e.y*9)*e.d;
-    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';
     ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
   ctx.restore();}
 function render(){
@@ -245,7 +245,7 @@ function render(){
       const g=ctx.createLinearGradient(0,0,0,CELL);
       g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');
       ctx.fillStyle=card.matched?'#2a4a2a':g;
-      ctx.shadowColor=card.face.c;ctx.shadowBlur=card.matched?16:8;
+      ctx.shadowColor=card.face.c;ctx.shadowBlur=card.matched?16:0;
       ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();ctx.shadowBlur=0;
       ctx.strokeStyle=card.matched?'#4caf50':card.face.c;ctx.lineWidth=3;ctx.stroke();
       ctx.font=`${CELL*0.4}px system-ui`;ctx.textAlign='center';

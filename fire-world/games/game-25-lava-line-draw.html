@@ -319,7 +319,6 @@ function render(){
     const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
     const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
     ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
-    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
     ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
   }
   ctx.restore();ctx.globalAlpha=1;
@@ -367,7 +366,7 @@ function render(){
   if(b){
     const g=ctx.createRadialGradient(b.x-5,b.y-6,3,b.x,b.y,b.r);
     g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
-    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=16;
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=6;
     ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     ctx.fillStyle='#2b1a0e';
     ctx.beginPath();ctx.arc(b.x-5,b.y-3,3,0,Math.PI*2);ctx.arc(b.x+5,b.y-3,3,0,Math.PI*2);ctx.fill();
