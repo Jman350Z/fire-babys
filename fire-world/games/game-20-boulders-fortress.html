@@ -91,12 +91,12 @@ const sfx={
   click(){tone(600,600,0.06,'square',0.1);}
 };
 const G={state:'title',score:0,best:0,py:0,vy:0,rot:0,pipes:[],time:0,
-  speed:220,spawnT:0,dead:false,groundY:0,flash:0};
+  speed:220,spawnT:0,dead:false,groundY:0,flash:0,ready:true};
 try{G.best=parseInt(localStorage.getItem('flap_best')||'0',10)||0;}catch(e){}
 G.groundY=()=>H*0.88;
 function reset(){
   G.score=0;G.py=H*0.42;G.vy=0;G.rot=0;G.pipes=[];G.time=0;
-  G.speed=220;G.spawnT=1.4;G.dead=false;G.flash=0;
+  G.speed=220;G.spawnT=1.4;G.dead=false;G.flash=0;G.ready=true; // [gauntlet fix] gentle opener: hover until first flap
   bigscore.classList.remove('hidden');bigscore.textContent='0';
   document.getElementById('best').textContent='🏆 '+G.best;
   updateHUD();
@@ -104,6 +104,7 @@ function reset(){
 function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
 function flap(){
   if(G.state!=='play'||G.dead||PAUSED)return;
+  G.ready=false;
   G.vy=-560;sfx.flap();
   for(let i=0;i<5;i++)spawnP(W*0.32,G.py+16,(Math.random()-0.5)*120,Math.random()*100,0.3,'#fff',3);
 }
@@ -111,6 +112,7 @@ canvas.addEventListener('pointerdown',e=>{e.preventDefault();flap();});
 addEventListener('keydown',e=>{if(e.repeat)return;if(e.key===' '||e.key==='ArrowUp'){flap();e.preventDefault();}}); // repeat guard: holding Space was an auto-flap exploit
 const particles=[];
 for(let i=0;i<60;i++)particles.push({a:false});
+const pops=[]; // [gauntlet fix] floating score popups
 const embers=[];
 for(let i=0;i<24;i++)embers.push({x:Math.random()*2400,y:Math.random()*1600,s:1+Math.random()*2.5,vy:14+Math.random()*26,vx:(Math.random()-0.5)*8,ph:Math.random()*6});
 function updateEmbers(dt){for(const e of embers){e.y-=e.vy*dt;e.x+=e.vx*dt+Math.sin(G.time*2+e.ph)*6*dt;if(e.y<-12){e.y=H+12;e.x=Math.random()*W;}if(e.x<-4)e.x+=W+8;if(e.x>W+4)e.x-=W+8;}}
@@ -136,6 +138,7 @@ function spawnPipe(){
 }
 function update(dt){
   G.time+=dt;
+  if(G.ready){G.py=H*0.42+Math.sin(G.time*3)*8;G.vy=0;G.rot=0;return;} // [gauntlet fix] ready beat: no gravity, no pipes until the first flap
   G.speed=Math.min(380,220+G.score*6);
   // physics
   G.vy+=2100*dt;
@@ -153,6 +156,7 @@ function update(dt){
     if(!p.scored&&p.x+p.w<px){
       p.scored=true;G.score++;sfx.score();
       bigscore.textContent=G.score;updateHUD();
+      pops.push({x:px,y:G.py-36,t0:G.time}); // [gauntlet fix] '+1' popup at the gate
     }
     // collision
     if(px+pr>p.x&&px-pr<p.x+p.w){
@@ -177,6 +181,7 @@ function die(){
   if(isBest){G.best=G.score;try{localStorage.setItem('flap_best',String(G.best));}catch(e){}}
   const medal=G.score>=40?'🏆':G.score>=25?'🥇':G.score>=15?'🥈':G.score>=8?'🥉':'';
   setTimeout(()=>{
+    G.state='over'; // [gauntlet fix] peer games end in 'over' — keeps the music gate frozen behind the crash card
     bigscore.classList.add('hidden');
     showOverlay('💥 CRASHED!',
       `${medal?`<div id="medal">${medal}</div>`:''}${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:28px;font-weight:900">Score: ${G.score}</p><p>Best: ${G.best}</p>`,
@@ -276,14 +281,20 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  // [gauntlet fix] score popups: rise + fade over 0.9s
+  ctx.textAlign='center';ctx.font='900 24px system-ui';
+  for(const pp of pops){const age=G.time-pp.t0,a=1-age/0.9;if(a<=0)continue;
+    ctx.globalAlpha=a;ctx.fillStyle='#ffd23f';ctx.fillText('+1',pp.x,pp.y-age*46);}
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  for(let i=pops.length-1;i>=0;i--)if(G.time-pops[i].t0>0.9)pops.splice(i,1);
   // flash
   if(G.flash>0){
     ctx.fillStyle=`rgba(255,255,255,${G.flash})`;ctx.fillRect(0,0,W,H);
   }
   // get ready
-  if(G.state==='play'&&G.score===0&&G.time<2){
-    ctx.textAlign='center';ctx.font='900 28px system-ui';
-    ctx.fillStyle='#fff';ctx.fillText('TAP TO FLAP!',W/2,H*0.35);
+  if(G.state==='play'&&(G.ready||G.score===0)){
+    ctx.textAlign='center';ctx.font='900 '+(W<520?19:28)+'px system-ui'; // [gauntlet fix] sized to fit phone widths
+    ctx.fillStyle='#fff';ctx.fillText('TAP TO FLAP — THREAD THE GATES!',W/2,H*0.35);
     ctx.textAlign='left';
   }
 }

@@ -347,6 +347,11 @@ function render(){
     ctx.fillText('TOUCH 🟢 START AND TRACE!',W/2,H*0.5);
     ctx.textAlign='left';
   }
+  if(G.state==='play'&&G.tracing&&G.progress<0.3){ // [gauntlet clarity] goal stays visible into the first stretch of the trace
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 '+(W<520?14:17)+'px system-ui';ctx.textAlign='center'; // [gauntlet fix] sized to fit phone widths
+    ctx.fillText('STAY ON THE GLOWING TRACK — REACH THE 🏁!',W/2,H*0.14);
+    ctx.textAlign='left';
+  }
 }
 let lastT=0;
 function loop(t){

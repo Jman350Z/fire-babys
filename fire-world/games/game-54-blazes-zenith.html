@@ -327,15 +327,18 @@ function render(){
     const sy=p.y+offY;
     if(sy<-60||sy>H+60)continue;
     const pw=p.w/2;
-    let col1='#5a4a3a',col2='#2a1e12';
-    if(p.type==='crumble'){col1='#8a6a4a';col2='#4a3a22';}
-    if(p.type==='move'){col1='#4a6a8a';col2='#2a3a52';}
+    let col1='#8a7052',col2='#4a3420'; // [gauntlet contrast] brightened (was #5a4a3a/#2a1e12 — dark brown on near-black)
+    if(p.type==='crumble'){col1='#a8845e';col2='#5f4729';}
+    if(p.type==='move'){col1='#5f87ad';col2='#37506e';}
     const alpha=p.crumbling?Math.max(0.2,p.crT/0.65):1;
     ctx.globalAlpha=alpha;
     const g=ctx.createLinearGradient(0,sy-12,0,sy+12);
     g.addColorStop(0,col1);g.addColorStop(1,col2);
     ctx.fillStyle=g;
     ctx.beginPath();ctx.roundRect(p.x-pw,sy-12,pw*2,24,8);ctx.fill();
+    // [gauntlet contrast] lit top rim so the landing edge reads on a phone
+    ctx.fillStyle=p.type==='move'?'rgba(170,225,255,0.9)':'rgba(255,222,160,0.85)';
+    ctx.fillRect(p.x-pw+3,sy-12,pw*2-6,3);
     if(p.type==='crumble'){
       ctx.fillStyle='rgba(0,0,0,0.3)';
       for(let c=0;c<3;c++)ctx.fillRect(p.x-pw+10+c*24,sy-6,3,12);

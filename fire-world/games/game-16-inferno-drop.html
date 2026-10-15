@@ -182,6 +182,8 @@ function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.
   gr.addColorStop(0,`rgba(${r},${g},${b},0.9)`);gr.addColorStop(0.35,`rgba(${r},${g},${b},0.38)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
   x.fillStyle=gr;x.fillRect(0,0,96,96);return c;}
 const EMBER_SPRITE=makeGlowSprite('#ff8a3a');
+const MOLE_GLOW_FIRE=makeGlowSprite('#ff7a2a'); // [gauntlet perf] mole glow sprites
+const MOLE_GLOW_GOLD=makeGlowSprite('#ffd23f'); // [gauntlet perf]
 function drawEmbers(){ctx.save();ctx.globalCompositeOperation='lighter';for(const e of embers){const tw=0.5+0.5*Math.sin(G.anim*3+e.ph);ctx.globalAlpha=0.10+0.16*tw;const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2);}ctx.restore();ctx.globalAlpha=1;}
 
 for(let i=0;i<100;i++)particles.push({a:false});
@@ -261,8 +263,11 @@ function drawMole(h,m){
   ctx.save();ctx.translate(h.x,y);ctx.scale(1+squash,1-squash);
   const wob=Math.sin(m.wob)*0.08;
   ctx.rotate(wob);
-  ctx.shadowColor=m.type==='baby'?'#ff7a2a':(m.type==='golden'||m.type==='mallet')?'#ffd23f':'rgba(0,0,0,0)';
-  ctx.shadowBlur=(m.type==='baby'||m.type==='golden'||m.type==='mallet')?16:0;
+  // [gauntlet perf] was shadowColor/shadowBlur=16 on every mole every frame — pre-baked glow sprite behind the body instead (15/25 sweep class)
+  if(m.type==='baby'||m.type==='golden'||m.type==='mallet'){
+    ctx.save();ctx.globalAlpha=0.5;const gr2=h.r*2.0;
+    ctx.drawImage(m.type==='baby'?MOLE_GLOW_FIRE:MOLE_GLOW_GOLD,-gr2,-gr2,gr2*2,gr2*2);ctx.restore();
+  }
   if(m.type==='baby'){
     // fire baby: DON'T HIT
     const g=ctx.createRadialGradient(-8,-10,4,0,0,h.r);
@@ -288,7 +293,7 @@ function drawMole(h,m){
     ctx.fillStyle='#ffd23f';
     ctx.beginPath();ctx.arc(0,-h.r*0.5,h.r*0.5,Math.PI,0);ctx.fill();
     ctx.fillRect(-h.r*0.7,-h.r*0.55,h.r*1.4,6);
-    if(m.type==='mallet'){ctx.shadowBlur=0;ctx.font=`900 ${h.r*0.55}px system-ui`;ctx.textAlign='center';ctx.fillText('🔨',0,-h.r-4);ctx.textAlign='left';}
+    if(m.type==='mallet'){ctx.font=`900 ${h.r*0.55}px system-ui`;ctx.textAlign='center';ctx.fillText('🔨',0,-h.r-4);ctx.textAlign='left';}
   }
   ctx.restore();
 }
@@ -322,6 +327,13 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  if(G.state==='play'&&G.time>56){ // [gauntlet clarity] goal line while the first moles pop
+    const _pw2=Math.min(430,W-16); // [gauntlet fix] pill sized to fit phone widths
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(W/2-_pw2/2,64,_pw2,34,10);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 '+(W<520?13:16)+'px system-ui';ctx.textAlign='center';
+    ctx.fillText('TAP THE GOLDEN ONES — NEVER THE BABYS!',W/2,86);
+    ctx.textAlign='left';
+  }
   ctx.textAlign='center';
   for(const f of floaters){
     if(!f.a)continue;

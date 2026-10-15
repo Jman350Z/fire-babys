@@ -116,7 +116,7 @@ const sfx={
 
 const G={state:'title',snake:[],dir:{x:1,y:0},nextDir:{x:1,y:0},
   food:null,golden:null,goldenT:0,goldenLife:0,score:0,best:0,stepT:0,stepDur:0.14,
-  interp:1,time:0,dead:false,grow:0,dirQ:[],prevSnake:null,paused:false};
+  interp:1,time:0,dead:false,grow:0,dirQ:[],prevSnake:null,paused:false,readyT:0};
 try{G.best=parseInt(localStorage.getItem('snake_best')||'0',10)||0;}catch(e){}
 
 function reset(){
@@ -124,7 +124,7 @@ function reset(){
   G.snake=[{x:cx,y:cy},{x:cx-1,y:cy},{x:cx-2,y:cy}];
   G.dir={x:1,y:0};G.nextDir={x:1,y:0};
   G.score=0;G.stepDur=0.14;G.stepT=0;G.interp=1;G.dead=false;G.grow=0;
-  G.golden=null;G.goldenT=8;G.goldenLife=0;G.dirQ=[];G.prevSnake=null;G.paused=false;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸';
+  G.golden=null;G.goldenT=8;G.goldenLife=0;G.dirQ=[];G.prevSnake=null;G.paused=false;G.readyT=2.4;const _pb=document.getElementById('pauseBtn');if(_pb)_pb.textContent='⏸'; // [gauntlet fix] 3-2-1 ready beat
   for(const p of particles)p.a=false;
   for(const f of floaters)f.a=false;
   placeFood();
@@ -169,6 +169,7 @@ function step(){
     G.score+=10;G.grow+=1;sfx.eat();
     G.stepDur=Math.max(0.07,G.stepDur-0.002);
     burst(head.x,head.y,'#7fd4ff');
+    spawnText(head.x,head.y,'+10'); // [gauntlet fix] visible scoring (golden already popped '+50!')
     placeFood();updateHUD();
   }
   if(G.golden&&head.x===G.golden.x&&head.y===G.golden.y){
@@ -374,6 +375,14 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle='#ffd23f';ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.state==='play'&&G.readyT>0){ // [gauntlet fix] countdown + goal line
+    ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.textAlign='center';
+    ctx.font='900 64px system-ui';ctx.fillText(String(Math.max(1,Math.ceil(G.readyT/0.8))),W/2,H/2-10);
+    ctx.font='900 '+(W<520?13:19)+'px system-ui';ctx.fillStyle='#ffd23f'; // [gauntlet fix] sized to fit phone widths
+    ctx.fillText('GET READY! Eat the crystals — don\'t hit the walls!',W/2,H/2+34);
+    ctx.textAlign='left';
+  }
   if(G.paused){ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='900 36px system-ui';ctx.textAlign='center';ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.font='700 16px system-ui';ctx.fillText('Tap ⏸ or press P to keep playing',W/2,H/2+32);ctx.textAlign='left';}
 }
 
@@ -383,8 +392,9 @@ function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
   G.time+=dt;
   if(G.state==='play'&&!G.dead&&!G.paused){
-    G.stepT+=dt;G.interp=Math.min(1,G.stepT/G.stepDur);
-    while(G.stepT>=G.stepDur){G.stepT-=G.stepDur;step();if(G.dead)break;G.interp=0;}
+    if(G.readyT>0){G.readyT-=dt;} // [gauntlet fix] snake holds still for the 3-2-1 (steering still queues)
+    else{G.stepT+=dt;G.interp=Math.min(1,G.stepT/G.stepDur);
+    while(G.stepT>=G.stepDur){G.stepT-=G.stepDur;step();if(G.dead)break;G.interp=0;}}
   }
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}

@@ -532,6 +532,13 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.state==='play'&&G.shotsUsed===0){ // [gauntlet clarity] goal line on the play screen until the first shot (game-40 pattern)
+    const _pw=Math.min(540,W-16); // [gauntlet fix] pill + text sized to fit phone widths
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.beginPath();ctx.roundRect(W/2-_pw/2,14,_pw,34,10);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 '+(W<520?13:16)+'px system-ui';ctx.textAlign='center';
+    ctx.fillText(W<520?'DRAG BACK, LET GO — IT EXPLODES!':'DRAG A BLOCK BACK, LET GO — IT EXPLODES AND CRACKS THE ICE!',W/2,36);
+    ctx.textAlign='left';
+  }
   ctx.restore();
 }
 

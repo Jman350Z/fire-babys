@@ -95,7 +95,7 @@ const GY=()=>H*0.78;
 function reset(){
   G.score=0;G.dist=0;G.py=GY();G.vy=0;G.jumping=false;
   G.sliding=false;G.slideT=0;G.obstacles=[];G.stars=[];
-  G.speed=420;G.spawnT=1;G.time=0;G.shake=0;G.dead=false;G.gy=GY();
+  G.speed=420;G.spawnT=2.0;G.time=0;G.shake=0;G.dead=false;G.gy=GY(); // [gauntlet fix] gentle opener: first obstacle spawns at 2s (was 1s — first death ~1.3s)
   updateHUD();
   document.getElementById('best').textContent='🏆 '+Math.floor(G.best)+'m';
 }

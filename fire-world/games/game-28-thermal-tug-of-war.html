@@ -264,9 +264,11 @@ function showOverlay(title,body,lesson,btn,cb){
 function startGame(){audio();reset();startRound();overlay.classList.add('hidden');}
 obtn.onclick=()=>{showMathGate();};
 function render(){
-  const bg=ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#140d08');bg.addColorStop(0.6,'#1e1408');bg.addColorStop(1,'#2a1a0a');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // [gauntlet perf] background gradient cached (was re-created every frame)
+  if(!render._bg||render._bgH!==H){const bgn=ctx.createLinearGradient(0,0,0,H);
+    bgn.addColorStop(0,'#140d08');bgn.addColorStop(0.6,'#1e1408');bgn.addColorStop(1,'#2a1a0a');
+    render._bg=bgn;render._bgH=H;}
+  ctx.fillStyle=render._bg;ctx.fillRect(0,0,W,H);
   drawEmbers();
   ctx.save();
   if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
@@ -353,9 +355,10 @@ function drawTeam(x,y,color,label,faceRight){
     ctx.fillStyle=color;ctx.globalAlpha=0.9;
     ctx.beginPath();ctx.roundRect(-14,-34,28,40,8);ctx.fill();
     // head (fire baby)
-    const g=ctx.createRadialGradient(-4,-44,2,0,-40,14);
-    g.addColorStop(0,'#ffe9a0');g.addColorStop(1,'#ff7a2a');
-    ctx.fillStyle=g;
+    // [gauntlet perf] head gradient cached (fixed geometry — was re-created for all 6 pullers every frame)
+    if(!drawTeam._hg){drawTeam._hg=ctx.createRadialGradient(-4,-44,2,0,-40,14);
+      drawTeam._hg.addColorStop(0,'#ffe9a0');drawTeam._hg.addColorStop(1,'#ff7a2a');}
+    ctx.fillStyle=drawTeam._hg;
     {ctx.save();ctx.globalAlpha=0.55;const gr2=29;ctx.drawImage(HEAD_GLOW,-gr2,-40-gr2,gr2*2,gr2*2);ctx.restore();} // [w5c perf] pre-baked head glow (was shadowBlur=16 per head per frame)
     ctx.beginPath();ctx.arc(0,-40,13,0,Math.PI*2);ctx.fill();
     ctx.restore();

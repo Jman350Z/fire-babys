@@ -98,7 +98,7 @@ const TOTAL=25,PY=()=>H*0.72;
 function reset(){
   G.score=0;G.lives=3;G.gates=0;G.streak=0;
   G.px=W/2;G.gatesList=[];G.speed=420;G.time=0;G.shake=0;G.dead=false;
-  for(let i=0;i<6;i++)spawnGate(-i*340);
+  for(let i=0;i<6;i++)spawnGate(-300-i*340); // [gauntlet fix] gentle opener: first gate arrives at ~2s, not ~1.3s
   updateHUD();
   document.getElementById('best').textContent='🏆 '+G.best;
 }
@@ -328,6 +328,11 @@ function render(){
     ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
   }
   ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.state==='play'&&G.time<3){ // [gauntlet fix] in-play goal/control line (was silent)
+    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='900 '+(W<520?16:20)+'px system-ui';ctx.textAlign='center'; // [gauntlet fix] sized to fit phone widths
+    ctx.fillText('DRAG OR ◀ ▶ — FLY THROUGH THE GATES!',W/2,H*0.3);
+    ctx.textAlign='left';
+  }
   ctx.restore();
 }
 let lastT=0;

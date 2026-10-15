@@ -313,6 +313,14 @@ function render(){
   bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#1e1208');
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   if(G.state==='title')return;
+  // [gauntlet contrast] faint dotted guide grid over the near-empty black field (pre-rendered once per size)
+  if(!render._grid||render._gridW!==W||render._gridH!==H){
+    const gc=document.createElement('canvas');gc.width=W;gc.height=H;const gx2=gc.getContext('2d');
+    gx2.fillStyle='rgba(255,255,255,0.055)';
+    for(let dx=24;dx<W;dx+=48)for(let dy=24;dy<H;dy+=48){gx2.beginPath();gx2.arc(dx,dy,1.6,0,Math.PI*2);gx2.fill();}
+    render._grid=gc;render._gridW=W;render._gridH=H;
+  }
+  ctx.drawImage(render._grid,0,0);
   // living ember background (additive glow)
   ctx.save();ctx.globalCompositeOperation='lighter';
   for(let i=0;i<24;i++){
@@ -386,6 +394,11 @@ function render(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
   }
   ctx.globalAlpha=1;
+  if(G.state==='play'&&!G.rolling&&G.lines.length===0){ // [gauntlet clarity] the draw sentence on the play screen (was menu-only)
+    ctx.fillStyle='rgba(255,255,255,0.85)';ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText('DRAW A PATH, THEN PRESS ▶ GO!',W/2,H*0.16);
+    ctx.textAlign='left';
+  }
   if(G.hintT>0){
     ctx.fillStyle='rgba(0,0,0,0.6)';ctx.beginPath();ctx.roundRect(W/2-130,H*0.3-24,260,48,12);ctx.fill();
     ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';

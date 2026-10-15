@@ -303,13 +303,16 @@ function render(){
   ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=3;
   ctx.beginPath();ctx.arc(W/2,H/2,70,0,Math.PI*2);ctx.stroke();
   // paddles
-  const pg1=ctx.createLinearGradient(0,0,PW,0);
-  pg1.addColorStop(0,'#7fd4ff');pg1.addColorStop(1,'#2a78b8');
-  ctx.fillStyle=pg1;ctx.shadowColor='#7fd4ff';ctx.shadowBlur=12;
-  ctx.beginPath();ctx.roundRect(30,G.py-PH/2,PW,PH,8);ctx.fill();ctx.shadowBlur=0;
+  // [gauntlet perf] paddle gradients cached (fixed geometry); shadowBlur=12 replaced with a cheap glow underlay
+  if(!render._pg1){render._pg1=ctx.createLinearGradient(0,0,PW,0);render._pg1.addColorStop(0,'#7fd4ff');render._pg1.addColorStop(1,'#2a78b8');}
+  const pg1=render._pg1;
+  ctx.fillStyle='rgba(127,212,255,0.30)';
+  ctx.beginPath();ctx.roundRect(26,G.py-PH/2-4,PW+8,PH+8,10);ctx.fill();
+  ctx.fillStyle=pg1;
+  ctx.beginPath();ctx.roundRect(30,G.py-PH/2,PW,PH,8);ctx.fill();
   ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(34,G.py-PH/2+8,3,PH-16);
-  const pg2=ctx.createLinearGradient(0,0,PW,0);
-  pg2.addColorStop(0,'#ff6a8a');pg2.addColorStop(1,'#a32a4a');
+  if(!render._pg2){render._pg2=ctx.createLinearGradient(0,0,PW,0);render._pg2.addColorStop(0,'#ff6a8a');render._pg2.addColorStop(1,'#a32a4a');}
+  const pg2=render._pg2;
   ctx.fillStyle=pg2;
   ctx.beginPath();ctx.roundRect(W-30-PW,G.ay-PH/2,PW,PH,8);ctx.fill();
   ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(W-30-PW+4,G.ay-PH/2+8,3,PH-16);
@@ -323,8 +326,9 @@ function render(){
   if(G.serveT<=0){
     const g=ctx.createRadialGradient(G.bx-4,G.by-4,2,G.bx,G.by,BR);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,'#ffd23f');g.addColorStop(1,'#ff6a00');
-    ctx.fillStyle=g;ctx.shadowColor='#ffd23f';ctx.shadowBlur=16;
-    ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    {ctx.save();ctx.globalAlpha=0.6;const gr3=BR*2.6;ctx.drawImage(EMBER_SPRITE_GOLD,G.bx-gr3,G.by-gr3,gr3*2,gr3*2);ctx.restore();} // [gauntlet perf] pre-baked ball glow (was shadowBlur=16 per frame)
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(G.bx,G.by,BR,0,Math.PI*2);ctx.fill();
     // spin indicator
     if(Math.abs(G.spin)>40){
       ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;

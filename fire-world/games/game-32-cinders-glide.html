@@ -138,6 +138,7 @@ addEventListener('keydown',e=>{if(e.key===' ')G.holding=true;});
 addEventListener('keyup',e=>{if(e.key===' ')G.holding=false;});
 const particles=[];
 for(let i=0;i<70;i++)particles.push({a:false});
+const pops=[]; // [gauntlet fix] floating score popups
 const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*2200,y:Math.random()*1200,s:1+Math.random()*2.5,v:14+Math.random()*26,ph:Math.random()*6.28});
 /* [w5c perf] Pre-baked glow sprites — the W5b-proven pattern copied from game-04:
    the ember loop's 24 per-frame shadowBlur=8 fills collapsed FPS under software
@@ -175,7 +176,8 @@ function update(dt){
   // glide physics
   if(G.holding&&!G.wasHold)sfx.whoosh();
   G.wasHold=G.holding;
-  if(G.holding)G.vy-=1600*dt;else G.vy+=1100*dt;
+  if(G.time<2)G.vy=0; // [gauntlet fix] gentle opener: glide level for the first 2s (corridor is provably clear at mid-height) while the player reads the hint
+  else if(G.holding)G.vy-=1600*dt;else G.vy+=1100*dt;
   G.vy=Math.max(-520,Math.min(620,G.vy));
   G.py+=G.vy*dt;
   G.rot=Math.max(-0.5,Math.min(0.6,G.vy/900));
@@ -194,6 +196,7 @@ function update(dt){
     g.t+=dt*4;
     if(!g.taken&&Math.hypot(px-g.x,G.py-g.y)<34){
       g.taken=true;G.bonus+=25;G.score=Math.floor(G.dist)+G.bonus;sfx.gem();updateHUD();
+      pops.push({x:g.x,y:g.y-18,t0:G.time}); // [gauntlet fix] '+25' popup at the gem
       for(let i=0;i<6;i++){const p=particles.find(p=>!p.a);if(!p)break;
         p.a=true;p.x=g.x;p.y=g.y;p.vx=(Math.random()-0.5)*200;p.vy=(Math.random()-0.5)*200;
         p.life=0.35;p.max=0.35;p.color='#7fd4ff';p.size=3;}
@@ -216,6 +219,7 @@ function die(){
   const isBest=G.score>G.best;
   if(isBest){G.best=G.score;try{localStorage.setItem('glide_best',String(G.best));}catch(e){}}
   setTimeout(()=>{
+    G.state='over'; // [gauntlet fix] same defect as game-20: music gate reads state!=='play' — keep it frozen behind the crash card
     showOverlay('💥 CRASHED!',
       `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Score: ${G.score}</p><p>Distance: ${Math.floor(G.dist)}m</p><p>Best: ${G.best}</p>`,
       '🔥 Fire Safety: Stay calm and move steadily!',
@@ -327,6 +331,12 @@ function render(){
   }
   ctx.globalAlpha=1;
   ctx.restore();
+  // [gauntlet fix] score popups: rise + fade over 0.9s
+  ctx.textAlign='center';ctx.font='900 22px system-ui';
+  for(const pp of pops){const age=G.time-pp.t0,a=1-age/0.9;if(a<=0)continue;
+    ctx.globalAlpha=a;ctx.fillStyle='#7fd4ff';ctx.fillText('+25',pp.x,pp.y-age*40);}
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  for(let i=pops.length-1;i>=0;i--)if(G.time-pops[i].t0>0.9)pops.splice(i,1);
   // hold hint
   if(G.state==='play'&&G.dist<30){
     ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 20px system-ui';ctx.textAlign='center';

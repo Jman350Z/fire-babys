@@ -200,6 +200,16 @@ function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.
   x.fillStyle=gr;x.fillRect(0,0,96,96);return c;}
 const EMBER_SPRITE=makeGlowSprite('#ff9a3a');
 const ITEM_GLOW=makeGlowSprite('#aee2ff'); // [w5c perf] item glow sprite
+/* [gauntlet perf] Pre-baked item sprites: the disc + emoji were re-drawn (emoji
+   fillText) for every item every frame — rasterize once per emoji instead. */
+const ITEM_SPRITES={};
+function itemSprite(e){
+  if(ITEM_SPRITES[e])return ITEM_SPRITES[e];
+  const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
+  x.fillStyle='rgba(255,255,255,0.1)';x.beginPath();x.arc(48,48,32,0,Math.PI*2);x.fill();
+  x.font='36px system-ui';x.textAlign='center';x.fillText(e,48,61);
+  return ITEM_SPRITES[e]=c;
+}
 function drawEmbers(){
   ctx.save();ctx.globalCompositeOperation='lighter';
   for(const e of amb){
@@ -309,10 +319,7 @@ function render(){
     ctx.translate(it.x,it.y+bob);
     if(isDrag){ctx.scale(1.25,1.25);}
     {ctx.save();ctx.globalAlpha=isDrag?0.75:0.5;const gr2=52;ctx.drawImage(ITEM_GLOW,-gr2,-gr2,gr2*2,gr2*2);ctx.restore();} // [w5c perf] pre-baked item glow (was shadowBlur=9/20 per item per frame)
-    ctx.fillStyle='rgba(255,255,255,0.1)';
-    ctx.beginPath();ctx.arc(0,0,32,0,Math.PI*2);ctx.fill();
-    ctx.font='36px system-ui';ctx.textAlign='center';
-    ctx.fillText(it.e,0,13);ctx.textAlign='left';
+    ctx.drawImage(itemSprite(it.e),-48,-48); // [gauntlet perf] pre-baked sprite (was per-frame disc + emoji fillText)
     ctx.restore();
   }
   // particles

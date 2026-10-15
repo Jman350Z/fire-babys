@@ -225,10 +225,13 @@ function drawEmbers(bw,bh){ctx.save();ctx.globalCompositeOperation='lighter';con
     ctx.globalAlpha=0.13+0.09*Math.sin(t*2+e.y*20);ctx.fillStyle='#ff9a3a';
     ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
   ctx.restore();}
+const _frontGrads={};let _backGrad=null,_backGradCell=0; // [gauntlet perf] gradient caches
 function render(){
-  const bgG=ctx.createLinearGradient(0,0,0,H);
-  bgG.addColorStop(0,'#241038');bgG.addColorStop(0.6,'#160a1e');bgG.addColorStop(1,'#2a0f08');
-  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
+  // [gauntlet perf] background gradient cached (was re-created every frame)
+  if(!render._bg||render._bgH!==H){const bgn=ctx.createLinearGradient(0,0,0,H);
+    bgn.addColorStop(0,'#241038');bgn.addColorStop(0.6,'#160a1e');bgn.addColorStop(1,'#2a0f08');
+    render._bg=bgn;render._bgH=H;}
+  ctx.fillStyle=render._bg;ctx.fillRect(0,0,W,H);
   drawEmbers(W,H);
   for(const card of G.cards){
     const x=GX+card.c*CELL,y=GY+card.r*CELL;
@@ -242,11 +245,11 @@ function render(){
     ctx.save();ctx.translate(cx,y+CELL/2);ctx.scale(Math.max(0.05,sx),1);ctx.translate(-CELL/2,-CELL/2);
     const showingFront=card.flip>0.5||card.matched;
     if(showingFront){
-      const g=ctx.createLinearGradient(0,0,0,CELL);
-      g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');
+      // [gauntlet perf] face gradient cached per face colour; matched-card shadowBlur=16 (per matched card, per frame) removed — the green fill + stroke already mark matches
+      let g=_frontGrads[card.face.c+'|'+CELL];
+      if(!g){g=ctx.createLinearGradient(0,0,0,CELL);g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');_frontGrads[card.face.c+'|'+CELL]=g;}
       ctx.fillStyle=card.matched?'#2a4a2a':g;
-      ctx.shadowColor=card.face.c;ctx.shadowBlur=card.matched?16:0;
-      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();ctx.shadowBlur=0;
+      ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();
       ctx.strokeStyle=card.matched?'#4caf50':card.face.c;ctx.lineWidth=3;ctx.stroke();
       ctx.font=`${CELL*0.4}px system-ui`;ctx.textAlign='center';
       ctx.fillText(card.face.e,CELL/2,CELL/2+CELL*0.14);
@@ -259,9 +262,9 @@ function render(){
         card.glow-=0.03*(G.frameScale||1);
       }
     }else{
-      const g=ctx.createLinearGradient(0,0,CELL,CELL);
-      g.addColorStop(0,'#3a2a5a');g.addColorStop(1,'#1a0e2a');
-      ctx.fillStyle=g;
+      // [gauntlet perf] card-back gradient cached
+      if(!_backGrad||_backGradCell!==CELL){_backGrad=ctx.createLinearGradient(0,0,CELL,CELL);_backGrad.addColorStop(0,'#3a2a5a');_backGrad.addColorStop(1,'#1a0e2a');_backGradCell=CELL;}
+      ctx.fillStyle=_backGrad;
       ctx.beginPath();ctx.roundRect(4,4,CELL-8,CELL-8,12);ctx.fill();
       ctx.strokeStyle='#8a4dff';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='rgba(138,77,255,0.4)';ctx.font=`${CELL*0.35}px system-ui`;ctx.textAlign='center';

@@ -101,7 +101,7 @@ function wallX(side,camY){
   return side>0?W/2+base:W/2-base;
 }
 function reset(){
-  G.score=0;G.combo=1;G.bonus=0;G.lastStarT=-99;G.camY=0;G.time=0;G.dead=false;
+  G.score=0;G.combo=1;G.bonus=0;G.lastStarT=-99;G.camY=0;G.time=0;G.dead=false;G.grace=2.5; // [gauntlet fix] gentle opener grace
   G.stars=[];G.lavas=[];
   G.onWall=1;
   G.px=wallX(1,0)-26;G.py=H*0.7;G.vx=0;G.vy=0; // [w5b] 26px wall inset (was 18): sprite body r16 + arms now render fully inside the shaft
@@ -179,6 +179,7 @@ function drawEmbers(){
 
 function update(dt){
   G.time+=dt;
+  if(G.grace>0)G.grace-=dt; // [gauntlet fix] first 2.5s: learn the jump, no deaths
   if(G.combo>1&&G.time-G.lastStarT>4){G.combo=1;updateHUD();}
   G.vy+=1500*dt;
   G.px+=G.vx*dt;G.py+=G.vy*dt;
@@ -198,7 +199,7 @@ function update(dt){
   for(const l of G.lavas){
     const lx=wallX(l.side,G.camY);
     const ly=l.y-G.camY;
-    if(Math.abs(G.px-lx)<30&&wy>ly&&wy<ly+l.h){
+    if(G.grace<=0&&Math.abs(G.px-lx)<30&&wy>ly&&wy<ly+l.h){
       G.dead=true;sfx.lava();
       gameOver('🔥 BURNED!');return;
     }
@@ -235,8 +236,12 @@ function update(dt){
   G.lavas=G.lavas.filter(l=>l.y-G.camY<H+100);
   // fell
   if(G.py-G.camY>H+60){
-    G.dead=true;sfx.fall();
-    gameOver('💥 YOU FELL!');
+    if(G.grace>0){ // [gauntlet fix] during grace a fall just re-sticks you to the wall
+      G.px=wallX(1,G.camY)-26;G.py=G.camY+H*0.7;G.vx=0;G.vy=0;G.onWall=1;stickDust();
+    }else{
+      G.dead=true;sfx.fall();
+      gameOver('💥 YOU FELL!');
+    }
   }
   for(const p of particles){if(!p.a)continue;
     p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
@@ -355,7 +360,7 @@ function render(){
   }
   if(G.state==='play'&&G.time<3){
     ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 18px system-ui';ctx.textAlign='center';
-    ctx.fillText('TAP TO JUMP TO THE OTHER WALL!',W/2,H*0.5);
+    ctx.fillText('TAP OR SPACE — JUMP TO THE OTHER WALL!',W/2,H*0.5);
     ctx.textAlign='left';
   }
 }
