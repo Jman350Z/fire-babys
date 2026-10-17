@@ -51,6 +51,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #back:hover{filter:brightness(1.35)}
 @media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
 </style>
+<style data-fblandscape="1">@media (max-height:500px){#level{position:fixed;left:12px;top:60px;z-index:16}}</style>
 </head>
 <body>
 <div id="game">
@@ -384,7 +385,7 @@ function render(){
     ctx.fillStyle='rgba(255,138,58,0.2)';
     ctx.beginPath();ctx.arc(G.fx,G.fy,40+Math.sin(G.time*4)*4,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font='900 15px system-ui';ctx.textAlign='center';
-    ctx.fillText('TAP FLAME',G.fx,G.fy-54);ctx.fillText('OR ⬇️ DROP',G.fx,G.fy-38);
+    ctx.fillText('TAP FLAME',G.fx,G.fy+48);ctx.fillText('OR ⬇️ DROP',G.fx,G.fy+66);
     ctx.textAlign='left';
   }
   // ramps
