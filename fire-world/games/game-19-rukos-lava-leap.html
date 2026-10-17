@@ -80,7 +80,7 @@ function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight
 function layout(){
   COLS=10;R=Math.min(W*0.92/COLS,34);
   ROWS=Math.floor(H*0.5/(R*1.732));
-  OX=(W-R*COLS)/2;SHOOTER_Y=H*0.88;
+  OX=(W-2*R*COLS)/2;SHOOTER_Y=H*0.88;
   canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
 }
 addEventListener('resize',resize);
