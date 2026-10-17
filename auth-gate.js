@@ -40,6 +40,23 @@
   } catch (e) { /* seasonal skin is optional decoration — never break the gate */ }
 })();
 
+/* ---- Landscape play loader (added 2026-10-17) ----
+ * Jeff's order: games are played with the phone turned SIDEWAYS.
+ * The gate also loads /landscape.js, which shows a "turn your phone"
+ * overlay on game pages while a phone is in portrait. ALL logic lives
+ * in landscape.js; this block only loads it. If landscape.js is
+ * missing or fails, the site runs exactly as before. */
+(function () {
+  try {
+    var s = document.currentScript;
+    var base = s && s.src ? s.src.replace(/auth-gate\.js(\?.*)?$/, "") : "https://firebabys.io/";
+    var t = document.createElement("script");
+    t.src = base + "landscape.js";
+    t.async = true;
+    (document.head || document.documentElement).appendChild(t);
+  } catch (e) { /* landscape helper is optional — never break the gate */ }
+})();
+
 (function () {
   "use strict";
 
