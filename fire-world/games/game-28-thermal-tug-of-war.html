@@ -15,7 +15,7 @@ canvas{display:block;width:100%;height:100%}
 #hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
 .pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
 .pill.gold{color:#ffd23f}
-#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,6,3,.93);color:#fff;text-align:center;padding:24px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,6,3,.93);color:#fff;text-align:center;padding:24px;overflow-y:auto;justify-content:safe center}
 #overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
 #overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
@@ -57,6 +57,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #pausedTxt{text-shadow:0 0 26px rgba(255,140,46,0.65),0 2px 0 #000}
 @media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
 </style>
+<style data-fblandscape="1">@media (max-height:500px){#back{bottom:88px!important}}</style>
 </head>
 <body>
 <div id="game">
@@ -282,7 +283,7 @@ function render(){
   ctx.setLineDash([]);
   ctx.fillStyle='#7fd4ff';ctx.font='900 13px system-ui';ctx.textAlign='center';
   ctx.fillText('YOUR LINE',W*0.12,cy-100);
-  ctx.fillStyle='#ff6a8a';ctx.fillText('AI LINE',W*0.88,cy-100);
+  ctx.fillStyle='#ff6a8a';ctx.fillText('AI LINE',W*0.88,cy-58);
   ctx.textAlign='left';
   // rope (sagging)
   const tug=G.ropeTug;
@@ -304,7 +305,7 @@ function render(){
   const mw=Math.abs(G.pos)*100;
   ctx.fillStyle=G.pos>0?'#7fd4ff':G.pos<0?'#ff6a8a':'#666';
   ctx.font='900 20px system-ui';ctx.textAlign='center';
-  if(Math.abs(G.pos)>0.05)ctx.fillText(G.pos>0?'◀ PULLING!':'PULLING! ▶',W/2,cy+120);
+  if(Math.abs(G.pos)>0.05)ctx.fillText(G.pos>0?'◀ PULLING!':'PULLING! ▶',W/2,cy+76);
   ctx.textAlign='left';
   // tap ripples
   for(const r of ripples){
