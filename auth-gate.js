@@ -21,6 +21,25 @@
  * URL query parameters can never change it, and there is no mock mode —
  * every sign-in goes through the real server.
  */
+
+/* ---- Seasonal themes loader (added 2026-10-17) ----
+ * Every page already loads this gate, so the gate also loads the
+ * site-wide seasonal skin (/seasonal.js) — Halloween in October,
+ * nothing at all outside a theme window. ALL theme logic lives in
+ * seasonal.js; this block only loads it. If seasonal.js is missing
+ * or fails, the site runs exactly as before — decoration can never
+ * break sign-in. */
+(function () {
+  try {
+    var s = document.currentScript;
+    var base = s && s.src ? s.src.replace(/auth-gate\.js(\?.*)?$/, "") : "https://firebabys.io/";
+    var t = document.createElement("script");
+    t.src = base + "seasonal.js";
+    t.async = true;
+    (document.head || document.documentElement).appendChild(t);
+  } catch (e) { /* seasonal skin is optional decoration — never break the gate */ }
+})();
+
 (function () {
   "use strict";
 
