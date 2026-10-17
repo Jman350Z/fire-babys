@@ -409,8 +409,9 @@ function render(){
   ctx.strokeStyle='#fff';ctx.lineWidth=5;
   ctx.beginPath();ctx.moveTo(gx,H*0.3);ctx.lineTo(gx,H*0.75);ctx.stroke();
   const wave=Math.sin(G.time*5)*4;
+  const fw=gx+60>W?-1:1; // [landscape fix] fly the flag inboard when the pole hugs the right edge
   ctx.fillStyle='#4caf50';
-  ctx.beginPath();ctx.moveTo(gx,H*0.3);ctx.lineTo(gx+54+wave,H*0.36);ctx.lineTo(gx,H*0.44);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(gx,H*0.3);ctx.lineTo(gx+fw*(54+wave),H*0.36);ctx.lineTo(gx,H*0.44);ctx.closePath();ctx.fill();
   // player
   if(!G.dead){
     ctx.save();ctx.translate(G.px,G.py);ctx.scale(G.face,1);
