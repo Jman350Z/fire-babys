@@ -52,6 +52,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #sysbtns button:hover{filter:brightness(1.35)}
 @media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
 </style>
+<style data-fblandscape="1">@media (max-height:500px){#back{bottom:88px!important}}</style>
 </head>
 <body>
 <div id="game">
@@ -122,7 +123,7 @@ function buildLevel(n){
   G.px=W/2;
   const cols=Math.max(6,Math.min(12,Math.floor(W/70)));
   const bw=(W*0.92)/cols,bh=28,gap=4;
-  const ox=(W-bw*cols)/2,oy=H*0.12;
+  const ox=(W-bw*cols)/2,oy=H<500?112:H*0.12;
   const rows=Math.min(12,4+n); // [levels+] rows capped at 12 so the wall never crowds the paddle
   const patterns=[
     (r,c)=>1, // solid
