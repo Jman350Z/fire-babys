@@ -59,6 +59,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #restartBtn:focus-visible{outline:3px solid var(--fbacc,#ffd76a);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){#restartBtn{transition:none}}
 </style>
+<style data-fblandscape="1">@media (max-height:500px){#back{bottom:88px!important}}</style>
 </head>
 <body>
 <div id="game">
@@ -123,7 +124,7 @@ function buildLevel(n){
   G.bricks=[];
   const cols=7,rows=4+n;
   const bw=(W*0.9)/cols,bh=26;
-  const ox=W*0.05,oy=H*0.12;
+  const ox=W*0.05,oy=H<500?112:H*0.12;
   const hues=[0,25,45,200,280];
   for(let r=0;r<rows;r++){
     for(let c=0;c<cols;c++){
@@ -391,7 +392,7 @@ function render(){
   // stuck hint
   if(G.stuck&&G.state==='play'){
     ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='900 16px system-ui';ctx.textAlign='center';
-    ctx.fillText('TAP TO LAUNCH!',W/2,H*0.6);
+    ctx.fillText('TAP TO LAUNCH!',W/2,H<500?H-104:H*0.6); // [landscape fix] keep clear of the lowered brick wall on short screens
     ctx.textAlign='left';
   }
   // particles
