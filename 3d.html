@@ -138,6 +138,37 @@
   .pcsw:hover { transform:scale(1.1); }
   #knob { box-shadow:0 0 22px rgba(255,140,40,.85), inset 0 2px 5px rgba(255,255,255,.45); }
   #joy { box-shadow:inset 0 0 24px rgba(0,0,0,.35), 0 0 18px rgba(255,120,40,.18); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+  /* ===== short-screen compaction (audit 2026-10-18 §3.4): landscape phones (height <= 500px) only.
+     Desktop / tall screens are untouched — every rule below lives inside this media query.
+     Fixes: title #startbtn clipped 11px below the fold; #createov #pstart 42px below the fold at open;
+     eases #hubov's 1,179px mode-list scroll. CSS-only — no script blocks touched (no CSP hash churn). */
+  @media (max-height:500px) {
+    .ov { padding:1vh 0; }
+    .ov .panel { padding:12px 20px; }
+    h1.logo { font-size:46px; }
+    .sub { font-size:11px; margin-top:6px; }
+    .tag { font-size:11px; margin-top:5px; }
+    #clskey { margin-top:6px; gap:6px; }
+    .bigbtn { margin-top:12px; font-size:17px; padding:10px 34px; }
+    #startbtn { min-height:48px; }
+    /* "Who's playing?" card: the logo carries an inline 48px font-size, hence !important */
+    #createov .panel { padding:10px 20px; }
+    #createov .logo { font-size:30px !important; line-height:1; }
+    .clabel { margin:8px 0 4px; font-size:11px; }
+    #pname { padding:8px 12px; font-size:16px; }
+    #pcswatches { gap:8px; }
+    .pcsw { width:32px; height:32px; }
+    #pstart { margin-top:10px; }
+    /* mode hub: smaller logo (inline 56px, hence !important), tighter cards and gaps */
+    #hubov .logo { font-size:30px !important; line-height:1; }
+    #hubbtns { margin-top:8px; gap:6px; }
+    .modebtn { padding:7px 12px; border-radius:12px; gap:10px; }
+    .modebtn .ic { font-size:21px; }
+    .modebtn .nm { font-size:14px; }
+    .modebtn .ds { font-size:10px; margin-top:1px; }
+    #fbgemrow { margin:0; }
+    #fbgempill { padding:4px 14px; font-size:13px; }
+  }
 </style>
 <!-- Cloudflare Web Analytics removed (gamer-check 2026-10-12): the page CSP blocked this script on every load; it never ran. -->
 </head>
