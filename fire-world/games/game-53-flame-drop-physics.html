@@ -66,6 +66,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <button class="tool" id="toolFan">💨 Fan</button>
 <button class="tool" id="toolErase">🧽 Erase</button>
 <button class="tool" id="toolDrop" style="background:#2e7d32;border-color:#4caf50">⬇️ DROP</button>
+<button class="tool" id="toolWater">💧 Water</button>
+<button class="tool" id="toolSmother">🛎️ Smother</button>
 </div>
 
 <div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
@@ -73,9 +75,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">💧 FLAME DROP PHYSICS</h1>
-<div id="obody"><p>Guide the falling flame!</p><p><b>TAP DROP</b> to release, then <b>DRAW ramps</b> (📐) to steer, place <b>fans</b> (💨) to push! Get the flame to the 🏁 goal — avoid the 💧 water drops!</p><div id="lvlSel"></div></div>
+<div id="obody"><p>Guide the falling flame!</p><p><b>TAP DROP</b> to release, then <b>DRAW ramps</b> (📐) to steer, place <b>fans</b> (💨) to push! Get the flame to the 🏁 goal — avoid the 💧 water drops!</p><p>🟣 Meet the <b>SLIMER</b> — he's made of OIL! Tap <b>💧 Water</b> then tap above him to spray… and watch him <b>GROW</b> and giggle — water is the trap! Tap <b>🛎️ Smother</b> then tap above him to drop the lid — <b>cover him twice</b> to smother him flat!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: Guide flames safely — never play with fire!</div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Guide flames safely — never play with fire! Oil fire? Never spray it — smother it, and get a grown-up.</div>
 <button id="obtn">▶ PLAY</button>
 </div>
 </div>
@@ -104,21 +106,22 @@ const sfx={
 };
 // levels: walls (static), waters, goal, spawn
 const LEVELS=[
-  {walls:[{x:0.3,y:0.45,w:0.4,h:0.04}],waters:[],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3},
+  {walls:[{x:0.3,y:0.45,w:0.4,h:0.04}],waters:[],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3,slimers:[{x:0.63,y:0.40}]},
   {walls:[{x:0.1,y:0.4,w:0.35,h:0.04},{x:0.55,y:0.6,w:0.35,h:0.04}],waters:[],goal:{x:0.5,y:0.88},spawn:{x:0.2,y:0.12},items:3},
-  {walls:[{x:0.3,y:0.5,w:0.4,h:0.04}],waters:[{x:0.5,y:0.72,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3},
+  {walls:[{x:0.3,y:0.5,w:0.4,h:0.04}],waters:[{x:0.5,y:0.72,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3,slimers:[{x:0.62,y:0.45}]},
   {walls:[{x:0.05,y:0.35,w:0.3,h:0.04},{x:0.65,y:0.35,w:0.3,h:0.04},{x:0.3,y:0.62,w:0.4,h:0.04}],waters:[{x:0.5,y:0.78,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:4},
   {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.5,y:0.9},spawn:{x:0.3,y:0.1},items:4},
-  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.5,y:0.6,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
+  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.5,y:0.6,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5,slimers:[{x:0.57,y:0.45}]},
   {walls:[{x:0.25,y:0.42,w:0.38,h:0.04}],waters:[{x:0.62,y:0.7,r:0.05}],goal:{x:0.35,y:0.88},spawn:{x:0.55,y:0.12},items:4},
   {walls:[{x:0.1,y:0.38,w:0.35,h:0.04},{x:0.55,y:0.58,w:0.35,h:0.04}],waters:[{x:0.5,y:0.74,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.2,y:0.12},items:4},
-  {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:5},
+  {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:5,slimers:[{x:0.30,y:0.55}]},
   {walls:[{x:0.05,y:0.3,w:0.28,h:0.04},{x:0.67,y:0.3,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.2,y:0.68,w:0.3,h:0.04}],waters:[{x:0.65,y:0.6,r:0.045},{x:0.72,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
-  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.3,y:0.6,r:0.045},{x:0.7,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
+  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.3,y:0.6,r:0.045},{x:0.7,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5,slimers:[{x:0.84,y:0.63}]},
 ];
 const G={state:'title',level:1,score:0,
   fx:0,fy:0,vx:0,vy:0,dropped:false,done:false,
   ramps:[],fans:[],itemsLeft:0,tool:'ramp',drawing:null,
+  drops:[],slimers:[],
   time:0,shake:0};
 function initLevel(n){
   const L=LEVELS[n-1];
@@ -126,6 +129,7 @@ function initLevel(n){
   G.fx=L.spawn.x*W;G.fy=L.spawn.y*H;G.vx=0;G.vy=0;
   G.dropped=false;G.done=false;G._stillT=0;G._ax=undefined;
   G.ramps=[];G.fans=[];G.itemsLeft=L.items;G.drawing=null;
+  G.drops=[];G.slimers=(L.slimers||[]).map(s=>({x:s.x*W,y:s.y*H,baseR:26,scale:1,cover:0,state:'live',growT:0,panicT:0,wobT:0,defeatedT:0,slideDir:1}));
   document.getElementById('level').textContent=`LV ${n}/11`;
   document.getElementById('items').textContent='🛠️ '+G.itemsLeft;
   updateHUD();
@@ -134,16 +138,23 @@ function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score
 function setTool(t){
   G.tool=t;
   document.querySelectorAll('.tool').forEach(b=>b.classList.remove('sel'));
-  document.getElementById(t==='ramp'?'toolRamp':t==='fan'?'toolFan':'toolErase').classList.add('sel');
+  const map={ramp:'toolRamp',fan:'toolFan',erase:'toolErase',water:'toolWater',smother:'toolSmother'};
+  const id=map[t];if(id)document.getElementById(id).classList.add('sel');
 }
 document.getElementById('toolRamp').addEventListener('click',()=>setTool('ramp'));
 document.getElementById('toolFan').addEventListener('click',()=>setTool('fan'));
 document.getElementById('toolErase').addEventListener('click',()=>setTool('erase'));
+document.getElementById('toolWater').addEventListener('click',()=>setTool('water'));
+document.getElementById('toolSmother').addEventListener('click',()=>setTool('smother'));
 document.getElementById('toolDrop').addEventListener('click',()=>{if(G.state==='play')dropFlame();});
 canvas.addEventListener('pointerdown',e=>{
-  if(G.state!=='play'||G.dropped||G.done)return;
+  if(G.state!=='play'||G.done)return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  // Slimer payload drops: 💧 water / 🛎️ smother fall from the top at the tap's x.
+  // They work before AND after the flame drop — smothering the Slimer is its own mini-puzzle.
+  if(G.tool==='water'||G.tool==='smother'){spawnDrop(x,G.tool);return;}
+  if(G.dropped)return;
   if(G.tool==='erase'){
     for(let i=G.ramps.length-1;i>=0;i--){
       const r=G.ramps[i];
@@ -186,6 +197,191 @@ canvas.addEventListener('pointerup',()=>{
   G._fanDrag=null;
 });
 function updItems(){document.getElementById('items').textContent='🛠️ '+G.itemsLeft;}
+/* ===== SLIMER (Jeff 2026-10-17 spec: SLIMERS-SPEC.md) — oil-blob villain.
+   WATER IS THE TRAP: a 💧 drop makes him splash, spread and GROW (cap 1.6x),
+   target NOT cleared. SMOTHER WINS: a 🛎️ lid drop builds cover per hit,
+   he shrinks and panics; 2 hits = defeated (flattened under the lid, dizzy
+   eyes peeking, slides off on his own slick, +50 = a standard target's
+   minimum goal value). He never harms the flame/Babys; the joke is on him. */
+function spawnDrop(x,kind){
+  if(G.state!=='play'||G.done)return;
+  if(G.drops.length>24)return;
+  G.drops.push({x:Math.max(20,Math.min(W-20,x)),y:34,vy:0,kind,r:kind==='water'?13:16,spin:Math.random()*6});
+  sfx.drop();
+}
+function updateDrops(dt){
+  for(let i=G.drops.length-1;i>=0;i--){
+    const d=G.drops[i];
+    d.vy+=900*dt;d.y+=d.vy*dt;d.spin+=dt*3;
+    let used=false;
+    for(const s of G.slimers){
+      if(s.state!=='live')continue;
+      const rr=s.baseR*s.scale+d.r;
+      if(Math.hypot(d.x-s.x,d.y-s.y)<rr){slimerHit(s,d.kind);used=true;break;}
+    }
+    if(used){G.drops.splice(i,1);continue;}
+    if(d.y>H+30)G.drops.splice(i,1);
+  }
+}
+function updateSlimers(dt){
+  for(let i=G.slimers.length-1;i>=0;i--){
+    const s=G.slimers[i];
+    if(s.growT>0)s.growT-=dt;
+    if(s.panicT>0)s.panicT-=dt;
+    if(s.wobT>0)s.wobT-=dt;
+    if(s.state==='defeated'){
+      s.defeatedT+=dt;
+      s.x+=s.slideDir*240*dt; // slides away on his own slick
+      if(s.defeatedT>1.5||s.x<-90||s.x>W+90)G.slimers.splice(i,1);
+    }
+  }
+}
+function slimerHit(s,kind){
+  if(s.state!=='live')return;
+  if(kind==='water'){
+    // THE TRAP: splashes, spreads, comes back BIGGER and smugger — not cleared
+    s.scale=Math.min(1.6,s.scale+0.3);
+    s.growT=1.4;s.wobT=1.2;
+    sfx.splash();G.shake=Math.max(G.shake,0.3);
+    const cols=['#4aa3d8','#b45fe0','#3fe0c8','#e08a3f','#e0529e'];
+    for(let i=0;i<12;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=s.x+(Math.random()-0.5)*s.baseR*s.scale*2;p.y=s.y-s.baseR*s.scale;
+      const a=Math.random()*Math.PI*2;
+      p.vx=Math.cos(a)*170;p.vy=Math.sin(a)*170-70;
+      p.life=0.6;p.max=0.6;p.color=cols[i%cols.length];p.size=4;}
+  }else{
+    // SMOTHER: cover builds per hit, he shrinks and panics
+    s.cover++;
+    s.scale=Math.max(0.65,s.scale-0.2);
+    s.panicT=1.4;s.wobT=0.8;
+    tone(300,110,0.22,'square',0.10);
+    for(let i=0;i<10;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=s.x+(Math.random()-0.5)*s.baseR*2;p.y=s.y-s.baseR*s.scale;
+      p.vx=(Math.random()-0.5)*160;p.vy=-60-Math.random()*60;
+      p.life=0.55;p.max=0.55;p.color=i%2?'#c9b458':'#9aa3a8';p.size=4;}
+    if(s.cover>=2){
+      s.state='defeated';s.defeatedT=0;s.slideDir=(s.x<W/2?1:-1);
+      G.score+=50;updateHUD();
+      sfx.win();G.shake=Math.max(G.shake,0.25);
+    }
+  }
+}
+function spiralEye(cx,cy,rr){
+  ctx.strokeStyle='#0d0716';ctx.lineWidth=1.6;
+  ctx.beginPath();
+  for(let a=0;a<Math.PI*4.5;a+=0.25){
+    const q=rr*a/(Math.PI*4.5);
+    const xx=cx+Math.cos(a)*q,yy=cy+Math.sin(a)*q;
+    if(a===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+  }
+  ctx.stroke();
+}
+function drawSlimerFace(px,py,r,s){
+  if(s.panicT>0){
+    // wide round panic eyes + small wobbly 'o' mouth
+    for(const ex of [-r*0.42,r*0.42]){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ex,py,r*0.42,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px+ex,py+r*0.06,r*0.14,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px,py+r*0.85,r*0.22,0,Math.PI*2);ctx.fill();
+  }else{
+    // smug: half-lidded eyes glancing sideways + wide drippy grin
+    const grown=s.growT>0;
+    for(const ex of [-r*0.42,r*0.42]){
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.ellipse(px+ex,py,r*0.42,r*0.36,0,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(px+ex-r*0.42,py-r*0.10);ctx.quadraticCurveTo(px+ex,py-r*0.36,px+ex+r*0.42,py-r*0.10);ctx.stroke();
+      ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px+ex+(ex<0?5:-5)*(grown?1.3:1),py+r*0.05,r*0.12,0,Math.PI*2);ctx.fill();
+    }
+    ctx.strokeStyle='#0d0716';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(px,py+r*0.55,r*(grown?0.62:0.5),0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+    const dx=px+r*0.25;
+    ctx.fillStyle='#0d0716';
+    ctx.fillRect(dx-3,py+r*0.55+r*0.42,6,9);
+    ctx.beginPath();ctx.arc(dx,py+r*0.55+r*0.42+9,3,0,Math.PI*2);ctx.fill();
+  }
+}
+function drawSlimer(s){
+  const r=s.baseR*s.scale;
+  const defeated=s.state==='defeated';
+  const wob=s.wobT>0?Math.sin(s.wobT*18)*0.07:0;
+  const bw=r*(1+wob),bh=r*(1-wob)*(defeated?0.45:1);
+  const px=s.x,py=s.y;
+  ctx.save();
+  // rainbow oil slick puddle beneath him
+  const pw=r*1.6;
+  ctx.fillStyle='rgba(90,40,140,0.30)';
+  ctx.beginPath();ctx.ellipse(px,py+bh*0.95,pw,pw*0.30,0,0,Math.PI*2);ctx.fill();
+  const slick=['rgba(180,95,224,0.55)','rgba(63,224,200,0.45)','rgba(224,82,158,0.50)','rgba(224,193,63,0.40)'];
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=slick[i];
+    ctx.beginPath();
+    ctx.ellipse(px+(i-1.5)*pw*0.28,py+bh*0.95,pw*(0.72-i*0.13),pw*0.22,0,0,Math.PI*2);
+    ctx.fill();
+  }
+  if(!defeated){
+    // two drippy stub arms
+    for(const sd of [-1,1]){
+      const ax=px+sd*bw*1.02,ay=py+bh*0.1;
+      ctx.fillStyle='#241440';
+      ctx.beginPath();ctx.ellipse(ax,ay,r*0.30,r*0.40,sd*0.35,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=2.5;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.fillStyle='#241440';
+      ctx.fillRect(ax-3.5,ay+r*0.28,7,r*0.34);
+      ctx.beginPath();ctx.arc(ax,ay+r*0.28+r*0.34,3.5,0,Math.PI*2);ctx.fill();
+    }
+    // glossy black-purple round blob body
+    const g=ctx.createRadialGradient(px-bw*0.3,py-bh*0.4,bw*0.2,px,py,bw*1.35);
+    g.addColorStop(0,'#553180');g.addColorStop(0.55,'#2b1749');g.addColorStop(1,'#150c28');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.ellipse(px,py,bw,bh,0,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+    // rainbow oil swirls moving across the surface
+    ctx.save();
+    ctx.beginPath();ctx.ellipse(px,py,bw,bh,0,0,Math.PI*2);ctx.clip();
+    const sw=['#b45fe0','#3fe0c8','#e0529e','#e0c13f'];
+    for(let i=0;i<4;i++){
+      ctx.strokeStyle=sw[i];ctx.globalAlpha=0.55;ctx.lineWidth=4;
+      const yy=py-bh*0.55+i*bh*0.34;
+      ctx.beginPath();ctx.moveTo(px-bw,yy);
+      ctx.bezierCurveTo(px-bw*0.4,yy-8+Math.sin(G.time*3+i)*6,px+bw*0.4,yy+8-Math.sin(G.time*3+i)*6,px+bw,yy);
+      ctx.stroke();
+    }
+    ctx.restore();ctx.globalAlpha=1;
+    // glossy highlight
+    ctx.fillStyle='rgba(255,255,255,0.32)';
+    ctx.beginPath();ctx.ellipse(px-bw*0.36,py-bh*0.48,bw*0.26,bh*0.16,-0.5,0,Math.PI*2);ctx.fill();
+    // cover building: a lid tipping onto him after the first smother hit
+    if(s.cover===1){
+      ctx.save();ctx.translate(px,py-bh-4);ctx.rotate(-0.5);
+      ctx.fillStyle='rgba(201,210,216,0.92)';
+      ctx.beginPath();ctx.arc(0,0,r*0.7,Math.PI,0);ctx.fill();
+      ctx.strokeStyle='#6b7378';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.restore();
+    }
+    drawSlimerFace(px,py-bh*0.28,r,s);
+  }else{
+    // defeated: flattened puddle under the lid, dizzy spiral eyes peeking
+    ctx.fillStyle='#241440';
+    ctx.beginPath();ctx.ellipse(px,py+4,bw*1.1,10,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#0d0716';ctx.lineWidth=2.5;ctx.stroke();
+    const lr=r*1.25;
+    ctx.fillStyle='#c9d2d8';
+    ctx.beginPath();ctx.arc(px,py-6,lr,Math.PI,0);ctx.fill();
+    ctx.strokeStyle='#6b7378';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#8a939a';ctx.fillRect(px-lr-4,py-9,lr*2+8,6);
+    ctx.fillStyle='#6b7378';ctx.beginPath();ctx.arc(px,py-6-lr,8,0,Math.PI*2);ctx.fill();
+    for(const ex of [-12,12]){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ex,py-2,8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#0d0716';ctx.lineWidth=2;ctx.stroke();
+      spiralEye(px+ex,py-2,6);
+    }
+  }
+  ctx.restore();
+}
 const particles=[];
 for(let i=0;i<80;i++)particles.push({a:false});
 const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
@@ -197,6 +393,7 @@ function dropFlame(){
 function update(dt){
   G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
   const L=LEVELS[G.level-1];
+  updateSlimers(dt);updateDrops(dt); // Slimer mini-puzzle runs before AND after the flame drop
   if(!G.dropped||G.done){updateParts(dt);return;}
   // physics
   G.vy+=900*dt;
@@ -344,7 +541,7 @@ canvas.addEventListener('dblclick',e=>{
 });
 // tap spawn to drop
 canvas.addEventListener('pointerup',e=>{
-  if(G.state!=='play'||G.dropped||G.drawing||G._fanDrag)return;
+  if(G.state!=='play'||G.dropped||G.drawing||G._fanDrag||G.tool==='water'||G.tool==='smother')return;
   const rect=canvas.getBoundingClientRect();
   const x=e.clientX-rect.left,y=e.clientY-rect.top;
   if(Math.hypot(x-G.fx,y-G.fy)<60)dropFlame(); // single tap drops (was: hidden double-tap; the overlay said 'TAP DROP')
@@ -371,6 +568,8 @@ function render(){
     ctx.font='28px system-ui';ctx.textAlign='center';
     ctx.fillText('💧',wt.x*W,wt.y*H+10);ctx.textAlign='left';
   }
+  // slimers
+  for(const s of G.slimers)drawSlimer(s);
   // goal
   const gx=L.goal.x*W,gy=L.goal.y*H;
   const pulse=1+Math.sin(G.time*4)*0.08;
@@ -408,6 +607,11 @@ function render(){
     ctx.fillText('💨',f.x,f.y+12);ctx.textAlign='left';
     ctx.strokeStyle='rgba(174,226,255,0.3)';ctx.lineWidth=2;
     ctx.beginPath();ctx.arc(f.x,f.y,60+Math.sin(G.time*5)*5,0,Math.PI*2);ctx.stroke();
+  }
+  // falling Slimer payloads (💧 water / 🛎️ smother lid)
+  for(const d of G.drops){
+    ctx.font=(d.kind==='water'?'24px':'26px')+' system-ui';ctx.textAlign='center';
+    ctx.fillText(d.kind==='water'?'💧':'🛎️',d.x,d.y+9);ctx.textAlign='left';
   }
   // flame
   if(!G.done||G.time<1){
