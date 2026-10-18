@@ -63,9 +63,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🃏 CINDER'S MELT-DOWN</h1>
-<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> test your memory!</p><p><b>Tap</b> cards to flip two at a time — find all matching Fire Babys pairs! Fewer flips = more stars!</p><div id="lvlSel"></div></div>
+<div id="obody"><p><b>Lord Inferno</b> & <b>Ruko</b> test your memory!</p><p><b>Tap</b> cards to flip two at a time — find all matching Fire Babys pairs! Fewer flips = more stars!</p><p style="margin-top:6px">🛢️ <b>NEW VILLAIN: THE SLIMER!</b> He's a blob of <b>oil</b>. Flip him together with <b>Aqua 💧</b> and — <b>SPLASH!</b> — water makes him splash, spread and <b>GROW</b> — water is the trap! The secret: match him with the <b>Lid</b> to <b>SMOTHER</b> him. Covered, he shrinks, panics, and slides away on his own slick!</p><div id="lvlSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
-<div class="lesson" id="olesson">🔥 Fire Safety: Remembering your escape plan is the most important memory game!</div>
+<div class="lesson" id="olesson">Oil fire? Never spray it — smother it, and get a grown-up.</div>
 <button id="obtn">▶ PLAY</button>
 </div>
 </div>
@@ -95,6 +95,9 @@ const sfx={
   flip(){tone(500,700,0.08,'triangle',0.12);},
   match(){tone(700,1000,0.12,'sine',0.14);tone(1000,1400,0.1,'sine',0.1,0.08);},
   no(){tone(300,200,0.15,'square',0.1);},
+  splash(){tone(900,180,0.22,'sine',0.12);tone(520,110,0.3,'triangle',0.09,0.07);},
+  lid(){tone(320,110,0.2,'sine',0.16);tone(160,70,0.25,'triangle',0.1,0.05);},
+  deflate(){tone(600,90,0.55,'sine',0.12);},
   win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.2,'triangle',0.15,i*0.09));},
   click(){tone(600,600,0.06,'square',0.1);}
 };
@@ -106,18 +109,29 @@ const FACES=[
   {e:'⚡',c:'#ffeb3b',n:'Volt'},{e:'🌟',c:'#ffffff',n:'Nova'},
   {e:'🔮',c:'#9a7fd4',n:'Mystic'},{e:'💎',c:'#aee2ff',n:'Crystal'},
 ];
+// THE SLIMER — oil villain (spec: fire-babys-shows/characters/SLIMERS-SPEC.md).
+// Not a regular face pair: the Slimer card pairs with the Lid card (the smother verb).
+const SLIMER_FACE={e:'🛢️',c:'#2a1a4a',n:'Slimer'};
+const LID_FACE={e:'🍳',c:'#9aa4b8',n:'Lid'};
+const SLIMER_PAIR=99;
 const G={state:'title',level:1,cards:[],first:null,second:null,lock:false,
   flips:0,matched:0,score:0,time:0,combo:0,preview:0};
 function initLevel(n){
   G.level=n;G.flips=0;G.matched=0;G.combo=0;G.first=null;G.second=null;G.lock=false;
   const pairCount=[8,10,12,12,12,12,12,12][n-1]||8;
   layout();
-  const faces=FACES.slice(0,pairCount);
+  // The Slimer smother pair takes the last pair slot: one special pair per board
+  // (1 of 8 pairs on L1 … 1 of 12 later) — rare, and the preview shows him first so
+  // kids meet him slow and alone and learn that water backfires without punishment.
+  const faces=FACES.slice(0,pairCount-1);
   let deck=[];
   faces.forEach((f,i)=>{deck.push({id:i,face:f},{id:i,face:f});});
+  deck.push({id:SLIMER_PAIR,face:SLIMER_FACE,kind:'slimer'},
+            {id:SLIMER_PAIR,face:LID_FACE,kind:'lid'});
   // shuffle
   for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
-  G.cards=deck.map((d,i)=>({id:d.id,face:d.face,flip:0,matched:false,glow:0,
+  G.cards=deck.map((d,i)=>({id:d.id,face:d.face,kind:d.kind||null,flip:0,matched:false,glow:0,
+    grow:1,wob:0,cover:0,coverTarget:0,defeated:false,slide:0,
     r:Math.floor(i/COLS),c:i%COLS}));
   // genre-standard kids' preview: show all faces briefly so young players can memorise
   for(const cd of G.cards)cd.flip=1;
@@ -142,6 +156,23 @@ canvas.addEventListener('pointerdown',e=>{
   else{
     G.second=card;G.lock=true;G.flips++;
     if(G.first.id===G.second.id){
+      const slim=[G.first,G.second].find(cd=>cd.kind==='slimer');
+      if(slim){
+        // SMOTHER WIN: Slimer + Lid pair. The lid drops, cover builds, he panics
+        // and shrinks — then he is defeated flat and slides off on his own slick.
+        slim.coverTarget=1;sfx.lid();
+        setTimeout(()=>{
+          slim.defeated=true;
+          G.first.matched=true;G.second.matched=true;
+          G.first.glow=0.6;G.second.glow=0.6;
+          G.matched++;G.combo++;
+          const pts=100+G.combo*25; // same value as any standard pair — no scoring change
+          G.score+=pts;sfx.deflate();updateHUD();
+          spawnText(slim);
+          G.first=null;G.second=null;G.lock=false;
+          if(G.matched>=([8,10,12,12,12,12,12,12][G.level-1]||8))levelComplete();
+        },1600);
+      }else{
       setTimeout(()=>{
         G.first.matched=true;G.second.matched=true;
         G.first.glow=0.6;G.second.glow=0.6;
@@ -152,8 +183,19 @@ canvas.addEventListener('pointerdown',e=>{
         G.first=null;G.second=null;G.lock=false;
         if(G.matched>=([8,10,12,12,12,12,12,12][G.level-1]||8))levelComplete();
       },400);
+      }
     }else{
       G.combo=0;sfx.no();
+      const slimM=[G.first,G.second].find(cd=>cd.kind==='slimer');
+      const aquaM=[G.first,G.second].find(cd=>!cd.kind&&cd.face&&cd.face.n==='Aqua');
+      if(slimM&&aquaM){
+        // WATER TRAP: Aqua's water on an oil Slimer — he splashes, spreads and
+        // GROWS (cap ~1.6x) with a happy smug wobble. No damage, ever.
+        slimM.grow=Math.min(1.6,slimM.grow+0.3);
+        slimM.wob=1.4;sfx.splash();spawnSplashDrops(slimM);
+        const f=floaters.find(fl=>!fl.a);
+        if(f){f.a=true;f.x=GX+slimM.c*CELL+CELL/2;f.y=GY+slimM.r*CELL;f.txt='💦 SPLASH! HE GREW!';f.life=1.4;}
+      }
       setTimeout(()=>{
         G.first.flip=-0.01;G.second.flip=-0.01;
         G.first=null;G.second=null;G.lock=false;
@@ -168,6 +210,166 @@ for(let i=0;i<10;i++)floaters.push({a:false});
 function spawnText(card){
   const f=floaters.find(f=>!f.a);if(!f)return;
   f.a=true;f.x=GX+card.c*CELL+CELL/2;f.y=GY+card.r*CELL;f.txt='+'+(100+G.combo*25);f.life=1;
+}
+/* ===== THE SLIMER — canvas-drawn oil villain (glossy black-purple blob, rainbow
+   oil swirls, drippy stub arms, smug grin; panic face under the lid; dizzy spiral
+   eyes when smothered flat). No text is ever drawn on the character. ===== */
+const splashDrops=[];
+function spawnSplashDrops(card){
+  const bx=GX+card.c*CELL+CELL/2,by=GY+card.r*CELL+CELL/2;
+  for(let i=0;i<12;i++){
+    splashDrops.push({x:bx+(Math.random()-0.5)*30,y:by+(Math.random()-0.5)*20,
+      vx:(Math.random()-0.5)*280,vy:-120-Math.random()*240,life:0.9+Math.random()*0.4,
+      c:['#7f5fff','#4fe3ff','#ff5fd0','#ffd23f'][i%4],r:3+Math.random()*4});
+  }
+}
+function drawSlick(cx,cy,w){
+  ctx.save();ctx.translate(cx,cy);
+  const g=ctx.createLinearGradient(-w,0,w,0);
+  g.addColorStop(0,'rgba(127,95,255,.6)');g.addColorStop(0.25,'rgba(79,227,255,.6)');
+  g.addColorStop(0.5,'rgba(255,95,208,.6)');g.addColorStop(0.75,'rgba(255,210,63,.6)');
+  g.addColorStop(1,'rgba(127,95,255,.6)');
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.ellipse(0,0,w,w*0.32,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=0.6;ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.ellipse(-w*0.3,-w*0.06,w*0.35,w*0.07,-0.2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawSlimerFace(S,mood,R){
+  const ey=-R*0.12,eyeW=R*0.3,eyeH=mood==='smug'?R*0.2:R*0.32;
+  for(const sd of [-1,1]){
+    const ex=sd*R*0.42;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.ellipse(ex,ey,eyeW,eyeH,0,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=Math.max(1.5,R*0.05);ctx.strokeStyle='#0a0716';ctx.stroke();
+    if(mood==='smug'){
+      // sly half-lidded gloat
+      ctx.fillStyle='#241741';
+      ctx.beginPath();ctx.ellipse(ex,ey-eyeH*0.55,eyeW*1.02,eyeH*0.62,sd*-0.12,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0a0716';
+      ctx.beginPath();ctx.arc(ex+sd*R*0.05,ey+eyeH*0.3,R*0.09,0,Math.PI*2);ctx.fill();
+    }else{
+      // panic: wide round eyes, tiny pupils
+      ctx.fillStyle='#0a0716';
+      ctx.beginPath();ctx.arc(ex,ey,R*0.1,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.arc(ex+R*0.035,ey-R*0.035,R*0.035,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.strokeStyle='#0a0716';ctx.lineWidth=Math.max(2,R*0.07);ctx.lineCap='round';
+  if(mood==='smug'){
+    ctx.beginPath();ctx.arc(0,R*0.42,R*0.42,Math.PI*0.15,Math.PI*0.85);ctx.stroke();
+    ctx.fillStyle='#0a0716'; // drippy grin edge
+    ctx.beginPath();ctx.ellipse(R*0.3,R*0.72,R*0.05,R*0.12,0,0,Math.PI*2);ctx.fill();
+  }else{
+    ctx.beginPath();ctx.ellipse(0,R*0.55,R*0.13,R*0.17,0,0,Math.PI*2);ctx.stroke(); // "o" mouth
+  }
+}
+function drawDroppingLid(S,R,cover){
+  const w=R*1.5,topY=-R*1.55+(1-cover)*R*2.6; // lid lands as cover builds
+  ctx.save();ctx.translate(0,topY);
+  ctx.fillStyle='#c3ccd9';ctx.strokeStyle='#5f6a7d';ctx.lineWidth=Math.max(2,S*0.015);
+  ctx.beginPath();ctx.ellipse(0,0,w,w*0.42,0,Math.PI,0);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#8d97a8';ctx.fillRect(-w,-S*0.008,w*2,S*0.03);
+  ctx.fillStyle='#5f6a7d';ctx.beginPath();ctx.arc(0,-w*0.42-S*0.03,S*0.035,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawLidRest(S){
+  const w=S*0.24;
+  ctx.save();ctx.translate(S*0.2,-S*0.14);ctx.rotate(0.5);
+  ctx.fillStyle='#c3ccd9';ctx.strokeStyle='#5f6a7d';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(0,0,w,w*0.4,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#5f6a7d';ctx.beginPath();ctx.arc(0,0,S*0.03,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawSlimer(card,S){
+  const cx=S/2,cy=S/2+2;
+  const grow=card.grow||1,cover=card.cover||0,wob=card.wob||0;
+  const defeated=!!card.defeated,slide=card.slide||0;
+  // rainbow oil slick — under him while he lives, left behind as his matched remnant
+  drawSlick(cx,cy+S*0.3,S*0.3*(0.7+0.5*grow)*(defeated?1.35:1));
+  ctx.save();
+  ctx.translate(cx+slide*S*1.1,cy);
+  ctx.globalAlpha=Math.max(0,1-slide*1.5);
+  if(defeated){
+    // DEFEATED: smothered flat and buried, dizzy spiral eyes, slides off on his slick
+    const R=S*0.22;
+    ctx.fillStyle='#141020';
+    ctx.beginPath();ctx.ellipse(0,S*0.16,R*1.7,R*0.5,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(2,S*0.02);
+    for(const ex of [-R*0.55,R*0.55]){
+      ctx.beginPath();
+      for(let a=0;a<Math.PI*4;a+=0.25){const rr=R*0.2*(1-a/(Math.PI*4.4));const px=ex+Math.cos(a)*rr,py=S*0.02+Math.sin(a)*rr;a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+      ctx.stroke();
+    }
+    ctx.strokeStyle='#8a7bd4';ctx.beginPath();
+    for(let a=0;a<=Math.PI*2;a+=0.3){const px=-R*0.4+a/(Math.PI*2)*R*0.8,py=S*0.18+Math.sin(a*2)*R*0.06;a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.stroke();
+    drawLidRest(S);
+  }else{
+    const sc=grow*(1-0.45*cover);
+    const R=S*0.235*sc;
+    const w=Math.sin(G.time*9)*0.06*Math.min(1,0.35+wob);
+    ctx.scale(1+w,1-w);
+    // glossy black-purple blob body
+    const bg=ctx.createLinearGradient(0,-R,0,R);
+    bg.addColorStop(0,'#41265f');bg.addColorStop(0.55,'#1d1233');bg.addColorStop(1,'#0d0919');
+    ctx.fillStyle=bg;
+    ctx.beginPath();ctx.ellipse(0,0,R,R*1.02,0,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=Math.max(2,R*0.09);ctx.strokeStyle='#050310';ctx.stroke();
+    // rainbow oil swirls clipped to the body + drippy stub arms + gloss
+    ctx.save();ctx.beginPath();ctx.ellipse(0,0,R,R*1.02,0,0,Math.PI*2);ctx.clip();
+    const cols=['#ff5fd0','#7f5fff','#4fe3ff','#ffd23f','#8affc1'];
+    ctx.globalAlpha=0.55;ctx.lineWidth=Math.max(1.5,R*0.08);
+    for(let i=0;i<5;i++){
+      ctx.strokeStyle=cols[i];
+      ctx.beginPath();
+      const yy=-R*0.55+i*R*0.27;
+      ctx.moveTo(-R*1.3,yy);
+      ctx.bezierCurveTo(-R*0.4,yy+Math.sin(G.time*1.6+i*1.7)*R*0.22,R*0.4,yy-Math.sin(G.time*1.6+i*1.7)*R*0.22,R*1.3,yy);
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;ctx.fillStyle='#241741';
+    for(const sd of [-1,1]){
+      const ax=sd*R*1.02,ay=R*0.18;
+      ctx.beginPath();ctx.ellipse(ax,ay,R*0.3,R*0.2,sd*0.6,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(ax+sd*R*0.1,ay+R*0.42,R*0.07,R*0.16,0,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=0.5;ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.ellipse(-R*0.38,-R*0.45,R*0.3,R*0.15,-0.55,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+    drawSlimerFace(S,cover>0.05?'panic':'smug',R);
+    if(cover>0)drawDroppingLid(S,R,cover);
+  }
+  ctx.restore();
+}
+function drawLidArt(card,S){
+  const cx=S/2,cy=S/2-4,w=S*0.32;
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle='#c3ccd9';ctx.strokeStyle='#5f6a7d';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(0,0,w,w*0.5,0,Math.PI,0);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#8d97a8';ctx.fillRect(-w,-3,w*2,6);
+  ctx.fillStyle='#5f6a7d';ctx.beginPath();ctx.arc(0,-w*0.5-7,7,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=0.5;ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.ellipse(-w*0.4,-w*0.28,w*0.25,w*0.1,-0.4,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function drawSpecialCard(card){
+  const S=CELL;
+  let g=_frontGrads[card.face.c+'|'+S];
+  if(!g){g=ctx.createLinearGradient(0,0,0,S);g.addColorStop(0,'#fff');g.addColorStop(1,card.face.c+'44');_frontGrads[card.face.c+'|'+S]=g;}
+  ctx.fillStyle=card.matched?'#2a4a2a':g;
+  ctx.beginPath();ctx.roundRect(4,4,S-8,S-8,12);ctx.fill();
+  ctx.strokeStyle=card.matched?'#4caf50':card.face.c;ctx.lineWidth=3;ctx.stroke();
+  if(card.kind==='slimer')drawSlimer(card,S);else drawLidArt(card,S);
+  // card-name label under the art, like every other face (never on the character)
+  ctx.font=`900 ${S*0.13}px system-ui`;ctx.fillStyle='#333';ctx.textAlign='center';
+  ctx.fillText(card.face.n,S/2,S*0.9);ctx.textAlign='left';
+  if(card.glow>0){
+    ctx.strokeStyle=`rgba(255,210,63,${card.glow})`;ctx.lineWidth=5;
+    ctx.beginPath();ctx.roundRect(4,4,S-8,S-8,12);ctx.stroke();
+    card.glow-=0.03*(G.frameScale||1);
+  }
 }
 function levelComplete(){
   G.state='clear';sfx.win();
@@ -240,10 +442,14 @@ function render(){
     if(card.flip>0&&card.flip<1)card.flip=Math.min(1,card.flip+0.12*fs);
     if(card.flip<0&&card.flip>-1)card.flip=Math.max(-1,card.flip-0.12*fs);
     if(card.flip===-1)card.flip=0;
-    const sx=Math.abs(Math.cos(card.flip*Math.PI/2));
+    // [slimer-fix] was cos(flip*PI/2): at flip=1 sx=0, so EVERY face-up card (incl. the
+    // Slimer) rendered as a 5% sliver. cos(flip*PI) is the standard flip: back shrinks
+    // 1->0 over the first half, front grows 0->1 over the second half.
+    const sx=Math.abs(Math.cos(card.flip*Math.PI));
     const cx=x+CELL/2;
     ctx.save();ctx.translate(cx,y+CELL/2);ctx.scale(Math.max(0.05,sx),1);ctx.translate(-CELL/2,-CELL/2);
     const showingFront=card.flip>0.5||card.matched;
+    if(showingFront&&(card.kind==='slimer'||card.kind==='lid')){drawSpecialCard(card);ctx.restore();continue;}
     if(showingFront){
       // [gauntlet perf] face gradient cached per face colour; matched-card shadowBlur=16 (per matched card, per frame) removed — the green fill + stroke already mark matches
       let g=_frontGrads[card.face.c+'|'+CELL];
@@ -272,6 +478,13 @@ function render(){
     }
     ctx.restore();
   }
+  for(const d of splashDrops){
+    if(d.life<=0)continue;
+    ctx.globalAlpha=Math.min(1,d.life*1.6);
+    ctx.fillStyle=d.c;
+    ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
   ctx.textAlign='center';
   if(G.preview>0){ctx.font='900 26px system-ui';ctx.fillStyle='#ffd23f';ctx.fillText('👀 LOOK & REMEMBER!',W/2,54);}
   for(const f of floaters){
@@ -287,6 +500,13 @@ function loop(t){
   const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;if(PAUSED){requestAnimationFrame(loop);return;}G.time+=dt;G.frameScale=Math.min(3,dt*60||1);
   if(G.preview>0){G.preview-=dt;if(G.preview<=0){for(const cd of G.cards)if(!cd.matched)cd.flip=-0.01;G.lock=false;}}
   for(const f of floaters){if(!f.a)continue;f.y-=30*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  for(const cd of G.cards){
+    if(cd.kind!=='slimer')continue;
+    if(cd.wob>0)cd.wob-=dt;
+    if(cd.cover<cd.coverTarget)cd.cover=Math.min(cd.coverTarget,cd.cover+dt*1.5);
+    if(cd.defeated&&cd.matched&&cd.slide<1)cd.slide=Math.min(1,cd.slide+dt*1.4);
+  }
+  for(const d of splashDrops){if(d.life<=0)continue;d.life-=dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.vy+=760*dt;}
   render();
   requestAnimationFrame(loop);
 }
