@@ -57,6 +57,24 @@
   } catch (e) { /* landscape helper is optional — never break the gate */ }
 })();
 
+/* ---- Language system loader (added 2026-10-17) ----
+ * Jeff's order: let the world choose the game's language. The gate
+ * also loads /i18n.js — a 🌐 picker on every page plus a translation
+ * engine that covers DOM text AND canvas-drawn text, so every game
+ * re-renders in the chosen language like a string-table build. ALL
+ * logic lives in i18n.js; this block only loads it. If i18n.js is
+ * missing or fails, the site runs exactly as before, in English. */
+(function () {
+  try {
+    var s = document.currentScript;
+    var base = s && s.src ? s.src.replace(/auth-gate\.js(\?.*)?$/, "") : "https://firebabys.io/";
+    var t = document.createElement("script");
+    t.src = base + "i18n.js";
+    t.async = true;
+    (document.head || document.documentElement).appendChild(t);
+  } catch (e) { /* i18n is optional — never break the gate */ }
+})();
+
 (function () {
   "use strict";
 
