@@ -436,7 +436,7 @@ addEventListener('keydown',()=>MUS.start());
 #fbCtl .fbDia .fbtn{width:46px;height:46px;font-size:18px}
 #fbCtl .fbDia .sp{width:46px;height:46px}
 </style>
-<div id='fbCtl'><div class='fbL'><button class='fbtn small' data-k='ArrowDown' data-c='ArrowDown' aria-label='SLIDE' style='font-size:12.5px'>SLIDE</button></div><div class='fbR' style='bottom:78px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='JUMP' style='font-size:14px'>JUMP</button></div></div>
+<div id='fbCtl'><div class='fbL'><button class='fbtn small' data-k='ArrowDown' data-c='ArrowDown' aria-label='SLIDE' style='font-size:12.5px'>SLIDE</button></div><div class='fbR' style='bottom:52px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='JUMP' style='font-size:14px'>JUMP</button></div></div>
 <script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);})();</script>
 </body>
 </html>
