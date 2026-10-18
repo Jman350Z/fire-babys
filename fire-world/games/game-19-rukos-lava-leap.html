@@ -474,7 +474,7 @@ function render(){
     ctx.beginPath();ctx.arc(sx-50,SHOOTER_Y+6,R*0.6,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha=1;
     ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.textAlign='center';
-    ctx.fillText('tap to swap',sx-50,SHOOTER_Y+34);ctx.textAlign='left';
+    ctx.fillText('tap to swap',sx-140,SHOOTER_Y+34);ctx.textAlign='left'; // [audit 2026-10-18] shifted left: at sx-50 the hint sat under the seasonal strip at the bottom-centre and read clipped
     // current
     const g=ctx.createRadialGradient(sx-8,SHOOTER_Y-10,4,sx,SHOOTER_Y,R);
     g.addColorStop(0,'#fff');g.addColorStop(0.4,COLORS[G.cur.c]);g.addColorStop(1,COLORS[G.cur.c]+'88');
