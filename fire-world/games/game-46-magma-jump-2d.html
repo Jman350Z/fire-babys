@@ -235,7 +235,7 @@ function update(dt){
   }
   G.lavas=G.lavas.filter(l=>l.y-G.camY<H+100);
   // fell
-  if(G.py-G.camY>H+60){
+  if(G.py-G.camY>H+16){ /* [audit 2026-10-18] was H+60: hero sank half-clipped below the screen for ~100px of fall before death registered; H+16 = sprite radius, death now matches the sprite fully leaving view */
     if(G.grace>0){ // [gauntlet fix] during grace a fall just re-sticks you to the wall
       G.px=wallX(1,G.camY)-26;G.py=G.camY+H*0.7;G.vx=0;G.vy=0;G.onWall=1;stickDust();
     }else{
