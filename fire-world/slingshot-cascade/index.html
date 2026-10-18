@@ -84,6 +84,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="overlay">
 <h1 id="otitle">🎯 SLINGSHOT CASCADE</h1>
 <div id="obody"><p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Your mission: smash <b>EVERY 💀 skeleton</b> — knock the towers down to get them! Fewer shots = more stars!</p>
+<p>🫧 <b>New villain: the Slimer!</b> He is made of oil — <b>water makes him GROW</b>, so do not splash him! Drop the tower on him and <b>bury him to smother him</b>. <b>Oil fire? Never spray it — smother it, and get a grown-up.</b></p>
 <div id="levelSel"></div></div>
 <div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!</div>
@@ -167,7 +168,12 @@ function addHitStop(t){hitStop=Math.max(hitStop,t);}
 /* ---------------- Game state ---------------- */
 const G={state:'title',level:1,score:0,shots:0,shotsUsed:0,combo:0,comboT:0,best:0,time:0,
   blocks:[],pig:null,sling:null,dragging:false,projectiles:[],stars:0,hero:'blaze',
-  skels:[],skelsSmashed:0,skelBonusPaid:false};
+  skels:[],skelsSmashed:0,skelBonusPaid:false,
+  /* [slimer 2026-10-18] Jeff: oil-based villain. New enemy type, not a reskin.
+     WATER IS THE TRAP: Aqua splash/direct water contact makes him GROW (x1.15/hit, cap 1.6).
+     Blaze/Sparky/Ruko only wobble him. SMOTHER = structure debris falling onto him:
+     2 solid cover hits, or 1 cover hit + ~1s pinned, defeats him (score = a skeleton). */
+  slimers:[]};
 
 /* ---------------- Heroes & specials (Jeff's spec) ---------------- */
 const HEROES={
@@ -287,7 +293,16 @@ function buildLevel(n){
   }else{ // level 5 fortress
     SK(W*0.62,gy-147);SK(W*0.78,gy-147);SK(W*0.70,gy-226);SK(W*0.70,gy-285);
   }
-  document.getElementById('skels').textContent='💀 Skeletons: '+G.skels.length+' left';
+  /* [slimer 2026-10-18] One Slimer beside the tower on the ground in levels 1-4
+     (level 1 = gentle practice). x spots sit clear of the tower footprint, the
+     ground skeletons and the centered hero-card bar (ground reserve via groundY()). */
+  G.slimers=[];
+  const SL=(x)=>G.slimers.push({x:x,gy:gy,scale:1,wobbleT:0,panicT:0,coverHits:0,coverNow:[],coverCounted:[],pinnedT:0,dead:false,gone:false,defeatT:0,hitCd:0,ph:Math.random()*6,slideDir:1});
+  if(n===1)SL(W*0.80);
+  else if(n===2)SL(W*0.50);
+  else if(n===3)SL(W*0.78);
+  else if(n===4)SL(W*0.92);
+  updateEnemyHUD();
   G.sling={x:Math.max(90,W*0.14),y:gy-110};
   G.shotsUsed=0;G.combo=0;
   document.getElementById('level').textContent='LEVEL '+n+'/10';
@@ -328,6 +343,7 @@ function executeSpecial(pr){
       }
     }
     for(const s of G.skels){if(!s.dead&&Math.hypot(s.x-pr.x,s.y-pr.y)<=130)skelDie(s,'boom');}
+    for(const sl of (G.slimers||[])){if(!sl.dead&&Math.hypot(sl.x-pr.x,slimerCY(sl)-pr.y)<=130)slimerWobble(sl,'blaze');} // [slimer] fire feeds oil — no damage
     pr.live=false;
   }else if(hero==='aqua'){
     // SPLASH DAMAGE: burst, 1 damage + small knockback; hero KEEPS flying
@@ -346,11 +362,13 @@ function executeSpecial(pr){
       }
     }
     for(const s of G.skels){if(!s.dead&&Math.hypot(s.x-pr.x,s.y-pr.y)<=100)skelDie(s,'splash');}
+    for(const sl of (G.slimers||[])){if(!sl.dead&&sl.hitCd<=0&&Math.hypot(sl.x-pr.x,slimerCY(sl)-pr.y)<=100)slimerGrow(sl);} // [slimer] WATER IS THE TRAP — splash makes him GROW, never damages
   }else if(hero==='sparky'){
     // MAGNETIC: 0.45s pull toward the hero (applied per-frame in applyMagnet)
     pr.magnetT=0.45;addTrauma(0.2);sfx.stretch();
     heroFx(pr,14,'#ffd23f');
     spawnText(pr.x,pr.y-44,'🧲 MAGNET!','#ffd23f',24);
+    for(const sl of (G.slimers||[])){if(!sl.dead&&Math.hypot(sl.x-pr.x,slimerCY(sl)-pr.y)<=170)slimerWobble(sl,'sparky');} // [slimer] wobble only — magnet can't hurt oil
   }else if(hero==='ruko'){
     // TORNADO: instant whirlwind, upward + sideways scatter with spin; hero KEEPS flying
     addTrauma(0.5);addHitStop(0.03);sfx.launch();
@@ -371,6 +389,7 @@ function executeSpecial(pr){
       if(s.dead)continue;
       if(Math.hypot(s.x-pr.x,s.y-pr.y)<=140){s.falling=true;s.vy=-520-Math.random()*220;s.vx=(Math.random()-0.5)*320;}
     }
+    for(const sl of (G.slimers||[])){if(!sl.dead&&Math.hypot(sl.x-pr.x,slimerCY(sl)-pr.y)<=140)slimerWobble(sl,'ruko');} // [slimer] tornado wobbles him only — he is NOT thrown, NOT damaged
   }
 }
 function applyMagnet(pr,dt){
@@ -390,6 +409,7 @@ function skelDie(s,cause){
   if(s.dead)return;s.dead=true;G.skelsSmashed++;
   G.score+=500;updateScoreUI();
   document.getElementById('skels').textContent='💀 Skeletons: '+(G.skels.length-G.skelsSmashed)+' left';
+  updateEnemyHUD();
   sfx.shatter();addTrauma(0.25);
   spawnText(s.x,s.y-34,'💀 SKELETON SMASHED +500','#e8e8f0',20);
   for(let i=0;i<10;i++)spawnP(s.x,s.y,(Math.random()-0.5)*360,(Math.random()-0.5)*360,0.6,'#e8e8f0',4);
@@ -397,6 +417,82 @@ function skelDie(s,cause){
   if(!G.skelBonusPaid&&G.skels.length>0&&G.skelsSmashed>=G.skels.length){
     G.skelBonusPaid=true;G.score+=500;updateScoreUI();
     spawnText(W/2,H*0.35,'💀 ALL SKELETONS SMASHED! +500','#ffd23f',26);
+  }
+}
+/* ---------------- Slimer (oil villain, 2026-10-18) ----------------
+   Brand law: a Slimer NEVER harms a Fire Baby; his defeats are slapstick —
+   covered, shrunk, then he slides away on his own slick, giggling muffled. */
+function updateEnemyHUD(){
+  const el=document.getElementById('skels');if(!el)return;
+  const sk=G.skels.length-G.skelsSmashed;
+  let t='💀 Skeletons: '+sk+' left';
+  const alive=(G.slimers||[]).filter(s=>!s.dead).length;
+  if((G.slimers||[]).length)t+=' • 🫧 Slimer: '+(alive?alive+' loose':'smothered!');
+  el.textContent=t;
+}
+function slimerR(sl){return 24*sl.scale;}
+function slimerCY(sl){return sl.gy-slimerR(sl)*0.92;} // centre y; puddle sits on sl.gy (ground)
+function slimerSplashFx(sl,n){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=60+Math.random()*260;
+    spawnP(sl.x,slimerCY(sl),Math.cos(a)*sp,Math.sin(a)*sp-60,0.55,'hsl('+((G.time*60+i*36)%360)+',90%,62%)',5);}
+}
+function slimerGrow(sl){
+  if(sl.dead)return;
+  sl.scale=Math.min(1.6,sl.scale*1.15); // spec: ~15% per water hit, cap ~1.6x
+  sl.wobbleT=0.9;sl.hitCd=0.6;
+  slimerSplashFx(sl,16);
+  spawnText(sl.x,slimerCY(sl)-slimerR(sl)-18,'💦 HE GROWS!','#aee8ff',22);
+  try{tone(280,720,0.18,'sine',0.12);tone(420,900,0.16,'sine',0.08,0.07);}catch(e){}
+}
+function slimerWobble(sl,kind){
+  if(sl.dead)return;
+  sl.wobbleT=Math.max(sl.wobbleT,0.7);sl.hitCd=Math.max(sl.hitCd,0.35);
+  if(kind==='blaze'){ // fire feeds oil: smug flare, NO damage
+    for(let i=0;i<10;i++)spawnP(sl.x,slimerCY(sl),(Math.random()-0.5)*220,-Math.random()*220,0.4,'#ff8a2a',4);
+    spawnText(sl.x,slimerCY(sl)-slimerR(sl)-18,'🔥 FEEDS HIM!','#ffb347',20);
+    try{tone(180,420,0.15,'sawtooth',0.08);}catch(e){}
+  }
+}
+function slimerDefeat(sl){
+  if(sl.dead)return;sl.dead=true;sl.defeatT=0;sl.slideDir=sl.x<W*0.3?-1:1;
+  G.score+=500;updateScoreUI();updateEnemyHUD(); // same score as a skeleton
+  sfx.shatter();addTrauma(0.3);
+  spawnText(sl.x,slimerCY(sl)-30,'🫧 SMOTHERED! +500','#c9a7ff',22);
+  slimerSplashFx(sl,14);
+  try{tone(700,140,0.35,'sine',0.14);noise(0.25,0.15,0,700);}catch(e){} // muffled giggle-slide
+}
+function updateSlimers(dt){
+  for(const sl of (G.slimers||[])){
+    sl.wobbleT=Math.max(0,sl.wobbleT-dt);sl.panicT=Math.max(0,sl.panicT-dt);sl.hitCd=Math.max(0,sl.hitCd-dt);
+    if(sl.dead){ // slapstick defeat: flatten under debris, then slide off on his slick and despawn
+      sl.defeatT+=dt;
+      if(sl.defeatT>0.9&&!sl.gone)sl.x+=sl.slideDir*150*dt;
+      if(sl.defeatT>2.0)sl.gone=true;
+      continue;
+    }
+    /* SMOTHER: a solid block whose bottom edge rests/lands ON TOP of him
+       (bottom above his centre, clear horizontal overlap). A block merely
+       standing on the ground beside him never counts (its bottom = ground). */
+    const r=slimerR(sl),cy=slimerCY(sl),top=cy-r;
+    const now=[];
+    for(const b of G.blocks){
+      if(b.dead)continue;
+      const bb=b.y+b.h/2;
+      if(Math.abs(b.x-sl.x)<b.w/2+r*0.7&&bb>top-16&&bb<cy+8&&b.y<cy)now.push(b);
+    }
+    for(const b of now){
+      if(!sl.coverCounted.includes(b)){ // each DISTINCT solid piece counts once, even if it bounces
+        sl.coverCounted.push(b);
+        sl.coverHits++;sl.panicT=1.0;sl.wobbleT=0.4;
+        sl.scale=Math.max(0.55,sl.scale-0.25); // covered -> he shrinks
+        slimerSplashFx(sl,8);
+        spawnText(sl.x,top-16,'COVERED!','#e8d8ff',18);
+        try{sfx.hit();}catch(e){}
+      }
+    }
+    sl.coverNow=now;
+    if(now.length) { sl.pinnedT+=dt; sl.panicT=Math.max(sl.panicT,0.25); } else sl.pinnedT=0;
+    if(sl.coverHits>=2||(sl.coverHits>=1&&sl.pinnedT>=1.0))slimerDefeat(sl);
   }
 }
 function updateSkels(dt){
@@ -506,16 +602,29 @@ function updatePhysics(dt){
       }
     }
   }
+  // [slimer 2026-10-18] hero projectile DIRECT contact: Aqua (water) makes him GROW;
+  // Blaze flares him smugly; Sparky/Ruko just wobble him. None of them damage him.
+  for(const sl of (G.slimers||[])){
+    if(sl.dead)continue;
+    for(const pr of G.projectiles){
+      if(!pr.live)continue;
+      if(Math.hypot(pr.x-sl.x,pr.y-slimerCY(sl))<19+slimerR(sl)*0.85&&Math.hypot(pr.vx,pr.vy)>80){
+        if(sl.hitCd<=0){ if((pr.hero||'blaze')==='aqua')slimerGrow(sl); else slimerWobble(sl,pr.hero||'blaze'); }
+        pr.vx*=0.55;pr.vy*=0.55;break;
+      }
+    }
+  }
   updateSkels(dt);
+  updateSlimers(dt);
   // check win — Jeff 2026-10-15: the MISSION is the skeletons, not the bricks.
   // Bricks are only what the skeletons stand on: the level is won the moment the
   // LAST skeleton is smashed, even with towers still standing.
-  if(G.state==='play'&&G.skels.length>0&&G.skels.every(s=>s.dead))levelComplete();
+  if(G.state==='play'&&G.skels.length>0&&G.skels.every(s=>s.dead)&&(G.slimers||[]).every(s=>s.dead))levelComplete();
   // check out of shots
   if(G.state==='play'&&G.projectiles.length===0&&!G.dragging&&G.shots-G.shotsUsed<=0&&G.pig===null){
     // small delay before fail
     G.failT=(G.failT||0)+dt;
-    if(G.failT>1.5&&!G.skels.every(s=>s.dead))levelFailed();
+    if(G.failT>1.5&&!(G.skels.every(s=>s.dead)&&(G.slimers||[]).every(s=>s.dead)))levelFailed();
   }else G.failT=0;
 }
 function destroyBlock(b,by){
@@ -582,7 +691,7 @@ function levelComplete(){
   setTimeout(()=>{
     if(G.level>=10){gameComplete();}
     else showOverlay('⭐ LEVEL '+G.level+' CLEAR!',
-      `<div class="stars">${'★'.repeat(G.stars)}${'☆'.repeat(3-G.stars)}</div><p>Score: ${G.score}</p><p>Bonus: +${bonus}</p><p>💀 Skeletons smashed: ${G.skelsSmashed}/${G.skels.length}</p>`,
+      `<div class="stars">${'★'.repeat(G.stars)}${'☆'.repeat(3-G.stars)}</div><p>Score: ${G.score}</p><p>Bonus: +${bonus}</p><p>💀 Skeletons smashed: ${G.skelsSmashed}/${G.skels.length}</p>`+((G.slimers&&G.slimers.length)?'<p>🫧 Slimer smothered!</p>':''),
       '🔥 Fire Safety: Know two ways out of every room in case of fire!',
       '▶ NEXT LEVEL',()=>{G.level++;buildLevel(G.level);G.state='play';});
   },1200);
@@ -627,7 +736,7 @@ function showTitle(){
   // level select (all unlocked for kids)
   let h='';
   for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
-  obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Your mission: smash EVERY <b>💀 skeleton</b> (+500 each) to win the level! The towers are just what they stand on — knock bricks down to drop, crush and topple them. Fewer shots = more stars!</p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
+  obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Your mission: smash EVERY <b>💀 skeleton</b> (+500 each) to win the level! The towers are just what they stand on — knock bricks down to drop, crush and topple them. Fewer shots = more stars!</p><p>🫧 <b>New villain: the Slimer!</b> He is made of oil — <b>water makes him GROW</b>, so do not splash him! Drop the tower on him and <b>bury him to smother him</b>. <b>Oil fire? Never spray it — smother it, and get a grown-up.</b></p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
   refreshHeroChips();
   obtn.textContent='▶ PLAY';
   obtn.onclick=()=>{showMathGate();};
@@ -718,6 +827,89 @@ function drawBlock(b){
     // cracks by damage
     if(b.hp<b.maxHp){ctx.strokeStyle='#2a1a0a';ctx.lineWidth=1.5;
       ctx.beginPath();ctx.moveTo(-hw*0.5,-hh);ctx.lineTo(0,0);ctx.lineTo(hw*0.3,hh);ctx.stroke();}
+  }
+  ctx.restore();
+}
+/* [slimer 2026-10-18] Canvas-drawn in the game's art idiom: glossy black-purple
+   blob, rotating rainbow oil swirls, drippy stub arms, smug grin; panic face while
+   covered; dizzy spirals + flattened puddle when smothered. NO text on the character. */
+function drawSlimer(sl){
+  if(sl.gone)return;
+  const r=slimerR(sl),cy=slimerCY(sl);
+  const t=G.time;
+  const wob=sl.wobbleT>0?Math.sin(t*30)*0.10*Math.min(1,sl.wobbleT):0;
+  let sx=sl.scale,sy=sl.scale;
+  if(sl.dead){const k=Math.min(1,sl.defeatT*3);sy=sl.scale*(1-0.78*k);sx=sl.scale*(1+0.55*k);}
+  ctx.save();ctx.translate(sl.x,cy+Math.sin(t*3+sl.ph)*1.5);
+  // rainbow slick puddle beneath him (widens as he grows)
+  const pw=r*2.7*(sl.dead?1.35:1),ph2=Math.max(6,r*0.34);
+  const pg=ctx.createLinearGradient(-pw/2,0,pw/2,0);
+  for(let i=0;i<=4;i++)pg.addColorStop(i/4,'hsla('+((t*40+i*72)%360)+',85%,55%,0.75)');
+  ctx.fillStyle=pg;
+  ctx.beginPath();ctx.ellipse(0,r*0.95,pw/2,ph2,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath();ctx.ellipse(-pw*0.18,r*0.88,pw*0.10,ph2*0.35,-0.3,0,Math.PI*2);ctx.fill();
+  ctx.scale((sx/sl.scale)*(1+wob),(sy/sl.scale)*(1-wob)); // squash & stretch (geometry below uses r, which already includes sl.scale)
+  if(sl.dead)ctx.translate(0,r*(1-(sy/sl.scale))*0.9); // flattened puddle sinks onto his slick, doesn't float
+  // drippy stub arms
+  ctx.fillStyle='#1c0b2e';
+  for(const sgn of [-1,1]){
+    ctx.beginPath();ctx.ellipse(sgn*r*1.02,r*0.18,r*0.34,r*0.52,sgn*0.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(sgn*r*1.12,r*0.66,r*0.13,0,Math.PI*2);ctx.fill();
+    const dl=r*0.10*(0.7+0.3*Math.sin(t*4+sgn));
+    ctx.beginPath();ctx.ellipse(sgn*r*1.16,r*0.78+dl,r*0.06,r*0.14+dl*0.4,0,0,Math.PI*2);ctx.fill();
+  }
+  // glossy black-purple blob body
+  const bg=ctx.createRadialGradient(-r*0.3,-r*0.4,r*0.2,0,0,r*1.15);
+  bg.addColorStop(0,'#4b2566');bg.addColorStop(0.55,'#22103a');bg.addColorStop(1,'#0a0514');
+  ctx.fillStyle=bg;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();
+  // rotating rainbow oil swirls, clipped inside the blob
+  ctx.save();ctx.beginPath();ctx.arc(0,0,r-1.5,0,Math.PI*2);ctx.clip();
+  ctx.lineWidth=r*0.20;ctx.lineCap='round';
+  for(let i=0;i<3;i++){
+    ctx.strokeStyle='hsla('+((t*45+i*120)%360)+',90%,60%,0.5)';
+    ctx.beginPath();ctx.arc(Math.sin(t*0.6+i*2.1)*r*0.2,Math.cos(t*0.5+i*1.7)*r*0.18,r*(0.42+i*0.20),t*0.7+i*2.1,t*0.7+i*2.1+2.2);ctx.stroke();
+  }
+  ctx.restore();
+  ctx.strokeStyle='#06030c';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke();
+  // gloss highlight
+  ctx.fillStyle='rgba(255,255,255,0.4)';
+  ctx.beginPath();ctx.ellipse(-r*0.36,-r*0.52,r*0.20,r*0.11,-0.6,0,Math.PI*2);ctx.fill();
+  // face
+  const panic=!sl.dead&&(sl.panicT>0||sl.coverNow.length>0);
+  if(sl.dead){
+    // dizzy spiral eyes
+    ctx.strokeStyle='#efe6ff';ctx.lineWidth=2.2;
+    for(const sgn of [-1,1]){
+      ctx.beginPath();
+      for(let a=0;a<Math.PI*5;a+=0.35){const rr=a*1.15,px=sgn*r*0.34+Math.cos(a+t*2)*rr,py=-r*0.18+Math.sin(a+t*2)*rr;a===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+      ctx.stroke();
+    }
+    // wavy flattened mouth
+    ctx.strokeStyle='#efe6ff';ctx.lineWidth=2.4;ctx.beginPath();
+    for(let i=0;i<=8;i++){const px=-r*0.26+i*r*0.065,py=r*0.30+Math.sin(i*1.6)*r*0.05;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.stroke();
+  }else if(panic){
+    // wide round eyes + small "o" mouth
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(-r*0.34,-r*0.16,r*0.21,0,Math.PI*2);ctx.arc(r*0.34,-r*0.16,r*0.21,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#12081f';
+    ctx.beginPath();ctx.arc(-r*0.34,-r*0.14,r*0.09,0,Math.PI*2);ctx.arc(r*0.34,-r*0.14,r*0.09,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#efe6ff';ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.arc(0,r*0.34,r*0.13,0,Math.PI*2);ctx.stroke();
+  }else{
+    // sly half-lidded gloat + wide smug grin
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.ellipse(-r*0.34,-r*0.14,r*0.20,r*0.16,0,0,Math.PI*2);ctx.ellipse(r*0.34,-r*0.14,r*0.20,r*0.16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#12081f';
+    ctx.beginPath();ctx.arc(-r*0.26,-r*0.10,r*0.085,0,Math.PI*2);ctx.arc(r*0.42,-r*0.10,r*0.085,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#22103a'; // heavy lids
+    ctx.beginPath();ctx.ellipse(-r*0.34,-r*0.26,r*0.21,r*0.10,0,0,Math.PI);ctx.ellipse(r*0.34,-r*0.26,r*0.21,r*0.10,0,0,Math.PI);ctx.fill();
+    ctx.strokeStyle='#efe6ff';ctx.lineWidth=2.6;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(0,r*0.10,r*0.52,0.35,Math.PI-0.35);ctx.stroke();
+    ctx.fillStyle='hsla('+((t*45+60)%360)+',90%,65%,0.9)'; // grin drip
+    ctx.beginPath();ctx.ellipse(r*0.18,r*0.52,r*0.06,r*0.13,0,0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
 }
@@ -818,6 +1010,8 @@ function render(){
     ctx.beginPath();ctx.moveTo(-2,-4);ctx.lineTo(-2,0);ctx.moveTo(2,-4);ctx.lineTo(2,0);ctx.stroke();
     ctx.restore();
   }
+  // slimers (oil villains standing on their rainbow slicks)
+  for(const sl of (G.slimers||[]))drawSlimer(sl);
   // shards
   for(const sh of shards){
     if(!sh.a)continue;
