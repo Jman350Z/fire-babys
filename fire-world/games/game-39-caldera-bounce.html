@@ -122,9 +122,22 @@ for(let i=0;i<24;i++)EMBERS.push({x:Math.random(),o:Math.random()*1200,s:24+Math
 const PW=110,PH=16,BR=10;
 function buildLevel(n){
   G.bricks=[];
-  const cols=7,rows=4+n;
+  const cols=7,fullRows=4+n;
   const bw=(W*0.9)/cols,bh=26;
-  const ox=W*0.05,oy=H<500?112:H*0.12;
+  const ox=W*0.05;
+  let oy=H<500?112:H*0.12;
+  // [audit-fix 2026-10-18] short screens (H<500): cap the wall at 9 rows —
+  // uncapped rows (4+n) reach 14 at L10, putting the wall bottom at 554px
+  // on a 390px screen (42 of 95 bricks off-screen). The removed rows are
+  // converted into +1 HP on the remaining top rows below, so total brick
+  // HP per level is preserved exactly. Tall screens are untouched.
+  const shortScr=H<500;
+  const rows=shortScr?Math.min(fullRows,9):fullRows;
+  // [audit-fix 2026-10-18] a 9-row wall from oy=112 still bottoms at 394px —
+  // 4px past a 390px screen — so on short screens clamp oy up just enough
+  // to fit the capped wall on-screen (max shift 4px, only when H<394;
+  // brick height/pitch themselves unchanged).
+  if(shortScr)oy=Math.min(oy,H-(rows*(bh+6)-6));
   const hues=[0,25,45,200,280];
   for(let r=0;r<rows;r++){
     for(let c=0;c<cols;c++){
@@ -138,6 +151,20 @@ function buildLevel(n){
         hue:hues[(r+c)%hues.length],hit:0
       });
     }
+  }
+  // [audit-fix 2026-10-18] HP compensation: pool = HP the removed rows
+  // would have carried (same pattern skips applied), handed back +1 at a
+  // time starting from the top rows, so ΣHP matches the uncapped wall.
+  if(shortScr&&fullRows>rows){
+    let pool=0;
+    for(let r=rows;r<fullRows;r++)for(let c=0;c<cols;c++){
+      if(n>=3&&r===2&&c>=2&&c<=4)continue;
+      if(n===7&&r===6&&c>=2&&c<=4)continue;
+      if(n===9&&r===8&&c>=2&&c<=4)continue;
+      pool+=(r%3===0?2:1);
+    }
+    let i=0;
+    while(pool>0&&G.bricks.length){const b=G.bricks[i%G.bricks.length];b.hp++;b.maxHp++;pool--;i++;}
   }
   document.getElementById('level').textContent=`LV ${n}/10`;
 }
