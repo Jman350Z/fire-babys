@@ -357,12 +357,149 @@
     wrap.appendChild(btn);
     wrap.appendChild(pick);
     document.body.appendChild(wrap);
-    ui = { btn: btn, pick: pick, list: pick.querySelector("#fb-lang-list"),
+    ui = { btn: btn, pick: pick, wrap: wrap, list: pick.querySelector("#fb-lang-list"),
            search: pick.querySelector("#fb-lang-search"), title: pick.querySelector("#fb-lang-head .t") };
 
     btn.addEventListener("click", openPicker);
     pick.querySelector("#fb-lang-close").addEventListener("click", closePicker);
     ui.search.addEventListener("input", function () { renderList(ui.search.value); });
+    armBtnPlacement();
+  }
+
+  /* ------------- 🌐 button placement: game-page overlap avoidance -------------
+   * Audit 2026-10-18 §2.1: at top:10px the button covered the right-aligned
+   * HUD pill value on most game pages. On game pages (same path test as
+   * landscape.js) the button takes the first FREE slot from top 10/58/106/154
+   * (right stays 10px). "Free" = the padded 40x40 rect intersects no visible
+   * PAINTED element in a fixed/absolute subtree (pills are static children
+   * of a fixed #hud and often pointer-events:none — both are still counted;
+   * transparent containers and full-screen wrappers are not), and no canvas
+   * region with drawn content (sharp-edge pixel test — catches canvas HUD
+   * text like Trinity's SCORE, which has no DOM node). Own UI, #fb-rotate
+   * and seasonal decor are ignored. If every slot is blocked, the slot with
+   * the fewest blockers wins (ties: 58, 106, 154, 10).
+   * Non-game pages keep the stylesheet's top:10px untouched. */
+  var IS_GAME_PAGE = (function () {
+    var p = location.pathname || "";
+    if (/\/fire-world\/games\//.test(p)) return true;
+    if (/\/fire-world\/game-02-blaze-runner\.html$/.test(p)) return true;
+    if (/\/fire-world\/(slingshot-cascade|rukos-panic-dash|trinitys-holy-lightning-rescue|tristans-dark-knight-rescue)\//.test(p)) return true;
+    if (/\/(play|play-all)\.html$/.test(p)) return true;
+    if (/\/3d\.html$/.test(p)) return true;
+    return false;
+  })();
+  var BTN_SLOTS = [10, 58, 106, 154];
+  var btnPlaceArmed = false;
+
+  function elPaints(el, cs) {
+    var tag = el.tagName;
+    if (tag === "IMG" || tag === "VIDEO" || tag === "BUTTON" || tag === "INPUT" ||
+        tag === "SELECT" || tag === "TEXTAREA" || tag === "SVG") return true;
+    var bg = cs.backgroundColor;
+    if (bg && bg !== "transparent") {
+      var m = bg.match(/rgba\(([^)]*)\)/);
+      if (!m || parseFloat(m[1].split(",")[3]) > 0) return true;
+    }
+    if (cs.backgroundImage && cs.backgroundImage !== "none") return true;
+    if (cs.boxShadow && cs.boxShadow !== "none") return true;
+    var ch = el.childNodes;
+    for (var i = 0; i < ch.length; i++)
+      if (ch[i].nodeType === 3 && /\S/.test(ch[i].nodeValue || "")) return true;
+    return false;
+  }
+
+  function slotBlockers(top) {
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var R = { l: vw - 53, t: top - 3, r: vw - 7, b: top + 43 }; /* btn x: vw-50..vw-10, ±3px pad */
+    var blockedBy = 0, canvasHit = false;
+    var els = document.body ? document.body.querySelectorAll("*") : [];
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el === ui.btn || (ui.wrap && ui.wrap.contains(el))) continue;
+      if (el.closest && el.closest("#fb-rotate, #fb-seasonal-wall, #fb-seasonal-decor, #fb-seasonal-ambience, #fb-seasonal-banner")) continue;
+      var r = el.getBoundingClientRect();
+      if (!r.width || !r.height) continue;
+      if (r.right <= R.l || r.left >= R.r || r.bottom <= R.t || r.top >= R.b) continue;
+      var cs;
+      try { cs = window.getComputedStyle(el); } catch (e) { continue; }
+      if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") continue;
+      if (el.tagName === "CANVAS") { if (canvasBlocks(el, R, r)) canvasHit = true; continue; }
+      if (r.width >= vw * 0.98 && r.height >= vh * 0.98) continue; /* full-screen wrapper, not a HUD item */
+      var anchored = false, a = el;
+      while (a && a !== document.body) {
+        var ap;
+        try { ap = window.getComputedStyle(a).position; } catch (e) { break; }
+        if (ap === "fixed" || ap === "absolute") { anchored = true; break; }
+        a = a.parentElement;
+      }
+      if (!anchored) continue;
+      if (elPaints(el, cs)) blockedBy++;
+    }
+    return blockedBy + (canvasHit ? 1 : 0);
+  }
+
+  var _offCv = null;
+  function canvasBlocks(cv, R, r) {
+    try {
+      var x = Math.max(R.l, r.left), y = Math.max(R.t, r.top);
+      var x2 = Math.min(R.r, r.right), y2 = Math.min(R.b, r.bottom);
+      if (x2 <= x || y2 <= y || !r.width || !r.height || !cv.width || !cv.height) return false;
+      var w = 46, h = 46;
+      if (!_offCv) _offCv = document.createElement("canvas");
+      _offCv.width = w; _offCv.height = h;
+      var ctx = _offCv.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return true;
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(cv,
+        (x - r.left) / r.width * cv.width, (y - r.top) / r.height * cv.height,
+        (x2 - x) / r.width * cv.width, (y2 - y) / r.height * cv.height,
+        0, 0, w, h);
+      var d = ctx.getImageData(0, 0, w, h).data;
+      var edges = 0, opaque = 0;
+      for (var py = 0; py < h; py++) {
+        for (var px = 0; px < w; px++) {
+          var idx = (py * w + px) * 4;
+          if (d[idx + 3] > 12) opaque++;
+          if (px + 1 < w) {
+            var j = idx + 4;
+            var diff = Math.abs(d[idx] - d[j]) + Math.abs(d[idx + 1] - d[j + 1]) + Math.abs(d[idx + 2] - d[j + 2]);
+            if (diff > 110) edges++;
+          }
+        }
+      }
+      if (!opaque) return false;                 /* nothing drawn there */
+      return edges >= 4;                          /* text/art edges = content */
+    } catch (e) { return true; }                  /* tainted canvas: play safe */
+  }
+
+  function placeBtn() {
+    try {
+      if (!IS_GAME_PAGE || !ui || !ui.btn) return;
+      var scores = [], i, n;
+      for (i = 0; i < BTN_SLOTS.length; i++) {
+        n = slotBlockers(BTN_SLOTS[i]);
+        scores.push(n);
+        if (n === 0) { ui.btn.style.top = BTN_SLOTS[i] + "px"; return; }
+      }
+      /* No free slot: fewest blockers wins; ties prefer 58, then 106, then
+       * 154, then 10 (the pill row lives at 10 — it is the last resort). */
+      var pref = [58, 106, 154, 10], best = 58, bestScore = Infinity;
+      for (i = 0; i < pref.length; i++) {
+        n = scores[BTN_SLOTS.indexOf(pref[i])];
+        if (n < bestScore) { best = pref[i]; bestScore = n; }
+      }
+      ui.btn.style.top = best + "px";
+    } catch (e) {}
+  }
+
+  function armBtnPlacement() {
+    if (!IS_GAME_PAGE || btnPlaceArmed) return;
+    btnPlaceArmed = true;
+    placeBtn();
+    setTimeout(placeBtn, 1500);                  /* late-loading HUDs */
+    window.addEventListener("resize", placeBtn);
+    window.addEventListener("orientationchange", function () { setTimeout(placeBtn, 80); });
   }
 
   function renderList(filter) {
