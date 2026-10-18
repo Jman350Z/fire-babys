@@ -122,9 +122,10 @@ function buildLevel(n){
   G.pw=110;G.stickyT=0;G.slowT=0;G.laserT=0;
   G.px=W/2;
   const cols=Math.max(6,Math.min(12,Math.floor(W/70)));
-  const bw=(W*0.92)/cols,bh=28,gap=4;
-  const ox=(W-bw*cols)/2,oy=H<500?112:H*0.12;
+  const bw=(W*0.92)/cols,gap=4;let bh=28;
+  const ox=(W-(bw*cols+gap*(cols-1)))/2,oy=H<500?112:H*0.12; // [audit 2026-10-18] ox now accounts for the inter-brick gaps (was: wall ran 10px off the right edge at 844px wide)
   const rows=Math.min(12,4+n); // [levels+] rows capped at 12 so the wall never crowds the paddle
+  if(H<500)bh=Math.max(12,Math.min(28,Math.floor((H*0.78-oy)/rows)-gap)); // [audit 2026-10-18] short screens (landscape phones): shrink brick height so deep-level walls end above the ball/paddle line (was: wall bottom 492px on a 390px screen at L10, 48 bricks off-screen)
   const patterns=[
     (r,c)=>1, // solid
     (r,c)=>(r+c)%2?1:2, // checker
