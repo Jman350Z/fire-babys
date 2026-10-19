@@ -221,7 +221,7 @@
       '<div id="fbgate-google-wrap" style="display:none;">' +
       '<div class="fbgate-div">OR</div>' +
       '<div id="fbgate-google-btn" style="display:flex;justify-content:center;margin-top:12px;min-height:44px;"></div></div>' +
-      '<p class="fbgate-fine">We use your email to keep your account safe.<br>No spam, ever. Kids: ask a grown-up first.</p>' +
+      '<p class="fbgate-fine">We use your email to keep your account safe.<br>No spam, ever.</p>' +
       "</div>";
 
     // Show the 6-digit code entry step (email verification / account recovery).
