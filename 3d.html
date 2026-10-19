@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-/rxv21YhHiI4PvbL0VLOc2+sXY8hRZUqeyaxaV3Xe38=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
 <title>Fire Babys 3D — Open World</title>
@@ -235,7 +235,7 @@
     <h1 class="logo">FIRE<br>BABYS</h1>
     <div class="sub">3 D &nbsp;O P E N &nbsp;W O R L D</div>
     <div class="tag">One connected world &middot; six towns &middot; West Ember High crew<br>
-    Kid-safe &middot; online multiplayer &middot; data details on the Parents page</div>
+    Safe for everyone &middot; online multiplayer &middot; data details on the Parents page</div>
     <div id="clskey">
       <span>🟧 A trash</span><span>🟨 B grease</span><span>🟦 C electrical</span><span>⬜ D metal</span>
     </div>
@@ -3345,7 +3345,9 @@ function lbPost(type, score){
   if(!LEADERBOARD_API_URL || !navigator.onLine) return;
   try{
     var ts=Date.now(), title=playerTitle();
-    var body={title:title, score:score, type:type, ts:ts,
+    var tok=''; try{ if(window.FireBabysAuth && window.FireBabysAuth.getToken) tok=window.FireBabysAuth.getToken(); }catch(e){}
+    if(!tok) return; // worldwide board is for signed-in players (server enforces)
+    var body={title:title, score:score, type:type, ts:ts, token:tok,
       hash:lbHash(score+'|'+title+'|'+type+'|'+ts+'|'+LB_SALT)};
     fetch(LEADERBOARD_API_URL+'/score', {method:'POST',
       headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})
