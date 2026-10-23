@@ -160,6 +160,22 @@ nav.top .wrap{padding-top:8px;padding-bottom:8px}
 @media(max-width:760px){.fb-featured{grid-template-columns:1fr}}
 @media(max-width:640px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.card .thumb{height:62px;font-size:29px}.card h3{font-size:14px}.card p.desc{font-size:12px}.card a.play{font-size:14px;padding:9px}.fb-tab{padding:8px 14px;font-size:14px}}
 </style>
+<style>
+/* HOTFIX 2026-10-23: tab-visibility + download-button repair (CSS only).
+   #shop and #locker are nested inside #panel-games in the markup; selecting
+   Shop/Chest removed .fb-on from the wrapper and its display:none hid the
+   selected panel. Keep the wrapper transparent and hide its games-only
+   children while a nested panel is active. The .dlbtn/.dlsub base rules in
+   the stylesheet above are dead (swallowed by a spliced .creator rule), so
+   both are defined here in full. */
+#panel-games.fb-panel{display:block}
+#panel-games:has(>#shop.fb-on)>*:not(#shop),
+#panel-games:has(>#locker.fb-on)>*:not(#locker){display:none}
+.dlbtn{display:inline-block;text-decoration:none;text-align:center;color:#2a1206;font-weight:900;background:linear-gradient(180deg,#ffd76a,#ff8c2e 55%,#ff3d00);border:3px solid #ffe9a8;border-radius:16px;font-size:clamp(17px,3.8vw,24px);letter-spacing:.6px;padding:15px 28px;box-shadow:0 8px 0 #7a2403,0 20px 40px rgba(0,0,0,.55),0 0 30px rgba(255,106,26,.35)}
+.dlbtn:hover{transform:translateY(-2px);text-decoration:none}
+.dlbtn:active{transform:translateY(5px);box-shadow:0 3px 0 #7a2403,0 10px 22px rgba(0,0,0,.5)}
+.dlsub{font-size:13px;line-height:1.55;max-width:680px;margin:0 auto 16px;word-break:break-all;color:#d8b89a}
+</style>
 </head>
 <body>
 <nav class="top"><div class="wrap">
