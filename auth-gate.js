@@ -20,6 +20,13 @@
  * (window.FB_AUTH_URL) or a data-auth-url attribute on the script tag.
  * URL query parameters can never change it, and there is no mock mode —
  * every sign-in goes through the real server.
+ *
+ * Bot check (2026-10-21): the register and email-code requests carry a
+ * Cloudflare Turnstile token (body field turnstileToken) when a site
+ * key is configured below. The server enforces it only when its
+ * TURNSTILE_SECRET is set, and if the Turnstile script fails to load,
+ * forms submit with no token and the server decides — sign-in can
+ * never be bricked by the bot check.
  */
 
 /* ---- Seasonal themes loader (added 2026-10-17) ----
@@ -82,8 +89,18 @@
   var USER_KEY = "fb_auth_user";
 
   // ---- config ----
-  var scripts = document.getElementsByTagName("script");
-  var thisScript = scripts[scripts.length - 1];
+  // Find OUR script element (the loaders above append more script
+  // elements to the head synchronously, so scripts[last] is no longer
+  // guaranteed to be auth-gate.js — match by filename).
+  var thisScript = null;
+  (function () {
+    var scripts = document.getElementsByTagName("script");
+    for (var i = scripts.length - 1; i >= 0; i--) {
+      var el = scripts[i];
+      if (el.src && /auth-gate\.js(\?.*)?$/.test(el.src)) { thisScript = el; break; }
+    }
+    if (!thisScript) thisScript = scripts[scripts.length - 1];
+  })();
   var qs = new URLSearchParams(window.location.search || "");
   var AUTH_URL =
     window.FB_AUTH_URL ||
@@ -107,6 +124,16 @@
     (thisScript && thisScript.getAttribute("data-badge") === "1") ||
     qs.get("badge") === "1";
 
+  // ---- Cloudflare Turnstile site key (PUBLIC — safe in client code) ----
+  // >>> DEPLOY: paste the site key of the "firebabys.io auth" Turnstile
+  // >>> widget here (see DEPLOY.md, "Turnstile" section). Until then it
+  // >>> stays empty: nothing loads, no token is sent, and the server
+  // >>> side is a no-op too unless TURNSTILE_SECRET is configured.
+  var TURNSTILE_SITE_KEY =
+    window.FB_TURNSTILE_SITE_KEY ||
+    (thisScript && thisScript.getAttribute("data-turnstile-site-key")) ||
+    ""; // <<< DEPLOY: widget site key goes here
+
   function post(path, body) {
     return fetch(AUTH_URL + path, {
       method: "POST",
@@ -119,10 +146,115 @@
     });
   }
 
+  // ---- Turnstile machinery ----
+  // The widget host lives in the gate card, OUTSIDE the form bodies
+  // that showCodeStep() rewrites, so it survives the code step. The
+  // widget runs in execute + interaction-only mode: invisible unless
+  // Cloudflare wants interaction. Tokens are single-use — tsGetToken()
+  // hands out the stored token (or waits for the in-flight challenge)
+  // and immediately arms a fresh one for the next submit.
+  var tsScriptLoaded = false;
+  var tsScriptFailed = false;
+  var tsWidgetId = null;
+  var tsTokenValue = "";
+  var tsWaiters = [];
+  function tsArm() {
+    if (tsWidgetId === null || typeof turnstile === "undefined") return;
+    try {
+      turnstile.execute(tsWidgetId);
+    } catch (e) {}
+  }
+  function tsOnToken(token) {
+    if (tsWaiters.length) {
+      var cb = tsWaiters.shift();
+      try {
+        cb(token);
+      } catch (e) {}
+      tsArm(); // line up the next token
+    } else {
+      tsTokenValue = token;
+    }
+  }
+  function tsRender() {
+    if (!TURNSTILE_SITE_KEY || !tsScriptLoaded || tsWidgetId !== null) return;
+    var host = gateEl && gateEl.querySelector("#fbgate-turnstile");
+    if (!host || typeof turnstile === "undefined") return;
+    try {
+      tsWidgetId = turnstile.render(host, {
+        sitekey: TURNSTILE_SITE_KEY,
+        execution: "execute",
+        appearance: "interaction-only",
+        callback: tsOnToken,
+        "error-callback": function () {
+          tsOnToken("");
+        },
+        "expired-callback": function () {
+          tsTokenValue = "";
+          tsArm();
+        },
+      });
+      tsArm();
+    } catch (e) {
+      tsScriptFailed = true;
+    }
+  }
+  function tsLoad() {
+    if (!TURNSTILE_SITE_KEY || tsScriptLoaded || tsScriptFailed) return;
+    if (document.querySelector("script[data-fb-turnstile]")) return;
+    var s = document.createElement("script");
+    s.setAttribute("data-fb-turnstile", "1");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    s.async = true;
+    s.defer = true;
+    s.onload = function () {
+      tsScriptLoaded = true;
+      tsRender();
+    };
+    s.onerror = function () {
+      tsScriptFailed = true;
+    };
+    document.head.appendChild(s);
+  }
+  // cb(token) — token is "" whenever Turnstile is unconfigured, failed
+  // to load, or too slow; the server then decides (its outage rule).
+  function tsGetToken(cb) {
+    if (!TURNSTILE_SITE_KEY || tsScriptFailed || tsWidgetId === null) {
+      cb("");
+      return;
+    }
+    if (tsTokenValue) {
+      var t = tsTokenValue;
+      tsTokenValue = "";
+      cb(t);
+      tsArm(); // pre-arm a fresh token for the next submit
+      return;
+    }
+    tsWaiters.push(cb);
+    tsArm();
+    // Never hang a sign-in on the bot check.
+    setTimeout(function () {
+      var i = tsWaiters.indexOf(cb);
+      if (i >= 0) {
+        tsWaiters.splice(i, 1);
+        try {
+          cb("");
+        } catch (e) {}
+      }
+    }, 12000);
+  }
+
   // ---- state ----
   var authedUser = null;
   var authedCbs = [];
   var gateEl = null;
+  // Jeff's landing law (2026-10-21, widened ~23:08): after ANY
+  // interactive sign-in (email code, legacy register, Google,
+  // password) the player lands on the Creator (3d.html) — the
+  // Creator profile is the signed-in HOME, onboarded or not; the
+  // tour cards resume on the hub for players still touring. Only
+  // fresh sign-ins set this flag; session restores route through
+  // routeRestoredHome() instead (see finishAuth).
+  var freshSignIn = false;
 
   function getToken() {
     try {
@@ -133,8 +265,16 @@
   }
   function setToken(t) {
     try {
-      if (t) localStorage.setItem(TOKEN_KEY, t);
-      else localStorage.removeItem(TOKEN_KEY);
+      if (t) {
+        localStorage.setItem(TOKEN_KEY, t);
+        // F1: remember when this token was stored — a token younger
+        // than 5 minutes gets a propagation grace in boot() before a
+        // 401 is believed (KV eventual consistency after sign-in).
+        localStorage.setItem("fb_auth_token_at", String(Date.now()));
+      } else {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem("fb_auth_token_at");
+      }
     } catch (e) {}
   }
   function setUser(u) {
@@ -217,7 +357,10 @@
       '<input id="fbgate-name" type="text" name="name" maxlength="40" placeholder="BlazeFan42" autocomplete="nickname" />' +
       '<button class="fbgate-btn" type="submit">SIGN IN</button>' +
       '<div class="fbgate-err" role="alert"></div>' +
+      '<p class="fbgate-fine" style="margin-top:14px">Have a password on your account?<br>' +
+      '<a href="#" id="fbgate-pw-open" style="color:#ffb066;font-weight:800">Sign in with a password</a></p>' +
       "</form>" +
+      '<div id="fbgate-turnstile" style="display:flex;justify-content:center;margin-top:14px;"></div>' +
       '<div id="fbgate-google-wrap" style="display:none;">' +
       '<div class="fbgate-div">OR</div>' +
       '<div id="fbgate-google-btn" style="display:flex;justify-content:center;margin-top:12px;min-height:44px;"></div></div>' +
@@ -245,20 +388,25 @@
         ev.preventDefault();
         verr.style.display = "none";
         vbtn.disabled = true; vbtn.textContent = "SENDING...";
-        post("/auth/code", { email: email, purpose: purpose }).then(function (r) {
-          vbtn.disabled = false; vbtn.textContent = "VERIFY";
-          if (!(r && r.ok)) {
-            verr.textContent = "Couldn't resend the code. Try again in a bit.";
-            verr.style.display = "block";
-          }
-        }, function () {
-          vbtn.disabled = false; vbtn.textContent = "VERIFY";
+        tsGetToken(function (tt) {
+          post("/auth/code", { email: email, purpose: purpose, turnstileToken: tt }).then(function (r) {
+            vbtn.disabled = false; vbtn.textContent = "VERIFY";
+            if (!(r && r.ok)) {
+              verr.textContent =
+                r && r.error === "bot_check_failed"
+                  ? "Quick bot check failed — tap Resend code to try again."
+                  : "Couldn't resend the code. Try again in a bit.";
+              verr.style.display = "block";
+            }
+          }, function () {
+            vbtn.disabled = false; vbtn.textContent = "VERIFY";
+          });
         });
       });
       form.addEventListener("submit", function (ev2) {
         ev2.preventDefault();
         var code = codeInput.value.trim();
-        if (!/^\\d{6}$/.test(code)) {
+        if (!/^\d{6}$/.test(code)) {
           verr.textContent = "Enter the 6-digit code from your email.";
           verr.style.display = "block";
           return;
@@ -268,7 +416,7 @@
         post("/auth/verify", { email: email, code: code, name: name }).then(function (res) {
           if (res && res.ok && res.token) {
             setToken(res.token);
-            finishAuth({ email: String(email).trim().toLowerCase(), name: String(name || "").trim() });
+            finishFreshAuth({ email: String(email).trim().toLowerCase(), name: String(name || "").trim() });
           } else {
             vbtn.disabled = false; vbtn.textContent = "VERIFY";
             verr.textContent =
@@ -290,12 +438,12 @@
     }
 
     // Legacy direct register (used only when the server has no email service).
-    function legacyRegister(email, name, btn, errBox) {
-      post("/auth/register", { email: email, name: name }).then(
+    function legacyRegister(email, name, btn, errBox, turnstileToken) {
+      post("/auth/register", { email: email, name: name, turnstileToken: turnstileToken || "" }).then(
         function (res) {
           if (res && res.ok && res.token) {
             setToken(res.token);
-            finishAuth({
+            finishFreshAuth({
               email: String(email).trim().toLowerCase(),
               name: String(name || "").trim(),
             });
@@ -306,25 +454,29 @@
               // Offer email-code recovery instead of a dead end.
               errBox.innerHTML = "This email already has a Fire Babys account.<br>" +
                 '<a href="#" id="fbgate-recover" style="color:#ffb066;font-weight:800">Email me a sign-in code</a>' +
-                " to play on this device, or sign in with Google.";
+                " to play on this device — or use Sign in with Google with the same email (that works right now).";
               errBox.style.display = "block";
               var rl = errBox.querySelector("#fbgate-recover");
               if (rl) rl.addEventListener("click", function (ev) {
                 ev.preventDefault();
                 errBox.style.display = "none";
                 btn.disabled = true; btn.textContent = "SENDING CODE...";
-                post("/auth/code", { email: email, purpose: "recover" }).then(function (r) {
-                  if (r && r.ok) {
-                    showCodeStep(email, name, "recover", btn, errBox);
-                  } else {
+                tsGetToken(function (tt) {
+                  post("/auth/code", { email: email, purpose: "recover", turnstileToken: tt }).then(function (r) {
+                    if (r && r.ok) {
+                      showCodeStep(email, name, "recover", btn, errBox);
+                    } else {
+                      btn.disabled = false; btn.textContent = "SIGN IN";
+                      showError(r && r.error === "email_not_configured"
+                        ? "Email codes aren't set up yet — use Sign in with Google with the same email to get back in."
+                        : r && r.error === "bot_check_failed"
+                        ? "Quick bot check failed — tap the link to try again."
+                        : "Couldn't send the code. Try again in a bit.");
+                    }
+                  }, function () {
                     btn.disabled = false; btn.textContent = "SIGN IN";
-                    showError(r && r.error === "email_not_configured"
-                      ? "Email codes aren't set up yet — sign in with Google, or on your original device."
-                      : "Couldn't send the code. Try again in a bit.");
-                  }
-                }, function () {
-                  btn.disabled = false; btn.textContent = "SIGN IN";
-                  showError("Couldn't reach the sign-in server. Check your connection.");
+                    showError("Couldn't reach the sign-in server. Check your connection.");
+                  });
                 });
               });
             } else {
@@ -333,6 +485,8 @@
                   ? "Hmm, that email doesn't look right. Try again?"
                   : res && res.error === "rate_limited"
                   ? "Too many tries — give it an hour and come back."
+                  : res && res.error === "bot_check_failed"
+                  ? "Quick bot check failed — tap SIGN IN to try again."
                   : "Couldn't reach the sign-in server. Check your connection and retry."
               );
             }
@@ -346,37 +500,170 @@
       );
     }
 
+    // Password sign-in step (2026-10-21): accounts that carry a
+    // password (POST /auth/password) get a form too — the endpoint
+    // shipped before any page rendered one. Completions funnel into
+    // finishFreshAuth exactly like the code/register/Google paths,
+    // so a fresh password sign-in inherits the Creator-first
+    // landing law automatically. EVERY failure shows the same
+    // generic message: the endpoint answers 401 invalid_credentials
+    // for unknown email, no-password account and wrong password
+    // alike, and this form never hints which one it was.
+    function showPasswordStep(prefillEmail) {
+      var form = el.querySelector("#fbgate-form");
+      var firstStepHtml = form.innerHTML;
+      form.innerHTML =
+        '<div class="fbgate-h">SIGN IN WITH A PASSWORD</div>' +
+        '<p class="fbgate-sub">Use the email and password on your Fire Babys account.</p>' +
+        '<label for="fbgate-pw-email">Email</label>' +
+        '<input id="fbgate-pw-email" type="email" name="email" autocomplete="username" autocapitalize="off" />' +
+        '<label for="fbgate-pw-pass">Password</label>' +
+        '<input id="fbgate-pw-pass" type="password" name="password" autocomplete="current-password" />' +
+        '<button class="fbgate-btn" type="submit">SIGN IN</button>' +
+        '<div class="fbgate-err" role="alert"></div>' +
+        '<p class="fbgate-fine"><a href="#" id="fbgate-pw-back" style="color:#ffb066">← All sign-in options</a></p>';
+      var emInput = form.querySelector("#fbgate-pw-email");
+      var pwInput = form.querySelector("#fbgate-pw-pass");
+      if (prefillEmail) emInput.value = prefillEmail;
+      (prefillEmail ? pwInput : emInput).focus();
+      form.querySelector("#fbgate-pw-back").addEventListener("click", function (ev) {
+        ev.preventDefault();
+        form.innerHTML = firstStepHtml;
+        wirePasswordOpen();
+      });
+    }
+
+    function wirePasswordOpen() {
+      var link = el.querySelector("#fbgate-pw-open");
+      if (!link || link._fbpwWired) return;
+      link._fbpwWired = true;
+      link.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        // Clear any stale first-step error so a later "back" restore
+        // doesn't resurrect it.
+        var eb = el.querySelector(".fbgate-err");
+        if (eb) eb.style.display = "none";
+        var em = el.querySelector("#fbgate-email");
+        showPasswordStep(em ? em.value : "");
+      });
+    }
+
     el.querySelector("#fbgate-form").addEventListener("submit", function (ev) {
       ev.preventDefault();
-      var email = el.querySelector("#fbgate-email").value;
+      // The email-code step replaces this form's contents and adds
+      // its OWN submit listener; once the email field is gone, this
+      // first-step listener must quietly stand down (it used to throw
+      // reading .value of the removed inputs on every code sign-in).
+      var emailInput = el.querySelector("#fbgate-email");
+      if (!emailInput) return;
+      var email = emailInput.value;
       var name = el.querySelector("#fbgate-name").value;
       var btn = el.querySelector(".fbgate-btn");
       btn.disabled = true;
       btn.textContent = "SIGNING IN...";
       var errBox = el.querySelector(".fbgate-err");
       errBox.style.display = "none";
+      // Turnstile tokens are single-use: each protected call below gets
+      // its own fresh token via tsGetToken.
+      function legacyFresh() {
+        tsGetToken(function (tt) {
+          legacyRegister(email, name, btn, errBox, tt);
+        });
+      }
       // Ask the server whether email verification is available.
       post("/auth/config", {}).then(function (cfg) {
         if (cfg && cfg.ok && cfg.emailVerification) {
           // Verified flow: send a code, then verify it.
-          post("/auth/code", { email: email, purpose: "verify" }).then(function (r) {
-            if (r && r.ok && r.sent) {
-              showCodeStep(email, name, "verify", btn, errBox);
-            } else if (r && r.error === "already_registered") {
-              legacyRegister(email, name, btn, errBox);
-            } else {
-              // Server couldn't send (or rate limited) — fall back honestly.
-              legacyRegister(email, name, btn, errBox);
-            }
-          }, function () { legacyRegister(email, name, btn, errBox); });
+          tsGetToken(function (tt) {
+            post("/auth/code", { email: email, purpose: "verify", turnstileToken: tt }).then(function (r) {
+              if (r && r.ok && r.sent) {
+                showCodeStep(email, name, "verify", btn, errBox);
+              } else if (r && r.error === "bot_check_failed") {
+                btn.disabled = false;
+                btn.textContent = "SIGN IN";
+                showError("Quick bot check failed — tap SIGN IN to try again.");
+              } else if (r && r.error === "already_registered") {
+                legacyFresh();
+              } else {
+                // Server couldn't send (or rate limited) — fall back honestly.
+                legacyFresh();
+              }
+            }, function () { legacyFresh(); });
+          });
         } else {
-          legacyRegister(email, name, btn, errBox);
+          legacyFresh();
         }
-      }, function () { legacyRegister(email, name, btn, errBox); });
+      }, function () { legacyFresh(); });
     });
+
+    // Password-step submit. ONE listener for the gate's lifetime:
+    // it stands down unless the password step is what the form
+    // currently shows (the first-step and code-step listeners own
+    // the other states), and it reads the CURRENT inputs at submit
+    // time — the step swaps the form's innerHTML in and out, so
+    // closure references to its fields would go stale. Offline
+    // (file:// build / no network) the fetch simply rejects into
+    // the same "couldn't reach the server" message every other
+    // network path shows — the step fails quietly, nothing breaks.
+    el.querySelector("#fbgate-form").addEventListener("submit", function (ev) {
+      var pwInput = el.querySelector("#fbgate-pw-pass");
+      if (!pwInput) return; // password step not showing — not ours
+      ev.preventDefault();
+      var form = el.querySelector("#fbgate-form");
+      var emInput = form.querySelector("#fbgate-pw-email");
+      var email = emInput ? emInput.value.trim() : "";
+      var password = pwInput.value;
+      var pbtn = form.querySelector(".fbgate-btn");
+      var perr = form.querySelector(".fbgate-err");
+      if (!email || !password) {
+        perr.textContent = "Enter your email and your password.";
+        perr.style.display = "block";
+        return;
+      }
+      pbtn.disabled = true;
+      pbtn.textContent = "SIGNING IN...";
+      perr.style.display = "none";
+      post("/auth/password", { email: email, password: password }).then(
+        function (res) {
+          if (res && res.ok && res.token) {
+            setToken(res.token);
+            finishFreshAuth({
+              email: String(res.email || email).trim().toLowerCase(),
+              name: "",
+            });
+            // Fetch the display name via session, like the Google path.
+            post("/auth/session", { token: res.token }).then(function (s) {
+              if (s && s.ok && s.name) {
+                setUser({ email: res.email || email, name: s.name });
+              }
+            });
+          } else {
+            pbtn.disabled = false;
+            pbtn.textContent = "SIGN IN";
+            perr.textContent =
+              res && res.error === "rate_limited"
+                ? "Too many tries — give it an hour and come back."
+                : "That email and password don't match. Check them and try again — or go back and use another way in.";
+            perr.style.display = "block";
+          }
+        },
+        function () {
+          pbtn.disabled = false;
+          pbtn.textContent = "SIGN IN";
+          perr.textContent = "Couldn't reach the sign-in server. Check your connection.";
+          perr.style.display = "block";
+        }
+      );
+    });
+
+    wirePasswordOpen();
 
     document.body.appendChild(el);
     gateEl = el;
+
+    // Turnstile: load the API (once) and render into the card host.
+    tsLoad();
+    tsRender();
 
     // ---- Google Sign-In (fetch client ID, show button if configured) ----
     fetchGoogleId(function (gid) {
@@ -393,7 +680,7 @@
           function (res) {
             if (res && res.ok && res.token) {
               setToken(res.token);
-              finishAuth({ email: res.email, name: "" });
+              finishFreshAuth({ email: res.email, name: "" });
               // Fetch the name via session.
               post("/auth/session", { token: res.token }).then(function (s) {
                 if (s && s.ok && s.name) {
@@ -472,10 +759,12 @@
     document.body.appendChild(b);
   }
 
-  function finishAuth(user) {
-    setUser(user);
-    removeGate();
-    uncloak();
+  function finishFreshAuth(user) {
+    freshSignIn = true;
+    finishAuth(user);
+  }
+
+  function settleAuth(user) {
     showBadge(user);
     authedCbs.splice(0).forEach(function (cb) {
       try {
@@ -489,7 +778,156 @@
     } catch (e) {}
   }
 
+  // ---- post-sign-in landing (Jeff's law, 2026-10-21) ----
+  // The Creator profile (3d.html) is the signed-in HOME:
+  //  * EVERY fresh (interactive) sign-in lands there, onboarded or
+  //    not. The fb_tour_step="cards" marker tells the hub tour to
+  //    resume at the cards when a still-touring player comes back —
+  //    Creator FIRST, tour after.
+  //  * A session RESTORE that arrives at a home page from outside
+  //    the site (typed URL / bookmark / external link) on a later
+  //    visit also lands there — but ONLY for onboarded players: a
+  //    player still touring is owned by the hub tour (its CREATE
+  //    step is their Creator door), and restores inside the same
+  //    sitting as the sign-in (reloads, the tour's detour return)
+  //    never move. An unreachable server always stays (trust-cache
+  //    rules unchanged).
+  //  * In-site navigation NEVER bounces: arriving at the hub from
+  //    anywhere on the site (Creator -> hub above all) stays put,
+  //    and the home-route fires at most once per browser session.
+  function creatorUrl() {
+    var base = thisScript && thisScript.src
+      ? thisScript.src.replace(/auth-gate\.js(\?.*)?$/, "")
+      : "";
+    return base + "3d.html";
+  }
+  function onCreatorPage() {
+    return /(^|\/)3d\.html$/.test(window.location.pathname || "");
+  }
+  function onHomePage() {
+    var p = window.location.pathname || "";
+    return p === "/" || /(^|\/)(index|fire-world)\.html$/.test(p);
+  }
+  function cameFromSite() {
+    var ref = document.referrer || "";
+    if (!ref) return false;
+    try {
+      return new URL(ref).origin === window.location.origin;
+    } catch (e) {
+      return false;
+    }
+  }
+  var HOME_ROUTED_KEY = "fb_home_routed";
+  function goCreator(markTour) {
+    if (markTour) {
+      try { localStorage.setItem("fb_tour_step", "cards"); } catch (e) {}
+    }
+    try { sessionStorage.setItem(HOME_ROUTED_KEY, "1"); } catch (e) {}
+    window.location.replace(creatorUrl());
+  }
+  function settleHere(user) {
+    removeGate();
+    uncloak();
+    settleAuth(user);
+  }
+  function routeAfterSignIn(user) {
+    if (onCreatorPage()) {
+      // Already standing in the Creator: the "land on the Creator"
+      // half of the law is satisfied. Mark the tour to resume at the
+      // cards on the hub, and let the player create.
+      try { localStorage.setItem("fb_tour_step", "cards"); } catch (e) {}
+      settleHere(user);
+      return;
+    }
+    goCreator(true);
+  }
+  function routeRestoredHome(user) {
+    if (!onHomePage() || onCreatorPage()) { settleHere(user); return; }
+    // In-site navigation (Creator -> hub above all) never bounces.
+    if (cameFromSite()) { settleHere(user); return; }
+    var routed = null;
+    try { routed = sessionStorage.getItem(HOME_ROUTED_KEY); } catch (e) {}
+    if (routed === "1") { settleHere(user); return; }
+    // Same sitting as the sign-in itself (a fresh token stamp):
+    // reloads and first-run flows stay on the hub untouched. Only a
+    // genuinely later visit counts as "arriving at home".
+    if (tokenAgeMs() < 6 * 60 * 60 * 1000) { settleHere(user); return; }
+    post("/profile/get", { token: getToken() }).then(
+      function (r) {
+        if (r && r.ok && r.profile && r.profile.onboardedV1) {
+          goCreator(false);
+        } else {
+          settleHere(user);
+        }
+      },
+      function () { settleHere(user); }
+    );
+  }
+
+  function finishAuth(user) {
+    setUser(user);
+    if (freshSignIn) {
+      freshSignIn = false;
+      routeAfterSignIn(user);
+      return;
+    }
+    routeRestoredHome(user);
+  }
+
   // ---- boot ----
+  // F1 (sign-in audit 2026-10-21, defect D1): only a DEFINITIVE 401
+  // invalid_token may clear the stored token. Every other session-check
+  // failure (500, non-JSON "bad_response", 429, KV hiccup) trusts the
+  // cached user and KEEPS the token — exactly like the network-down
+  // path. Deleting the token on any glitch was the "it signed me out
+  // for no reason" bug.
+  function trustCachedOrGate() {
+    var cached = null;
+    try {
+      cached = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+    } catch (e) {}
+    if (cached && cached.email) {
+      finishAuth(cached);
+    } else {
+      buildGate();
+      uncloak();
+    }
+  }
+  function tokenAgeMs() {
+    try {
+      var at = parseInt(localStorage.getItem("fb_auth_token_at") || "0", 10);
+      return at ? Date.now() - at : Infinity;
+    } catch (e) {
+      return Infinity;
+    }
+  }
+  function checkSession(token, isRetry) {
+    post("/auth/session", { token: token }).then(
+      function (res) {
+        if (res && res.ok && res.email) {
+          finishAuth({ email: res.email, name: res.name || "" });
+        } else if (res && res.error === "invalid_token") {
+          // Propagation grace: a brand-new token may 401 for a few
+          // seconds while the KV write reaches every replica.
+          if (!isRetry && tokenAgeMs() < 5 * 60 * 1000) {
+            setTimeout(function () {
+              checkSession(token, true);
+            }, 1500);
+          } else {
+            setToken(null);
+            setUser(null);
+            buildGate();
+            uncloak();
+          }
+        } else {
+          trustCachedOrGate();
+        }
+      },
+      function () {
+        trustCachedOrGate();
+      }
+    );
+  }
   function boot() {
     var token = getToken();
     if (!token) {
@@ -497,31 +935,7 @@
       uncloak(); // gate itself is visible; page behind stays cloaked by overlay
       return;
     }
-    post("/auth/session", { token: token }).then(
-      function (res) {
-        if (res && res.ok && res.email) {
-          finishAuth({ email: res.email, name: res.name || "" });
-        } else {
-          setToken(null);
-          setUser(null);
-          buildGate();
-          uncloak();
-        }
-      },
-      function () {
-        // Network failed: trust the cached user rather than locking players out.
-        var cached = null;
-        try {
-          cached = JSON.parse(localStorage.getItem(USER_KEY) || "null");
-        } catch (e) {}
-        if (cached && cached.email) {
-          finishAuth(cached);
-        } else {
-          buildGate();
-          uncloak();
-        }
-      }
-    );
+    checkSession(token, false);
   }
 
   window.FireBabysAuth = {

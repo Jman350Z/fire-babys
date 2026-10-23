@@ -70,7 +70,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="overlay">
 <h1 id="otitle">🎯 INFERNO AIM</h1>
 <div id="obody"><p>How sharp is your aim?</p><p><b>TAP</b> targets to blast them! <b>Don't hit</b> the 💣 bombs (-50 pts)! Golden targets are worth 5x. You have 60 seconds — bullseyes give bonus time! Rare 💥 <b>Nova Stars</b> burst every other target on screen for bonus points!</p></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div id="mathgate" class="hidden"><p>🔒 Math Check</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Aim for safety — always point away from fires!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
@@ -417,5 +417,89 @@ addEventListener('keydown',()=>MUS.start());
 /* fb-cycle2: in-play restart — the cluster button runs the game's own overlay reset path. */
 (function(){var b=document.getElementById('restartBtn');if(!b)return;b.addEventListener('click',function(e){e.stopPropagation();if(typeof G==='undefined'||G.state!=='play')return;reset();G.state='play';});})();
 </script>
+<script>
+/* ============================================================
+   Fire Babys Math Check — 24-HOUR UNLOCK (Jeff, 2026-10-21)
+   The math check itself is unchanged. NEW: solve 5 problems in
+   a row right here and ALL games unlock for 24 hours. The unlock
+   is a device-side localStorage timestamp (fb_gate_unlock_until),
+   checked by this snippet on every gated page, so it works the
+   same on firebabys.io and in the offline downloadable build.
+   When the 24 hours run out, the normal math check simply
+   returns — no lockout, no progress lost.
+   ============================================================ */
+(function(){
+'use strict';
+var KEY='fb_gate_unlock_until';
+function until(){try{var v=parseInt(localStorage.getItem(KEY),10);return isNaN(v)?0:v;}catch(e){return 0;}}
+function unlocked(){return until()>Date.now();}
+function leftStr(){var ms=until()-Date.now();if(ms<=0)return '';var h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return h+'h '+(m<10?'0':'')+m+'m';}
+function gateEl(){return document.getElementById('mathgate');}
+function isVis(g){if(!g||g.classList.contains('hidden'))return false;var s=getComputedStyle(g);if(s.display==='none'||s.visibility==='hidden')return false;return g.offsetParent!==null||s.position==='fixed';}
+var passed=false;
+function tryPass(){
+  var g=gateEl();if(!g)return;
+  if(!isVis(g)){passed=false;return;}
+  buildUI(g);
+  if(!unlocked()||passed)return;
+  var mq=document.getElementById('mq'),ma=document.getElementById('ma');
+  if(!mq||!ma)return;
+  var m=/(\d+)\s*([+\-x×*])\s*(\d+)/.exec(mq.textContent||'');
+  if(!m)return;
+  var a=+m[1],b=+m[3],ans=(m[2]==='+')?a+b:((m[2]==='-')?a-b:a*b);
+  ma.value=ans;passed=true;
+  var btn=g.querySelector('button');
+  setTimeout(function(){if(btn)btn.click();},150);
+  setTimeout(function(){if(isVis(gateEl()))passed=false;},1000);
+}
+function buildUI(g){
+  if(g.querySelector('.fbg-chal'))return;
+  var box=document.createElement('div');box.className='fbg-chal';
+  box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.35);font-size:15px';
+  if(unlocked()){
+    box.innerHTML='<p style="margin:0">✅ <b>All games unlocked!</b> ⏰ '+leftStr()+' left</p>';
+    g.appendChild(box);return;
+  }
+  box.innerHTML='<p style="margin:0 0 6px">🏆 <b>Math Challenge:</b> solve <b>5 problems in a row</b> to unlock <b>ALL games for 24 hours</b>!</p>'
+    +'<button type="button" class="fbg-start" style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:10px;cursor:pointer">START CHALLENGE</button>'
+    +'<div class="fbg-play" style="display:none;margin-top:8px">'
+    +'<p style="margin:0 0 6px">Problem <span class="fbg-n">1</span> of 5: <b class="fbg-q"></b> = '
+    +'<input type="number" class="fbg-a" inputmode="numeric" style="width:84px;font-size:18px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;color:#000"> '
+    +'<button type="button" class="fbg-check" style="font-size:16px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer">CHECK</button></p>'
+    +'<p class="fbg-msg" style="margin:0;min-height:20px"></p></div>';
+  g.appendChild(box);
+  var n=0,ans=0;
+  var qEl=box.querySelector('.fbg-q'),nEl=box.querySelector('.fbg-n'),
+      aEl=box.querySelector('.fbg-a'),msgEl=box.querySelector('.fbg-msg');
+  function next(){
+    var kind=Math.floor(Math.random()*3),a,b;
+    if(kind===0){a=2+Math.floor(Math.random()*19);b=2+Math.floor(Math.random()*19);ans=a+b;qEl.textContent=a+' + '+b;}
+    else if(kind===1){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;qEl.textContent=a+' − '+b;}
+    else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;qEl.textContent=a+' × '+b;}
+    nEl.textContent=(n+1);aEl.value='';
+  }
+  box.querySelector('.fbg-start').addEventListener('click',function(){
+    this.style.display='none';box.querySelector('.fbg-play').style.display='';next();aEl.focus();
+  });
+  function check(){
+    if(parseInt(aEl.value,10)===ans){
+      n++;
+      if(n>=5){
+        try{localStorage.setItem(KEY,String(Date.now()+24*3600000));}catch(e){}
+        box.innerHTML='<p style="margin:0">🎉 <b>You did it!</b> ALL games are unlocked for 24 hours! ⏰</p>';
+        passed=false;setTimeout(tryPass,400);
+      }else{msgEl.textContent='✅ Correct! '+(5-n)+' to go.';next();aEl.focus();}
+    }else{
+      n=0;msgEl.textContent='❌ Not quite — streak reset. Back to problem 1!';next();aEl.focus();
+    }
+  }
+  box.querySelector('.fbg-check').addEventListener('click',check);
+  aEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
+}
+setInterval(tryPass,300);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tryPass);else tryPass();
+})();
+</script>
+
 </body>
 </html>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="dark-knight.js" defer></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,681 +58,804 @@ footer{background:rgba(0,0,0,.25);border-top:2px solid rgba(255,106,26,.3);color
 .whatsnew a{color:var(--gold);font-weight:900;text-decoration:none;font-size:18px}
 .whatsnew a:hover{color:#fff}
 .badge{display:inline-block;align-self:flex-start;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;font-size:12px;font-weight:900;letter-spacing:.5px;padding:3px 10px;border-radius:999px;border:1px solid #ff6a1a;margin-bottom:8px}
+.shop{padding:44px 0 8px}
+.shop h2{font-size:clamp(26px,5vw,38px);font-weight:900;color:#ffb347;text-align:center;letter-spacing:1px}
+.shop .sub{text-align:center;color:#ffd9ae;font-weight:600;max-width:680px;margin:8px auto 6px}
+.shop .free-note{text-align:center;color:#bfe9c2;font-weight:800;max-width:760px;margin:0 auto 20px}
+.shopbox{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:2px solid rgba(255,106,26,.35);border-radius:20px;padding:20px;margin-bottom:26px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.shopbox h3{font-size:22px;font-weight:900;color:#ffd76a;margin-bottom:4px}
+.shopbox .boxsub{font-size:13px;color:#d8b89a;margin-bottom:14px;line-height:1.6}
+.balpill{display:inline-block;background:rgba(0,0,0,.4);border:1px solid rgba(255,179,71,.6);color:#ffd76a;font-weight:800;border-radius:999px;padding:3px 12px;font-size:14px}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.shopitem{background:rgba(0,0,0,.3);border:2px solid rgba(255,106,26,.3);border-radius:14px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px}
+.shopitem .em{font-size:38px}
+.shopitem .nm{font-weight:800;color:#ffe9d6;font-size:15px}
+.shopitem .ds{font-size:11px;color:#d8b89a;flex:1}
+.shopitem .fx{font-size:11px;color:#bfe9c2;font-weight:700}
+.buybtn{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;font-weight:900;border:2px solid #ff6a1a;border-radius:10px;padding:9px 6px;font-size:14px;cursor:pointer;box-shadow:0 4px 0 #a33c10;font-family:inherit}
+.buybtn:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+.buybtn.owned{background:rgba(63,174,74,.25);color:#bfe9c2;border-color:rgba(63,174,74,.6);box-shadow:none}
+.buybtn.confirm{background:linear-gradient(180deg,#ff8c2e,#e8352c);color:#fff}
+.buybtn:disabled{opacity:.55;cursor:default}
+.shopsec-title{font-size:16px;font-weight:900;color:#ffb347;letter-spacing:1px;margin:16px 0 8px}
+.merchgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.merchcard{background:rgba(0,0,0,.3);border:2px solid rgba(255,106,26,.3);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.merchcard img{width:100%;height:170px;object-fit:cover;display:block}
+.merchcard .mb{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.merchcard .nm{font-weight:800;color:#ffe9d6}
+.merchcard .ds{font-size:12px;color:#d8b89a;flex:1}
+.merchcard .pr{color:#ffd76a;font-weight:900}
+.merchcard a{margin-top:auto;display:block;text-align:center;background:rgba(255,215,106,.15);border:2px solid rgba(255,215,106,.6);color:#ffd76a;font-weight:900;border-radius:10px;padding:9px 6px;text-decoration:none;font-size:14px}
+#fbshop-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:#2a1206;color:#ffe9d6;border:2px solid #ffb347;border-radius:12px;padding:10px 18px;font-weight:800;z-index:999;transition:transform .25s;max-width:92vw;text-align:center}
+#fbshop-toast.show{transform:translateX(-50%) translateY(0)}
+#fb-signout-btn{background:none;border:1.5px solid rgba(255,179,71,.6);color:#ffd9ae;font-weight:700;font-size:14px;font-family:inherit;border-radius:999px;padding:3px 14px;margin-left:16px;cursor:pointer;vertical-align:middle}
+#fb-signout-btn:hover{color:#ff6a1a;border-color:#ff6a1a}
+/* ---- First-run tour (onboarding.js, Jeff 2026-10-21) ---- */
+.fbt-overlay{position:fixed;inset:0;z-index:9000;background:rgba(12,5,2,.82);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto}
+.fbt-card{width:100%;max-width:520px;background:linear-gradient(180deg,#2a1307,#1a0d06);border:2.5px solid rgba(255,140,46,.65);border-radius:22px;padding:28px 26px;text-align:center;box-shadow:0 0 80px rgba(255,90,20,.35);color:#ffe9d6}
+.fbt-step{font-size:12px;font-weight:900;letter-spacing:2px;color:#ff9d5c;margin-bottom:6px}
+.fbt-title{font-size:clamp(24px,5.4vw,32px);font-weight:900;letter-spacing:1px;color:#ffb347;margin:2px 0 12px;line-height:1.15}
+.fbt-body{font-size:16px;line-height:1.6;color:#ffe9d6;text-align:left}
+.fbt-body b{color:#ffd76a}
+.fbt-body .fbt-row{display:flex;align-items:center;gap:10px;margin:10px 0}
+.fbt-linkbtn{display:inline-block;background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;font-weight:900;font-size:16px;text-decoration:none;padding:12px 22px;border-radius:14px;border:2px solid #ff6a1a;box-shadow:0 5px 0 #a33c10}
+.fbt-soon{display:inline-block;background:rgba(255,255,255,.06);border:2px dashed rgba(255,179,71,.55);color:#ffd76a;font-weight:800;border-radius:999px;padding:6px 16px}
+.fbt-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:22px}
+.fbt-btn{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;font-weight:900;font-size:16px;border:2px solid #ff6a1a;border-radius:14px;padding:12px 20px;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 #a33c10}
+.fbt-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+.fbt-btn.ghost{background:rgba(255,255,255,.05);color:#ffd9ae;border-color:rgba(255,179,71,.45);box-shadow:none}
+.fbt-dots{display:flex;gap:6px;justify-content:center}
+.fbt-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,217,174,.25)}
+.fbt-dot.on{background:#ffb347}
+.fbt-skip{display:block;margin:16px auto 0;background:none;border:none;color:#d8b89a;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:underline}
+@media(max-width:420px){.shopgrid{grid-template-columns:repeat(2,1fr)}}
+
+/* ==== Fire World hub redesign (2026-10-23): tab interface, games first ==== */
+nav.top .wrap{padding-top:8px;padding-bottom:8px}
+.fb-tabrow{display:flex;gap:8px;flex-wrap:wrap;padding-top:2px;padding-bottom:10px}
+.fb-tab{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,179,71,.45);color:#ffd9ae;font-weight:800;font-size:15px;font-family:inherit;border-radius:999px;padding:8px 20px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s}
+.fb-tab:hover{color:#fff;border-color:#ff6a1a}
+.fb-tab[aria-selected="true"]{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border-color:#ff6a1a;box-shadow:0 0 18px rgba(255,106,26,.45)}
+.fb-panel{display:none}
+.fb-panel.fb-on{display:block}
+.hero{padding:22px 16px 18px}
+.hero h1{font-size:clamp(26px,5vw,38px)}
+.hero p{margin-bottom:12px}
+.dlbtn{font-size:clamp(16px,3.6vw,22px);padding:12px 22px;border-radius:14px;box-shadow:0 6px 0 #a33c10,0 14px 28px rgba(0,0,0,.5)}
+.dlbtn:active{box-shadow:0 2px 0 #a33c10,0 8px 16px rgba(0,0,0,.45)}
+.whatsnew{padding:10px 16px}
+.whatsnew a{font-size:15px}
+.fb-controls{padding:20px 0 2px}
+.fb-searchwrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:2px solid rgba(255,106,26,.4);border-radius:14px;padding:10px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.fb-search-ic{font-size:18px}
+#fb-game-search{flex:1;min-width:0;background:none;border:none;outline:none;color:#ffe9d6;font-size:16px;font-family:inherit}
+#fb-game-search::placeholder{color:#d8b89a}
+.fb-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fb-chip{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,179,71,.4);color:#ffd9ae;font-weight:700;font-size:13.5px;font-family:inherit;border-radius:999px;padding:6px 14px;cursor:pointer;transition:background .15s,color .15s}
+.fb-chip:hover{color:#fff;border-color:#ff6a1a}
+.fb-chip.fb-on{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border-color:#ff6a1a}
+.fb-jump{display:flex;gap:6px;overflow-x:auto;padding:12px 2px 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.fb-jnum{flex:0 0 auto;min-width:38px;height:38px;padding:0 6px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,179,71,.4);color:#ffd9ae;font-weight:800;font-size:14px;font-family:inherit;cursor:pointer}
+.fb-jnum:hover{border-color:#ff6a1a;color:#fff;background:rgba(255,106,26,.18)}
+.fb-gcount{font-size:13px;color:#d8b89a;font-weight:700;margin-top:2px}
+.fb-noresults{font-size:15px;color:#ffd9ae;font-weight:700;padding:14px 0 4px}
+.fb-featured{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0 2px}
+.fb-feat{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(255,215,106,.14),rgba(255,106,26,.08));border:2px solid rgba(255,179,71,.55);border-radius:16px;padding:14px;text-decoration:none;color:#ffe9d6;box-shadow:0 8px 22px rgba(0,0,0,.3);transition:transform .12s,box-shadow .12s}
+.fb-feat:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.4),0 0 22px rgba(255,106,26,.25)}
+.fb-feat-em{font-size:34px;line-height:1}
+.fb-feat-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.fb-feat-t{font-weight:900;color:#ffd76a;font-size:17px}
+.fb-feat-d{font-size:12.5px;color:#e8c9a8;line-height:1.45}
+.fb-feat-go{font-weight:900;color:#ffb347;white-space:nowrap}
+.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;padding:18px 0 30px}
+.card{border-radius:16px;scroll-margin-top:176px}
+.card .thumb{height:86px;font-size:38px}
+.card .body{padding:12px}
+.card h3{font-size:16px}
+.card p.desc{font-size:13px}
+.card a.play{font-size:16px;padding:10px}
+.card.fb-flash{animation:fbflash 1.6s ease}
+@keyframes fbflash{0%,55%{box-shadow:0 0 0 3px #ffd76a,0 0 38px rgba(255,140,46,.85)}100%{box-shadow:0 10px 28px rgba(0,0,0,.35)}}
+.fb-panel .shop{padding-top:24px}
+@media(max-width:760px){.fb-featured{grid-template-columns:1fr}}
+@media(max-width:640px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.card .thumb{height:62px;font-size:29px}.card h3{font-size:14px}.card p.desc{font-size:12px}.card a.play{font-size:14px;padding:9px}.fb-tab{padding:8px 14px;font-size:14px}}
 </style>
 </head>
 <body>
 <nav class="top"><div class="wrap">
 <a class="brand" href="/">🔥 Fire Babys</a>
-<div><a class="navlink" href="/">Home</a><a class="navlink" href="/arcade.html">Arcade</a><a class="navlink" href="/fire-world.html">Fire World</a></div>
-</div></nav>
+<div><span class="balpill" id="fbshop-navbal">🪙 0 · 💎 0</span><a class="navlink" href="#shop">🛒 Shop</a><a class="navlink" href="/">Home</a><a class="navlink" href="/arcade.html">Arcade</a><a class="navlink" href="/fire-world.html">Fire World</a><a class="navlink" href="#" id="fb-tour-replay">🎓 Tour</a><button type="button" id="fb-signout-btn" style="display:none">Sign out</button></div>
+</div>
+<div class="wrap fb-tabrow" role="tablist" aria-label="Fire World sections">
+<button type="button" class="fb-tab" data-tab="games" role="tab" aria-selected="true">🎮 Games</button>
+<button type="button" class="fb-tab" data-tab="shop" role="tab" aria-selected="false">🛒 Shop</button>
+<button type="button" class="fb-tab" data-tab="chest" role="tab" aria-selected="false">🧰 My Chest</button>
+</div>
+</nav>
 
+<div class="fb-panel fb-on" id="panel-games" data-panel="games">
 <div class="hero"><div class="wrap">
 <h1>🔥 Fire World 🔥</h1>
 <p>57 free Fire Babys games. Built with love, 100% safe fun for everyone — play online or take the whole game with you.</p>
 <a class="dlbtn" href="/fire-babys-offline.zip" download>⬇️ DOWNLOAD THE FULL GAME — FREE</a>
-<div class="dlsub">All 57 games in ONE file · plays offline anywhere · no ads, no purchases, nothing to install<br>Official safety fingerprint (SHA-256): b6d410aa8c218ba6f2d93074a807b5afdce40ab33675c6ede70c0b7ada53d952 · Size: 2.13 MB<br>Only download from firebabys.io — the real one always matches this fingerprint.</div>
+<div class="dlsub">All 57 games in ONE file · plays offline anywhere · no ads, no purchases, nothing to install<br>Official safety fingerprint (SHA-256): 5a016f0e86fb2053e04fd303b963e17c4e82b47ac058252c98b5abce3d5ca4a1 · Size: 2.57 MB<br>Only download from firebabys.io — the real one always matches this fingerprint.</div>
 <div class="creator">By Jman350Z &amp; fire team</div>
 </div></div>
 
 <div class="whatsnew"><a href="/fire-world/slingshot-cascade/">🎉 150+ NEW LEVELS! Slingshot Cascade now has 10 rounds + 4 hero powers — pick your hero, tap mid-flight!</a></div>
+<div class="whatsnew"><a href="https://safety.firebabys.io">🔥 FIRE SAFETY HUB — every fire-safety lesson from the games, plus official U.S. Fire Administration guides, all in one place → safety.firebabys.io</a></div>
 
+<div class="wrap fb-panel" id="shop" data-panel="shop">
+<div class="shop">
+<h2>🛒 Fire Babys Shops</h2>
+<p class="sub">Two shops, right here at the main menu. Spend the coins you earn playing — or grab real Fire Babys merch.</p>
+<p class="free-note">✅ Playing is ALWAYS free. No game, level, or retry ever costs coins — this isn't Mario or Sonic. Coins are for shopping, that's it.</p>
+<p class="free-note" id="fbshop-gatestatus" style="color:#ffd9ae"></p>
+
+<div class="shopbox" id="gameshop">
+<h3>🎮 GAME SHOP — spend your 🪙 coins</h3>
+<p class="boxsub">Your balance: <span class="balpill" id="fbshop-bal">🪙 0 · 💎 0</span><br>
+Coins are earned by playing — finish games, score KOs, and put out fires in the 3D Arena, and climb the Season 1 tiers. Coins are never sold. One balance everywhere: what you earn in the games shows up here, and what you buy here works in the games. Star Charms are collectible flair for your Chest — pure style, they never change any fighter's numbers. Armor, weapons &amp; emotes are yours forever once bought — equip them here or in the 3D Arena's own store, it's the same gear.</p>
+<div id="fbshop-items"></div>
+<p class="boxsub" id="fbshop-boostline" style="margin-top:12px"></p>
+</div>
+
+<div class="shopbox" id="merchshop">
+<h3>👕 REAL-WORLD SHOP — Fire Babys merch</h3>
+<p class="boxsub">Real merch from the official Fire Babys store, run by General Federal Industries. Real money only — game coins never pay for merch. The store is opening very soon; here's the first drop lineup.</p>
+<div class="merchgrid">
+<div class="merchcard"><img src="/shop-img/blaze-hero-tee.jpg" alt="Blaze Hero Tee design"><div class="mb"><span class="nm">Blaze Hero Tee</span><span class="ds">Blaze, the golden-crowned flame hero, front and center.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/aqua-hero-tee.jpg" alt="Aqua Hero Tee design"><div class="mb"><span class="nm">Aqua Hero Tee</span><span class="ds">Aqua, the cool-headed water hero, ready to splash into action.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/boulder-hero-tee.jpg" alt="Boulder Hero Tee design"><div class="mb"><span class="nm">Boulder Hero Tee</span><span class="ds">Boulder — the rock-solid strength of the crew.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/ruko-hero-tee.jpg" alt="Ruko Hero Tee design"><div class="mb"><span class="nm">Ruko Hero Tee</span><span class="ds">Ruko, the fearless flame warrior, charges in.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/full-cast-tee.jpg" alt="Full cast tee design"><div class="mb"><span class="nm">The Whole Crew Tee</span><span class="ds">All 12 heroes in tiered stands — every face visible.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/full-cast-hoodie.jpg" alt="Full cast hoodie design"><div class="mb"><span class="nm">Full Cast Hoodie</span><span class="ds">The official lineup poster print on a cozy pullover hoodie.</span><span class="pr">$48</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/slimer-smother-tee.jpg" alt="Slimer SMOTHER IT tee design"><div class="mb"><span class="nm">Slimer "SMOTHER IT!" Tee</span><span class="ds">The villain everybody loves to beat — with a real safety lesson.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/fire-safety-academy-tee.jpg" alt="Fire Safety Academy tee design"><div class="mb"><span class="nm">Fire Safety Academy Tee</span><span class="ds">Learn • Play • Stay Safe — the mission shirt.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/sticker-pack-sheet.jpg" alt="Sticker pack sheet"><div class="mb"><span class="nm">Sticker Pack — All 12 Characters</span><span class="ds">12 die-cut hero stickers for laptops, bottles, notebooks &amp; gear.</span><span class="pr">$12</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/candy-moon-halloween-tee.jpg" alt="Candy Moon Halloween tee design"><div class="mb"><span class="nm">Candy Moon Halloween Tee</span><span class="ds">Limited Halloween 2026 drop — the whole crew under the Candy Moon.</span><span class="pr">$34</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+</div>
+<p class="boxsub" style="margin-top:14px;text-align:center"><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener" style="color:#ffd76a;font-weight:900">Visit the Fire Babys Store →</a></p>
+</div>
+</div>
+</div>
+
+<div class="wrap fb-panel" id="locker" data-panel="chest">
+<div class="shop">
+<h2>🗝️ Your Locker</h2>
+<p class="sub">One locker per player — everything you earn or buy lives here, saved to your account so you never lose it. Any character you play can wear and use everything in your locker.</p>
+<div class="shopbox" id="lockerbox">
+<div id="fb-locker-body"><p class="boxsub">Loading your locker…</p></div>
+</div>
+</div>
+</div>
+
+<div class="wrap">
+<div class="fb-controls">
+<label class="fb-searchwrap"><span class="fb-search-ic">🔎</span><input type="search" id="fb-game-search" placeholder="Search games — try 'ruko', 'puzzle', or a number" aria-label="Search games"></label>
+<div class="fb-chips" id="fb-chips"><button type="button" class="fb-chip fb-on" data-filter="all">All</button><button type="button" class="fb-chip" data-filter="racing">🏎️ Racing</button><button type="button" class="fb-chip" data-filter="puzzle">🧩 Puzzle</button><button type="button" class="fb-chip" data-filter="defense">🛡️ Defense</button><button type="button" class="fb-chip" data-filter="jump">🦘 Jump / Platform</button><button type="button" class="fb-chip" data-filter="dash">💨 Dash / Runner</button><button type="button" class="fb-chip" data-filter="boulder">🪨 Boulder</button><button type="button" class="fb-chip" data-filter="ruko">😡 Ruko</button><button type="button" class="fb-chip" data-filter="blaze">🔥 Blaze</button><button type="button" class="fb-chip" data-filter="cinder">❄️ Cinder</button><button type="button" class="fb-chip" data-filter="sizzle">⚡ Sizzle</button><button type="button" class="fb-chip" data-filter="inferno">👑 Lord Inferno</button><button type="button" class="fb-chip" data-filter="special">⭐ Special</button></div>
+<div class="fb-jump" id="fb-jump" aria-label="Jump to game number"><button type="button" class="fb-jnum" data-jump="1">1</button><button type="button" class="fb-jnum" data-jump="2">2</button><button type="button" class="fb-jnum" data-jump="3">3</button><button type="button" class="fb-jnum" data-jump="4">4</button><button type="button" class="fb-jnum" data-jump="5">5</button><button type="button" class="fb-jnum" data-jump="6">6</button><button type="button" class="fb-jnum" data-jump="7">7</button><button type="button" class="fb-jnum" data-jump="8">8</button><button type="button" class="fb-jnum" data-jump="9">9</button><button type="button" class="fb-jnum" data-jump="10">10</button><button type="button" class="fb-jnum" data-jump="11">11</button><button type="button" class="fb-jnum" data-jump="12">12</button><button type="button" class="fb-jnum" data-jump="13">13</button><button type="button" class="fb-jnum" data-jump="14">14</button><button type="button" class="fb-jnum" data-jump="15">15</button><button type="button" class="fb-jnum" data-jump="16">16</button><button type="button" class="fb-jnum" data-jump="17">17</button><button type="button" class="fb-jnum" data-jump="18">18</button><button type="button" class="fb-jnum" data-jump="19">19</button><button type="button" class="fb-jnum" data-jump="20">20</button><button type="button" class="fb-jnum" data-jump="21">21</button><button type="button" class="fb-jnum" data-jump="22">22</button><button type="button" class="fb-jnum" data-jump="23">23</button><button type="button" class="fb-jnum" data-jump="24">24</button><button type="button" class="fb-jnum" data-jump="25">25</button><button type="button" class="fb-jnum" data-jump="26">26</button><button type="button" class="fb-jnum" data-jump="27">27</button><button type="button" class="fb-jnum" data-jump="28">28</button><button type="button" class="fb-jnum" data-jump="29">29</button><button type="button" class="fb-jnum" data-jump="30">30</button><button type="button" class="fb-jnum" data-jump="31">31</button><button type="button" class="fb-jnum" data-jump="32">32</button><button type="button" class="fb-jnum" data-jump="33">33</button><button type="button" class="fb-jnum" data-jump="34">34</button><button type="button" class="fb-jnum" data-jump="35">35</button><button type="button" class="fb-jnum" data-jump="36">36</button><button type="button" class="fb-jnum" data-jump="37">37</button><button type="button" class="fb-jnum" data-jump="38">38</button><button type="button" class="fb-jnum" data-jump="39">39</button><button type="button" class="fb-jnum" data-jump="40">40</button><button type="button" class="fb-jnum" data-jump="41">41</button><button type="button" class="fb-jnum" data-jump="42">42</button><button type="button" class="fb-jnum" data-jump="43">43</button><button type="button" class="fb-jnum" data-jump="44">44</button><button type="button" class="fb-jnum" data-jump="45">45</button><button type="button" class="fb-jnum" data-jump="46">46</button><button type="button" class="fb-jnum" data-jump="47">47</button><button type="button" class="fb-jnum" data-jump="48">48</button><button type="button" class="fb-jnum" data-jump="49">49</button><button type="button" class="fb-jnum" data-jump="50">50</button><button type="button" class="fb-jnum" data-jump="51">51</button><button type="button" class="fb-jnum" data-jump="52">52</button><button type="button" class="fb-jnum" data-jump="53">53</button><button type="button" class="fb-jnum" data-jump="54">54</button><button type="button" class="fb-jnum" data-jump="55">55</button><button type="button" class="fb-jnum" data-jump="56">56</button><button type="button" class="fb-jnum" data-jump="57">57</button></div>
+<p class="fb-gcount" id="fb-gcount"></p>
+</div>
+<div class="fb-featured">
+<a class="fb-feat" href="/3d.html"><span class="fb-feat-em">🧑‍🎨</span><span class="fb-feat-main"><span class="fb-feat-t">3D Creator</span><span class="fb-feat-d">Create your own character — build your Fire Baby in 3D and suit up.</span></span><span class="fb-feat-go">Open →</span></a>
+<a class="fb-feat" href="/play.html"><span class="fb-feat-em">💦</span><span class="fb-feat-main"><span class="fb-feat-t">SPLASH — Formation Battler</span><span class="fb-feat-d">The 2D squad battler: line up your heroes and splash the Slimers.</span></span><span class="fb-feat-go">Play →</span></a>
+<a class="fb-feat" href="/fire-world/games/game-60-fire-babys-arena.html"><span class="fb-feat-em">🥊</span><span class="fb-feat-main"><span class="fb-feat-t">Fire Babys Arena</span><span class="fb-feat-d">Game #60 — 1v1 fighting: arcade ladder, couch versus, and online by room code.</span></span><span class="fb-feat-go">Play →</span></a>
+</div>
+<p class="fb-noresults" id="fb-noresults" hidden>No games match that — clear the search or tap All.</p>
+</div>
 <div class="wrap">
 <div class="grid" id="game-grid">
 <!-- GAME #1 -->
-<div class="card">
+<div class="card" data-num="1" data-name="fire babys slingshot cascade" data-tags="">
 <div class="thumb">🎯</div>
 <div class="body">
 <span class="num">GAME #1</span>
 <span class="badge">NEW: 10 rounds + hero powers!</span>
 <h3>Fire Babys Slingshot Cascade</h3>
 <p class="desc">Launch Blaze from the slingshot and smash through crystal towers! Drag back, aim with the dotted trajectory line, and release. 3 shots per level across 3 volcanic levels.</p>
-<div class="lesson">🔥 Fire Safety: A slingshot is a toy — never aim at people, pets, or anything that can break. Real fire is not a toy either.</div>
 <a class="play" href="/fire-world/slingshot-cascade/">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #2 -->
-<div class="card">
+<div class="card" data-num="2" data-name="ruko&#x27;s panic dash" data-tags="ruko dash">
 <div class="thumb">😡</div>
 <div class="body">
 <span class="num">GAME #2</span>
 <h3>Ruko's Panic Dash</h3>
 <p class="desc">Ruko's running for his life through a volcanic cavern! Dodge falling magma boulders and slippery oil slicks across 3 lanes. How far can you dash?</p>
-<div class="lesson">🔥 Fire Safety: In a real emergency, stay calm and move quickly to safety — panic makes things worse!</div>
 <a class="play" href="/fire-world/rukos-panic-dash/">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #3 -->
-<div class="card">
+<div class="card" data-num="3" data-name="blaze runner" data-tags="blaze jump dash">
 <div class="thumb">🏃</div>
 <div class="body">
 <span class="num">GAME #3</span>
 <h3>Blaze Runner</h3>
 <p class="desc">Blaze is off and running! Sprint through the volcanic wilds and leap the lava gaps — one tap to jump, perfect timing to survive. How far can you run?</p>
-<div class="lesson">🔥 Fire Safety: Never jump over real fire — get LOW, get OUT, and call 911!</div>
 <a class="play" href="/fire-world/game-02-blaze-runner.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #4 -->
-<div class="card">
+<div class="card" data-num="4" data-name="cinder&#x27;s ice rink chaos" data-tags="cinder">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #4</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Cinder's Ice Rink Chaos</h3>
 <p class="desc">Flick ice blocks across the rink to smash every crystal target! Drag back and release to launch. Unique mechanic: Flick ice blocks, smash targets.</p>
-<div class="lesson">🔥 Fire Safety: Ice and water cool things down — but NEVER touch ice on a real frozen lake without a grown-up!</div>
 <a class="play" href="/fire-world/games/game-04-cinders-ice-rink-chaos.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #5 -->
-<div class="card">
+<div class="card" data-num="5" data-name="lord inferno&#x27;s ballista siege" data-tags="inferno defense dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #5</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Lord Inferno's Ballista Siege</h3>
 <p class="desc">Drag to steer your sky-ballista! Auto-fires upward — dodge rock fortresses and blast them apart. Unique mechanic: Vertical shoot-em-up, dodge and blast.</p>
-<div class="lesson">🔥 Fire Safety: Boulders are dangerous — in real life, NEVER climb on rocky cliffs or near volcanoes!</div>
 <a class="play" href="/fire-world/games/game-05-lord-infernos-ballista-siege.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #6 -->
-<div class="card">
+<div class="card" data-num="6" data-name="blaze&#x27;s magma bounce" data-tags="blaze jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #6</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Blaze's Magma Bounce</h3>
 <p class="desc">Sumo showdown in a lava ring! Fling Blaze to bump rock golems out of the arena. Unique mechanic: Sumo arena, bump foes out.</p>
-<div class="lesson">🔥 Fire Safety: Cool water puts out heat — but if YOU get hurt, tell a grown-up right away!</div>
 <a class="play" href="/fire-world/games/game-06-blazes-magma-bounce.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #7 -->
-<div class="card">
+<div class="card" data-num="7" data-name="ruko&#x27;s turbo drift" data-tags="ruko racing">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #7</span>
 <h3>Ruko's Turbo Drift</h3>
 <p class="desc">Notes fall down 4 lanes — tap each lane when the note hits the target zone! Unique mechanic: 4-lane rhythm tap timing.</p>
-<div class="lesson">🔥 Fire Safety: Rhythm keeps you calm — in an emergency, slow breaths help you think clearly!</div>
 <a class="play" href="/fire-world/games/game-07-rukos-turbo-drift.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #8 -->
-<div class="card">
+<div class="card" data-num="8" data-name="sizzle&#x27;s spark jump" data-tags="sizzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #8</span>
 <h3>Sizzle's Spark Jump</h3>
 <p class="desc">Tilt or tap to steer — Sizzle auto-bounces ever higher! Grab stars, avoid the fall. Unique mechanic: Doodle-jump, bounce ever higher.</p>
-<div class="lesson">🔥 Fire Safety: Always look where you're going — climbing high places needs a grown-up nearby!</div>
 <a class="play" href="/fire-world/games/game-08-sizzles-spark-jump.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #9 -->
-<div class="card">
+<div class="card" data-num="9" data-name="ember cascade" data-tags="defense">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #9</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Ember Cascade</h3>
 <p class="desc">Tap glowing spots to place fire baby defenders! They auto-blast rock invaders down 3 lanes. Unique mechanic: Lane tower defense placement.</p>
-<div class="lesson">🔥 Fire Safety: Defending your home starts with prevention — check smoke alarms every month!</div>
 <a class="play" href="/fire-world/games/game-09-ember-cascade.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #10 -->
-<div class="card">
+<div class="card" data-num="10" data-name="caldera climb" data-tags="puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #10</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Caldera Climb</h3>
 <p class="desc">Swap adjacent ember blocks to match 3 or more! Score 2000 points in 30 moves. Unique mechanic: Match-3 swap and clear.</p>
-<div class="lesson">🔥 Fire Safety: Stacked things can topple — keep heavy items low and away from heat!</div>
 <a class="play" href="/fire-world/games/game-10-caldera-climb.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #11 -->
-<div class="card">
+<div class="card" data-num="11" data-name="magma trench dodge" data-tags="jump dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #11</span>
 <h3>Magma Trench Dodge</h3>
 <p class="desc">Tap to jump, double-tap for double jump! Dodge lava geysers and grab crystals. Unique mechanic: One-tap auto-runner jumper.</p>
-<div class="lesson">🔥 Fire Safety: Lava is VERY hot — in real life, stay far away from anything burning or melting!</div>
 <a class="play" href="/fire-world/games/game-11-magma-trench-dodge.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #12 -->
-<div class="card">
+<div class="card" data-num="12" data-name="volcanic pinball" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #12</span>
 <h3>Volcanic Pinball</h3>
 <p class="desc">Tap LEFT/RIGHT to flip! Keep the fireball alive, smash bumpers for combos. 3 balls! Unique mechanic: Pinball with flippers, 3 balls.</p>
-<div class="lesson">🔥 Fire Safety: Pinball is all fun — but real machines run on electricity. Never poke inside them!</div>
 <a class="play" href="/fire-world/games/game-12-volcanic-pinball.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #13 -->
-<div class="card">
+<div class="card" data-num="13" data-name="pyra prime defense" data-tags="defense jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #13</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Pyra Prime Defense</h3>
 <p class="desc">Drag the paddle to bounce the fireball! Break every rock brick — don't let it fall! Unique mechanic: Breakout paddle smashes bricks.</p>
-<div class="lesson">🔥 Fire Safety: Fast feet save lives — practice moving quickly AND safely to your family's meeting spot!</div>
 <a class="play" href="/fire-world/games/game-13-pyra-prime-defense.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #14 -->
-<div class="card">
+<div class="card" data-num="14" data-name="sparky speedway" data-tags="racing">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #14</span>
 <h3>Sparky Speedway</h3>
 <p class="desc">Steer the ember trail with d-pad or swipe! Eat crystals to grow, avoid yourself. Unique mechanic: Snake, eat and grow.</p>
-<div class="lesson">🔥 Fire Safety: Hold on tight in life too — always use handrails on stairs and playgrounds!</div>
 <a class="play" href="/fire-world/games/game-14-sparky-speedway.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #15 -->
-<div class="card">
+<div class="card" data-num="15" data-name="cinder&#x27;s melt-down" data-tags="cinder puzzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #15</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Cinder's Melt-Down</h3>
 <p class="desc">Flip two cards at a time — find all 8 matching fire baby pairs! Fewer flips wins. Unique mechanic: Memory match card pairs.</p>
-<div class="lesson">🔥 Fire Safety: Think before you act — having a plan keeps everyone safe, just like a fire escape plan!</div>
 <a class="play" href="/fire-world/games/game-15-cinders-melt-down.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #16 -->
-<div class="card">
+<div class="card" data-num="16" data-name="inferno drop" data-tags="inferno">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #16</span>
 <h3>Inferno Drop</h3>
 <p class="desc">Tap rock moles as they pop from lava holes! Golden moles = bonus. Never bonk fire babies! Unique mechanic: Whack-a-mole, tap fast.</p>
-<div class="lesson">🔥 Fire Safety: Heavy things fall fast — never stand under anything that could drop on you!</div>
 <a class="play" href="/fire-world/games/game-16-inferno-drop.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #17 -->
-<div class="card">
+<div class="card" data-num="17" data-name="flame sprint 2d" data-tags="dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #17</span>
 <h3>Flame Sprint 2D</h3>
 <p class="desc">Stack falling blocks into tallest tower Unique mechanic: Time drops, stack tower.</p>
-<div class="lesson">🔥 Fire Safety: Running from danger is smart — but always run TOWARD a grown-up or an exit, never deeper inside!</div>
 <a class="play" href="/fire-world/games/game-17-flame-sprint-2d.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #18 -->
-<div class="card">
+<div class="card" data-num="18" data-name="blaze&#x27;s thermal run" data-tags="blaze puzzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #18</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Blaze's Thermal Run</h3>
 <p class="desc">Drag Blaze through a procedurally generated volcanic maze to the exit before time runs out. Unique mechanic: Drag through maze.</p>
-<div class="lesson">🔥 Fire Safety: Pushing and shoving is never safe play — in games AND in real life, keep your hands to yourself!</div>
 <a class="play" href="/fire-world/games/game-18-blazes-thermal-run.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #19 -->
-<div class="card">
+<div class="card" data-num="19" data-name="ruko&#x27;s lava leap" data-tags="ruko puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #19</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Ruko's Lava Leap</h3>
 <p class="desc">Aim and shoot magma bubbles — match 3+ colors to pop them all. Unique mechanic: Aim, match 3 bubbles.</p>
-<div class="lesson">🔥 Fire Safety: Lava is pretend-hot, but real stoves are REALLY hot — never touch without a grown-up!</div>
 <a class="play" href="/fire-world/games/game-19-rukos-lava-leap.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #20 -->
-<div class="card">
+<div class="card" data-num="20" data-name="boulder&#x27;s fortress" data-tags="boulder defense jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #20</span>
 <h3>Boulder's Fortress</h3>
 <p class="desc">Tap to flap Boulder through crystal gates without touching them. Unique mechanic: Tap to fly gates.</p>
-<div class="lesson">🔥 Fire Safety: Climbing is fun on playgrounds — but never climb on stoves, heaters, or anything hot!</div>
 <a class="play" href="/fire-world/games/game-20-boulders-fortress.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #21 -->
-<div class="card">
+<div class="card" data-num="21" data-name="sizzle&#x27;s puzzle snap" data-tags="sizzle puzzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #21</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Sizzle's Puzzle Snap</h3>
 <p class="desc">Drag scattered pieces onto the silhouette to complete Sizzle's picture. Unique mechanic: Drag jigsaw pieces.</p>
-<div class="lesson">🔥 Fire Safety: Water puts out small fires! But firefighters handle big ones — always get help from a grown-up!</div>
 <a class="play" href="/fire-world/games/game-21-sizzles-target-pop.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #22 -->
-<div class="card">
+<div class="card" data-num="22" data-name="magma tap smash" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #22</span>
 <h3>Magma Tap Smash</h3>
 <p class="desc">Magma blocks are raining down — tap to smash each one before it hits the lava. Don't tap the friendly ice blocks! Unique mechanic: Tap to smash.</p>
-<div class="lesson">🔥 Fire Safety: Match the right tool to the job — water for small fires, but ALWAYS call 911 for big ones!</div>
 <a class="play" href="/fire-world/games/game-22-magma-block-breaker.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #23 -->
-<div class="card">
+<div class="card" data-num="23" data-name="crater catcher" data-tags="jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #23</span>
 <h3>Crater Catcher</h3>
 <p class="desc">Tap anywhere to boost the bouncing fireball — keep it out of the lava! Unique mechanic: One-tap bounce ball.</p>
-<div class="lesson">🔥 Fire Safety: Catch falling stars in games — but NEVER try to catch anything falling in real life! Let it drop and step back!</div>
 <a class="play" href="/fire-world/games/game-23-crater-catcher.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #24 -->
-<div class="card">
+<div class="card" data-num="24" data-name="ash storm survivor" data-tags="dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #24</span>
 <h3>Ash Storm Survivor</h3>
 <p class="desc">Drag your paddle to return the ember — beat the storm AI to 7 points. Unique mechanic: Paddle vs AI pong.</p>
-<div class="lesson">🔥 Fire Safety: In smoky air, stay LOW where the air is clearer — smoke rises, so crawl under it!</div>
 <a class="play" href="/fire-world/games/game-24-ash-storm-survivor.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #25 -->
-<div class="card">
+<div class="card" data-num="25" data-name="lava line draw" data-tags="racing">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #25</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Lava Line Draw</h3>
 <p class="desc">Steer your fire-mobile around the lava track for 3 laps. Unique mechanic: Steer 3-lap racer.</p>
-<div class="lesson">🔥 Fire Safety: Plan your escape route BEFORE there's an emergency — draw your family's fire escape map today!</div>
 <a class="play" href="/fire-world/games/game-25-lava-line-draw.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #26 -->
-<div class="card">
+<div class="card" data-num="26" data-name="pyra paddle battle" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #26</span>
 <h3>Pyra Paddle Battle</h3>
 <p class="desc">Drag the basket to catch crystals and avoid rocks. Unique mechanic: Catch falling items.</p>
-<div class="lesson">🔥 Fire Safety: Paddles are for ping-pong, not for hitting! Play safe and take turns!</div>
 <a class="play" href="/fire-world/games/game-26-pyra-paddle-battle.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #27 -->
-<div class="card">
+<div class="card" data-num="27" data-name="ember bounce 2d" data-tags="jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #27</span>
 <h3>Ember Bounce 2D</h3>
 <p class="desc">Drag to aim the cannon, release to fire at rock targets with wind physics. Unique mechanic: Angle cannon shots.</p>
-<div class="lesson">🔥 Fire Safety: Think before you act! A good plan keeps everyone safe — in games and in fire drills!</div>
 <a class="play" href="/fire-world/games/game-27-ember-bounce-2d.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #28 -->
-<div class="card">
+<div class="card" data-num="28" data-name="thermal tug-of-war" data-tags="puzzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #28</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Thermal Tug-of-War</h3>
 <p class="desc">Tap pipes to rotate and connect lava flow from volcano to crystal. Unique mechanic: Rotate pipe puzzle.</p>
-<div class="lesson">🔥 Fire Safety: Hot things melt ice and burn skin! Never touch stoves, ovens, or hot pans.</div>
 <a class="play" href="/fire-world/games/game-28-thermal-tug-of-war.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #29 -->
-<div class="card">
+<div class="card" data-num="29" data-name="blaze&#x27;s jump quest" data-tags="blaze puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #29</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Blaze's Jump Quest</h3>
 <p class="desc">Watch the lightning sequence, then repeat it by tapping in order. Unique mechanic: Repeat memory sequence.</p>
-<div class="lesson">🔥 Fire Safety: Climb UP to safety! In a fire, never use elevators — take the stairs.</div>
 <a class="play" href="/fire-world/games/game-29-blazes-jump-quest.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #30 -->
-<div class="card">
+<div class="card" data-num="30" data-name="ruko&#x27;s dash blitz" data-tags="ruko dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #30</span>
 <h3>Ruko's Dash Blitz</h3>
 <p class="desc">Pop rising lava balloons before they float away — but NEVER pop a Fire Baby balloon! 60 seconds of fast-tap combo action. Unique mechanic: Pop balloons, spare babies.</p>
-<div class="lesson">🔥 Fire Safety: Smoke rises! If there's smoke, stay LOW where the air is cleaner.</div>
 <a class="play" href="/fire-world/games/game-30-rukos-dash-blitz.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #31 -->
-<div class="card">
+<div class="card" data-num="31" data-name="boulder&#x27;s rampart" data-tags="boulder defense jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #31</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Boulder's Rampart</h3>
 <p class="desc">The platforms are rising! Guide Boulder down through the gaps — don't get squished at the top. Fall as deep as you can! Unique mechanic: Fall through rising gaps.</p>
-<div class="lesson">🔥 Fire Safety: Defend your home! Make sure smoke alarms work — test them monthly.</div>
 <a class="play" href="/fire-world/games/game-31-boulders-rampart.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #32 -->
-<div class="card">
+<div class="card" data-num="32" data-name="cinder&#x27;s glide" data-tags="cinder puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #32</span>
 <h3>Cinder's Glide</h3>
 <p class="desc">Guide the light beam to the crystal! Tap mirrors to rotate them 45° and bounce light through 5 hand-designed puzzles. Unique mechanic: Rotate mirrors, guide beam.</p>
-<div class="lesson">🔥 Fire Safety: Wind spreads fire fast! On windy days, be extra careful around anything hot.</div>
 <a class="play" href="/fire-world/games/game-32-cinders-glide.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #33 -->
-<div class="card">
+<div class="card" data-num="33" data-name="inferno aim" data-tags="inferno dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #33</span>
 <h3>Inferno Aim</h3>
 <p class="desc">Lord Inferno runs on his own — TAP to FLIP gravity! Run on the floor or the ceiling and dodge the spikes. Unique mechanic: Tap to flip gravity.</p>
-<div class="lesson">🔥 Fire Safety: Aim water at the BASE of a fire! That's where the flames feed.</div>
 <a class="play" href="/fire-world/games/game-33-inferno-aim.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #34 -->
-<div class="card">
+<div class="card" data-num="34" data-name="spark jump arcade" data-tags="jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #34</span>
 <h3>Spark Jump Arcade</h3>
 <p class="desc">TUG-OF-WAR against the Rock Golem! Mash the big button as fast as you can — pull the flag to your side. Best of 3! Unique mechanic: Mash button tug-of-war.</p>
-<div class="lesson">🔥 Fire Safety: Sparks fly! Keep a safe distance from campfires and fireworks.</div>
 <a class="play" href="/fire-world/games/game-34-spark-jump-arcade.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #35 -->
-<div class="card">
+<div class="card" data-num="35" data-name="lava moat defense" data-tags="puzzle defense">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #35</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Lava Moat Defense</h3>
 <p class="desc">Spot 5 differences between two volcano scenes! Tap the difference on either side. 90 seconds on the clock! Unique mechanic: Find 5 differences.</p>
-<div class="lesson">🔥 Fire Safety: A moat of water stops fire! In real life, close doors to slow fire spread.</div>
 <a class="play" href="/fire-world/games/game-35-lava-moat-defense.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #36 -->
-<div class="card">
+<div class="card" data-num="36" data-name="magma drop physics" data-tags="puzzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #36</span>
 <h3>Magma Drop Physics</h3>
 <p class="desc">Slide the tiles to rebuild the Fire Baby picture! Tap a tile next to the empty space. Fewest moves wins! Unique mechanic: Slide tiles, complete picture.</p>
-<div class="lesson">🔥 Fire Safety: Molten rock is 2000°F! Real volcanoes are beautiful but stay far away.</div>
 <a class="play" href="/fire-world/games/game-36-magma-drop-physics.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #37 -->
-<div class="card">
+<div class="card" data-num="37" data-name="volcanic stack smash" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #37</span>
 <h3>Volcanic Stack Smash</h3>
 <p class="desc">Shooting gallery! Tap the rock targets to smash them — but NEVER shoot a Fire Baby! 45 seconds! Unique mechanic: Shoot rocks, spare babies.</p>
-<div class="lesson">🔥 Fire Safety: Volcanoes are dangerous! If one erupts near you, follow evacuation orders immediately.</div>
 <a class="play" href="/fire-world/games/game-37-volcanic-stack-smash.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #38 -->
-<div class="card">
+<div class="card" data-num="38" data-name="fire baby rally" data-tags="racing jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #38</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Fire Baby Rally</h3>
 <p class="desc">HOLD to thrust UP — RELEASE to fall! Fly Cinder through the crystal caves without touching the walls! Unique mechanic: Hold to thrust, release.</p>
-<div class="lesson">🔥 Fire Safety: Ropes save lives! Firefighters use ropes and ladders — always have an escape route.</div>
 <a class="play" href="/fire-world/games/game-38-fire-baby-rally.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #39 -->
-<div class="card">
+<div class="card" data-num="39" data-name="caldera bounce" data-tags="puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #39</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Caldera Bounce</h3>
 <p class="desc">Guide the marble through 3 mazes! Drag anywhere — the marble rolls toward your finger. Reach the green goal! Unique mechanic: Drag to steer marble.</p>
-<div class="lesson">🔥 Fire Safety: Think ahead! Plan TWO ways out of every room before you need them.</div>
 <a class="play" href="/fire-world/games/game-39-caldera-bounce.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #40 -->
-<div class="card">
+<div class="card" data-num="40" data-name="sizzle&#x27;s spark run" data-tags="sizzle">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #40</span>
 <h3>Sizzle's Spark Run</h3>
 <p class="desc">Tap ONE ember to set it off — its blast triggers nearby embers in a chain reaction! Chain them ALL. 6 levels! Unique mechanic: One tap chain reaction.</p>
-<div class="lesson">🔥 Fire Safety: Never throw things at others — aim only at safe targets, and never play with real fire!</div>
 <a class="play" href="/fire-world/games/game-40-sizzles-spark-run.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #41 -->
-<div class="card">
+<div class="card" data-num="41" data-name="blaze&#x27;s inferno roll" data-tags="blaze inferno">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #41</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Blaze's Inferno Roll</h3>
 <p class="desc">A block swings at the top — tap DROP at the perfect moment to stack it! Perfect drops build combos. How high? Unique mechanic: Time the block drop.</p>
-<div class="lesson">🔥 Fire Safety: Lava is always pretend in games — real hot liquids cause serious burns. Never touch!</div>
 <a class="play" href="/fire-world/games/game-41-blazes-inferno-roll.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #42 -->
-<div class="card">
+<div class="card" data-num="42" data-name="ruko&#x27;s speed trap" data-tags="ruko racing jump dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #42</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Ruko's Speed Trap</h3>
 <p class="desc">Ruko runs on his own — you handle the action! SHOOT fire bolts at rock enemies and JUMP over lava pits! Unique mechanic: Auto-run, shoot, jump.</p>
-<div class="lesson">🔥 Fire Safety: Playful bumping is for games only — never push or shove real people!</div>
 <a class="play" href="/fire-world/games/game-42-rukos-speed-trap.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #43 -->
-<div class="card">
+<div class="card" data-num="43" data-name="boulder&#x27;s blockade" data-tags="boulder defense">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #43</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Boulder's Blockade</h3>
 <p class="desc">Sneak past golem vision cones to reach the exit portal across 5 levels. Unique mechanic: Stealth vision-cone sneaking.</p>
-<div class="lesson">🔥 Fire Safety: Timing matters! When the smoke alarm beeps, act FAST — get out right away!</div>
 <a class="play" href="/fire-world/games/game-43-boulders-blockade.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #44 -->
-<div class="card">
+<div class="card" data-num="44" data-name="cinder&#x27;s slide" data-tags="cinder">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #44</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Cinder's Slide</h3>
 <p class="desc">Run Cinder's lava diner — tap the correct dish buttons in order before customers lose patience. Unique mechanic: Order-matching restaurant rush.</p>
-<div class="lesson">🔥 Fire Safety: Slippery floors are dangerous — walk, don't run, on wet surfaces!</div>
 <a class="play" href="/fire-world/games/game-44-cinders-slide.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #45 -->
-<div class="card">
+<div class="card" data-num="45" data-name="lord inferno&#x27;s strike" data-tags="inferno dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #45</span>
 <h3>Lord Inferno's Strike</h3>
 <p class="desc">Burrow through dirt to collect 10 crystals while boulders fall when unsupported. Unique mechanic: Dig tunnels, dodge boulders.</p>
-<div class="lesson">🔥 Fire Safety: Firefighters are the heroes who battle real blazes — always let grown-ups handle fire!</div>
 <a class="play" href="/fire-world/games/game-45-lord-infernos-strike.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #46 -->
-<div class="card">
+<div class="card" data-num="46" data-name="magma jump 2d" data-tags="jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #46</span>
 <h3>Magma Jump 2D</h3>
 <p class="desc">Cut swinging ropes at the perfect moment to swing Blaze to the next rope or the safe nest. Unique mechanic: Rope-cut pendulum timing.</p>
-<div class="lesson">🔥 Fire Safety: Sorting and organizing keeps things safe — keep matches sorted away from kids!</div>
 <a class="play" href="/fire-world/games/game-46-magma-jump-2d.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #47 -->
-<div class="card">
+<div class="card" data-num="47" data-name="pyra prime dash" data-tags="puzzle dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #47</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Pyra Prime Dash</h3>
 <p class="desc">Place dominoes to build a chain from start to the golden crystal, then topple them. Unique mechanic: Domino chain planning.</p>
-<div class="lesson">🔥 Fire Safety: Smoke is dangerous — if you see smoke, get LOW under it and get OUT!</div>
 <a class="play" href="/fire-world/games/game-47-pyra-prime-dash.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #48 -->
-<div class="card">
+<div class="card" data-num="48" data-name="ash heap hero" data-tags="jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #48</span>
 <h3>Ash Heap Hero</h3>
 <p class="desc">Climb the frozen shaft by cracking ice blocks overhead while dodging falling icicles. Unique mechanic: Ice-block climbing ascent.</p>
-<div class="lesson">🔥 Fire Safety: Teamwork saves lives! In an emergency, help each other get to safety!</div>
 <a class="play" href="/fire-world/games/game-48-ash-heap-hero.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #49 -->
-<div class="card">
+<div class="card" data-num="49" data-name="thermal track" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #49</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Thermal Track</h3>
 <p class="desc">Steer Sizzle's parachute through wind gusts to land on the target pad across 3 drops. Unique mechanic: Parachute steering landing.</p>
-<div class="lesson">🔥 Fire Safety: Running fast is fun in games — but in a real fire, WALK quickly and never push!</div>
 <a class="play" href="/fire-world/games/game-49-thermal-track.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #50 -->
-<div class="card">
+<div class="card" data-num="50" data-name="ember bounce master" data-tags="puzzle jump">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #50</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Ember Bounce Master</h3>
 <p class="desc">Copy the target melody on a step-sequencer grid and play your ember composition. Unique mechanic: Step-sequencer pattern copy.</p>
-<div class="lesson">🔥 Fire Safety: Ropes and swings are playground fun — never swing near fires or hot stoves!</div>
 <a class="play" href="/fire-world/games/game-50-ember-bounce-master.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #51 -->
-<div class="card">
+<div class="card" data-num="51" data-name="volcanic target" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #51</span>
 <h3>Volcanic Target</h3>
 <p class="desc">Time your dart throws at the spinning volcano target — no flicking, pure timing. Unique mechanic: Timed dart throws.</p>
-<div class="lesson">🔥 Fire Safety: Water cools fire! But only grown-ups and firefighters should battle real flames!</div>
 <a class="play" href="/fire-world/games/game-51-volcanic-target.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #52 -->
-<div class="card">
+<div class="card" data-num="52" data-name="lava rush arcade" data-tags="jump dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #52</span>
 <h3>Lava Rush Arcade</h3>
 <p class="desc">Hold to stroke upstream, release to glide — manage stamina and dodge rocks. Unique mechanic: Stamina swim dodge.</p>
-<div class="lesson">🔥 Fire Safety: Throwing is for safe targets only — never aim at people or animals!</div>
 <a class="play" href="/fire-world/games/game-52-lava-rush-arcade.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #53 -->
-<div class="card">
+<div class="card" data-num="53" data-name="flame drop physics" data-tags="">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #53</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Flame Drop Physics</h3>
 <p class="desc">Drag the claw to aim, drop it to grab crystal prizes from the moving conveyor. Unique mechanic: Crane claw positioning.</p>
-<div class="lesson">🔥 Fire Safety: Falling is scary — always use handrails on stairs and never play near cliffs!</div>
 <a class="play" href="/fire-world/games/game-53-flame-drop-physics.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #54 -->
-<div class="card">
+<div class="card" data-num="54" data-name="blaze&#x27;s zenith" data-tags="blaze">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #54</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Blaze's Zenith</h3>
 <p class="desc">Pass the burning ember before the fuse burns out — don't get caught holding it! Unique mechanic: Hot potato vs AI.</p>
-<div class="lesson">🔥 Fire Safety: Bumping is for games — in real life, keep your hands to yourself!</div>
 <a class="play" href="/fire-world/games/game-54-blazes-zenith.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #55 -->
-<div class="card">
+<div class="card" data-num="55" data-name="ruko&#x27;s final dash" data-tags="ruko dash">
 <div class="thumb">🔥</div>
 <div class="body">
 <span class="num">GAME #55</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Ruko's Final Dash</h3>
 <p class="desc">The epic finale! Defeat 5 unique mini-bosses with totally different attack patterns. Unique mechanic: Five-boss rush gauntlet.</p>
-<div class="lesson">🔥 Fire Safety: Legends stay safe! Know your escape plan, test alarms monthly, and NEVER play with fire!</div>
 <a class="play" href="/fire-world/games/game-55-rukos-final-dash.html">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #56 -->
-<div class="card">
+<div class="card" data-num="56" data-name="tristan&#x27;s dark knight rescue" data-tags="defense jump special">
 <div class="thumb">⚔️</div>
 <div class="body">
 <span class="num">GAME #56</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Tristan's Dark Knight Rescue</h3>
 <p class="desc">Prince Tristan transforms into a Dark Knight! Battle through 15 fortress stages with sword combos, wall-climbing, and epic boss fights to rescue Princess Trinity!</p>
-<div class="lesson">🔥 Fire Safety: If your clothes catch fire — STOP, DROP, and ROLL!</div>
 <a class="play" href="/fire-world/tristans-dark-knight-rescue/">▶ Play Now</a>
 </div>
 </div>
 <!-- GAME #57 -->
-<div class="card">
+<div class="card" data-num="57" data-name="trinity&#x27;s holy lightning rescue" data-tags="jump special">
 <div class="thumb">⚡</div>
 <div class="body">
 <span class="num">GAME #57</span>
 <span class="badge">🆕 More levels!</span>
 <h3>Trinity's Holy Lightning Rescue</h3>
 <p class="desc">Princess Trinity wields holy chain-lightning! Glide through 15 celestial tower stages, blast storm wisps, and free Prince Tristan from his crystal cage!</p>
-<div class="lesson">🔥 Fire Safety: If you see fire, tell a grown-up right away — never try to fight it yourself!</div>
 <a class="play" href="/fire-world/trinitys-holy-lightning-rescue/">▶ Play Now</a>
+</div>
+</div>
+<!-- GAME #60 — FIRE BABYS ARENA (1v1 fighting) -->
+<div class="card" data-num="60" data-name="fire babys arena" data-tags="special">
+<div class="thumb">🥊</div>
+<div class="body">
+<span class="num">GAME #60</span>
+<span class="badge">🆕 NEW! 1v1 FIGHTING</span>
+<h3>Fire Babys Arena</h3>
+<p class="desc">1v1 fighting in the Caldera Colosseum! All 12 heroes transform into battle armor — arcade ladder, couch versus, and online 1v1 by room code. Your Locker gear is your style; skill wins the day!</p>
+<a class="play" href="/fire-world/games/game-60-fire-babys-arena.html">▶ Play Now</a>
+</div>
 </div>
 </div>
 </div>
@@ -739,7 +863,396 @@ footer{background:rgba(0,0,0,.25);border-top:2px solid rgba(255,106,26,.3);color
 
 <footer>
 <p>the future is BLAZING FOR FIRE BABYS 🔥</p>
-<p style="font-size:13px;opacity:.7;margin-top:8px;">All games by Jman350Z &amp; fire team · Safe fun for everyone · Not part of the creator competition</p>
+<p style="font-size:13px;opacity:.7;margin-top:8px;">All games by Jman350Z &amp; fire team · Safe fun for everyone</p>
 </footer>
+<script>
+/* ============================================================
+   Fire Babys MAIN-MENU SHOPS (Jeff, 2026-10-21)
+   - Playing is ALWAYS FREE. Coins are never charged to play,
+     enter, retry, or unlock anything. Coins are spent ONLY in
+     the shops.
+   - GAME SHOP: shares the 3D Arena's exact economy keys
+     (fb_coins / fb_gems / fb_inventory) so there is ONE balance
+     and ONE inventory everywhere. Catalog ids/prices mirror the
+     3D Store's coin-priced items (3d.html FB_ARMOR /
+     FB_STORE_WEAPONS / FB_EMOTES). Star Charms (formerly Power
+     Boosts) are stored in fb_shop_boost as a collected total.
+     Their Arena (game-60) damage effect was REMOVED on
+     2026-10-22 under Jeff's no-power law — they are sold as
+     collectible flair, never as power.
+   - REAL-WORLD SHOP: static merch cards linking out to the
+     Fourthwall storefront. Real money only.
+   ============================================================ */
+(function(){
+'use strict';
+function li(k,fb){try{var v=parseInt(localStorage.getItem(k),10);if(!isNaN(v)&&v>=0)return v;}catch(e){}return fb;}
+function lj(k,fb){try{var v=localStorage.getItem(k);if(v)return JSON.parse(v);}catch(e){}return JSON.parse(JSON.stringify(fb));}
+/* STARTER KIT (Jeff, 2026-10-21) — mirrors the auth Worker's kit:
+   every locker starts FREE with a school outfit (shirt + pants AND
+   shirt + shorts; pants equipped by default) and a battle starter set
+   (bronze armor, wooden sword, bronze helmet, bronze boots,
+   sunglasses). Ensured on load exactly like the server ensures it on
+   /locker/get: granted once, never duplicated, never lost. */
+var FB_STARTER_KIT={outfits:['school_outfit_pants','school_outfit_shorts'],armor:['starter_bronze_armor'],weapons:['wooden_sword'],helmets:['starter_bronze_helmet'],boots:['starter_bronze_boots'],accessories:['starter_sunglasses']};
+var FB_LOCKER_CATS=['armor','weapons','emotes','outfits','helmets','boots','accessories'];
+var FB_EQUIP_FIELD={armor:'eqArmor',weapons:'eqWeapon',emotes:'favEmote',outfits:'eqOutfit',helmets:'eqHelmet',boots:'eqBoots',accessories:'eqAccessory'};
+var FB_EQUIP_DEFAULT={eqArmor:null,eqWeapon:'stick',favEmote:'wave',eqOutfit:'school_outfit_pants',eqHelmet:null,eqBoots:null,eqAccessory:null};
+function fbStarterInv(){return {armor:['starter_bronze_armor'],weapons:['stick','wooden_sword'],emotes:['wave'],outfits:['school_outfit_pants','school_outfit_shorts'],helmets:['starter_bronze_helmet'],boots:['starter_bronze_boots'],accessories:['starter_sunglasses'],eqArmor:null,eqWeapon:'stick',favEmote:'wave',eqOutfit:'school_outfit_pants',eqHelmet:null,eqBoots:null,eqAccessory:null};}
+function fbEnsureStarterKit(inv){
+  if(!inv||typeof inv!=='object')return fbStarterInv();
+  var starters={armor:['starter_bronze_armor'],weapons:['stick','wooden_sword'],emotes:['wave'],outfits:FB_STARTER_KIT.outfits,helmets:FB_STARTER_KIT.helmets,boots:FB_STARTER_KIT.boots,accessories:FB_STARTER_KIT.accessories};
+  FB_LOCKER_CATS.forEach(function(cat){
+    if(!Array.isArray(inv[cat]))inv[cat]=[];
+    starters[cat].forEach(function(id){if(inv[cat].indexOf(id)<0)inv[cat].unshift(id);});
+    var f=FB_EQUIP_FIELD[cat];
+    if(inv[cat].indexOf(inv[f])<0)inv[f]=FB_EQUIP_DEFAULT[f];
+  });
+  return inv;
+}
+var DEF_INV=fbStarterInv();
+var S={coins:li('fb_coins',0),gems:li('fb_gems',0),inv:lj('fb_inventory',null)||JSON.parse(JSON.stringify(DEF_INV))};
+if(!Array.isArray(S.inv.armor))S.inv=JSON.parse(JSON.stringify(DEF_INV));
+S.inv=fbEnsureStarterKit(S.inv);
+function sv(){try{localStorage.setItem('fb_coins',String(S.coins));localStorage.setItem('fb_gems',String(S.gems));localStorage.setItem('fb_inventory',JSON.stringify(S.inv));}catch(e){}}
+/* identical one-time economy-v2 migration to the 3D Arena (100c + 5g starter) */
+try{if(!localStorage.getItem('fb_economy_v2')){S.coins=100+S.gems;S.gems=5;localStorage.setItem('fb_economy_v2','1');sv();}}catch(e){}
+function shopBoost(){var b=parseFloat(localStorage.getItem('fb_shop_boost'));if(isNaN(b)||b<0)b=0;return Math.min(b,0.25);}
+var ARMOR=[
+ {id:'wooden_shield',n:'Wooden Shield',p:50,e:'🛡️',d:'Sturdy oak ring'},
+ {id:'iron_helm',n:'Iron Helm',p:100,e:'⛑️',d:'Clanky head cap'},
+ {id:'steel_boots',n:'Steel Boots',p:150,e:'🥾',d:'Heavy stompers'},
+ {id:'lava_gauntlets',n:'Lava Gauntlets',p:200,e:'🧤',d:'Molten fists'},
+ {id:'knight_armor',n:'Knight Armor',p:300,e:'⚔️',d:'Full plate suit'}];
+var WEAPONS=[
+ {id:'wooden_sword',n:'Wooden Sword',p:75,e:'🪵',d:'Practice blade'},
+ {id:'stone_club',n:'Stone Club',p:100,e:'🪨',d:'Heavy rock basher'},
+ {id:'fire_baton',n:'Fire Baton',p:150,e:'🔥',d:'Crackling baton'},
+ {id:'iron_axe',n:'Iron Axe',p:250,e:'🪓',d:'Sharp chopper'}];
+var EMOTES=[
+ {id:'dance',n:'Dance',p:50,e:'💃',d:'Celebration groove'},
+ {id:'spin',n:'Spin',p:100,e:'🌀',d:'Twirl move'},
+ {id:'clap',n:'Clap',p:150,e:'👏',d:'Round of applause'},
+ {id:'flip',n:'Flip',p:200,e:'🤸',d:'Big air flip'}];
+var BOOSTS=[
+ {id:'boost1',add:0.01,n:'Star Charm · Bronze',p:100,e:'🌟',d:'Collectible star charm — pure flair for your Chest'},
+ {id:'boost25',add:0.025,n:'Star Charm · Silver',p:250,e:'🌟',d:'Collectible star charm — pure flair for your Chest'},
+ {id:'boost5',add:0.05,n:'Star Charm · Gold',p:500,e:'🌟',d:'Collectible star charm — pure flair for your Chest'}];
+var confirmKey=null,confirmTimer=null;
+function toast(msg){var t=document.getElementById('fbshop-toast');if(!t){t=document.createElement('div');t.id='fbshop-toast';document.body.appendChild(t);}t.textContent=msg;t.className='show';clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2800);}
+function isOwned(cat,id){return S.inv[cat].indexOf(id)>=0;}
+function isEq(cat,id){return (cat==='armor'&&S.inv.eqArmor===id)||(cat==='weapons'&&S.inv.eqWeapon===id)||(cat==='emotes'&&S.inv.favEmote===id);}
+function render(){
+  var bal='🪙 '+S.coins+' · 💎 '+S.gems;
+  var nb=document.getElementById('fbshop-navbal');if(nb)nb.textContent=bal;
+  var sb=document.getElementById('fbshop-bal');if(sb)sb.textContent=bal;
+  var gs=document.getElementById('fbshop-gatestatus');
+  if(gs){var u=0;try{u=parseInt(localStorage.getItem('fb_gate_unlock_until'),10)||0;}catch(e){}
+    if(u>Date.now()){var ms=u-Date.now(),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);gs.textContent='🔓 All games unlocked — '+h+'h '+(m<10?'0':'')+m+'m left. No math checks until then!';}
+    else gs.textContent='🔒 Every game opens with a quick Math Check. Solve the 5-problem challenge inside any game to unlock ALL games for 24 hours.';}
+  var host=document.getElementById('fbshop-items');if(!host)return;
+  var h='';
+  function sec(title,items,cat,fx){
+    h+='<div class="shopsec-title">'+title+'</div><div class="shopgrid">';
+    items.forEach(function(it){
+      var key=cat+':'+it.id,label,cls='';
+      if(confirmKey===key){label='Tap again to confirm — 🪙 '+it.p;cls='confirm';}
+      else if(isOwned(cat,it.id)){label=isEq(cat,it.id)?'✅ Equipped':'Equip';cls='owned';}
+      else label='Buy — 🪙 '+it.p;
+      h+='<div class="shopitem"><div class="em">'+it.e+'</div><div class="nm">'+it.n+'</div><div class="ds">'+it.d+'</div><div class="fx">'+fx+'</div><button type="button" class="buybtn '+cls+'" data-cat="'+cat+'" data-id="'+it.id+'">'+label+'</button></div>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="shopsec-title">🌟 STAR CHARMS — collectible flair, collect up to +25 shine</div><div class="shopgrid">';
+  BOOSTS.forEach(function(it){
+    var key='boosts:'+it.id,label,cls='',dis='';
+    if(shopBoost()>=0.25){label='MAXED ✅';cls='owned';dis=' disabled';}
+    else if(confirmKey===key){label='Tap again to confirm — 🪙 '+it.p;cls='confirm';}
+    else label='Buy — 🪙 '+it.p;
+    h+='<div class="shopitem"><div class="em">'+it.e+'</div><div class="nm">'+it.n+'</div><div class="ds">'+it.d+'</div><div class="fx">Pure flair — collectible shine for your Chest</div><button type="button" class="buybtn '+cls+'" data-cat="boosts" data-id="'+it.id+'"'+dis+'>'+label+'</button></div>';
+  });
+  h+='</div>';
+  sec('🛡️ ARMOR',ARMOR,'armor','Worn by your Fire Baby in the 3D Arena');
+  sec('🗡️ WEAPONS',WEAPONS,'weapons','Your Fire Baby carries it in the 3D Arena');
+  sec('🎭 EMOTES',EMOTES,'emotes','Play it in the 3D Arena');
+  host.innerHTML=h;
+  var bl=document.getElementById('fbshop-boostline');
+  if(bl){var bp=Math.round(shopBoost()*1000)/10;bl.textContent=bp>0?('Your Star Charms: +'+bp+' shine collected in your Chest — pure flair.'):'';}
+}
+function findItem(cat,id){
+  var list=cat==='armor'?ARMOR:(cat==='weapons'?WEAPONS:(cat==='emotes'?EMOTES:BOOSTS));
+  for(var i=0;i<list.length;i++)if(list[i].id===id)return list[i];
+  return null;
+}
+function armConfirm(key){confirmKey=key;clearTimeout(confirmTimer);confirmTimer=setTimeout(function(){confirmKey=null;render();},3000);render();}
+document.addEventListener('click',function(ev){
+  var b=ev.target;while(b&&!(b.getAttribute&&b.getAttribute('data-cat')))b=b.parentNode;
+  if(!b||!b.getAttribute)return;
+  var cat=b.getAttribute('data-cat'),id=b.getAttribute('data-id'),it=findItem(cat,id);
+  if(!it)return;
+  if(cat==='boosts'){
+    if(shopBoost()>=0.25){toast('🌟 Your Star Charm collection is complete at +25 shine!');return;}
+    if(S.coins<it.p){toast('🪙 Not enough coins! Play games to earn more.');return;}
+    if(confirmKey==='boosts:'+id){
+      confirmKey=null;
+      if(window.FBLocker&&window.FBLocker.serverMode()){window.FBLocker.buy('boosts',id);render();}
+      else{
+        S.coins-=it.p;
+        var nb2=Math.min(0.25,shopBoost()+it.add);
+        try{localStorage.setItem('fb_shop_boost',String(nb2));}catch(e){}
+        sv();render();toast('🌟 '+it.n+' bought! It shines in your Chest.');
+      }
+    }else armConfirm('boosts:'+id);
+    return;
+  }
+  if(isOwned(cat,id)){
+    if(window.FBLocker&&window.FBLocker.serverMode()){window.FBLocker.equip(cat,id);render();return;}
+    if(cat==='armor')S.inv.eqArmor=(S.inv.eqArmor===id)?null:id;
+    else if(cat==='weapons')S.inv.eqWeapon=id;
+    else if(cat==='emotes')S.inv.favEmote=id;
+    sv();render();toast(isEq(cat,id)?('✅ Equipped: '+it.n):'Unequipped.');
+    return;
+  }
+  if(S.coins<it.p){toast('🪙 Not enough coins! Play games to earn more.');return;}
+  if(confirmKey===cat+':'+id){
+    confirmKey=null;
+    if(window.FBLocker&&window.FBLocker.serverMode()){window.FBLocker.buy(cat,id);render();}
+    else{
+      S.coins-=it.p;S.inv[cat].push(id);
+      if(cat==='armor')S.inv.eqArmor=id;else if(cat==='weapons')S.inv.eqWeapon=id;else if(cat==='emotes')S.inv.favEmote=id;
+      sv();render();toast('🎉 You got: '+it.n+'!');
+    }
+  }else armConfirm(cat+':'+id);
+});
+window.FBShop={
+  refresh:function(){
+    S.coins=li('fb_coins',0);S.gems=li('fb_gems',0);
+    var inv2=lj('fb_inventory',null);if(inv2&&Array.isArray(inv2.armor))S.inv=inv2;
+    render();
+  },
+  snapshot:function(){
+    var lk={coins:S.coins,gems:S.gems,inv:JSON.parse(JSON.stringify(S.inv)),shopBoost:shopBoost()};
+    try{var b=JSON.parse(localStorage.getItem('fb_bronze_armor_v1')||'{}');var pc=(b&&b.pieces)||{};
+      lk.maxStage=pc.chestplate?20:pc.helmet?15:pc.gauntlets?10:pc.greaves?5:0;}catch(e){lk.maxStage=0;}
+    try{lk.seasonClaimed=JSON.parse(localStorage.getItem('fbSeason1_claimed')||'[]');if(!Array.isArray(lk.seasonClaimed))lk.seasonClaimed=[];}catch(e){lk.seasonClaimed=[];}
+    try{lk.seasonBadges=JSON.parse(localStorage.getItem('fbSeason1_badges')||'[]');if(!Array.isArray(lk.seasonBadges))lk.seasonBadges=[];}catch(e){lk.seasonBadges=[];}
+    try{lk.silverUnlocked=(localStorage.getItem('fbSilver_unlocked')==='1'||localStorage.getItem('fb_silver_armor_v1')==='1');}catch(e){lk.silverUnlocked=false;}
+    try{lk.armoryUnlocked=JSON.parse(localStorage.getItem('fbWeapons_unlocked')||'[]');if(!Array.isArray(lk.armoryUnlocked))lk.armoryUnlocked=[];}catch(e){lk.armoryUnlocked=[];}
+    return lk;
+  }
+};
+render();
+})();
+</script>
+<script>
+/* ============================================================
+   Fire Babys PLAYER LOCKER client (Jeff, 2026-10-21)
+   ONE locker per PLAYER (account) — never per character. The
+   locker lives server-side in the auth Worker's profile record
+   (POST /locker/*), linked to the player's account, so it can
+   never be lost with a device. localStorage stays as the local
+   cache the games read. First signed-in load merges local
+   progress INTO the locker (nothing is wiped); after that the
+   server is the source of truth for signed-in purchases.
+   Not signed in? The locker prompts sign-in — playing and
+   guest shopping on this device work exactly as before.
+   ============================================================ */
+(function(){
+'use strict';
+var API='https://fire-babys-auth.jeffpruden288.workers.dev';
+var mode=false; /* true once the server locker is driving */
+function token(){try{return localStorage.getItem('fb_auth_token');}catch(e){return null;}}
+function $(id){return document.getElementById(id);}
+function toast(msg){var t=$('fbshop-toast');if(!t){t=document.createElement('div');t.id='fbshop-toast';document.body.appendChild(t);}t.textContent=msg;t.className='show';clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},3000);}
+function post(path,body){
+  body=body||{};body.token=token();
+  return fetch(API+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(j){j._status=r.status;return j;});});
+}
+var NAMES={wooden_shield:'Wooden Shield',iron_helm:'Iron Helm',steel_boots:'Steel Boots',lava_gauntlets:'Lava Gauntlets',knight_armor:'Knight Armor',
+  stick:'Stick',wooden_sword:'Wooden Sword',stone_club:'Stone Club',fire_baton:'Fire Baton',iron_axe:'Iron Axe',
+  wave:'Wave',dance:'Dance',spin:'Spin',clap:'Clap',flip:'Flip',
+  school_outfit_pants:'School Outfit — Shirt & Pants',school_outfit_shorts:'School Outfit — Shirt & Shorts',
+  starter_bronze_armor:'Bronze Armor',starter_bronze_helmet:'Bronze Helmet',starter_bronze_boots:'Bronze Boots',starter_sunglasses:'Sunglasses'};
+var EMOJI={wooden_shield:'🛡️',iron_helm:'⛑️',steel_boots:'🥾',lava_gauntlets:'🧤',knight_armor:'⚔️',
+  stick:'🌿',wooden_sword:'🪵',stone_club:'🪨',fire_baton:'🔥',iron_axe:'🪓',
+  wave:'👋',dance:'💃',spin:'🌀',clap:'👏',flip:'🤸',
+  school_outfit_pants:'🎒',school_outfit_shorts:'🎒',
+  starter_bronze_armor:'🛡️',starter_bronze_helmet:'🪖',starter_bronze_boots:'🥾',starter_sunglasses:'🕶️'};
+function adopt(lk){
+  try{
+    localStorage.setItem('fb_coins',String(lk.coins));
+    localStorage.setItem('fb_gems',String(lk.gems));
+    localStorage.setItem('fb_inventory',JSON.stringify(lk.inv));
+    localStorage.setItem('fb_shop_boost',String(lk.shopBoost||0));
+    localStorage.setItem('fb_economy_v2','1');
+  }catch(e){}
+  if(window.FBShop)window.FBShop.refresh();
+  renderLocker(lk);
+}
+function chips(ids,eqId){
+  if(!ids||!ids.length)return '<span style="color:#d8b89a;font-size:13px">Nothing yet — earn and buy to fill your locker!</span>';
+  return ids.map(function(id){
+    return '<span class="balpill" style="margin:0 6px 6px 0">'+(EMOJI[id]||'🎁')+' '+(NAMES[id]||id)+(id===eqId?' ✅ equipped':'')+'</span>';
+  }).join('');
+}
+function renderLocker(lk){
+  var el=$('fb-locker-body');if(!el)return;
+  var look={c:0,e:'happy',h:'wild',a:'none'};
+  try{var l2=JSON.parse(localStorage.getItem('fb_customization')||'null');if(l2)look=l2;}catch(e){}
+  var COLORS=['Ember Red','Blaze Orange','Sunny Yellow','Aqua Blue','Mint Green','Grape Purple','Bubble Pink','Coal Black'];
+  var h='<p class="boxsub">🧍 Playing as your <b>'+(COLORS[look.c]||'Ember Red')+'</b> Fire Baby — every item below works for <b>every character</b> you play.</p>';
+  h+='<div class="shopsec-title">🌟 STAR CHARMS</div><p class="boxsub">Star Charms: <b>+'+(Math.round((lk.shopBoost||0)*1000)/10)+' shine</b> collected (from the Game Shop above) — collectible flair, pure style.</p>';
+  h+='<div class="shopsec-title">🎒 OUTFITS</div><div>'+chips(lk.inv.outfits,lk.inv.eqOutfit)+'</div>';
+  h+='<div class="shopsec-title">🛡️ ARMOR</div><div>'+chips(lk.inv.armor,lk.inv.eqArmor)+'</div>';
+  h+='<div class="shopsec-title">🪖 HELMETS</div><div>'+chips(lk.inv.helmets,lk.inv.eqHelmet)+'</div>';
+  h+='<div class="shopsec-title">🥾 BOOTS</div><div>'+chips(lk.inv.boots,lk.inv.eqBoots)+'</div>';
+  h+='<div class="shopsec-title">🗡️ WEAPONS</div><div>'+chips(lk.inv.weapons,lk.inv.eqWeapon)+'</div>';
+  h+='<div class="shopsec-title">🕶️ ACCESSORIES</div><div>'+chips(lk.inv.accessories,lk.inv.eqAccessory)+'</div>';
+  h+='<div class="shopsec-title">🎭 EMOTES</div><div>'+chips(lk.inv.emotes,lk.inv.favEmote)+'</div>';
+  h+='<div class="shopsec-title">🏆 COLLECTIBLES — earned in the games</div><div>';
+  if(lk.collectibles&&lk.collectibles.length){
+    var groups={};
+    lk.collectibles.forEach(function(c){(groups[c.group]=groups[c.group]||[]).push(c);});
+    Object.keys(groups).forEach(function(g){
+      h+='<p class="boxsub" style="margin-bottom:4px"><b>'+g+':</b> '+groups[g].map(function(c){return c.name;}).join(' · ')+'</p>';
+    });
+  }else h+='<span style="color:#d8b89a;font-size:13px">No collectibles yet — beat 2D stages, finish season tiers, and complete tasks to earn them!</span>';
+  h+='</div>';
+  h+='<p class="boxsub" style="margin-top:12px">☁️ Saved to your account — sign in on any device and your locker is there.</p>';
+  el.innerHTML=h;
+}
+function friendly(err){
+  return {insufficient_coins:'🪙 Not enough coins! Play games to earn more.',
+    already_owned:'You already own that one!',boost_maxed:'🌟 Your Star Charm collection is complete at +25 shine!',
+    not_owned:'That item is not in your locker yet.'}[err]||'Something went wrong — nothing was charged.';
+}
+window.FBLocker={
+  serverMode:function(){return mode;},
+  buy:function(cat,id){
+    post('/locker/buy',{cat:cat,id:id}).then(function(r){
+      if(r.ok){adopt(r.locker);toast(cat==='boosts'?'🌟 Star Charm bought! It shines in your Chest.':'🎉 Saved to your locker!');}
+      else{if(r.locker)adopt(r.locker);toast(friendly(r.error));}
+    }).catch(function(){toast('📡 Can\'t reach your locker right now — nothing was charged.');});
+  },
+  equip:function(cat,id){
+    post('/locker/equip',{cat:cat,id:id}).then(function(r){
+      if(r.ok){adopt(r.locker);toast('✅ Locker updated!');}
+      else{if(r.locker)adopt(r.locker);toast(friendly(r.error));}
+    }).catch(function(){toast('📡 Can\'t reach your locker right now — no change made.');});
+  }
+};
+function init(){
+  var el=$('fb-locker-body');
+  if(!token()){
+    mode=false;
+    if(el)el.innerHTML='<p class="boxsub">🔐 <b>Sign in to open your Locker.</b> Your collectibles, armor, star charms, and coins are saved to your account so you never lose them — on any device. Until then, everything you earn and buy stays saved on this device, and it all moves into your locker the first time you sign in. Playing is always free either way.</p>';
+    return;
+  }
+  mode=true; /* signed in: purchases route through the server locker, never the local-only path */
+  post('/locker/get',{}).then(function(r){
+    if(!r.ok)throw new Error('locker get failed');
+    if(r.locker.migrated){mode=true;adopt(r.locker);}
+    else{
+      var snap=window.FBShop?window.FBShop.snapshot():{};
+      post('/locker/migrate',{local:snap}).then(function(r2){
+        if(!r2.ok)throw new Error('migrate failed');
+        mode=true;adopt(r2.locker);
+        toast('🗝️ Your locker is set up — everything from this device moved in!');
+      }).catch(function(){offline(el);});
+    }
+  }).catch(function(){offline(el);});
+}
+function offline(el){
+  /* Signed in but the locker server is unreachable: purchases pause
+     (nothing is charged and nothing can be lost or double-spent);
+     playing is never affected. The locker syncs on the next visit. */
+  if(el)el.innerHTML='<p class="boxsub">📡 Your locker couldn\'t be reached just now. Playing still works fine — shop purchases are paused until your locker is back so nothing can be lost or charged twice. It syncs the next time you visit.</p>';
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<script src="onboarding.js"></script>
+<script>
+/* ============================================================
+   Fire World hub UI (2026-10-23 redesign)
+   Tabs (Games / Shop / My Chest), live game search, filter
+   chips, jump-to-number. Pure view logic only — shop, locker,
+   auth and tour behavior live in their own scripts above.
+   ============================================================ */
+(function(){
+'use strict';
+var PANELS={games:'panel-games',shop:'shop',chest:'locker'};
+var tabs=document.querySelectorAll('.fb-tab');
+function activate(name,skipHash){
+  if(!PANELS[name])name='games';
+  Object.keys(PANELS).forEach(function(k){
+    var p=document.getElementById(PANELS[k]);
+    if(p)p.classList.toggle('fb-on',k===name);
+  });
+  tabs.forEach(function(t){t.setAttribute('aria-selected',t.getAttribute('data-tab')===name?'true':'false');});
+  if(!skipHash){try{history.replaceState(null,'','#'+(name==='chest'?'locker':name));}catch(e){}}
+}
+tabs.forEach(function(t){t.addEventListener('click',function(){activate(t.getAttribute('data-tab'));});});
+function fromHash(){
+  var h=(location.hash||'').replace('#','');
+  if(h==='shop')activate('shop',true);
+  else if(h==='locker')activate('chest',true);
+  else if(h==='games')activate('games',true);
+}
+window.addEventListener('hashchange',fromHash);
+fromHash();
+var grid=document.getElementById('game-grid');
+var cards=grid?Array.prototype.slice.call(grid.querySelectorAll('.card')):[];
+var search=document.getElementById('fb-game-search');
+var count=document.getElementById('fb-gcount');
+var nores=document.getElementById('fb-noresults');
+var chips=document.querySelectorAll('.fb-chip');
+var activeFilter='all';
+function applyFilter(){
+  var q=search?search.value.trim().toLowerCase():'';
+  var shown=0;
+  cards.forEach(function(card){
+    var name=card.getAttribute('data-name')||'';
+    var num=card.getAttribute('data-num')||'';
+    var tags=(card.getAttribute('data-tags')||'').split(' ');
+    var okF=(activeFilter==='all'||tags.indexOf(activeFilter)>=0);
+    var okQ=(!q||name.indexOf(q)>=0||num===q||('#'+num)===q);
+    var show=okF&&okQ;
+    card.style.display=show?'':'none';
+    if(show)shown++;
+  });
+  if(count)count.textContent=shown+' of '+cards.length+' games';
+  if(nores)nores.hidden=(shown!==0);
+}
+if(search)search.addEventListener('input',applyFilter);
+chips.forEach(function(ch){
+  ch.addEventListener('click',function(){
+    chips.forEach(function(c){c.classList.remove('fb-on');});
+    ch.classList.add('fb-on');
+    activeFilter=ch.getAttribute('data-filter')||'all';
+    applyFilter();
+  });
+});
+document.querySelectorAll('.fb-jnum').forEach(function(b){
+  b.addEventListener('click',function(){
+    activate('games');
+    if(search)search.value='';
+    activeFilter='all';
+    chips.forEach(function(c){c.classList.toggle('fb-on',c.getAttribute('data-filter')==='all');});
+    applyFilter();
+    var n=b.getAttribute('data-jump'),target=null;
+    cards.forEach(function(card){if(card.getAttribute('data-num')===n)target=card;});
+    if(target){
+      target.scrollIntoView({behavior:'smooth',block:'center'});
+      target.classList.remove('fb-flash');
+      void target.offsetWidth;
+      target.classList.add('fb-flash');
+      setTimeout(function(){target.classList.remove('fb-flash');},1800);
+    }
+  });
+});
+applyFilter();
+})();
+</script>
 </body>
 </html>

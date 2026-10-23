@@ -68,25 +68,82 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 @media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
 </style>
 <style data-fblandscape="1">@media (max-height:500px){#overlay{padding:10px 24px}#overlay h1{font-size:30px;margin-bottom:6px}#overlay p{font-size:14px;margin-bottom:6px;line-height:1.45}#overlay .lesson{margin:8px 0;padding:8px 12px}.heroChip{padding:4px 8px}}</style>
+<style data-fbtabbar="1">
+/* ═══ FB TAB BAR + PAUSE MENU pattern (Jeff, 2026-10-21) — see the markup
+   comment at #fbTabbar for the portable pattern. Presentation only. ═══ */
+#fbTabbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:15;display:flex;align-items:stretch;gap:6px;padding:6px 8px;background:linear-gradient(180deg,rgba(28,14,6,.97),rgba(17,8,4,.95));border-bottom:2px solid rgba(255,106,26,.55);box-shadow:0 4px 14px rgba(0,0,0,.5);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#fbTabbar::-webkit-scrollbar{display:none}
+#fbTabbar .pill{display:flex;align-items:center;flex:0 0 auto;border-radius:10px 10px 4px 4px;padding:4px 12px;font-size:15px}
+#fbTabbar #heroBar{position:static;transform:none;left:auto;bottom:auto;z-index:auto;display:flex;gap:6px;background:transparent;padding:0;border-radius:0;flex:0 0 auto;align-items:stretch}
+#fbTabbar .heroChip{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:58px;padding:3px 10px;border-radius:10px 10px 4px 4px;font-size:13px;line-height:1.15;white-space:nowrap}
+#fbTabbar .heroChip small{display:none}
+#fbTabbar .heroChip.sel{transform:none}
+#fbTabbar .heroChip.sel small{display:block;font-size:10px}
+#fbTabbar .fbtn{margin-left:auto;flex:0 0 auto;align-self:stretch;padding:0 20px;border-radius:10px 10px 4px 4px;border:2px solid #ffd23f;background:linear-gradient(180deg,#ffb347,#ff6a1a);color:#2a1206;font-family:inherit;font-size:16px!important;font-weight:900;letter-spacing:.5px;cursor:pointer;touch-action:none;box-shadow:0 2px 8px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+#fbTabbar .fbtn.on,#fbTabbar .fbtn:active{transform:scale(.94);filter:brightness(1.25)}
+#fbTabbar #pauseBtn{flex:0 0 auto;width:46px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,rgba(34,18,9,.9),rgba(14,7,3,.9));color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.15);font-size:19px;cursor:pointer;padding:0}
+#fbStatus{position:fixed;top:54px;left:0;right:0;height:24px;z-index:15;display:flex;align-items:center;padding:0 12px;background:rgba(12,6,3,.55)}
+#fbStatus #skels{background:none;border:none;box-shadow:none;text-shadow:0 1px 2px rgba(0,0,0,.8);padding:0;font-size:13px;font-weight:700;color:#ffe9d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#combo{top:88px}
+#fbCtl{display:none}
+/* pause menu — #pausedTxt extended from a bare label into the game's ONLY menu */
+#pausedTxt{flex-direction:column;font-size:16px;pointer-events:auto;padding:16px}
+.fbMenuCard{display:flex;flex-direction:column;gap:12px;align-items:stretch;background:linear-gradient(180deg,rgba(34,18,9,.97),rgba(16,8,4,.97));border:2px solid rgba(255,106,26,.6);border-radius:18px;padding:20px 22px;width:min(330px,88vw);box-shadow:0 18px 50px rgba(0,0,0,.65)}
+.fbMenuTitle{font-size:30px;font-weight:900;color:#fff;text-align:center;text-shadow:0 2px 0 #000}
+#resumeBtn{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:19px;font-weight:900;padding:12px 18px;border-radius:999px;cursor:pointer;box-shadow:0 4px 0 #a33c10;font-family:inherit}
+#resumeBtn:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#pausedTxt #sysbtns{position:static;display:flex;gap:16px;justify-content:center;align-items:flex-start}
+.fbMenuItem{display:flex;flex-direction:column;align-items:center;gap:4px;color:#ffe9d6;font-size:12px;font-weight:700}
+#fbLangItem{flex-direction:row;justify-content:space-between;background:rgba(255,255,255,.06);border-radius:12px;padding:6px 8px 6px 14px;font-size:14px}
+#fbLangSlot #fb-lang-btn{position:static;width:40px;height:40px;border-radius:12px}
+#pausedTxt #back{position:static;background:rgba(255,255,255,.07);color:#ffe9d6;border:1px solid rgba(255,255,255,.3);box-shadow:none;border-radius:999px;padding:11px 18px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+@media (max-height:500px){#fbTabbar{height:48px;padding:4px 6px}#fbStatus{top:48px}#fbTabbar .pill{font-size:13px;padding:3px 9px}#fbTabbar .heroChip{min-width:50px;font-size:12px;padding:2px 7px}#combo{top:80px}.fbMenuCard{gap:8px;padding:14px 18px}.fbMenuTitle{font-size:24px}}
+</style>
 </head>
 <body>
 <div id="game">
-<div id="hud">
-<div class="hud-left"><div class="pill gold" id="score">⭐ 0</div><div class="pill" id="level">LEVEL 1</div><div class="pill" id="skels">💀 Skeletons: 0 left</div></div>
-<div class="hud-right"><div class="pill" id="shots">🎯 3</div><div class="pill" id="best">🏆 0</div></div>
-</div>
-<div id="combo"></div>
-<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
-<div id="sysbtns"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off (M)">🔊</button></div>
+<!-- ════════════════════════════════════════════════════════════════════
+     FB TAB BAR + PAUSE MENU — the house HUD pattern (Jeff, 2026-10-21).
+     PORTABLE: to adopt it in another game, copy (1) this markup block,
+     (2) the <style data-fbtabbar> block in <head>, (3) the fbTabbarScript
+     mover before </body>, and (4) the groundY() header reservation.
+       • #fbTabbar is a browser-style tab bar holding ONLY play essentials:
+         score · level · targets · trophy · character tabs · POW · ⏸.
+         The active character's tab is the raised/highlighted one.
+       • #fbStatus is a slim status strip directly under the bar.
+       • #pausedTxt is the game's ONLY menu (Resume · Sound · Restart ·
+         Language · ← Fire World). While playing, NO menu button appears
+         anywhere on screen — they all live behind ⏸.
+       • The play field below the header is 100% clear: no pills, no
+         floating buttons, no bottom bar.
+     Every id / handler / storage key is the game's own — layout only.
+     ════════════════════════════════════════════════════════════════════ -->
+<header id="fbTabbar">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="level">LEVEL 1</div>
+<div class="pill" id="shots">🎯 3</div>
+<div class="pill" id="best">🏆 0</div>
 <div id="heroBar" class="heroPickSlot" role="group" aria-label="Choose your hero"></div>
-<div id="pausedTxt" class="hidden">⏸ Paused</div>
+<button id="pauseBtn" title="Pause (P)">⏸</button>
+</header>
+<div id="fbStatus"><div class="pill" id="skels">💀 Skeletons: 0 left</div></div>
+<div id="combo"></div>
+<div id="pausedTxt" class="hidden">
+<div class="fbMenuCard">
+<div class="fbMenuTitle">⏸ Paused</div>
+<button id="resumeBtn" onclick="__setPaused(false)">▶ Resume</button>
+<div id="sysbtns"><span class="fbMenuItem"><button id="muteBtn" title="Sound on/off (M)">🔊</button><span>Sound</span></span></div>
+<div class="fbMenuItem" id="fbLangItem"><span>Language</span><span id="fbLangSlot"></span></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+</div>
+</div>
 <canvas id="c"></canvas>
 <div id="overlay">
 <h1 id="otitle">🎯 SLINGSHOT CASCADE</h1>
 <div id="obody"><p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Your mission: smash <b>EVERY 💀 skeleton</b> — knock the towers down to get them! Fewer shots = more stars!</p>
 <p>🫧 <b>New villain: the Slimer!</b> He is made of oil — <b>water makes him GROW</b>, so do not splash him! Drop the tower on him and <b>bury him to smother him</b>. <b>Oil fire? Never spray it — smother it, and get a grown-up.</b></p>
 <div id="levelSel"></div></div>
-<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div id="mathgate" class="hidden"><p>🔒 Math Check</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
@@ -98,7 +155,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
    - Custom physics (no external deps)
    - Trauma-based screen shake, hit-stop, squash & stretch
    - Layered Web Audio, combo system, 5 levels, star ratings
-   - Parental gate, zero PII/trackers, COPPA compliant
+   - Math gate, zero PII/trackers, COPPA compliant
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
@@ -188,7 +245,13 @@ function refreshHeroChips(){document.querySelectorAll('.heroPickSlot').forEach(e
 function selHero(k){if(!HEROES[k])return;G.hero=k;try{sfx.click();}catch(e){}refreshHeroChips();}
 try{G.best=parseInt(localStorage.getItem('sling_best')||'0',10)||0;}catch(e){}
 const GRAV=1600;
-const groundY=()=>H-(H<500?104:70);
+/* [fbtabbar 2026-10-21] The play field starts below the tab bar + status
+   strip: groundY keeps the tallest tower top (≈ groundY−248 after the 0.85
+   zoom) clear of the header in both orientations, and the old bottom-bar
+   reserve is gone (no bottom chrome anymore). On tall screens this resolves
+   to exactly the pre-tabbar value. */
+function fbHeaderH(){const a=document.getElementById('fbTabbar'),b=document.getElementById('fbStatus');return ((a&&a.offsetHeight)||0)+((b&&b.offsetHeight)||0);}
+const groundY=()=>{const base=H-(H<500?64:70);const need=fbHeaderH()+248;return Math.max(base,Math.min(need,H-24));};
 
 /* ---------------- Level definitions ---------------- */
 function buildLevel(n){
@@ -1140,5 +1203,124 @@ addEventListener('keydown',()=>MUS.start());
 </style>
 <div id='fbCtl'><div class='fbR' style='bottom:14px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='POW' style='font-size:14px'>POW</button></div></div>
 <script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);var _rb=document.createElement('button');_rb.id='fbRestart';_rb.type='button';_rb.title='Restart';_rb.setAttribute('aria-label','Restart');_rb.textContent='↻';var _host=document.querySelector('#sysbtns');if(_host)_host.appendChild(_rb);else document.body.appendChild(_rb);_rb.addEventListener('click',function(){try{if(typeof __setPaused==='function')__setPaused(false);if(typeof buildLevel==='function'&&typeof G!=='undefined'){buildLevel(G.level);G.state='play';}}catch(err){}});})();</script>
+<script>
+/* ============================================================
+   Fire Babys Math Check — 24-HOUR UNLOCK (Jeff, 2026-10-21)
+   The math check itself is unchanged. NEW: solve 5 problems in
+   a row right here and ALL games unlock for 24 hours. The unlock
+   is a device-side localStorage timestamp (fb_gate_unlock_until),
+   checked by this snippet on every gated page, so it works the
+   same on firebabys.io and in the offline downloadable build.
+   When the 24 hours run out, the normal math check simply
+   returns — no lockout, no progress lost.
+   ============================================================ */
+(function(){
+'use strict';
+var KEY='fb_gate_unlock_until';
+function until(){try{var v=parseInt(localStorage.getItem(KEY),10);return isNaN(v)?0:v;}catch(e){return 0;}}
+function unlocked(){return until()>Date.now();}
+function leftStr(){var ms=until()-Date.now();if(ms<=0)return '';var h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return h+'h '+(m<10?'0':'')+m+'m';}
+function gateEl(){return document.getElementById('mathgate');}
+function isVis(g){if(!g||g.classList.contains('hidden'))return false;var s=getComputedStyle(g);if(s.display==='none'||s.visibility==='hidden')return false;return g.offsetParent!==null||s.position==='fixed';}
+var passed=false;
+function tryPass(){
+  var g=gateEl();if(!g)return;
+  if(!isVis(g)){passed=false;return;}
+  buildUI(g);
+  if(!unlocked()||passed)return;
+  var mq=document.getElementById('mq'),ma=document.getElementById('ma');
+  if(!mq||!ma)return;
+  var m=/(\d+)\s*([+\-x×*])\s*(\d+)/.exec(mq.textContent||'');
+  if(!m)return;
+  var a=+m[1],b=+m[3],ans=(m[2]==='+')?a+b:((m[2]==='-')?a-b:a*b);
+  ma.value=ans;passed=true;
+  var btn=g.querySelector('button');
+  setTimeout(function(){if(btn)btn.click();},150);
+  setTimeout(function(){if(isVis(gateEl()))passed=false;},1000);
+}
+function buildUI(g){
+  if(g.querySelector('.fbg-chal'))return;
+  var box=document.createElement('div');box.className='fbg-chal';
+  box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.35);font-size:15px';
+  if(unlocked()){
+    box.innerHTML='<p style="margin:0">✅ <b>All games unlocked!</b> ⏰ '+leftStr()+' left</p>';
+    g.appendChild(box);return;
+  }
+  box.innerHTML='<p style="margin:0 0 6px">🏆 <b>Math Challenge:</b> solve <b>5 problems in a row</b> to unlock <b>ALL games for 24 hours</b>!</p>'
+    +'<button type="button" class="fbg-start" style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:10px;cursor:pointer">START CHALLENGE</button>'
+    +'<div class="fbg-play" style="display:none;margin-top:8px">'
+    +'<p style="margin:0 0 6px">Problem <span class="fbg-n">1</span> of 5: <b class="fbg-q"></b> = '
+    +'<input type="number" class="fbg-a" inputmode="numeric" style="width:84px;font-size:18px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;color:#000"> '
+    +'<button type="button" class="fbg-check" style="font-size:16px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer">CHECK</button></p>'
+    +'<p class="fbg-msg" style="margin:0;min-height:20px"></p></div>';
+  g.appendChild(box);
+  var n=0,ans=0;
+  var qEl=box.querySelector('.fbg-q'),nEl=box.querySelector('.fbg-n'),
+      aEl=box.querySelector('.fbg-a'),msgEl=box.querySelector('.fbg-msg');
+  function next(){
+    var kind=Math.floor(Math.random()*3),a,b;
+    if(kind===0){a=2+Math.floor(Math.random()*19);b=2+Math.floor(Math.random()*19);ans=a+b;qEl.textContent=a+' + '+b;}
+    else if(kind===1){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;qEl.textContent=a+' − '+b;}
+    else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;qEl.textContent=a+' × '+b;}
+    nEl.textContent=(n+1);aEl.value='';
+  }
+  box.querySelector('.fbg-start').addEventListener('click',function(){
+    this.style.display='none';box.querySelector('.fbg-play').style.display='';next();aEl.focus();
+  });
+  function check(){
+    if(parseInt(aEl.value,10)===ans){
+      n++;
+      if(n>=5){
+        try{localStorage.setItem(KEY,String(Date.now()+24*3600000));}catch(e){}
+        box.innerHTML='<p style="margin:0">🎉 <b>You did it!</b> ALL games are unlocked for 24 hours! ⏰</p>';
+        passed=false;setTimeout(tryPass,400);
+      }else{msgEl.textContent='✅ Correct! '+(5-n)+' to go.';next();aEl.focus();}
+    }else{
+      n=0;msgEl.textContent='❌ Not quite — streak reset. Back to problem 1!';next();aEl.focus();
+    }
+  }
+  box.querySelector('.fbg-check').addEventListener('click',check);
+  aEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
+}
+setInterval(tryPass,300);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tryPass);else tryPass();
+})();
+</script>
+
+<script id="fbTabbarScript">
+/* ═══ FB TAB BAR pattern — layout wiring (Jeff, 2026-10-21), part of the
+   portable pattern marked at #fbTabbar. Moves existing controls into the
+   header / pause menu WITHOUT touching their handlers, ids or storage:
+     • the POW button (.fbtn, injected by the FB-CTL block) → into the bar
+     • #fbRestart (created by the FB-CTL script inside #sysbtns) → wrapped
+       with a "Restart" caption inside the pause menu
+     • #fb-lang-btn (injected by i18n.js) → into the pause menu's language
+       row, where the [data-fbtabbar] CSS makes it a static menu button
+   A MutationObserver covers controls injected after this script runs. ═══ */
+(function(){
+  function movePow(){
+    var b=document.querySelector('#fbCtl .fbtn'),bar=document.getElementById('fbTabbar'),pb=document.getElementById('pauseBtn');
+    if(b&&bar&&b.parentNode!==bar){if(pb)bar.insertBefore(b,pb);else bar.appendChild(b);}
+  }
+  function wrapRestart(){
+    var r=document.getElementById('fbRestart');
+    if(r&&!(r.parentNode&&r.parentNode.classList&&r.parentNode.classList.contains('fbMenuItem'))){
+      var s=document.createElement('span');s.className='fbMenuItem';
+      r.parentNode.insertBefore(s,r);s.appendChild(r);
+      var l=document.createElement('span');l.textContent='Restart';s.appendChild(l);
+    }
+  }
+  function moveLang(){
+    var b=document.getElementById('fb-lang-btn'),slot=document.getElementById('fbLangSlot');
+    if(b&&slot&&b.parentNode!==slot)slot.appendChild(b);
+  }
+  function wire(){movePow();wrapRestart();moveLang();}
+  wire();
+  var mo=new MutationObserver(wire);
+  mo.observe(document.body,{childList:true,subtree:true});
+  setTimeout(function(){try{mo.disconnect();}catch(e){}},20000);
+})();
+</script>
+
 </body>
 </html>

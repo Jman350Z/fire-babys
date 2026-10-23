@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE=' 'sha256-J3JIxt8iy2w/IBaswsMYjlUZwvl1zlnnuL6BXz15X5M=' 'sha256-xhI58F4twDgcb0HqZW/RvonEwWBwgpvMhVYoQkW03XY=' 'sha256-y0vgYMqPN08i13vkz3Q53tSuecST14XNS/lISpkRo84=' 'sha256-sk2VRlHEkteiKlZnSyk/kLpByaxEqcs+ZUKjnuX31KU=' 'sha256-YVNgBqNxBAetWNKvpcL2jymN4/tnKmn3ASeCCkOwgcA='; style-src 'unsafe-inline' https://accounts.google.com; img-src data: blob:; connect-src https://fire-babys-leaderboard.jeffpruden288.workers.dev https://fire-babys-multiplayer.jeffpruden288.workers.dev wss://fire-babys-multiplayer.jeffpruden288.workers.dev https://fire-babys-auth.jeffpruden288.workers.dev https://www.googleapis.com https://accounts.google.com; font-src 'none'; media-src 'none'; object-src 'none'; frame-src https://accounts.google.com; child-src https://accounts.google.com; worker-src 'none'; manifest-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <script src="https://firebabys.io/auth-gate.js"></script>
+<script src="dark-knight.js" defer></script>
 <title>Fire Babys 3D — Open World</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -5904,7 +5905,9 @@ function addSilverArmor(g, R) {
   } catch (e) {}
 }
 
-/* ----- effective boost: silver (20%) overrides bronze (10%); season boost stacks on top ----- */
+/* ----- effective boost: silver (20%) overrides bronze (10%); season boost stacks on top.
+   EARNED progression only — Star Charms (fb_shop_boost) are collectible flair and NEVER
+   add power here (no-power-stats law, 2026-10-22). ----- */
 function __fbEffectiveBoost() {
   var b = 0;
   if (typeof __FB_SILVER_UNLOCKED !== 'undefined' && __FB_SILVER_UNLOCKED) b = __FB_SILVER_BOOST;
@@ -8065,6 +8068,8 @@ function __fbVaultHTML(){
   var claimedN = Object.keys(__fbSeason1.claimed).length;
   var badgesN = __fbSeason1.badges.length;
   var seasonBoostPct = Math.round(__FB_SEASON_BOOST * 1000) / 10;
+  var charmsShinePct = 0;
+  try { var _sbv = parseFloat(localStorage.getItem('fb_shop_boost')); if (!isNaN(_sbv) && _sbv > 0) charmsShinePct = Math.round(Math.min(_sbv, 0.25) * 1000) / 10; } catch(e){}
   return '' +
   '<div style="width:100%;max-width:520px;max-height:85vh;display:flex;flex-direction:column;background:#161006;border:3px solid #ffd76a;border-radius:20px;padding:20px;box-sizing:border-box;">' +
     '<div style="color:#ffd76a;font-size:20px;font-weight:900;letter-spacing:2px;text-align:center;">🗝️ THE VAULT</div>' +
@@ -8075,6 +8080,7 @@ function __fbVaultHTML(){
       '<div style="color:' + eq.color + ';font-size:15px;font-weight:900;letter-spacing:1px;">EQUIPPED: ' + eq.name + '</div>' +
       '<div style="color:#ffe9d6;font-size:12px;margin-top:2px;">' + eq.desc + '</div>' +
       (seasonBoostPct > 0 ? '<div style="color:#ff9c4a;font-size:12px;margin-top:4px;">🌟 Season boost: +' + seasonBoostPct + '%</div>' : '') +
+      (charmsShinePct > 0 ? '<div style="color:#7CFC9A;font-size:12px;margin-top:4px;">🌟 Star Charms: +' + charmsShinePct + ' shine collected — pure flair</div>' : '') +
     '</div>' +
     '<div style="flex:1;overflow-y:auto;min-height:150px;">' +
       '<div style="color:#ffd76a;font-size:13px;font-weight:900;letter-spacing:1px;margin:8px 0;">🥉 BRONZE KNIGHT — 2D GAME</div>' +
@@ -8262,6 +8268,14 @@ function startGame(){
     <div id="custacc" class="swrow"></div>
     <div class="clabel">WEAPON</div>
     <div id="custweapon" class="swrow"></div>
+    <div class="clabel">OUTFIT — STARTER KIT</div>
+    <div id="custoutfit" class="swrow"></div>
+    <div class="clabel">HELMET — STARTER KIT</div>
+    <div id="custhelmet" class="swrow"></div>
+    <div class="clabel">BOOTS — STARTER KIT</div>
+    <div id="custboots" class="swrow"></div>
+    <div class="clabel">SUNGLASSES — STARTER KIT</div>
+    <div id="custshades" class="swrow"></div>
     <button class="bigbtn" id="custsave">SAVE LOOK &#128190;</button><br>
     <button class="bigbtn" id="custclose" style="font-size:15px;padding:12px 40px;background:linear-gradient(180deg,#8a5a2e,#5e3a1e);">&#127968; MODE HUB</button>
   </div>
@@ -8305,19 +8319,59 @@ function startGame(){
    - GEMS  (💎)  : premium. 1 per game win, 1 per 5 KOs, or buy below.
    - REAL MONEY  : Stripe Payment Links open in a new tab (GEMS tab).
    One-time migration: old gem balance -> coins, starter 100c + 5g.
+   JEFF'S RULE (2026-10-21): PLAYING IS ALWAYS FREE. Coins are NEVER
+   charged to play, enter, retry, or unlock any game or mode — this
+   isn't Mario or Sonic. Coins are spent ONLY in the shops: this 3D
+   Store and the Fire World main-menu GAME SHOP (fire-world.html),
+   which shares these exact localStorage keys (fb_coins, fb_gems,
+   fb_inventory). Star Charms bought in the main-menu shop are
+   collectible flair ONLY: their fb_shop_boost total is a collection
+   count ("shine", cap +25) and NEVER feeds __fbEffectiveBoost or
+   any other power number (no-power-stats law, 2026-10-22).
    ============================================================ */
 
 /* ---------------- state ---------------- */
 var DEF_LOOK = { c:0, e:'happy', h:'wild', a:'none' };
 function loadJSON(k, fb){ try{ var v=localStorage.getItem(k); if(v) return JSON.parse(v); }catch(e){} return JSON.parse(JSON.stringify(fb)); }
 function loadInt(k, fb){ try{ var v=parseInt(localStorage.getItem(k),10); if(!isNaN(v)&&v>=0) return v; }catch(e){} return fb; }
+/* STARTER KIT (Jeff, 2026-10-21) — mirrors the auth Worker's kit:
+   every locker starts FREE with a school outfit (shirt + pants AND
+   shirt + shorts; pants equipped by default) and a battle starter set
+   (bronze armor, wooden sword, bronze helmet, bronze boots,
+   sunglasses). Ensured on load exactly like the server ensures it on
+   /locker/get: granted once, never duplicated, never lost. */
+var FB_STARTER_KIT = { outfits:['school_outfit_pants','school_outfit_shorts'], armor:['starter_bronze_armor'],
+  weapons:['wooden_sword'], helmets:['starter_bronze_helmet'], boots:['starter_bronze_boots'], accessories:['starter_sunglasses'] };
+var FB_LOCKER_CATS = ['armor','weapons','emotes','outfits','helmets','boots','accessories'];
+var FB_EQUIP_FIELD = { armor:'eqArmor', weapons:'eqWeapon', emotes:'favEmote', outfits:'eqOutfit',
+  helmets:'eqHelmet', boots:'eqBoots', accessories:'eqAccessory' };
+var FB_EQUIP_DEFAULT = { eqArmor:null, eqWeapon:'stick', favEmote:'wave',
+  eqOutfit:'school_outfit_pants', eqHelmet:null, eqBoots:null, eqAccessory:null };
+function fbStarterInv(){
+  return { armor:['starter_bronze_armor'], weapons:['stick','wooden_sword'], emotes:['wave'],
+    outfits:['school_outfit_pants','school_outfit_shorts'], helmets:['starter_bronze_helmet'],
+    boots:['starter_bronze_boots'], accessories:['starter_sunglasses'],
+    eqArmor:null, eqWeapon:'stick', favEmote:'wave',
+    eqOutfit:'school_outfit_pants', eqHelmet:null, eqBoots:null, eqAccessory:null };
+}
+function fbEnsureStarterKit(inv){
+  if(!inv || typeof inv !== 'object') return fbStarterInv();
+  var starters = { armor:FB_STARTER_KIT.armor, weapons:['stick'].concat(FB_STARTER_KIT.weapons), emotes:['wave'],
+    outfits:FB_STARTER_KIT.outfits, helmets:FB_STARTER_KIT.helmets, boots:FB_STARTER_KIT.boots, accessories:FB_STARTER_KIT.accessories };
+  FB_LOCKER_CATS.forEach(function(cat){
+    if(!Array.isArray(inv[cat])) inv[cat] = [];
+    starters[cat].forEach(function(id){ if(inv[cat].indexOf(id) < 0) inv[cat].unshift(id); });
+    var f = FB_EQUIP_FIELD[cat];
+    if(inv[cat].indexOf(inv[f]) < 0) inv[f] = FB_EQUIP_DEFAULT[f];
+  });
+  return inv;
+}
 var FBC = {
   look: loadJSON('fb_customization', DEF_LOOK),
   coins: loadInt('fb_coins', 0),
   gems: loadInt('fb_gems', 0),
   kos: loadInt('fb_kos_total', 0),
-  inv: loadJSON('fb_inventory', null) || { armor:[], weapons:['stick'], emotes:['wave'],
-                                          eqArmor:null, eqWeapon:'stick', favEmote:'wave' }
+  inv: fbEnsureStarterKit(loadJSON('fb_inventory', null))
 };
 function saveState(){
   try{
@@ -8389,8 +8443,25 @@ var FB_ARMOR = [
   { id:'dragon_scales', n:'Dragon Scales', p:50,  cur:'gems',  e:'🐲', d:'Fiery scale plates' },
   { id:'shadow_cloak',  n:'Shadow Cloak',  p:75,  cur:'gems',  e:'🌑', d:'Dark wispy veil' },
   { id:'rainbow_aura',  n:'Rainbow Aura',  p:100, cur:'gems',  e:'🌈', d:'Cycling rainbow glow' },
-  { id:'phoenix_wings', n:'Phoenix Wings', p:150, cur:'gems',  e:'🔥', d:'Blazing wing pair' }
+  { id:'phoenix_wings', n:'Phoenix Wings', p:150, cur:'gems',  e:'🔥', d:'Blazing wing pair' },
+  { id:'starter_bronze_armor', n:'Bronze Armor', p:0, cur:'coins', e:'🛡️', d:'Starter Kit — FREE, yours from the beginning' }
 ];
+/* Starter Kit slot catalogs (locker categories beyond armor/weapons):
+   granted free to every player — see fbEnsureStarterKit above. */
+var FB_OUTFITS = [
+  { id:'school_outfit_pants',  n:'School — Shirt & Pants',  e:'🎒', d:'Battle-ready — SAME strength as the bronze set, just style' },
+  { id:'school_outfit_shorts', n:'School — Shirt & Shorts', e:'🎒', d:'Battle-ready — SAME strength as the bronze set, just style' }
+];
+var FB_HELMETS = [
+  { id:'starter_bronze_helmet', n:'Bronze Helmet', e:'🪖', d:'Starter Kit — FREE' }
+];
+var FB_BOOTS = [
+  { id:'starter_bronze_boots', n:'Bronze Boots', e:'🥾', d:'Starter Kit — FREE' }
+];
+var FB_ACCESSORIES = [
+  { id:'starter_sunglasses', n:'Sunglasses', e:'🕶️', d:'Starter Kit — FREE, equip if you want' }
+];
+function outfitById(id){ for(var i=0;i<FB_OUTFITS.length;i++) if(FB_OUTFITS[i].id===id) return FB_OUTFITS[i]; return null; }
 var FB_STORE_WEAPONS = [
   { id:'stick',         n:'Stick',         p:0,   cur:'coins', e:'🌿', d:'A trusty twig',      col:'#8a5a2e' },
   { id:'wooden_sword',  n:'Wooden Sword',  p:75,  cur:'coins', e:'🪵', d:'Practice blade',     col:'#a06a35' },
@@ -8588,6 +8659,14 @@ function fbBuildArmor(g, armorId){
         var pad = new THREE.Mesh(new THREE.SphereGeometry(R*0.34, 10, 8), km);
         pad.position.set(sg*R*0.95, R*0.42, 0); grp.add(pad);
       });
+    } else if(armorId==='starter_bronze_armor'){
+      var sm2 = new THREE.MeshStandardMaterial({ color:0xb0762a, roughness:0.45, metalness:0.7 });
+      var chest2 = new THREE.Mesh(new THREE.CylinderGeometry(R*0.85, R*1.0, R*0.9, 12), sm2);
+      chest2.position.y = -R*0.15; grp.add(chest2);
+      [-1,1].forEach(function(sg){
+        var pad2 = new THREE.Mesh(new THREE.SphereGeometry(R*0.32, 10, 8), sm2);
+        pad2.position.set(sg*R*0.95, R*0.42, 0); grp.add(pad2);
+      });
     } else if(armorId==='golden_crown'){
       var gm2 = new THREE.MeshLambertMaterial({ color:0xffd76a, emissive:0x664400 });
       var circ = new THREE.Mesh(new THREE.CylinderGeometry(R*0.55,R*0.62,R*0.34,10), gm2);
@@ -8658,6 +8737,77 @@ function fbBuildArmor(g, armorId){
         wmsh.rotation.y = sg*0.35;
         grp.add(wmsh);
       });
+    }
+  }catch(e){}
+  if(grp.children.length) g.add(grp);
+  return grp;
+}
+
+/* ------------- starter-kit gear meshes (outfit / helmet / boots / shades) -------------
+   Same primitive style as fbBuildArmor / fbBuildAccessory: simple
+   Lambert/Standard shapes attached to the baby group. Wearing the
+   school outfit is the default look; the bronze pieces + sunglasses
+   are equipped only when the player chooses them. */
+function fbBuildOutfit(g, outfitId){
+  var grp = new THREE.Group(), R = (g.userData&&g.userData.R)||1;
+  try{
+    if(outfitId==='school_outfit_pants' || outfitId==='school_outfit_shorts'){
+      var shirt = new THREE.MeshLambertMaterial({ color:0xe8ecf2 });
+      var torso = new THREE.Mesh(new THREE.CylinderGeometry(R*0.92, R*1.02, R*0.85, 12), shirt);
+      torso.position.y = -R*0.2; grp.add(torso);
+      var trim = new THREE.Mesh(new THREE.TorusGeometry(R*0.94, R*0.05, 6, 20),
+        new THREE.MeshLambertMaterial({ color:0x2a3a6a }));
+      trim.rotation.x = Math.PI/2; trim.position.y = R*0.2; grp.add(trim);
+      var navy = new THREE.MeshLambertMaterial({ color:0x2a3a6a });
+      var shorts = outfitId==='school_outfit_shorts';
+      [-1,1].forEach(function(sg){
+        var leg = new THREE.Mesh(new THREE.BoxGeometry(R*0.44, shorts?R*0.4:R*0.85, R*0.5), navy);
+        leg.position.set(sg*R*0.42, shorts?-R*0.95:-R*1.15, R*0.05); grp.add(leg);
+      });
+    }
+  }catch(e){}
+  if(grp.children.length) g.add(grp);
+  return grp;
+}
+function fbBuildHelmetGear(g, helmetId){
+  var grp = new THREE.Group(), R = (g.userData&&g.userData.R)||1;
+  try{
+    if(helmetId==='starter_bronze_helmet'){
+      var bm = new THREE.MeshStandardMaterial({ color:0xb0762a, roughness:0.4, metalness:0.75 });
+      var cap = new THREE.Mesh(new THREE.SphereGeometry(R*1.03, 18, 12, 0, Math.PI*2, 0, Math.PI/2.4), bm);
+      cap.position.y = R*0.3; grp.add(cap);
+      var brim = new THREE.Mesh(new THREE.TorusGeometry(R*1.0, R*0.07, 6, 22), bm);
+      brim.rotation.x = Math.PI/2; brim.position.y = R*0.42; grp.add(brim);
+    }
+  }catch(e){}
+  if(grp.children.length) g.add(grp);
+  return grp;
+}
+function fbBuildBootsGear(g, bootsId){
+  var grp = new THREE.Group(), R = (g.userData&&g.userData.R)||1;
+  try{
+    if(bootsId==='starter_bronze_boots'){
+      var bm = new THREE.MeshStandardMaterial({ color:0xb0762a, roughness:0.45, metalness:0.7 });
+      [-1,1].forEach(function(sg){
+        var boot = new THREE.Mesh(new THREE.BoxGeometry(R*0.5, R*0.4, R*0.7), bm);
+        boot.position.set(sg*R*0.42, -R*1.25, R*0.08); grp.add(boot);
+      });
+    }
+  }catch(e){}
+  if(grp.children.length) g.add(grp);
+  return grp;
+}
+function fbBuildShades(g, accId){
+  var grp = new THREE.Group(), R = (g.userData&&g.userData.R)||1;
+  try{
+    if(accId==='starter_sunglasses'){
+      var dm = new THREE.MeshLambertMaterial({ color:0x14141c });
+      [-1,1].forEach(function(sg){
+        var lens = new THREE.Mesh(new THREE.BoxGeometry(R*0.42, R*0.3, R*0.05), dm);
+        lens.position.set(sg*R*0.38, R*0.28, R*0.95); grp.add(lens);
+      });
+      var bridge = new THREE.Mesh(new THREE.BoxGeometry(R*0.2, R*0.05, R*0.05), dm);
+      bridge.position.set(0, R*0.3, R*0.96); grp.add(bridge);
     }
   }catch(e){}
   if(grp.children.length) g.add(grp);
@@ -8754,7 +8904,7 @@ function fbDisposeObj(gr){
   try{ gr.traverse(function(o){ if(o.geometry) o.geometry.dispose(); if(o.material){ var ms=Array.isArray(o.material)?o.material:[o.material]; for(var i=0;i<ms.length;i++){ try{ms[i].dispose();}catch(e){} } } }); }catch(e){}
 }
 /* ---------------- dress a baby group with a look ---------------- */
-function fbDressGroup(g, look, armorId, weaponId){
+function fbDressGroup(g, look, armorId, weaponId, gear){
   if(!g || !g.userData || !g.userData.body) return;
   try{
     var pal = FB_COLORS[look.c] || FB_COLORS[0];
@@ -8768,16 +8918,32 @@ function fbDressGroup(g, look, armorId, weaponId){
     }
     if(u.fbAcc){ g.remove(u.fbAcc); fbDisposeObj(u.fbAcc); u.fbAcc = null; }
     if(u.fbArmor){ g.remove(u.fbArmor); fbDisposeObj(u.fbArmor); u.fbArmor = null; }
+    /* Starter Kit gear (outfit / helmet / boots / shades): same
+       remove + dispose bookkeeping as armor above. */
+    if(u.fbOutfit){ g.remove(u.fbOutfit); fbDisposeObj(u.fbOutfit); u.fbOutfit = null; }
+    if(u.fbHelmet){ g.remove(u.fbHelmet); fbDisposeObj(u.fbHelmet); u.fbHelmet = null; }
+    if(u.fbBoots){ g.remove(u.fbBoots); fbDisposeObj(u.fbBoots); u.fbBoots = null; }
+    if(u.fbShades){ g.remove(u.fbShades); fbDisposeObj(u.fbShades); u.fbShades = null; }
     fbStyleHair(g, look.h);
     u.fbAcc = fbBuildAccessory(g, look.a);
     if(armorId) u.fbArmor = fbBuildArmor(g, armorId);
+    if(gear){
+      if(gear.o) u.fbOutfit = fbBuildOutfit(g, gear.o);
+      if(gear.h) u.fbHelmet = fbBuildHelmetGear(g, gear.h);
+      if(gear.b) u.fbBoots = fbBuildBootsGear(g, gear.b);
+      if(gear.s) u.fbShades = fbBuildShades(g, gear.s);
+    }
     fbAttachWeapon(g, weaponId || 'stick');
   }catch(e){}
+}
+/* the local player's Starter Kit gear, in fbDressGroup's gear shape */
+function fbLocalGear(){
+  return { o:FBC.inv.eqOutfit, h:FBC.inv.eqHelmet, b:FBC.inv.eqBoots, s:FBC.inv.eqAccessory };
 }
 function fbDressPlayer(){
   try{
     if(typeof player==='undefined' || !player || !player.group) return;
-    fbDressGroup(player.group, FBC.look, FBC.inv.eqArmor, FBC.inv.eqWeapon);
+    fbDressGroup(player.group, FBC.look, FBC.inv.eqArmor, FBC.inv.eqWeapon, fbLocalGear());
     fbRefreshWeapon();
   }catch(e){}
 }
@@ -8798,7 +8964,8 @@ function fbRefreshWeapon(){
 }
 function fbLookNet(){
   return { c:FBC.look.c, e:FBC.look.e, h:FBC.look.h, a:FBC.look.a,
-           ar:FBC.inv.eqArmor, w:FBC.inv.eqWeapon };
+           ar:FBC.inv.eqArmor, w:FBC.inv.eqWeapon,
+           o:FBC.inv.eqOutfit, hm:FBC.inv.eqHelmet, bt:FBC.inv.eqBoots, sh:FBC.inv.eqAccessory };
 }
 function fbSendLook(){
   try{
@@ -8917,7 +9084,8 @@ function fbDressRemote(id){
     var lk = fbRemoteLooks[id];
     if(!rp || !rp.group || !lk) return;
     var look = { c:(typeof lk.c==='number'?lk.c:0), e:lk.e||'happy', h:lk.h||'wild', a:lk.a||'none' };
-    fbDressGroup(rp.group, look, lk.ar||null, lk.w||'stick');
+    fbDressGroup(rp.group, look, lk.ar||null, lk.w||'stick',
+      { o:lk.o||null, h:lk.hm||null, b:lk.bt||null, s:lk.sh||null });
   }catch(e){}
 }
 
@@ -9116,6 +9284,13 @@ function fbPreviewDress(look){
     try{
       if(FBC.inv.eqArmor) g.userData.fbArmor = fbBuildArmor(g, FBC.inv.eqArmor);
     }catch(e2){}
+    /* show currently equipped Starter Kit gear in the preview too */
+    try{
+      if(FBC.inv.eqOutfit) g.userData.fbOutfit = fbBuildOutfit(g, FBC.inv.eqOutfit);
+      if(FBC.inv.eqHelmet) g.userData.fbHelmet = fbBuildHelmetGear(g, FBC.inv.eqHelmet);
+      if(FBC.inv.eqBoots) g.userData.fbBoots = fbBuildBootsGear(g, FBC.inv.eqBoots);
+      if(FBC.inv.eqAccessory) g.userData.fbShades = fbBuildShades(g, FBC.inv.eqAccessory);
+    }catch(e4){}
     /* show currently equipped weapon in the preview too */
     try{
       var _pw = (FBC.inv && FBC.inv.eqWeapon) || 'stick';
@@ -9218,6 +9393,35 @@ function fbBuildCustRows(){
     hint.textContent = 'More weapons in the STORE 🛒';
     cw.appendChild(hint);
   }
+  /* STARTER KIT rows: pick from owned pieces; tapping the equipped
+     piece unequips it (same toggle as armor in the store). These act
+     on FBC.inv directly, exactly like the weapon row above. */
+  fbBuildGearRow('custoutfit', 'outfits', FB_OUTFITS);
+  fbBuildGearRow('custhelmet', 'helmets', FB_HELMETS);
+  fbBuildGearRow('custboots', 'boots', FB_BOOTS);
+  fbBuildGearRow('custshades', 'accessories', FB_ACCESSORIES);
+}
+function fbBuildGearRow(elId, cat, catalog){
+  var el = $(elId);
+  if(!el || !FBC.inv) return;
+  el.innerHTML = '';
+  var field = FB_EQUIP_FIELD[cat];
+  var owned = FBC.inv[cat] || [];
+  owned.forEach(function(id){
+    var it = null;
+    for(var i=0;i<catalog.length;i++) if(catalog[i].id===id) it = catalog[i];
+    if(!it) return;
+    var b = document.createElement('button');
+    b.className = 'swbtn'+(FBC.inv[field]===id?' sel':'');
+    b.innerHTML = '<div style="font-size:24px">'+it.e+'</div><div style="font-size:10px">'+it.n+'</div>';
+    b.addEventListener('click', function(){
+      FBC.inv[field] = (FBC.inv[field]===id) ? null : id;
+      saveState(); beepOk();
+      fbBuildCustRows(); fbPreviewDress(fbCustDraft || FBC.look);
+      if(typeof fbDressPlayer==='function') fbDressPlayer();
+    });
+    el.appendChild(b);
+  });
 }
 function fbSaveCustomize(){
   if(!fbCustDraft) return;
