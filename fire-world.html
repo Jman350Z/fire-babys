@@ -1,312 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <script src="https://firebabys.io/auth-gate.js"></script>
 <script src="dark-knight.js" defer></script>
 <meta charset="UTF-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fire World — 57 Fire Babys Games</title>
-<meta name="description" content="Play 57 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
-<meta name="theme-color" content="#ff6a1a">
-<meta property="og:title" content="Fire World — 57 Fire Babys Games">
-<meta property="og:description" content="Play 57 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
+<meta name="color-scheme" content="dark">
+<title>Fire World — 58 Fire Babys Games</title>
+<meta name="description" content="Play 58 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
+<meta name="theme-color" content="#060d1d">
+<meta property="og:title" content="Fire World — 58 Fire Babys Games">
+<meta property="og:description" content="Play 58 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://firebabys.io/fire-world.html">
 <meta property="og:image" content="https://firebabys.io/icon-512.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Fire World — 57 Fire Babys Games">
-<meta name="twitter:description" content="Play 57 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
+<meta name="twitter:title" content="Fire World — 58 Fire Babys Games">
+<meta name="twitter:description" content="Play 58 free Fire Babys games. Arcade fun for everyone by Jman350Z & fire team.">
 <meta name="twitter:image" content="https://firebabys.io/icon-512.png">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 /* ================================================================
-   FIRE WORLD — v3 STAGING REDESIGN ("Toy-Box Sky Arcade")
-   Fresh from-scratch visual design, 2026-10-24.
-   - Bright sticker-book / toy-box look: warm paper, sky tints,
-     chunky ink outlines, hard offset shadows, big friendly buttons.
-   - DESIGN LAW: the games grid is ALWAYS on the page. No tabs, no
-     panels, nothing display:none's the games. Shop and My Chest are
-     slide-over drawers (bottom sheet on phone, right rail on
-     desktop) opened by the same .fb-on class the hub script toggles;
-     opening them never hides, moves, or un-renders the games grid.
+   FIRE WORLD — v4 "NIGHT ARCADE" (2026-10-28)
+   Deep navy, flame-orange + aqua neon. The catalog is ordinary
+   page flow: no tabs, no drawers, no panels, nothing hides the
+   games. Shop + My Chest are full sections BELOW the grid.
    ================================================================ */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --ink:#26221f;
-  --ink-soft:#5d5347;
-  --ink-faint:#8a7a66;
-  --paper:#fff6e8;
-  --card:#fffdf7;
-  --flame:#ff6a1a;
-  --flame-deep:#e04e00;
-  --red:#ef3e2c;
-  --sun:#ffc53d;
-  --sun-soft:#ffe29a;
-  --sky:#2f9df4;
-  --sky-soft:#d8efff;
-  --grass:#37b24d;
-  --grass-soft:#e2f7e6;
-  --grape:#7b5cff;
-  --grape-soft:#e7e1ff;
-  --pink:#ff7bac;
-  --pink-soft:#ffe0ec;
-  --shadow:0 6px 0 rgba(38,34,31,.92);
+  --navy:#060d1d; --navy2:#0a1730; --panel:#0d1b36; --panel2:#12264d;
+  --line:#24406e; --line-soft:#1a2f52;
+  --ink:#f2f7ff; --muted:#a9bde0; --faint:#7188ad;
+  --flame:#ff6a1a; --flame2:#ff9a3d; --amber:#ffc53d;
+  --aqua:#2fd4ff; --aqua-deep:#1199cc;
+  --green:#43d17c; --red:#ff5147;
+  --shadow:0 10px 24px rgba(0,0,0,.45);
 }
-::selection{background:var(--sun);color:var(--ink)}
+::selection{background:var(--flame);color:#fff}
 [hidden]{display:none!important}
+html{scroll-behavior:smooth}
 body{
   font-family:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background-color:var(--paper);
-  background-image:radial-gradient(rgba(255,106,26,.14) 2.2px,transparent 2.3px),radial-gradient(rgba(47,157,244,.12) 2.2px,transparent 2.3px);
-  background-size:34px 34px,34px 34px;
-  background-position:0 0,17px 17px;
+  background-color:var(--navy);
+  background-image:
+    radial-gradient(900px 480px at 85% -60px,rgba(47,212,255,.14),transparent 60%),
+    radial-gradient(1000px 560px at 8% 240px,rgba(255,106,26,.13),transparent 60%),
+    linear-gradient(180deg,#081228 0%,var(--navy) 420px);
   color:var(--ink);
   line-height:1.55;
 }
 .wrap{max-width:1180px;margin:0 auto;padding:0 14px}
-a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--aqua);outline-offset:2px}
 
-/* ---------- Top bar ---------- */
-nav.top{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:4px solid var(--ink);color:var(--ink)}
-nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;flex-wrap:wrap;gap:8px 14px}
-.brand{color:var(--flame-deep);font-weight:900;font-size:20px;letter-spacing:.5px;text-decoration:none;text-shadow:0 2px 0 var(--sun-soft)}
+/* ---------- Top bar (brand row; scrolls away) ---------- */
+nav.top{background:rgba(5,10,22,.96);border-bottom:3px solid var(--flame);color:var(--ink)}
+nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;flex-wrap:wrap;gap:7px 14px}
+.brand{color:var(--amber);font-weight:900;font-size:21px;letter-spacing:.6px;text-decoration:none;text-shadow:0 0 18px rgba(255,154,61,.45)}
+.top-actions{display:flex;align-items:center;flex-wrap:wrap;gap:4px 2px}
 nav.top a.navlink{color:var(--ink);text-decoration:none;font-weight:800;font-size:15px;margin-left:14px;border-bottom:3px solid transparent;transition:color .15s,border-color .15s}
-nav.top a.navlink:hover{color:var(--flame-deep);border-color:var(--sun)}
-.balpill{display:inline-block;background:var(--sun);border:2.5px solid var(--ink);color:var(--ink);font-weight:900;border-radius:999px;padding:3px 13px;font-size:14px;box-shadow:0 3px 0 rgba(38,34,31,.9)}
-#fb-signout-btn{background:#fff;border:2.5px solid var(--ink);color:var(--ink);font-weight:800;font-size:14px;font-family:inherit;border-radius:999px;padding:4px 14px;margin-left:14px;cursor:pointer;box-shadow:0 3px 0 rgba(38,34,31,.9)}
-#fb-signout-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(38,34,31,.9)}
-
-/* ---------- Section buttons (Games / Shop / My Chest) ----------
-   These are controls, NOT panels: Games scrolls to the always-open
-   grid (and closes any drawer), Shop / My Chest open drawers. */
-.fb-tabrow{display:flex;gap:10px;flex-wrap:wrap;padding:2px 0 8px}
-.fb-tab{background:#fff;border:3px solid var(--ink);color:var(--ink);font-weight:900;font-size:16px;line-height:1.25;font-family:inherit;border-radius:999px;padding:8px 20px;cursor:pointer;box-shadow:0 4px 0 rgba(38,34,31,.92);transition:transform .08s,box-shadow .08s,background .15s}
-.fb-tab:hover{background:var(--sun-soft)}
-.fb-tab:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(38,34,31,.92)}
-.fb-tab[aria-selected="true"]{background:linear-gradient(180deg,#ffb25e,var(--flame));color:#fff;box-shadow:0 4px 0 rgba(38,34,31,.92),0 0 0 3px var(--sun) inset}
+nav.top a.navlink:hover{color:var(--aqua);border-color:var(--aqua)}
+.balpill{display:inline-block;background:var(--panel2);border:2px solid var(--amber);color:var(--amber);font-weight:900;border-radius:999px;padding:3px 13px;font-size:14px}
+#fb-signout-btn{background:var(--panel);border:2px solid var(--line);color:var(--ink);font-weight:800;font-size:14px;font-family:inherit;border-radius:999px;padding:4px 14px;margin-left:14px;cursor:pointer}
+#fb-signout-btn:hover{border-color:var(--aqua);color:var(--aqua)}
+.top-jumps{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 10px}
+.jump-link{flex:1;text-align:center;background:var(--panel);border:2px solid var(--line);color:var(--ink);font-weight:900;font-size:14.5px;text-decoration:none;border-radius:999px;padding:7px 10px;white-space:nowrap}
+.jump-link:hover{border-color:var(--flame);color:var(--amber)}
+.jump-link.chest:hover{border-color:var(--aqua);color:var(--aqua)}
 
 /* ---------- Hero ---------- */
-.hero{background:linear-gradient(180deg,var(--sun-soft) 0%,#ffb25e 78%,#ff9a4d 100%);text-align:center;padding:14px 16px 10px;border-bottom:4px solid var(--ink)}
-.hero h1{font-size:clamp(30px,6vw,40px);line-height:1.12;font-weight:900;letter-spacing:.5px;margin:2px 0 8px;color:var(--ink);text-shadow:0 3px 0 #fff,0 7px 0 rgba(38,34,31,.18)}
-.hero p{max-width:660px;margin:0 auto 8px;font-size:clamp(14px,3vw,17px);line-height:1.45;font-weight:700;color:#4a3b2a}
-.creator{background:rgba(255,253,247,.75);border:2.5px dashed var(--ink);color:var(--ink);border-radius:999px;padding:5px 18px;font-weight:800;display:inline-block;margin-top:8px;font-size:14px}
-.dlbtn{display:inline-block;background:linear-gradient(180deg,#5fd35f,var(--grass));color:#fff;font-weight:900;font-size:clamp(19px,4.4vw,27px);line-height:1.2;letter-spacing:.4px;text-decoration:none;padding:13px 26px;border-radius:18px;border:3px solid var(--ink);box-shadow:0 8px 0 rgba(38,34,31,.92),0 18px 34px rgba(38,34,31,.25);margin:4px 0 8px;transition:transform .1s,box-shadow .1s;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.hero{background:linear-gradient(180deg,rgba(47,212,255,.07),rgba(255,106,26,.06) 55%,transparent);text-align:center;padding:22px 16px 14px;border-bottom:2px solid var(--line-soft)}
+.hero-kicker{color:var(--aqua);font-weight:900;letter-spacing:3.5px;font-size:12.5px;margin-bottom:2px}
+.hero h1{font-size:clamp(42px,10vw,78px);line-height:1.02;font-weight:900;letter-spacing:2px;margin:0 0 8px;
+  background:linear-gradient(180deg,#fff3c4 5%,var(--amber) 32%,var(--flame2) 62%,#e83a1e 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 rgba(0,0,0,.55)) drop-shadow(0 0 26px rgba(255,106,26,.35))}
+.hero p{max-width:680px;margin:0 auto 9px;font-size:clamp(14px,3vw,17px);line-height:1.45;font-weight:700;color:var(--muted)}
+.hero p b{color:var(--ink)}
+.creator{background:rgba(47,212,255,.08);border:2px dashed var(--aqua-deep);color:var(--aqua);border-radius:999px;padding:5px 18px;font-weight:800;display:inline-block;margin-top:9px;font-size:14px}
+.dlbtn{display:inline-block;background:linear-gradient(180deg,var(--amber),var(--flame));color:#2a1002;font-weight:900;font-size:clamp(18px,4.2vw,26px);line-height:1.2;letter-spacing:.4px;text-decoration:none;padding:13px 26px;border-radius:16px;border:3px solid #000;box-shadow:0 8px 0 rgba(0,0,0,.75),0 0 34px rgba(255,106,26,.35);margin:4px 0 8px;transition:transform .1s,box-shadow .1s}
 .dlbtn:hover{transform:translateY(-2px)}
-.dlbtn:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(38,34,31,.92),0 8px 16px rgba(38,34,31,.25)}
-.dlsub{font-size:12px;line-height:1.45;color:#6d5b43;max-width:780px;margin:0 auto 6px;overflow-wrap:anywhere;font-weight:600}
+.dlbtn:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(0,0,0,.75)}
+.dlsub{font-size:11.5px;line-height:1.45;color:var(--faint);max-width:800px;margin:0 auto 6px;overflow-wrap:anywhere;font-weight:600}
 
 /* ---------- News strips ---------- */
-.whatsnew{background:var(--sun);border-bottom:3px solid var(--ink);padding:6px 14px;text-align:center}
-.whatsnew a{color:var(--ink);font-weight:900;text-decoration:none;font-size:15px}
-.whatsnew a:hover{color:var(--flame-deep);text-decoration:underline}
-.whatsnew + .whatsnew{background:var(--sky-soft)}
+.whatsnew{background:linear-gradient(90deg,var(--amber),var(--flame2));padding:7px 14px;text-align:center}
+.whatsnew a{color:#2a1002;font-weight:900;text-decoration:none;font-size:15px}
+.whatsnew a:hover{text-decoration:underline}
+.whatsnew + .whatsnew{background:linear-gradient(90deg,#0e2c4d,#123a5e)}
+.whatsnew + .whatsnew a{color:var(--aqua)}
 
-/* ---------- Games controls (search / chips / jump) ---------- */
-.fb-controls{padding:10px 0 2px}
-.fb-searchwrap{display:flex;align-items:center;gap:9px;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:9px 13px;box-shadow:0 4px 0 rgba(38,34,31,.92)}
-.fb-search-ic{font-size:19px}
+/* ---------- Sticky catalog tools (search lives here) ---------- */
+.catalog-tools{position:sticky;top:0;z-index:190;background:rgba(5,10,22,.94);backdrop-filter:blur(8px);border-bottom:3px solid var(--aqua-deep);padding:9px 0 8px}
+.fb-controls{padding:0}
+.fb-searchrow{display:flex;align-items:stretch;gap:9px}
+.fb-searchwrap{flex:1;display:flex;align-items:center;gap:9px;background:var(--navy2);border:2.5px solid var(--line);border-radius:14px;padding:8px 13px}
+.fb-searchwrap:focus-within{border-color:var(--aqua)}
+.fb-search-ic{font-size:18px}
 #fb-game-search{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--ink);font-size:16.5px;font-family:inherit;font-weight:600}
-#fb-game-search::placeholder{color:var(--ink-faint)}
-.fb-chips{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin-top:11px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#fb-game-search::placeholder{color:var(--faint)}
+.fb-countrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px}
+.fb-gcount{font-size:13.5px;color:var(--aqua);font-weight:900;letter-spacing:.4px}
+.fb-reset{background:var(--panel);border:2px solid var(--line);color:var(--muted);font-weight:800;font-size:12.5px;font-family:inherit;border-radius:999px;padding:4px 13px;cursor:pointer;white-space:nowrap}
+.fb-reset:hover{border-color:var(--red);color:#ffb3ae}
+.fb-chips{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin-top:8px;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fb-chips::-webkit-scrollbar{display:none}
-.fb-chip{flex:0 0 auto;background:#fff;border:2.5px solid var(--ink);color:var(--ink);font-weight:800;font-size:13.5px;font-family:inherit;border-radius:999px;padding:6px 14px;cursor:pointer;transition:background .15s,color .15s}
-.fb-chip:hover{background:var(--sun-soft)}
-.fb-chip.fb-on{background:var(--sky);color:#fff}
-.fb-jump{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
-.fb-jnum{flex:0 0 auto;min-width:36px;height:36px;padding:0 6px;border-radius:11px;background:#fff;border:2.5px solid var(--ink);color:var(--ink);font-weight:900;font-size:14px;font-family:inherit;cursor:pointer}
-.fb-jnum:hover{background:var(--sun);color:var(--ink)}
-.fb-gcount{font-size:13.5px;color:var(--ink-soft);font-weight:800;margin-top:2px}
-.fb-noresults{font-size:16px;color:var(--ink);font-weight:800;padding:16px 0 4px}
+.fb-chip{flex:0 0 auto;background:var(--panel);border:2px solid var(--line);color:var(--ink);font-weight:800;font-size:13.5px;font-family:inherit;border-radius:999px;padding:6px 14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.fb-chip:hover{border-color:var(--aqua)}
+.fb-chip.fb-on{background:var(--aqua-deep);border-color:var(--aqua);color:#fff}
+.fb-jump{display:flex;gap:6px;overflow-x:auto;padding:7px 2px 2px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.fb-jnum{flex:0 0 auto;min-width:35px;height:35px;padding:0 6px;border-radius:10px;background:var(--panel);border:2px solid var(--line);color:var(--muted);font-weight:900;font-size:14px;font-family:inherit;cursor:pointer}
+.fb-jnum:hover{background:var(--flame);border-color:var(--flame2);color:#fff}
+.fb-noresults{font-size:16px;color:var(--amber);font-weight:800;padding:16px 0 4px}
+
+/* ---------- Section heads ---------- */
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0 2px}
+.section-head h2{font-size:clamp(24px,5vw,34px);font-weight:900;letter-spacing:.6px;color:var(--ink)}
+.section-head h2 .accent{color:var(--flame2)}
+.section-head p{color:var(--muted);font-weight:700;font-size:14px}
 
 /* ---------- Featured trio ---------- */
-.fb-featured{display:grid;grid-template-columns:1fr;gap:12px;margin:10px 0 4px}
-.fb-feat{display:flex;align-items:center;gap:13px;background:var(--card);border:3px solid var(--ink);border-top:9px solid var(--grape);border-radius:18px;padding:10px 13px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);transition:transform .12s}
+.fb-featured{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0 6px}
+.fb-feat{display:flex;align-items:center;gap:13px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:2.5px solid var(--line);border-top:8px solid var(--flame);border-radius:16px;padding:12px 14px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);transition:transform .12s}
 .fb-feat:hover{transform:translateY(-3px)}
-.fb-feat:nth-child(2){border-top-color:var(--sky)}
-.fb-feat:nth-child(3){border-top-color:var(--red)}
+.fb-feat:nth-child(2){border-top-color:var(--aqua)}
+.fb-feat:nth-child(3){border-top-color:var(--amber)}
 .fb-feat-em{font-size:36px;line-height:1}
 .fb-feat-main{flex:1;display:flex;flex-direction:column;min-width:0}
 .fb-feat-t{font-weight:900;color:var(--ink);font-size:18px}
-.fb-feat-d{font-size:13px;color:var(--ink-soft);line-height:1.4;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.fb-feat-go{font-weight:900;color:var(--flame-deep);white-space:nowrap}
+.fb-feat-d{font-size:13px;color:var(--muted);line-height:1.4;font-weight:600}
+.fb-feat-go{font-weight:900;color:var(--amber);white-space:nowrap}
 @media(min-width:820px){.fb-featured{grid-template-columns:repeat(3,1fr)}}
 
-/* ---------- THE GAMES GRID — always open, always visible ---------- */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:10px 0 34px}
+/* ---------- THE GAMES GRID — always open, always in the flow ---------- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 0 30px}
 @media(min-width:720px){.grid{grid-template-columns:repeat(3,1fr);gap:16px}}
 @media(min-width:1060px){.grid{grid-template-columns:repeat(4,1fr)}}
-.card{background:var(--card);border:3px solid var(--ink);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;scroll-margin-top:190px;transition:transform .13s}
-.card:hover{transform:translateY(-4px)}
-.card .thumb{height:84px;display:flex;align-items:center;justify-content:center;font-size:42px;border-bottom:3px solid var(--ink);background:radial-gradient(circle at 50% 30%,#fff 0%,transparent 62%),linear-gradient(135deg,var(--sun-soft),#ffb25e)}
-.card:nth-child(5n+2) .thumb{background:radial-gradient(circle at 50% 30%,#fff 0%,transparent 62%),linear-gradient(135deg,var(--sky-soft),#8ecdf9)}
-.card:nth-child(5n+3) .thumb{background:radial-gradient(circle at 50% 30%,#fff 0%,transparent 62%),linear-gradient(135deg,var(--grass-soft),#8fe3a0)}
-.card:nth-child(5n+4) .thumb{background:radial-gradient(circle at 50% 30%,#fff 0%,transparent 62%),linear-gradient(135deg,var(--grape-soft),#bdaeff)}
-.card:nth-child(5n+5) .thumb{background:radial-gradient(circle at 50% 30%,#fff 0%,transparent 62%),linear-gradient(135deg,var(--pink-soft),#ffb1cd)}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:2.5px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;scroll-margin-top:172px;transition:transform .13s,border-color .13s}
+.card:hover{transform:translateY(-4px);border-color:var(--flame)}
+.card .thumb{height:82px;display:flex;align-items:center;justify-content:center;font-size:42px;border-bottom:2.5px solid var(--line-soft);background:radial-gradient(circle at 50% 28%,rgba(255,197,61,.35) 0%,transparent 62%),linear-gradient(135deg,#3a1503,#7a2c05)}
+.card:nth-child(5n+2) .thumb{background:radial-gradient(circle at 50% 28%,rgba(47,212,255,.32) 0%,transparent 62%),linear-gradient(135deg,#06324a,#0d5a7d)}
+.card:nth-child(5n+3) .thumb{background:radial-gradient(circle at 50% 28%,rgba(67,209,124,.3) 0%,transparent 62%),linear-gradient(135deg,#0a3524,#14663c)}
+.card:nth-child(5n+4) .thumb{background:radial-gradient(circle at 50% 28%,rgba(167,139,250,.32) 0%,transparent 62%),linear-gradient(135deg,#2c1a5e,#4c2fa3)}
+.card:nth-child(5n+5) .thumb{background:radial-gradient(circle at 50% 28%,rgba(255,81,71,.3) 0%,transparent 62%),linear-gradient(135deg,#4a0f0c,#8c2318)}
 .card .body{padding:13px;display:flex;flex-direction:column;flex:1}
-.card .num{background:var(--ink);color:var(--sun);font-size:11.5px;font-weight:900;letter-spacing:1.2px;padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:8px;align-self:flex-start}
-.badge{display:inline-block;align-self:flex-start;background:var(--grass);color:#fff;font-size:11.5px;font-weight:900;letter-spacing:.4px;padding:3px 11px;border-radius:999px;border:2px solid var(--ink);margin-bottom:8px;transform:rotate(-2deg)}
+.card .num{background:var(--flame);color:#260e02;font-size:11.5px;font-weight:900;letter-spacing:1.2px;padding:3px 11px;border-radius:999px;display:inline-block;margin-bottom:8px;align-self:flex-start}
+.badge{display:inline-block;align-self:flex-start;background:var(--aqua-deep);color:#eaf9ff;font-size:11.5px;font-weight:900;letter-spacing:.4px;padding:3px 11px;border-radius:999px;border:2px solid var(--aqua);margin-bottom:8px;transform:rotate(-2deg)}
 .card h3{font-size:16.5px;font-weight:900;margin-bottom:6px;color:var(--ink);line-height:1.25}
-.card p.desc{font-size:13px;color:var(--ink-soft);margin-bottom:10px;flex:1;font-weight:600}
-.card .lesson{font-size:12px;background:var(--grass-soft);border:2px solid var(--grass);border-radius:11px;padding:8px 10px;margin-bottom:12px;color:#176b2c;font-weight:700}
-.card a.play{display:block;background:linear-gradient(180deg,#ff8a3d,var(--flame));color:#fff;text-align:center;font-weight:900;font-size:17px;padding:11px;border-radius:14px;text-decoration:none;border:3px solid var(--ink);box-shadow:0 5px 0 rgba(38,34,31,.92);transition:transform .08s,box-shadow .08s;text-shadow:0 1px 0 rgba(0,0,0,.22)}
+.card p.desc{font-size:13px;color:var(--muted);margin-bottom:10px;flex:1;font-weight:600}
+.card .lesson{font-size:12px;background:rgba(67,209,124,.1);border:2px solid rgba(67,209,124,.55);border-radius:11px;padding:8px 10px;margin-bottom:12px;color:#a9ecc4;font-weight:700}
+.card a.play{display:block;background:linear-gradient(180deg,var(--flame2),var(--flame));color:#fff;text-align:center;font-weight:900;font-size:17px;padding:11px;border-radius:13px;text-decoration:none;border:2.5px solid #000;box-shadow:0 5px 0 rgba(0,0,0,.7);transition:transform .08s,box-shadow .08s;text-shadow:0 1px 0 rgba(0,0,0,.25)}
 .card a.play:hover{transform:translateY(-2px)}
-.card a.play:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(38,34,31,.92)}
+.card a.play:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.7)}
 .card.fb-flash{animation:fbflash 1.6s ease}
-@keyframes fbflash{0%,55%{box-shadow:0 0 0 4px var(--sun),0 0 42px rgba(255,197,61,.95)}100%{box-shadow:var(--shadow)}}
-@media(min-width:720px){.card .thumb{height:104px;font-size:50px}.card h3{font-size:18px}}
+@keyframes fbflash{0%,55%{box-shadow:0 0 0 4px var(--amber),0 0 42px rgba(255,197,61,.8)}100%{box-shadow:var(--shadow)}}
+@media(min-width:720px){.card .thumb{height:102px;font-size:50px}.card h3{font-size:18px}}
 
-/* ---------- Footer ---------- */
-footer{background:var(--ink);border-top:5px solid var(--flame);color:#f3e4cd;text-align:center;padding:26px 16px;margin-top:8px;font-weight:600}
-footer a{color:var(--sun)}
-
-/* ================================================================
-   SHOP + MY CHEST — slide-over drawers.
-   Markup/IDs/classes untouched; the hub script adds .fb-on to
-   #shop / #locker and removes it from the others. In v3 that class
-   means "drawer open". #panel-games has NO display rule at all —
-   the games are normal page flow and can never be hidden by CSS.
-   ================================================================ */
-#shop,#locker{
-  position:fixed;left:0;right:0;bottom:0;top:auto;
-  width:auto;max-width:none;margin:0;
-  max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;
-  background:var(--paper);color:var(--ink);
-  border-top:4px solid var(--ink);border-radius:22px 22px 0 0;
-  box-shadow:0 -20px 55px rgba(38,34,31,.4);
-  z-index:95;visibility:hidden;pointer-events:none;
-  transform:translateY(106%);
-  transition:transform .3s ease,visibility 0s linear .3s;
-}
-#shop.fb-on,#locker.fb-on{visibility:visible;pointer-events:auto;transform:translateY(0);transition:transform .3s ease,visibility 0s}
-/* dim the page behind an open drawer; the sticky nav (z-100) stays
-   bright and clickable above the dim so the Games button — the
-   drawer's close control — is always reachable */
-body:has(#shop.fb-on)::after,body:has(#locker.fb-on)::after{
-  content:"";position:fixed;inset:0;background:rgba(38,34,31,.45);z-index:94;
-}
-body:has(#shop.fb-on),body:has(#locker.fb-on){overflow:hidden}
-@media(min-width:900px){
-  #shop,#locker{left:auto;top:0;bottom:0;right:0;width:min(480px,100vw);max-height:none;
-    border-top:none;border-left:4px solid var(--ink);border-radius:0;
-    transform:translateX(106%);padding-top:118px}
-  #shop.fb-on,#locker.fb-on{transform:translateX(0)}
-}
-/* drawer contents */
-.shop{padding:22px 2px 10px}
+/* ---------- Shop + My Chest: full sections below the games ---------- */
+.hub-section{scroll-margin-top:150px;padding-top:26px}
+.shop{background:linear-gradient(180deg,rgba(255,106,26,.05),transparent 300px),var(--panel);border:2.5px solid var(--line);border-radius:22px;padding:24px 18px 12px;box-shadow:var(--shadow)}
+#locker .shop{background:linear-gradient(180deg,rgba(47,212,255,.06),transparent 300px),var(--panel)}
 .shop h2{font-size:clamp(25px,5vw,34px);font-weight:900;color:var(--ink);text-align:center;letter-spacing:.4px}
-#locker .shop h2{color:var(--grape)}
-.shop .sub{text-align:center;color:var(--ink-soft);font-weight:700;max-width:640px;margin:8px auto 6px}
-.shop .free-note{text-align:center;color:#176b2c;font-weight:800;background:var(--grass-soft);border:2px solid var(--grass);border-radius:12px;padding:9px 12px;max-width:720px;margin:10px auto 16px}
-.shopbox{background:var(--card);border:3px solid var(--ink);border-radius:20px;padding:18px;margin-bottom:24px;box-shadow:var(--shadow)}
+#locker .shop h2{color:var(--aqua)}
+.shop .sub{text-align:center;color:var(--muted);font-weight:700;max-width:640px;margin:8px auto 6px}
+.shop .free-note{text-align:center;color:#a9ecc4;font-weight:800;background:rgba(67,209,124,.1);border:2px solid rgba(67,209,124,.55);border-radius:12px;padding:9px 12px;max-width:720px;margin:10px auto 16px}
+.shopbox{background:var(--navy2);border:2.5px solid var(--line);border-radius:18px;padding:18px;margin-bottom:24px}
 .shopbox h3{font-size:21px;font-weight:900;color:var(--ink);margin-bottom:5px}
-.shopbox .boxsub{font-size:13px;color:var(--ink-soft);margin-bottom:14px;line-height:1.6;font-weight:600}
+.shopbox .boxsub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;font-weight:600}
+.shopbox .boxsub b{color:var(--ink)}
 .shopgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
 @media(min-width:560px){.shopgrid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
-.shopitem{background:#fffaf0;border:2.5px solid var(--ink);border-radius:15px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px}
+.shopitem{background:var(--navy);border:2px solid var(--line);border-radius:15px;padding:12px;text-align:center;display:flex;flex-direction:column;gap:4px}
 .shopitem .em{font-size:38px}
 .shopitem .nm{font-weight:900;color:var(--ink);font-size:15px}
-.shopitem .ds{font-size:11.5px;color:var(--ink-soft);flex:1;font-weight:600}
-.shopitem .fx{font-size:11.5px;color:#176b2c;font-weight:800}
-.buybtn{background:linear-gradient(180deg,#ff8a3d,var(--flame));color:#fff;font-weight:900;border:3px solid var(--ink);border-radius:11px;padding:9px 6px;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(38,34,31,.92);font-family:inherit;text-shadow:0 1px 0 rgba(0,0,0,.2)}
-.buybtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(38,34,31,.92)}
-.buybtn.owned{background:var(--grass-soft);color:#176b2c;border-color:var(--grass);box-shadow:none;text-shadow:none}
-.buybtn.confirm{background:linear-gradient(180deg,#ff6b57,var(--red));color:#fff}
+.shopitem .ds{font-size:11.5px;color:var(--muted);flex:1;font-weight:600}
+.shopitem .fx{font-size:11.5px;color:#8ff0b3;font-weight:800}
+.buybtn{background:linear-gradient(180deg,var(--flame2),var(--flame));color:#fff;font-weight:900;border:2.5px solid #000;border-radius:11px;padding:9px 6px;font-size:14px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.7);font-family:inherit;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.buybtn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.7)}
+.buybtn.owned{background:rgba(67,209,124,.14);color:#a9ecc4;border-color:var(--green);box-shadow:none;text-shadow:none}
+.buybtn.confirm{background:linear-gradient(180deg,#ff7a6e,var(--red));color:#fff}
 .buybtn:disabled{opacity:.55;cursor:default}
-.shopsec-title{font-size:16px;font-weight:900;color:var(--ink);letter-spacing:.6px;margin:17px 0 9px;border-bottom:3px solid var(--sun);padding-bottom:4px}
+.shopsec-title{font-size:16px;font-weight:900;color:var(--ink);letter-spacing:.6px;margin:17px 0 9px;border-bottom:3px solid var(--flame);padding-bottom:4px}
 .merchgrid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(min-width:560px){.merchgrid{grid-template-columns:repeat(auto-fill,minmax(185px,1fr))}}
-.merchcard{background:#fffaf0;border:3px solid var(--ink);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
-.merchcard img{width:100%;height:160px;object-fit:cover;display:block;border-bottom:3px solid var(--ink)}
+.merchcard{background:var(--navy);border:2.5px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.merchcard img{width:100%;height:160px;object-fit:cover;display:block;border-bottom:2.5px solid var(--line-soft);background:var(--panel2)}
 .merchcard .mb{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}
 .merchcard .nm{font-weight:900;color:var(--ink)}
-.merchcard .ds{font-size:12px;color:var(--ink-soft);flex:1;font-weight:600}
-.merchcard .pr{color:var(--flame-deep);font-weight:900;font-size:17px}
-.merchcard a{margin-top:auto;display:block;text-align:center;background:#fff;border:3px solid var(--sky);color:#0b6cb8;font-weight:900;border-radius:11px;padding:9px 6px;text-decoration:none;font-size:14px}
-.merchcard a:hover{background:var(--sky-soft)}
-/* the gate-status line carries a dark-theme inline color (#ffd9ae);
-   recolor it for the light drawer (CSS-only, markup untouched) */
-#fbshop-gatestatus{color:#176b2c!important}
-/* locker script injects two helper spans with a dark-theme inline
-   color (#d8b89a); recolor them for the light drawer (CSS-only,
-   script untouched) */
-#fb-locker-body span[style]{color:var(--ink-soft)!important}
+.merchcard .ds{font-size:12px;color:var(--muted);flex:1;font-weight:600}
+.merchcard .pr{color:var(--amber);font-weight:900;font-size:17px}
+.merchcard a{margin-top:auto;display:block;text-align:center;background:var(--panel);border:2.5px solid var(--aqua-deep);color:var(--aqua);font-weight:900;border-radius:11px;padding:9px 6px;text-decoration:none;font-size:14px}
+.merchcard a:hover{background:rgba(47,212,255,.12)}
 
 /* ---------- Toast ---------- */
-#fbshop-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:var(--ink);color:#ffeecb;border:3px solid var(--sun);border-radius:999px;padding:11px 20px;font-weight:800;z-index:999;transition:transform .25s;max-width:92vw;text-align:center;box-shadow:0 10px 30px rgba(38,34,31,.35)}
+#fbshop-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(90px);background:#0a1730;color:#ffe9c4;border:2.5px solid var(--amber);border-radius:999px;padding:11px 20px;font-weight:800;z-index:999;transition:transform .25s;max-width:92vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 #fbshop-toast.show{transform:translateX(-50%) translateY(0)}
 
+/* ---------- Footer ---------- */
+footer{background:#04070f;border-top:4px solid var(--flame);color:var(--muted);text-align:center;padding:26px 16px;margin-top:34px;font-weight:600}
+footer p:first-child{color:var(--amber);font-weight:900;letter-spacing:.6px}
+footer a{color:var(--aqua)}
+
 /* ---------- First-run tour (onboarding.js) ---------- */
-.fbt-overlay{position:fixed;inset:0;z-index:9000;background:rgba(38,34,31,.72);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto}
-.fbt-card{width:100%;max-width:520px;background:var(--card);border:3.5px solid var(--ink);border-radius:22px;padding:28px 26px;text-align:center;box-shadow:0 10px 0 rgba(38,34,31,.9),0 30px 60px rgba(0,0,0,.35);color:var(--ink)}
-.fbt-step{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--flame-deep);margin-bottom:6px}
+.fbt-overlay{position:fixed;inset:0;z-index:9000;background:rgba(3,6,14,.8);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow-y:auto}
+.fbt-card{width:100%;max-width:520px;background:var(--panel);border:3px solid var(--flame);border-radius:22px;padding:28px 26px;text-align:center;box-shadow:0 0 60px rgba(255,106,26,.25);color:var(--ink)}
+.fbt-step{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--aqua);margin-bottom:6px}
 .fbt-title{font-size:clamp(24px,5.4vw,32px);font-weight:900;letter-spacing:.5px;color:var(--ink);margin:2px 0 12px;line-height:1.15}
 .fbt-body{font-size:16px;line-height:1.6;color:var(--ink);text-align:left}
-.fbt-body b{color:var(--flame-deep)}
+.fbt-body b{color:var(--flame2)}
 .fbt-body .fbt-row{display:flex;align-items:center;gap:10px;margin:10px 0}
-.fbt-linkbtn{display:inline-block;background:linear-gradient(180deg,#ff8a3d,var(--flame));color:#fff;font-weight:900;font-size:16px;text-decoration:none;padding:12px 22px;border-radius:14px;border:3px solid var(--ink);box-shadow:0 5px 0 rgba(38,34,31,.92)}
-.fbt-soon{display:inline-block;background:var(--sun-soft);border:2.5px dashed var(--ink);color:var(--ink);font-weight:800;border-radius:999px;padding:6px 16px}
+.fbt-linkbtn{display:inline-block;background:linear-gradient(180deg,var(--flame2),var(--flame));color:#fff;font-weight:900;font-size:16px;text-decoration:none;padding:12px 22px;border-radius:14px;border:2.5px solid #000;box-shadow:0 5px 0 rgba(0,0,0,.7)}
+.fbt-soon{display:inline-block;background:rgba(47,212,255,.1);border:2.5px dashed var(--aqua-deep);color:var(--aqua);font-weight:800;border-radius:999px;padding:6px 16px}
 .fbt-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:22px}
-.fbt-btn{background:linear-gradient(180deg,#ff8a3d,var(--flame));color:#fff;font-weight:900;font-size:16px;border:3px solid var(--ink);border-radius:14px;padding:12px 20px;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 rgba(38,34,31,.92)}
-.fbt-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(38,34,31,.92)}
-.fbt-btn.ghost{background:#fff;color:var(--ink);box-shadow:none}
+.fbt-btn{background:linear-gradient(180deg,var(--flame2),var(--flame));color:#fff;font-weight:900;font-size:16px;border:2.5px solid #000;border-radius:14px;padding:12px 20px;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 rgba(0,0,0,.7)}
+.fbt-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.7)}
+.fbt-btn.ghost{background:var(--panel2);color:var(--ink);box-shadow:none;border-color:var(--line)}
 .fbt-dots{display:flex;gap:6px;justify-content:center}
-.fbt-dot{width:9px;height:9px;border-radius:50%;background:rgba(38,34,31,.22)}
+.fbt-dot{width:9px;height:9px;border-radius:50%;background:rgba(169,189,224,.3)}
 .fbt-dot.on{background:var(--flame)}
-.fbt-skip{display:block;margin:16px auto 0;background:none;border:none;color:var(--ink-soft);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:underline}
+.fbt-skip{display:block;margin:16px auto 0;background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:underline}
 
-/* ---------- Phone tightening (<=719px): GAMES IN THE FIRST SCREEN ----------
-   Tightening pass, 2026-10-24. The grid never moves and nothing is
-   hidden — everything stacked ABOVE it gets compact so the grid and
-   its first row of numbered tiles land inside the first viewport
-   (390x844) with zero scrolling. All text stays in the DOM; a few
-   blocks are visually line-clamped on phone only. */
+/* ---------- Phone tightening (<=719px): games in the first screen ---------- */
 @media(max-width:719px){
-  /* nav: one slim brand row + one row of pill buttons. The Home and
-     Fire World links rest on phone (the brand IS the home link, and
-     this page IS Fire World); they return at >=720px. */
-  nav.top .wrap{padding:6px 10px;gap:5px 8px;line-height:1.25}
-  .brand{font-size:17px}
+  nav.top .wrap{padding:7px 10px;gap:5px 8px;line-height:1.25}
+  .brand{font-size:18px}
   .balpill{font-size:11.5px;padding:2px 9px}
-  nav.top a.navlink{font-size:12.5px;margin-left:8px}
+  nav.top a.navlink{font-size:12.5px;margin-left:9px}
   nav.top a.navlink[href="/"],nav.top a.navlink[href="/fire-world.html"]{display:none}
-  #fb-signout-btn{font-size:12px;padding:3px 10px;margin-left:8px}
-  .fb-tabrow{flex-wrap:nowrap;gap:7px;padding:6px 10px 6px}
-  .fb-tab{font-size:13.5px;line-height:1.2;padding:7px 12px;white-space:nowrap;box-shadow:0 3px 0 rgba(38,34,31,.92)}
-  /* hero: slim band, one-line subtext, one-line download button,
-     tiny fingerprint lines (full text still in the DOM) */
-  .hero{padding:10px 8px 9px}
-  .hero h1{font-size:25px;margin:0 0 4px}
-  .hero p{font-size:13px;line-height:1.35;margin:0 auto 7px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  .dlbtn{font-size:15.5px;padding:9px 15px;margin:2px 0 6px;border-radius:14px;box-shadow:0 5px 0 rgba(38,34,31,.92),0 10px 20px rgba(38,34,31,.22);white-space:nowrap}
-  .dlsub{font-size:9px;line-height:1.35;margin-bottom:2px}
+  #fb-signout-btn{font-size:12px;padding:3px 10px;margin-left:9px}
+  .top-jumps{flex-wrap:nowrap;gap:7px;padding:0 10px 8px}
+  .jump-link{font-size:13px;padding:6px 8px}
+  .hero{padding:13px 10px 10px}
+  .hero-kicker{font-size:10.5px;letter-spacing:2.6px}
+  .hero h1{font-size:41px;margin-bottom:5px}
+  .hero p{font-size:13px;line-height:1.35;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .dlbtn{font-size:15.5px;padding:9px 14px;margin:2px 0 6px;border-radius:13px;white-space:nowrap}
+  .dlsub{font-size:9.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .creator{font-size:11.5px;line-height:1.25;padding:4px 12px;margin-top:6px}
-  /* promo strips: short bars, at most two lines each */
   .whatsnew{padding:5px 10px}
   .whatsnew a{font-size:12.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  /* games controls: one scrollable chip rail, small jump numbers */
-  .fb-controls{padding:9px 0 0}
-  .fb-searchwrap{padding:7px 11px;border-radius:13px;box-shadow:0 3px 0 rgba(38,34,31,.92)}
+  .catalog-tools{padding:7px 0 6px}
+  .fb-searchwrap{padding:7px 11px;border-radius:12px}
   .fb-search-ic{font-size:16px}
   #fb-game-search{font-size:15px}
-  .fb-chips{margin-top:8px;gap:6px}
-  .fb-chip{font-size:12px;padding:4px 10px}
-  .fb-jump{padding:7px 2px 3px;gap:5px}
-  .fb-jnum{min-width:31px;height:31px;font-size:12.5px;border-radius:9px}
+  .fb-countrow{margin-top:5px}
   .fb-gcount{font-size:12px}
-  /* featured trio: a swipeable shelf instead of a tall stack */
-  .fb-featured{display:flex;overflow-x:auto;gap:10px;margin:9px 0 2px;padding:2px 2px 6px;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .fb-featured::-webkit-scrollbar{display:none}
-  .fb-feat{flex:0 0 84%;scroll-snap-align:start;padding:9px 11px;gap:10px;border-top-width:7px;border-radius:15px}
-  .fb-feat-em{font-size:26px}
-  .fb-feat-t{font-size:15px;line-height:1.2}
-  .fb-feat-d{font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  /* the grid + cards: tighter, so the first row reads at a glance */
-  .grid{gap:10px;padding:10px 0 26px}
-  .card{border-radius:16px}
-  .card .thumb{height:60px;font-size:31px}
+  .fb-reset{font-size:11.5px;padding:3px 11px}
+  .fb-chips{margin-top:6px;gap:6px}
+  .fb-chip{font-size:12px;padding:4px 10px}
+  .fb-jump{padding:6px 2px 1px;gap:5px}
+  .fb-jnum{min-width:31px;height:31px;font-size:12.5px;border-radius:9px}
+  .section-head{margin:14px 0 0}
+  .section-head h2{font-size:23px}
+  .section-head p{display:none}
+  .grid{gap:10px;padding:10px 0 24px}
+  .card{border-radius:16px;scroll-margin-top:158px}
+  .card .thumb{height:58px;font-size:30px}
   .card .body{padding:10px}
   .card .num{font-size:10.5px;margin-bottom:6px}
   .badge{font-size:10.5px;margin-bottom:6px}
@@ -314,97 +266,54 @@ body:has(#shop.fb-on),body:has(#locker.fb-on){overflow:hidden}
   .card p.desc{font-size:12px;line-height:1.45;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .card .lesson{font-size:11px;padding:6px 8px;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .card a.play{font-size:15px;padding:8px}
+  .hub-section{scroll-margin-top:138px;padding-top:18px}
+  .shop{padding:18px 12px 8px;border-radius:18px}
 }
 
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{transition:none!important;animation:none!important}
+  html{scroll-behavior:auto}
 }
+
 </style>
 </head>
 <body>
 <nav class="top"><div class="wrap">
 <a class="brand" href="/">🔥 Fire Babys</a>
-<div><span class="balpill" id="fbshop-navbal">🪙 0 · 💎 0</span><a class="navlink" href="#shop">🛒 Shop</a><a class="navlink" href="/">Home</a><a class="navlink" href="/arcade.html">Arcade</a><a class="navlink" href="/fire-world.html">Fire World</a><a class="navlink" href="#" id="fb-tour-replay">🎓 Tour</a><button type="button" id="fb-signout-btn" style="display:none">Sign out</button></div>
+<div class="top-actions"><span class="balpill" id="fbshop-navbal">🪙 0 · 💎 0</span><a class="navlink" href="#shop">🛒 Shop</a><a class="navlink" href="/">Home</a><a class="navlink" href="/arcade.html">Arcade</a><a class="navlink" href="/fire-world.html">Fire World</a><a class="navlink" href="#" id="fb-tour-replay">🎓 Tour</a><button type="button" id="fb-signout-btn" style="display:none">Sign out</button></div>
 </div>
-<div class="wrap fb-tabrow" role="tablist" aria-label="Fire World sections">
-<button type="button" class="fb-tab" data-tab="games" role="tab" aria-selected="true">🎮 Games</button>
-<button type="button" class="fb-tab" data-tab="shop" role="tab" aria-selected="false">🛒 Shop</button>
-<button type="button" class="fb-tab" data-tab="chest" role="tab" aria-selected="false">🧰 My Chest</button>
+<div class="wrap top-jumps">
+<a class="jump-link" href="#game-grid">🎮 All Games ↓</a>
+<a class="jump-link" href="#shop">🛒 Shop ↓</a>
+<a class="jump-link chest" href="#locker">🧰 My Chest ↓</a>
 </div>
 </nav>
 
-<div class="fb-panel fb-on" id="panel-games" data-panel="games">
-<div class="hero"><div class="wrap">
-<h1>🔥 Fire World 🔥</h1>
-<p>57 free Fire Babys games. Built with love, 100% safe fun for everyone — play online or take the whole game with you.</p>
+<header class="hero"><div class="wrap">
+<p class="hero-kicker">FIRE WORLD · NIGHT ARCADE</p>
+<h1>FIRE BABYS</h1>
+<p>The whole game catalog, out in the open — <b>no tabs, no hunting.</b> Every game below is free to play, for everyone. Scroll, search, and play.</p>
 <a class="dlbtn" href="/fire-babys-offline.zip" download>⬇️ DOWNLOAD THE FULL GAME — FREE</a>
 <div class="dlsub">All 57 games in ONE file · plays offline anywhere · no ads, no purchases, nothing to install<br>Official safety fingerprint (SHA-256): 5a016f0e86fb2053e04fd303b963e17c4e82b47ac058252c98b5abce3d5ca4a1 · Size: 2.57 MB<br>Only download from firebabys.io — the real one always matches this fingerprint.</div>
 <div class="creator">By Jman350Z &amp; fire team</div>
-</div></div>
+</div></header>
 
 <div class="whatsnew"><a href="/fire-world/slingshot-cascade/">🎉 150+ NEW LEVELS! Slingshot Cascade now has 10 rounds + 4 hero powers — pick your hero, tap mid-flight!</a></div>
 <div class="whatsnew"><a href="https://safety.firebabys.io">🔥 FIRE SAFETY HUB — every fire-safety lesson from the games, plus official U.S. Fire Administration guides, all in one place → safety.firebabys.io</a></div>
 
-<div class="wrap fb-panel" id="shop" data-panel="shop">
-<div class="shop">
-<h2>🛒 Fire Babys Shops</h2>
-<p class="sub">Two shops, right here at the main menu. Spend the coins you earn playing — or grab real Fire Babys merch.</p>
-<p class="free-note">✅ Playing is ALWAYS free. No game, level, or retry ever costs coins — this isn't Mario or Sonic. Coins are for shopping, that's it.</p>
-<p class="free-note" id="fbshop-gatestatus" style="color:#ffd9ae"></p>
-
-<div class="shopbox" id="gameshop">
-<h3>🎮 GAME SHOP — spend your 🪙 coins</h3>
-<p class="boxsub">Your balance: <span class="balpill" id="fbshop-bal">🪙 0 · 💎 0</span><br>
-Coins are earned by playing — finish games, score KOs, and put out fires in the 3D Arena, and climb the Season 1 tiers. Coins are never sold. One balance everywhere: what you earn in the games shows up here, and what you buy here works in the games. Star Charms are collectible flair for your Chest — pure style, they never change any fighter's numbers. Armor, weapons &amp; emotes are yours forever once bought — equip them here or in the 3D Arena's own store, it's the same gear.</p>
-<div id="fbshop-items"></div>
-<p class="boxsub" id="fbshop-boostline" style="margin-top:12px"></p>
-</div>
-
-<div class="shopbox" id="merchshop">
-<h3>👕 REAL-WORLD SHOP — Fire Babys merch</h3>
-<p class="boxsub">Real merch from the official Fire Babys store, run by General Federal Industries. Real money only — game coins never pay for merch. The store is opening very soon; here's the first drop lineup.</p>
-<div class="merchgrid">
-<div class="merchcard"><img src="/shop-img/blaze-hero-tee.jpg" alt="Blaze Hero Tee design"><div class="mb"><span class="nm">Blaze Hero Tee</span><span class="ds">Blaze, the golden-crowned flame hero, front and center.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/aqua-hero-tee.jpg" alt="Aqua Hero Tee design"><div class="mb"><span class="nm">Aqua Hero Tee</span><span class="ds">Aqua, the cool-headed water hero, ready to splash into action.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/boulder-hero-tee.jpg" alt="Boulder Hero Tee design"><div class="mb"><span class="nm">Boulder Hero Tee</span><span class="ds">Boulder — the rock-solid strength of the crew.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/ruko-hero-tee.jpg" alt="Ruko Hero Tee design"><div class="mb"><span class="nm">Ruko Hero Tee</span><span class="ds">Ruko, the fearless flame warrior, charges in.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/full-cast-tee.jpg" alt="Full cast tee design"><div class="mb"><span class="nm">The Whole Crew Tee</span><span class="ds">All 12 heroes in tiered stands — every face visible.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/full-cast-hoodie.jpg" alt="Full cast hoodie design"><div class="mb"><span class="nm">Full Cast Hoodie</span><span class="ds">The official lineup poster print on a cozy pullover hoodie.</span><span class="pr">$48</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/slimer-smother-tee.jpg" alt="Slimer SMOTHER IT tee design"><div class="mb"><span class="nm">Slimer "SMOTHER IT!" Tee</span><span class="ds">The villain everybody loves to beat — with a real safety lesson.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/fire-safety-academy-tee.jpg" alt="Fire Safety Academy tee design"><div class="mb"><span class="nm">Fire Safety Academy Tee</span><span class="ds">Learn • Play • Stay Safe — the mission shirt.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/sticker-pack-sheet.jpg" alt="Sticker pack sheet"><div class="mb"><span class="nm">Sticker Pack — All 12 Characters</span><span class="ds">12 die-cut hero stickers for laptops, bottles, notebooks &amp; gear.</span><span class="pr">$12</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-<div class="merchcard"><img src="/shop-img/candy-moon-halloween-tee.jpg" alt="Candy Moon Halloween tee design"><div class="mb"><span class="nm">Candy Moon Halloween Tee</span><span class="ds">Limited Halloween 2026 drop — the whole crew under the Candy Moon.</span><span class="pr">$34</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
-</div>
-<p class="boxsub" style="margin-top:14px;text-align:center"><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener" style="color:#ffd76a;font-weight:900">Visit the Fire Babys Store →</a></p>
-</div>
-</div>
-</div>
-
-<div class="wrap fb-panel" id="locker" data-panel="chest">
-<div class="shop">
-<h2>🗝️ Your Locker</h2>
-<p class="sub">One locker per player — everything you earn or buy lives here, saved to your account so you never lose it. Any character you play can wear and use everything in your locker.</p>
-<div class="shopbox" id="lockerbox">
-<div id="fb-locker-body"><p class="boxsub">Loading your locker…</p></div>
-</div>
-</div>
-</div>
-
-<div class="wrap">
+<div class="catalog-tools"><div class="wrap">
 <div class="fb-controls">
-<label class="fb-searchwrap"><span class="fb-search-ic">🔎</span><input type="search" id="fb-game-search" placeholder="Search games — try 'ruko', 'puzzle', or a number" aria-label="Search games"></label>
+<div class="fb-searchrow"><label class="fb-searchwrap"><span class="fb-search-ic">🔎</span><input type="search" id="fb-game-search" placeholder="Search games — try 'ruko', 'puzzle', or a number" aria-label="Search games"></label></div>
 <div class="fb-chips" id="fb-chips"><button type="button" class="fb-chip fb-on" data-filter="all">All</button><button type="button" class="fb-chip" data-filter="racing">🏎️ Racing</button><button type="button" class="fb-chip" data-filter="puzzle">🧩 Puzzle</button><button type="button" class="fb-chip" data-filter="defense">🛡️ Defense</button><button type="button" class="fb-chip" data-filter="jump">🦘 Jump / Platform</button><button type="button" class="fb-chip" data-filter="dash">💨 Dash / Runner</button><button type="button" class="fb-chip" data-filter="boulder">🪨 Boulder</button><button type="button" class="fb-chip" data-filter="ruko">😡 Ruko</button><button type="button" class="fb-chip" data-filter="blaze">🔥 Blaze</button><button type="button" class="fb-chip" data-filter="cinder">❄️ Cinder</button><button type="button" class="fb-chip" data-filter="sizzle">⚡ Sizzle</button><button type="button" class="fb-chip" data-filter="inferno">👑 Lord Inferno</button><button type="button" class="fb-chip" data-filter="special">⭐ Special</button></div>
 <div class="fb-jump" id="fb-jump" aria-label="Jump to game number"><button type="button" class="fb-jnum" data-jump="1">1</button><button type="button" class="fb-jnum" data-jump="2">2</button><button type="button" class="fb-jnum" data-jump="3">3</button><button type="button" class="fb-jnum" data-jump="4">4</button><button type="button" class="fb-jnum" data-jump="5">5</button><button type="button" class="fb-jnum" data-jump="6">6</button><button type="button" class="fb-jnum" data-jump="7">7</button><button type="button" class="fb-jnum" data-jump="8">8</button><button type="button" class="fb-jnum" data-jump="9">9</button><button type="button" class="fb-jnum" data-jump="10">10</button><button type="button" class="fb-jnum" data-jump="11">11</button><button type="button" class="fb-jnum" data-jump="12">12</button><button type="button" class="fb-jnum" data-jump="13">13</button><button type="button" class="fb-jnum" data-jump="14">14</button><button type="button" class="fb-jnum" data-jump="15">15</button><button type="button" class="fb-jnum" data-jump="16">16</button><button type="button" class="fb-jnum" data-jump="17">17</button><button type="button" class="fb-jnum" data-jump="18">18</button><button type="button" class="fb-jnum" data-jump="19">19</button><button type="button" class="fb-jnum" data-jump="20">20</button><button type="button" class="fb-jnum" data-jump="21">21</button><button type="button" class="fb-jnum" data-jump="22">22</button><button type="button" class="fb-jnum" data-jump="23">23</button><button type="button" class="fb-jnum" data-jump="24">24</button><button type="button" class="fb-jnum" data-jump="25">25</button><button type="button" class="fb-jnum" data-jump="26">26</button><button type="button" class="fb-jnum" data-jump="27">27</button><button type="button" class="fb-jnum" data-jump="28">28</button><button type="button" class="fb-jnum" data-jump="29">29</button><button type="button" class="fb-jnum" data-jump="30">30</button><button type="button" class="fb-jnum" data-jump="31">31</button><button type="button" class="fb-jnum" data-jump="32">32</button><button type="button" class="fb-jnum" data-jump="33">33</button><button type="button" class="fb-jnum" data-jump="34">34</button><button type="button" class="fb-jnum" data-jump="35">35</button><button type="button" class="fb-jnum" data-jump="36">36</button><button type="button" class="fb-jnum" data-jump="37">37</button><button type="button" class="fb-jnum" data-jump="38">38</button><button type="button" class="fb-jnum" data-jump="39">39</button><button type="button" class="fb-jnum" data-jump="40">40</button><button type="button" class="fb-jnum" data-jump="41">41</button><button type="button" class="fb-jnum" data-jump="42">42</button><button type="button" class="fb-jnum" data-jump="43">43</button><button type="button" class="fb-jnum" data-jump="44">44</button><button type="button" class="fb-jnum" data-jump="45">45</button><button type="button" class="fb-jnum" data-jump="46">46</button><button type="button" class="fb-jnum" data-jump="47">47</button><button type="button" class="fb-jnum" data-jump="48">48</button><button type="button" class="fb-jnum" data-jump="49">49</button><button type="button" class="fb-jnum" data-jump="50">50</button><button type="button" class="fb-jnum" data-jump="51">51</button><button type="button" class="fb-jnum" data-jump="52">52</button><button type="button" class="fb-jnum" data-jump="53">53</button><button type="button" class="fb-jnum" data-jump="54">54</button><button type="button" class="fb-jnum" data-jump="55">55</button><button type="button" class="fb-jnum" data-jump="56">56</button><button type="button" class="fb-jnum" data-jump="57">57</button></div>
-<p class="fb-gcount" id="fb-gcount"></p>
+<div class="fb-countrow"><p class="fb-gcount" id="fb-gcount"></p><button type="button" class="fb-reset" id="fb-search-reset">✕ Clear search &amp; filters</button></div>
 </div>
-<div class="fb-featured">
-<a class="fb-feat" href="/3d.html"><span class="fb-feat-em">🧑‍🎨</span><span class="fb-feat-main"><span class="fb-feat-t">3D Creator</span><span class="fb-feat-d">Create your own character — build your Fire Baby in 3D and suit up.</span></span><span class="fb-feat-go">Open →</span></a>
-<a class="fb-feat" href="/play.html"><span class="fb-feat-em">💦</span><span class="fb-feat-main"><span class="fb-feat-t">SPLASH — Formation Battler</span><span class="fb-feat-d">The 2D squad battler: line up your heroes and splash the Slimers.</span></span><span class="fb-feat-go">Play →</span></a>
-<a class="fb-feat" href="/fire-world/games/game-60-fire-babys-arena.html"><span class="fb-feat-em">🥊</span><span class="fb-feat-main"><span class="fb-feat-t">Fire Babys Arena</span><span class="fb-feat-d">Game #60 — 1v1 fighting: arcade ladder, couch versus, and online by room code.</span></span><span class="fb-feat-go">Play →</span></a>
-</div>
+
+</div></div>
+
+<main class="wrap" id="panel-games" data-panel="games">
+<div class="section-head"><h2>🎮 THE <span class="accent">GAMES</span></h2><p>Every game, in order — Game #1 to the Arena.</p></div>
 <p class="fb-noresults" id="fb-noresults" hidden>No games match that — clear the search or tap All.</p>
-</div>
-<div class="wrap">
 <div class="grid" id="game-grid">
 <!-- GAME #1 -->
 <div class="card" data-num="1" data-name="fire babys slingshot cascade" data-tags="">
@@ -1018,12 +927,65 @@ Coins are earned by playing — finish games, score KOs, and put out fires in th
 </div>
 </div>
 </div>
+
+<div class="section-head"><h2>⭐ MORE WAYS TO <span class="accent">PLAY</span></h2><p>Create a character, battle in formation, or step into the Arena.</p></div>
+<div class="fb-featured">
+<a class="fb-feat" href="/3d.html"><span class="fb-feat-em">🧑‍🎨</span><span class="fb-feat-main"><span class="fb-feat-t">3D Creator</span><span class="fb-feat-d">Create your own character — build your Fire Baby in 3D and suit up.</span></span><span class="fb-feat-go">Open →</span></a>
+<a class="fb-feat" href="/play.html"><span class="fb-feat-em">💦</span><span class="fb-feat-main"><span class="fb-feat-t">SPLASH — Formation Battler</span><span class="fb-feat-d">The 2D squad battler: line up your heroes and splash the Slimers.</span></span><span class="fb-feat-go">Play →</span></a>
+<a class="fb-feat" href="/fire-world/games/game-60-fire-babys-arena.html"><span class="fb-feat-em">🥊</span><span class="fb-feat-main"><span class="fb-feat-t">Fire Babys Arena</span><span class="fb-feat-d">Game #60 — 1v1 fighting: arcade ladder, couch versus, and online by room code.</span></span><span class="fb-feat-go">Play →</span></a>
+</div>
+
+</main>
+
+<section class="wrap hub-section" id="shop" data-panel="shop" aria-label="Fire Babys shops">
+<div class="shop">
+<h2>🛒 Fire Babys Shops</h2>
+<p class="sub">Two shops, right here at the main menu. Spend the coins you earn playing — or grab real Fire Babys merch.</p>
+<p class="free-note">✅ Playing is ALWAYS free. No game, level, or retry ever costs coins — this isn't Mario or Sonic. Coins are for shopping, that's it.</p>
+<p class="free-note" id="fbshop-gatestatus" style="color:#ffd9ae"></p>
+
+<div class="shopbox" id="gameshop">
+<h3>🎮 GAME SHOP — spend your 🪙 coins</h3>
+<p class="boxsub">Your balance: <span class="balpill" id="fbshop-bal">🪙 0 · 💎 0</span><br>
+Coins are earned by playing — finish games, score KOs, and put out fires in the 3D Arena, and climb the Season 1 tiers. Coins are never sold. One balance everywhere: what you earn in the games shows up here, and what you buy here works in the games. Star Charms are collectible flair for your Chest — pure style, they never change any fighter's numbers. Armor, weapons &amp; emotes are yours forever once bought — equip them here or in the 3D Arena's own store, it's the same gear.</p>
+<div id="fbshop-items"></div>
+<p class="boxsub" id="fbshop-boostline" style="margin-top:12px"></p>
+</div>
+
+<div class="shopbox" id="merchshop">
+<h3>👕 REAL-WORLD SHOP — Fire Babys merch</h3>
+<p class="boxsub">Real merch from the official Fire Babys store, run by General Federal Industries. Real money only — game coins never pay for merch. The store is opening very soon; here's the first drop lineup.</p>
+<div class="merchgrid">
+<div class="merchcard"><img src="/shop-img/blaze-hero-tee.jpg" alt="Blaze Hero Tee design"><div class="mb"><span class="nm">Blaze Hero Tee</span><span class="ds">Blaze, the golden-crowned flame hero, front and center.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/aqua-hero-tee.jpg" alt="Aqua Hero Tee design"><div class="mb"><span class="nm">Aqua Hero Tee</span><span class="ds">Aqua, the cool-headed water hero, ready to splash into action.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/boulder-hero-tee.jpg" alt="Boulder Hero Tee design"><div class="mb"><span class="nm">Boulder Hero Tee</span><span class="ds">Boulder — the rock-solid strength of the crew.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/ruko-hero-tee.jpg" alt="Ruko Hero Tee design"><div class="mb"><span class="nm">Ruko Hero Tee</span><span class="ds">Ruko, the fearless flame warrior, charges in.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/full-cast-tee.jpg" alt="Full cast tee design"><div class="mb"><span class="nm">The Whole Crew Tee</span><span class="ds">All 12 heroes in tiered stands — every face visible.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/full-cast-hoodie.jpg" alt="Full cast hoodie design"><div class="mb"><span class="nm">Full Cast Hoodie</span><span class="ds">The official lineup poster print on a cozy pullover hoodie.</span><span class="pr">$48</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/slimer-smother-tee.jpg" alt="Slimer SMOTHER IT tee design"><div class="mb"><span class="nm">Slimer "SMOTHER IT!" Tee</span><span class="ds">The villain everybody loves to beat — with a real safety lesson.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/fire-safety-academy-tee.jpg" alt="Fire Safety Academy tee design"><div class="mb"><span class="nm">Fire Safety Academy Tee</span><span class="ds">Learn • Play • Stay Safe — the mission shirt.</span><span class="pr">$32</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/sticker-pack-sheet.jpg" alt="Sticker pack sheet"><div class="mb"><span class="nm">Sticker Pack — All 12 Characters</span><span class="ds">12 die-cut hero stickers for laptops, bottles, notebooks &amp; gear.</span><span class="pr">$12</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+<div class="merchcard"><img src="/shop-img/candy-moon-halloween-tee.jpg" alt="Candy Moon Halloween tee design"><div class="mb"><span class="nm">Candy Moon Halloween Tee</span><span class="ds">Limited Halloween 2026 drop — the whole crew under the Candy Moon.</span><span class="pr">$34</span><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener">Visit the Store →</a></div></div>
+</div>
+<p class="boxsub" style="margin-top:14px;text-align:center"><a href="https://general-federal-industries.fourthwall.com" target="_blank" rel="noopener" style="color:#ffd76a;font-weight:900">Visit the Fire Babys Store →</a></p>
 </div>
 </div>
+</section>
+
+<section class="wrap hub-section" id="locker" data-panel="chest" aria-label="My Chest">
+<div class="shop">
+<h2>🗝️ Your Locker</h2>
+<p class="sub">One locker per player — everything you earn or buy lives here, saved to your account so you never lose it. Any character you play can wear and use everything in your locker.</p>
+<div class="shopbox" id="lockerbox">
+<div id="fb-locker-body"><p class="boxsub">Loading your locker…</p></div>
+</div>
+</div>
+</section>
 
 <footer>
 <p>the future is BLAZING FOR FIRE BABYS 🔥</p>
 <p style="font-size:13px;opacity:.7;margin-top:8px;">All games by Jman350Z &amp; fire team · Safe fun for everyone</p>
+
 </footer>
 <script>
 /* ============================================================
@@ -1334,33 +1296,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script src="onboarding.js"></script>
 <script>
 /* ============================================================
-   Fire World hub UI (2026-10-23 redesign)
-   Tabs (Games / Shop / My Chest), live game search, filter
-   chips, jump-to-number. Pure view logic only — shop, locker,
-   auth and tour behavior live in their own scripts above.
+   Fire World hub UI (2026-10-28 v4 — Night Arcade)
+   NO tabs, NO panels: the catalog, the shops and My Chest are
+   all normal page flow. This script is only the catalog tools:
+   live game search, filter chips, jump-to-number, and the
+   clear/reset button. Shop, locker, auth and tour behavior
+   live in their own scripts above.
    ============================================================ */
 (function(){
 'use strict';
-var PANELS={games:'panel-games',shop:'shop',chest:'locker'};
-var tabs=document.querySelectorAll('.fb-tab');
-function activate(name,skipHash){
-  if(!PANELS[name])name='games';
-  Object.keys(PANELS).forEach(function(k){
-    var p=document.getElementById(PANELS[k]);
-    if(p)p.classList.toggle('fb-on',k===name);
-  });
-  tabs.forEach(function(t){t.setAttribute('aria-selected',t.getAttribute('data-tab')===name?'true':'false');});
-  if(!skipHash){try{history.replaceState(null,'','#'+(name==='chest'?'locker':name));}catch(e){}}
-}
-tabs.forEach(function(t){t.addEventListener('click',function(){activate(t.getAttribute('data-tab'));});});
-function fromHash(){
-  var h=(location.hash||'').replace('#','');
-  if(h==='shop')activate('shop',true);
-  else if(h==='locker')activate('chest',true);
-  else if(h==='games')activate('games',true);
-}
-window.addEventListener('hashchange',fromHash);
-fromHash();
 var grid=document.getElementById('game-grid');
 var cards=grid?Array.prototype.slice.call(grid.querySelectorAll('.card')):[];
 var search=document.getElementById('fb-game-search');
@@ -1393,13 +1337,17 @@ chips.forEach(function(ch){
     applyFilter();
   });
 });
+function clearFilters(){
+  if(search)search.value='';
+  activeFilter='all';
+  chips.forEach(function(c){c.classList.toggle('fb-on',c.getAttribute('data-filter')==='all');});
+  applyFilter();
+}
+var resetBtn=document.getElementById('fb-search-reset');
+if(resetBtn)resetBtn.addEventListener('click',function(){clearFilters();if(search)search.focus();});
 document.querySelectorAll('.fb-jnum').forEach(function(b){
   b.addEventListener('click',function(){
-    activate('games');
-    if(search)search.value='';
-    activeFilter='all';
-    chips.forEach(function(c){c.classList.toggle('fb-on',c.getAttribute('data-filter')==='all');});
-    applyFilter();
+    clearFilters();
     var n=b.getAttribute('data-jump'),target=null;
     cards.forEach(function(card){if(card.getAttribute('data-num')===n)target=card;});
     if(target){
