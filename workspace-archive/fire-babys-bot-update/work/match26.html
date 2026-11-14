@@ -1,0 +1,26 @@
+<!DOCTYPE html><meta charset="utf-8"><body><div id="out">RUNNING</div>
+<iframe id="f" width="900" height="700"></iframe>
+<script>
+var src = new URLSearchParams(location.search).get('src') === 'old' ? 'old' : 'game';
+var f=document.getElementById('f'); f.src='/'+src+'/fire-world/games/game-26-pyra-paddle-battle.html';
+f.onload=function(){ setTimeout(function(){
+  var doc=f.contentDocument; var s=doc.createElement('script');
+  s.textContent=`(function(){ var R=[];
+   try{
+    reset(); G.state='play';
+    var steps=0;
+    while(steps<12000 && G.ps<5 && G.as<5){
+      // scripted medium player: track the ball at 500 speed when it approaches, else center
+      var tgt=(G.bvx<0)? G.by : H/2;
+      var dy=tgt-G.py, mx=500/60;
+      G.py+=Math.max(-mx,Math.min(mx,dy));
+      update(1/60); steps++;
+    }
+    R.push('match vs scripted medium player: PYRA (AI) '+G.as+' — PLAYER '+G.ps+' in '+(steps/60).toFixed(0)+'s, diff used='+G.diff);
+   }catch(e){ R.push('ERR '+e.message); }
+   var d=document.createElement('div'); d.id='testout'; d.textContent=R.join(String.fromCharCode(10)); document.body.appendChild(d); })();`;
+  doc.body.appendChild(s);
+  var iv=setInterval(function(){ var el=doc.getElementById('testout');
+    if(el){ clearInterval(iv); document.getElementById('out').textContent='DONE\nbuild='+(src==='old'?'OLD':'NEW')+'\n'+el.textContent; document.title='DONE'; } },100);
+},700); };
+</script></body>

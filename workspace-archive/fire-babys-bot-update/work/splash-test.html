@@ -1,0 +1,92 @@
+<!DOCTYPE html><meta charset="utf-8"><title>splash-test</title>
+<body><div id="out">RUNNING</div>
+<iframe id="f" width="520" height="860"></iframe>
+<script>
+var qs = new URLSearchParams(location.search);
+var SRC = qs.get('src') === 'old' ? '/old/play.html' : '/game/play.html';
+var out = [];
+function log(s){ out.push(s); }
+function finish(){ document.getElementById('out').textContent = 'DONE\n' + out.join('\n'); document.title = 'DONE'; }
+var f = document.getElementById('f');
+f.src = SRC;
+f.onload = function(){
+  setTimeout(function(){
+    var w = f.contentWindow;
+    try { run(w); } catch(e){ log('HARNESS ERR ' + e.message + ' ' + e.stack); }
+    finish();
+  }, 900);
+};
+function ticks(w, n){ for(var i = 0; i < n; i++){ try { w.simTick(w.CFG.STEP); } catch(e){ log('tick err ' + e.message); break; } } }
+function setupFight(w){
+  w.Game.toDeploy();
+  w.deployed.push({ key: 'brawler', tier: 0, col: 0, row: 0 });
+  w.Game.startFight();
+  w.Game.clearField();
+  w.heroIdx = -1;
+}
+function run(w){
+  log('build=' + (SRC.indexOf('old') >= 0 ? 'OLD' : 'NEW'));
+  log('patch028 active=' + (w.CFG && typeof w.simTick === 'function'));
+  /* ---------- FORMATION ---------- */
+  var roleY = { tank: [], dps: [], ranged: [], boss: [] };
+  for(var r = 0; r < 3; r++){
+    w.Game.toDeploy();
+    w.deployed.push({ key: 'brawler', tier: 0, col: 0, row: 0 });
+    w.Game.startFight();
+    for(var i = 0; i < w.CFG.MAX_UNITS; i++){
+      var u = w.units[i];
+      if(u.active && u.side === 1){
+        var role = w.UNIT_DEFS[u.key].role;
+        (roleY[role] || (roleY[role] = [])).push(Math.round(u.y));
+      }
+    }
+  }
+  function mean(a){ return a.length ? a.reduce(function(s, x){ return s + x; }, 0) / a.length : null; }
+  var mTank = mean((roleY.tank || []).concat(roleY.boss || []));
+  var mDps = mean(roleY.dps || []);
+  var mRanged = mean(roleY.ranged || []);
+  log('formation meanY tank/boss=' + (mTank && mTank.toFixed(0)) + ' (n=' + ((roleY.tank || []).length + (roleY.boss || []).length) +
+      ') dps=' + (mDps && mDps.toFixed(0)) + ' (n=' + (roleY.dps || []).length +
+      ') ranged=' + (mRanged && mRanged.toFixed(0)) + ' (n=' + (roleY.ranged || []).length + ')');
+  if(mTank !== null && mDps !== null && mRanged !== null)
+    log('FORMATION ordered (front>toward player=large Y): ' + (mTank > mDps && mDps > mRanged ? 'YES' : 'NO'));
+
+  /* ---------- FOCUS FIRE ---------- */
+  setupFight(w);
+  var gIdx = w.spawnUnit(0, 'guardian', 0, 240, 430, 1, false);
+  var aIdx = w.spawnUnit(0, 'archer', 0, 320, 430, 1, false);
+  w.units[aIdx].hp = Math.round(w.units[aIdx].maxHp * 0.3);
+  var bIdx = w.spawnUnit(1, 'guardian', 0, 240, 385, 1, false);
+  ticks(w, 110);
+  var bt = w.units[bIdx];
+  log('FOCUS: bot guardian target=' + (bt.target === aIdx ? 'WOUNDED ARCHER' : (bt.target === gIdx ? 'NEAREST GUARDIAN' : 'other(' + bt.target + ')')) +
+      ' botAlive=' + bt.active + ' archerHp=' + Math.round(w.units[aIdx].hp) + ' guardianHp=' + Math.round(w.units[gIdx].hp));
+
+  /* ---------- FINISH THE HERO ---------- */
+  setupFight(w);
+  w.spawnHero();
+  var hIdx = w.heroIdx;
+  w.units[hIdx].hp = Math.round(w.units[hIdx].maxHp * 0.4);
+  var decoy = w.spawnUnit(0, 'guardian', 0, 240, 355, 1, false);
+  var botA = w.spawnUnit(1, 'archer', 0, 240, 300, 1, false);
+  ticks(w, 110);
+  var ba = w.units[botA];
+  log('HERO: bot archer target=' + (ba.target === hIdx ? 'HURT HERO' : (ba.target === decoy ? 'NEAREST GUARDIAN' : 'other(' + ba.target + ')')) +
+      ' botAlive=' + ba.active + ' heroHp=' + Math.round(w.units[hIdx].hp));
+
+  /* ---------- KITING ---------- */
+  setupFight(w);
+  var kA = w.spawnUnit(1, 'archer', 0, 240, 400, 1, false);
+  var kB = w.spawnUnit(0, 'brawler', 0, 240, 470, 1, false);
+  var samples = [];
+  for(var s = 0; s < 8; s++){
+    ticks(w, 30);
+    var A = w.units[kA], B = w.units[kB];
+    samples.push('t' + ((s + 1) * 0.5) + 's d=' + Math.round(Math.hypot(A.x - B.x, A.y - B.y)) +
+      ' aHp=' + Math.max(0, Math.round(A.hp)) + ' bHp=' + Math.max(0, Math.round(B.hp)) + (A.active ? '' : ' ARCHER-DEAD') + (B.active ? '' : ' BRAWLER-DEAD'));
+    if(!A.active || !B.active) break;
+  }
+  log('KITE: ' + samples.join(' | '));
+}
+</script>
+</body>

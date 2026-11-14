@@ -1,0 +1,148 @@
+<!DOCTYPE html><meta charset="utf-8"><title>fw-test</title>
+<body><div id="out">RUNNING</div>
+<iframe id="f" width="900" height="700"></iframe>
+<script>
+var qs = new URLSearchParams(location.search);
+var GAME = qs.get('game'), SRC = qs.get('src') === 'old' ? 'old' : 'game';
+var URLS = {
+  '26': '/fire-world/games/game-26-pyra-paddle-battle.html',
+  '28': '/fire-world/games/game-28-thermal-tug-of-war.html',
+  '06': '/fire-world/games/game-06-blazes-magma-bounce.html',
+  '24': '/fire-world/games/game-24-ash-storm-survivor.html',
+  'tristan': '/fire-world/tristans-dark-knight-rescue/index.html',
+  'trinity': '/fire-world/trinitys-holy-lightning-rescue/index.html'
+};
+var NL = String.fromCharCode(10);
+function T(body){ return '(function(){ var R=[]; try{ ' + body + ' }catch(e){ R.push("ERR "+e.message); } ' +
+  'var d=document.createElement("div"); d.id="testout"; d.textContent=R.join(NL); document.body.appendChild(d); })();'
+    .replace(/NL/g, 'String.fromCharCode(10)'); }
+var TESTS = {
+'26': T(`
+  R.push('default diff='+G.diff+' (expect 2) selBtn='+document.querySelector('.dbtn.sel').dataset.d);
+  R.push('hard config: aiSpeed='+DIFFS[2].aiSpeed+' aiErr='+DIFFS[2].aiErr+' (old 480/18)');
+  function trial(spin, aiy, py){
+    reset(); G.diff=2; G.state='play'; G.serveT=0;
+    G.bx=W*0.10; G.by=H*0.5; G.bvx=620; G.bvy=0; G.spin=spin; G.ay=aiy; G.py=py;
+    var plane=W-30-PW-BR, err=null, steps=0, outcome='TIMEOUT';
+    while(steps<900){ update(1/60); steps++;
+      if(err===null && G.bvx>0 && G.bx>plane-26) err=Math.abs(G.by-G.ay);
+      if(G.bvx<0){ outcome='RETURNED'; break; }
+      if(G.ps>0){ outcome='CONCEDED'; break; } }
+    return outcome+' errAtPlane='+(err===null?'?':Math.round(err))+'px (clean-miss threshold 66)';
+  }
+  R.push('spin +600, AI far: '+trial(600, H*0.06, H*0.9));
+  R.push('spin -600, AI far: '+trial(-600, H*0.94, H*0.1));
+  R.push('spin +900, AI far: '+trial(900, H*0.06, H*0.9));
+  R.push('spin 0 control: '+trial(0, H*0.5, H*0.5));
+  var conceded=0, worst=0;
+  for(var k=0;k<12;k++){
+    var sp=(k%2? -1: 1)*(550+ (k*37)%400);
+    reset(); G.diff=2; G.state='play'; G.serveT=0;
+    G.bx=W*0.08; G.by=H*0.5; G.bvx=620; G.bvy=0; G.spin=sp;
+    G.ay=(sp>0? H*0.05 : H*0.95); G.py=H*0.5;
+    var pl=W-30-PW-BR, er=null, st=0;
+    while(st<900){ update(1/60); st++;
+      if(er===null && G.bvx>0 && G.bx>pl-26) er=Math.abs(G.by-G.ay);
+      if(G.bvx<0) break;
+      if(G.ps>0){ conceded++; break; } }
+    if(er!==null && er>worst) worst=er;
+  }
+  R.push('batch of 12 heavy-spin serves: AI conceded='+conceded+'/12, worst errAtPlane='+Math.round(worst)+'px');
+`),
+'28': T(`
+  R.push('default diff='+G.diff+' (expect 2) selBtn='+document.querySelector('.dbtn.sel').dataset.d);
+  R.push('AI pull rate at default='+DIFFS[G.diff].ai+' (hard=4.2, easy=2.2)');
+  startGame(); G.pos=0;
+  for(var i=0;i<420;i++) update(1/60);
+  R.push('rope pos after countdown + 4s AI-only pulling='+G.pos.toFixed(2)+' (hard about -0.70, easy about -0.37)');
+`),
+'06': T(`
+  startGame(); startRound(3); G.state='play';
+  var dashes=0, prev={}, steps=0;
+  for(var s=0;s<1200;s++){
+    var p=G.player;
+    p.vx += (CX-p.x)*10*(1/60); p.vy += (CY-p.y)*10*(1/60);
+    update(1/60); steps++;
+    for(var j=0;j<G.foes.length;j++){ var fo=G.foes[j]; if(fo.dead){ prev[j]=null; continue; }
+      var sp=Math.hypot(fo.vx,fo.vy), contact=false;
+      var all=[G.player].concat(G.foes);
+      for(var q=0;q<all.length;q++){ var o=all[q]; if(o!==fo&&!o.dead&&Math.hypot(o.x-fo.x,o.y-fo.y)<fo.r+o.r+8){ contact=true; break; } }
+      if(prev[j]!=null && prev[j]!==undefined && sp-prev[j]>170 && !contact) dashes++;
+      prev[j]=sp; }
+    if(G.state!=='play') break; }
+  R.push('round3 vs position-holding player: simSeconds='+(steps/60).toFixed(1)+' state='+G.state+' foeDashes='+dashes+' dashRate='+(dashes/(steps/60)).toFixed(2)+'/s playerAlive='+(!G.player.dead)+' foesAlive='+G.foes.filter(function(x){return !x.dead;}).length+'/'+G.foes.length);
+  startRound(3); G.state='play';
+  var foe=G.foes[0];
+  for(var j2=1;j2<G.foes.length;j2++){ G.foes[j2].x=CX+200; G.foes[j2].y=CY+150; G.foes[j2].vx=0; G.foes[j2].vy=0; }
+  foe.x=CX-160; foe.y=CY-100; foe.vx=0; foe.vy=0;
+  G.player.x=CX+230; G.player.y=CY+180; G.player.vx=0; G.player.vy=0;
+  var ox=foe.x+120, oy=foe.y;
+  G.pickup={x:ox,y:oy,r:16,t:0}; G.pickupT=999;
+  var got=false, who=-1;
+  for(var s2=0;s2<300;s2++){ update(1/60);
+    for(var j3=0;j3<G.foes.length;j3++){ if(G.foes[j3].surgeT>0){ got=true; who=j3; } }
+    if(got||!G.pickup) break; }
+  R.push('orb contest: a golem took the Surge='+got+' (foe #'+who+') pickupGone='+(!G.pickup));
+`),
+'24': T(`
+  startGame(); G.time=50; G.invuln=9999;
+  var e={x:350,y:250,t:0,hitT:0,type:'dasher',hp:60,r:13,speed:180,dmg:8,xp:1,score:15,dashT:2};
+  G.enemies.push(e);
+  G.px=450; G.py=100;
+  for(var i=0;i<5;i++){ G.py+=300/60; update(1/60); }
+  e.dashT=0.001; G.py+=300/60; update(1/60);
+  var ang=Math.atan2(e.dashDy,e.dashDx)*180/Math.PI;
+  R.push('dasher dash angle='+ang.toFixed(1)+'deg (snapshot aim about -51deg, lead aim about -28deg)');
+`),
+'tristan': T(`
+  buildStage(15); G.state='play';
+  var b=G.boss; R.push('boss spawned='+!!b);
+  P.x=b.x-500; P.y=b.y; P.invuln=99999; b.atkT=99;
+  for(var i=0;i<60;i++) updateEnemies(1/60);
+  R.push('boss |vx| after 1s chase='+Math.abs(b.vx).toFixed(0)+' (new cap 175, old 120)');
+  P.x=b.x+200; P.y=b.y; P.vx=0; b.atkT=0;
+  updateEnemies(1/60);
+  var shots=POOL.projectiles.filter(function(p){return p.active&&!p.friendly;});
+  R.push('boss shot vx='+(shots.length?shots[shots.length-1].vx:'NONE')+' (expect +/-340, old 300) atkT reset='+b.atkT+' (new 1.6, old 2)');
+`),
+'trinity': T(`
+  buildStage(15); G.state='play';
+  var b=G.boss; R.push('boss spawned='+!!b);
+  P.x=b.x; P.y=b.y-260; P.invuln=99999; b.atkT=0;
+  updateEnemies(1/60);
+  var bolts=POOL.bolts.filter(function(x){return x.active;});
+  var angs=bolts.map(function(x){return (Math.atan2(x.ty-b.y,x.tx-b.x)*180/Math.PI).toFixed(0);});
+  R.push('shard fan angles='+angs.join(',')+' (new: centered about -90 toward player above; old fixed fan: -180,-120,-60,0,60,120)');
+  R.push('atkT reset='+b.atkT+' (new 1.8, old 2.2)');
+  P.x=b.x+400; P.y=b.y; b.vx=0; b.atkT=99;
+  for(var i=0;i<60;i++) updateEnemies(1/60);
+  R.push('boss |vx| after 1s chase='+Math.abs(b.vx).toFixed(0)+' (new cap 160, old 100)');
+`)
+};
+var f = document.getElementById('f');
+f.src = '/' + SRC + URLS[GAME];
+f.onload = function(){
+  setTimeout(function(){
+    try {
+      var doc = f.contentDocument;
+      var s = doc.createElement('script');
+      s.textContent = TESTS[GAME];
+      doc.body.appendChild(s);
+      var t0 = Date.now();
+      var iv = setInterval(function(){
+        var el = doc.getElementById('testout');
+        if(el){ clearInterval(iv);
+          document.getElementById('out').textContent = 'DONE' + NL + 'game=' + GAME + ' build=' + (SRC === 'old' ? 'OLD' : 'NEW') + NL + el.textContent;
+          document.title = 'DONE';
+        } else if(Date.now() - t0 > 8000){ clearInterval(iv);
+          document.getElementById('out').textContent = 'DONE' + NL + 'TIMEOUT waiting for testout';
+          document.title = 'DONE'; }
+      }, 100);
+    } catch(e){
+      document.getElementById('out').textContent = 'DONE' + NL + 'HARNESS ERR ' + e.message;
+      document.title = 'DONE';
+    }
+  }, 700);
+};
+</script>
+</body>

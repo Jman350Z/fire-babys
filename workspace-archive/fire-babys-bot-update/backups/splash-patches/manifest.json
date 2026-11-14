@@ -1,0 +1,113 @@
+{
+ "_note": "Patches apply top to bottom. Set enabled:false to turn one off without deleting it, then rebuild with: python3 src/build.py",
+ "patches": [
+  {
+   "file": "001-signature-looks.js",
+   "enabled": true
+  },
+  {
+   "file": "002-character-codex.js",
+   "enabled": true
+  },
+  {
+   "file": "003-fire-baby-creator.js",
+   "enabled": true
+  },
+  {
+   "file": "004-two-girl-fire-babys.js",
+   "enabled": true
+  },
+  {
+   "file": "005-free-placement.js",
+   "enabled": true
+  },
+  {
+   "file": "006-smaller-fight-button.js",
+   "enabled": true
+  },
+  {
+   "file": "007-fire-safety-mechanics.js",
+   "enabled": true
+  },
+  {
+   "file": "008-elemental-armor-lore.js",
+   "enabled": true
+  },
+  {
+   "file": "009-trailer-button.js",
+   "enabled": true
+  },
+  {
+   "file": "010-elemental-armor-forge.js",
+   "enabled": true
+  },
+  {
+   "file": "011-keychain-redeem.js",
+   "enabled": true
+  },
+  {
+   "file": "012-title-screen.js",
+   "enabled": true
+  },
+  {
+   "file": "013-first-hatch.js",
+   "enabled": true
+  },
+  {
+   "file": "014-story-mode.js",
+   "enabled": true
+  },
+  {
+   "file": "015-player-profile.js",
+   "enabled": true
+  },
+  {
+   "file": "016-story-cinematics.js",
+   "enabled": true
+  },
+  {
+   "file": "017-play-3d-button.js",
+   "enabled": true
+  },
+  {
+   "file": "018-audio-engine.js",
+   "enabled": true
+  },
+  {
+   "file": "019-fire-safety-codex.js",
+   "enabled": true
+  },
+  {
+   "file": "020-bronze-knight-armor.js",
+   "enabled": true
+  },
+  {
+   "file": "021-auth-gate-integration.js",
+   "enabled": true
+  },
+  {
+   "file": "022-vault.js",
+   "enabled": true
+  },
+  {
+   "file": "023-season-ignition.js",
+   "enabled": true
+  },
+  {
+   "file": "024-weapons-armory.js",
+   "enabled": true
+  },
+  {
+   "file": "025-catch-mode.js",
+   "enabled": true
+  },
+  {
+   "file": "026-premium-visuals.js",
+   "enabled": true
+  },
+  {
+   "file": "027-gamer-controls.js",
+   "enabled": true
+  }
+ ]
+}

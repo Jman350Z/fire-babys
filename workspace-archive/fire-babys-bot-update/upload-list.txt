@@ -1,0 +1,12 @@
+play.html
+3d.html
+fire-world.html
+play-all.html
+fire-world/games/game-06-blazes-magma-bounce.html
+fire-world/games/game-24-ash-storm-survivor.html
+fire-world/games/game-26-pyra-paddle-battle.html
+fire-world/games/game-28-thermal-tug-of-war.html
+fire-world/games/game-21-sizzles-target-pop.html
+fire-world/games/game-22-magma-block-breaker.html
+fire-world/tristans-dark-knight-rescue/index.html
+fire-world/trinitys-holy-lightning-rescue/index.html
