@@ -1,0 +1,5 @@
+fire-world/slingshot-cascade/index.html
+fire-world/rukos-panic-dash/index.html
+fire-world/game-02-blaze-runner.html
+fire-world/games/game-04-cinders-ice-rink-chaos.html
+fire-world/games/game-05-lord-infernos-ballista-siege.html

@@ -1,0 +1,302 @@
+[
+ {
+  "game": "07-turbo-drift",
+  "check": "signed-out visitor sees sign-in gate",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "voting system absent (no rating.js request)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "canvas present",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "math gate handled",
+  "ok": true,
+  "detail": "steps=['obtn:\u25b6 PLAY', 'gate', 'obtn:\ud83c\udfc1 START ENGINE', 'inplay']"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "canvas animating after start",
+  "ok": true,
+  "detail": "fp px14290785->px14284234"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "pause control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "mute control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "restart affordance exists (scanned)",
+  "ok": true,
+  "detail": "['prestartBtn']"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "keyboard input causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "FPS >= 30 (SwiftShader harness)",
+  "ok": true,
+  "detail": "60.7 fps"
+ },
+ {
+  "game": "07-turbo-drift",
+  "check": "no page errors during full pass",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "signed-out visitor sees sign-in gate",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "voting system absent (no rating.js request)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "canvas present",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "math gate handled",
+  "ok": true,
+  "detail": "steps=['obtn:\u25b6 PLAY', 'gate', 'obtn:\ud83c\udfc1 START ENGINE', 'inplay']"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "canvas animating after start",
+  "ok": true,
+  "detail": "fp px5027021->px5032969"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "pause control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "mute control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "restart affordance exists (scanned)",
+  "ok": true,
+  "detail": "['prestartBtn']"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "keyboard input causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "touch tap causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "FPS >= 30 (SwiftShader harness)",
+  "ok": true,
+  "detail": "60.3 fps"
+ },
+ {
+  "game": "07-turbo-drift-phone",
+  "check": "no page errors during full pass",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "signed-out visitor sees sign-in gate",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "voting system absent (no rating.js request)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "canvas present",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "math gate handled",
+  "ok": true,
+  "detail": "steps=['obtn:\u25b6 PLAY', 'gate', 'level:1', 'inplay']"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "canvas animating after start",
+  "ok": true,
+  "detail": "fp px13625872->px13591564"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "pause control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "mute control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "restart control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "keyboard input causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "FPS >= 30 (SwiftShader harness)",
+  "ok": true,
+  "detail": "58.7 fps"
+ },
+ {
+  "game": "10-caldera-climb",
+  "check": "no page errors during full pass",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "signed-out visitor sees sign-in gate",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "voting system absent (no rating.js request)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "canvas present",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "math gate handled",
+  "ok": true,
+  "detail": "steps=['obtn:\u25b6 PLAY', 'gate', 'level:1', 'inplay']"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "canvas animating after start",
+  "ok": true,
+  "detail": "fp px4695259->px4697177"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "pause control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "mute control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "restart control clickable, no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "keyboard input causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "touch tap causes no errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "FPS >= 30 (SwiftShader harness)",
+  "ok": true,
+  "detail": "60.3 fps"
+ },
+ {
+  "game": "10-caldera-climb-phone",
+  "check": "no page errors during full pass",
+  "ok": true,
+  "detail": "[]"
+ }
+]

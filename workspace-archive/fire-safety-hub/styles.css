@@ -1,0 +1,107 @@
+/* Fire Safety Hub — standalone styles. No external fonts, no images, no JS.
+   Keeping all CSS in this one file means index.html carries ZERO inline
+   code, so the page can sit under a strict CSP without any hash work. */
+
+:root {
+  --ink: #1c2340;
+  --paper: #fff8ef;
+  --card: #ffffff;
+  --flame: #e85d04;
+  --flame-dark: #b23c00;
+  --water: #11698c;
+  --line: #f0d9bd;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.55;
+}
+
+.site-header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(180deg, #232a52 0%, #3a2b57 70%, #6b2d4d 100%);
+  color: #fff;
+}
+
+.kicker {
+  margin: 0 0 .25rem;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: .8rem;
+  opacity: .85;
+}
+
+.site-header h1 { margin: 0 0 .5rem; font-size: 2.4rem; }
+
+.lede { max-width: 42rem; margin: 0 auto; font-size: 1.05rem; }
+
+main { max-width: 68rem; margin: 0 auto; padding: 1.5rem 1rem 2.5rem; }
+
+.rules {
+  background: #fff;
+  border: 2px solid var(--flame);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.rules h2 { margin-top: 0; color: var(--flame-dark); }
+.rules ul { margin: .5rem 0; padding-left: 1.25rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(28, 35, 64, .06);
+}
+
+.card h3 { margin-top: 0; }
+
+.slimer {
+  background: #f3efff;
+  border-left: 4px solid #6d4fc2;
+  padding: .5rem .75rem;
+  border-radius: 0 .5rem .5rem 0;
+}
+
+.audience { font-size: .9rem; opacity: .75; }
+
+a { color: var(--water); }
+a:focus-visible { outline: 3px solid var(--flame); outline-offset: 2px; }
+
+.btn {
+  display: inline-block;
+  background: var(--flame);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  padding: .55rem .9rem;
+  border-radius: .6rem;
+}
+
+.btn:hover { background: var(--flame-dark); }
+
+.more { margin-top: 2rem; }
+.more li { margin-bottom: .4rem; }
+
+footer {
+  border-top: 1px solid var(--line);
+  padding: 1.25rem 1rem 2rem;
+  text-align: center;
+  font-size: .95rem;
+}
+
+footer p { max-width: 46rem; margin: .5rem auto; }

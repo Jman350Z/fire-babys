@@ -1,0 +1,392 @@
+[
+ {
+  "game": "1-slingshot",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "L1 starts with skeletons on towers",
+  "ok": true,
+  "detail": "{'state': 'play', 'skels': 3, 'blocks': 4}"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "all 10 levels have skeletons",
+  "ok": true,
+  "detail": "[3, 4, 4, 4, 4, 4, 4, 4, 5, 4]"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "direct hero hit crushes skeleton (+score/count)",
+  "ok": true,
+  "detail": "smashed=1"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "falling block crushes skeleton",
+  "ok": true,
+  "detail": "smashed=1"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "skeleton falls when support destroyed, survives short drop",
+  "ok": true,
+  "detail": "{'dead': False, 'falling': False, 'y': 710, 'gy': 730}"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "hero special still fires mid-flight",
+  "ok": true,
+  "detail": "trySpecial=True"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "music starts on interaction, 112 BPM unique track",
+  "ok": true,
+  "detail": "{'on': True, 'bpm': 112}"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "pause/resume works",
+  "ok": true,
+  "detail": "paused=True->False"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "FPS in play (SwiftShader harness)",
+  "ok": true,
+  "detail": "60 fps"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "no page errors during all tests",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "2-ruko",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "2-ruko",
+  "check": "title shows 20 level buttons",
+  "ok": true,
+  "detail": "buttons=20"
+ },
+ {
+  "game": "2-ruko",
+  "check": "gate -> L1 playing, 3 hearts, goal set",
+  "ok": true,
+  "detail": "{'state': 'play', 'level': 1, 'goal': 260, 'hearts': 3}"
+ },
+ {
+  "game": "2-ruko",
+  "check": "Ruko runs (distance grows)",
+  "ok": true,
+  "detail": "dist=17m"
+ },
+ {
+  "game": "2-ruko",
+  "check": "Tornado Dash triggers",
+  "ok": true,
+  "detail": "dashT=0.43"
+ },
+ {
+  "game": "2-ruko",
+  "check": "dash smashes Bone Barricade (+150)",
+  "ok": true,
+  "detail": "score=150"
+ },
+ {
+  "game": "2-ruko",
+  "check": "rock hit costs 1 heart + wave surges",
+  "ok": true,
+  "detail": "hearts=2"
+ },
+ {
+  "game": "2-ruko",
+  "check": "all 20 levels build, goals grow 260->735",
+  "ok": true,
+  "detail": "260..735"
+ },
+ {
+  "game": "2-ruko",
+  "check": "crossing finish clears the level",
+  "ok": true,
+  "detail": "clear"
+ },
+ {
+  "game": "2-ruko",
+  "check": "NEXT LEVEL advances to L2 playing",
+  "ok": true,
+  "detail": "{'state': 'play', 'level': 2}"
+ },
+ {
+  "game": "2-ruko",
+  "check": "lava-wave game over overlay renders",
+  "ok": true,
+  "detail": "\ud83c\udf0b THE LAVA WAVE GOT RUKO!"
+ },
+ {
+  "game": "2-ruko",
+  "check": "in-play restart resets current level",
+  "ok": true,
+  "detail": "{'state': 'play', 'level': 3, 'dist': 3.0630608373333392}"
+ },
+ {
+  "game": "2-ruko",
+  "check": "music starts, 154 BPM unique track",
+  "ok": true,
+  "detail": "{'on': True, 'bpm': 154}"
+ },
+ {
+  "game": "2-ruko",
+  "check": "FPS in play (SwiftShader harness)",
+  "ok": true,
+  "detail": "49.7 fps"
+ },
+ {
+  "game": "2-ruko",
+  "check": "no page errors during all tests",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "3-blaze",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "3-blaze",
+  "check": "PLAY starts the run",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "3-blaze",
+  "check": "double jump: 1st jump then mid-air 2nd jump",
+  "ok": true,
+  "detail": "{'jumps': 1, 'vy': -13.5} -> {'jumps': 2, 'vy': -12.42}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "SECRET rocket mode fires on hold, fuel drains",
+  "ok": true,
+  "detail": "{'on': True, 'used': True, 'fuel': 85.59668806623871}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "rocket stops when fuel runs out (fair limit)",
+  "ok": true,
+  "detail": "{'on': False, 'fuel': 0}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "hazard birds spawn and fly in",
+  "ok": true,
+  "detail": "birds=1"
+ },
+ {
+  "game": "3-blaze",
+  "check": "bird hit costs a heart (3->2)",
+  "ok": true,
+  "detail": "3->2"
+ },
+ {
+  "game": "3-blaze",
+  "check": "lands on a stone step platform",
+  "ok": true,
+  "detail": "{'onGround': True, 'floorY': 540}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "losing last heart to birds ends run with overlay",
+  "ok": true,
+  "detail": "{'run': False, 'shown': True}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "music starts, 134 BPM unique track",
+  "ok": true,
+  "detail": "{'on': True, 'bpm': 134}"
+ },
+ {
+  "game": "3-blaze",
+  "check": "FPS in play (SwiftShader harness)",
+  "ok": true,
+  "detail": "54 fps"
+ },
+ {
+  "game": "3-blaze",
+  "check": "no page errors during all tests",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "4-ice",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "4-ice",
+  "check": "gate -> L3 playing with diamonds",
+  "ok": true,
+  "detail": "{'state': 'play', 'targets': 6}"
+ },
+ {
+  "game": "4-ice",
+  "check": "diamond explosion CHAINS to neighbours",
+  "ok": true,
+  "detail": "dead=3/6 score=100"
+ },
+ {
+  "game": "4-ice",
+  "check": "chain kills pay +50 each",
+  "ok": true,
+  "detail": "score=100"
+ },
+ {
+  "game": "4-ice",
+  "check": "Ember Bomb blast clears wider radius",
+  "ok": true,
+  "detail": "dead=3/3"
+ },
+ {
+  "game": "4-ice",
+  "check": "all 10 levels build",
+  "ok": true,
+  "detail": "[3, 4, 6, 8, 11, 12, 13, 14, 15, 17]"
+ },
+ {
+  "game": "4-ice",
+  "check": "pause/resume works",
+  "ok": true,
+  "detail": "pause"
+ },
+ {
+  "game": "4-ice",
+  "check": "music starts, 122 BPM unique track",
+  "ok": true,
+  "detail": "{'on': True, 'bpm': 122}"
+ },
+ {
+  "game": "4-ice",
+  "check": "FPS in play (SwiftShader harness)",
+  "ok": true,
+  "detail": "57 fps"
+ },
+ {
+  "game": "4-ice",
+  "check": "no page errors during all tests",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "5-ballista",
+  "check": "boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "5-ballista",
+  "check": "gate -> L1 playing",
+  "ok": true,
+  "detail": "play"
+ },
+ {
+  "game": "5-ballista",
+  "check": "10 DIFFERENT home-world kingdoms",
+  "ok": true,
+  "detail": "['VOLCANO SLOPES', 'FROSTBITE KINGDOM', 'BUBBLE BAY KINGDOM', 'CINDER DESERT', 'STORM SPIRE KINGDOM', 'EMBER FOREST', 'CRYSTAL RIM', 'LAVA FIELDS', 'ASHEN WASTES', \"LORD INFERNO'S KEEP\"]"
+ },
+ {
+  "game": "5-ballista",
+  "check": "10 DIFFERENT boss ships/captains",
+  "ok": true,
+  "detail": "['CAPTAIN CINDERCLAW', 'ADMIRAL ICEBERG', 'COMMODORE BUBBLES', 'GENERAL SANDSTORM', 'BARON VON VOLT', 'COLONEL MOSSBACK', 'DUCHESS GEMWRATH', 'WARLORD MAGMAR', 'MARSHAL ASHFALL', 'LORD INFERNO']"
+ },
+ {
+  "game": "5-ballista",
+  "check": "giant boss ship spawns all 10 levels",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "5-ballista",
+  "check": "boss patterns: L1 fan=4, L2 wide fan=6, L3 aimed=2, L4 spiral=3, L8 ring=8, L10 fan=8",
+  "ok": true,
+  "detail": "{'L1fan': 4, 'L2widefan': 6, 'L3aimed': 2, 'L4spiral': 3, 'L8ring': 8, 'L10fan': 8}"
+ },
+ {
+  "game": "5-ballista",
+  "check": "L3 aimed bolts track the player (vx<0 toward player at left)",
+  "ok": true,
+  "detail": "[-154, -178]"
+ },
+ {
+  "game": "5-ballista",
+  "check": "wave 3 summons the boss in live play",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "game": "5-ballista",
+  "check": "killing the boss completes the level",
+  "ok": true,
+  "detail": "clear"
+ },
+ {
+  "game": "5-ballista",
+  "check": "music starts, 98 BPM unique track",
+  "ok": true,
+  "detail": "{'on': True, 'bpm': 98}"
+ },
+ {
+  "game": "5-ballista",
+  "check": "FPS in play (SwiftShader harness)",
+  "ok": true,
+  "detail": "52.3 fps"
+ },
+ {
+  "game": "5-ballista",
+  "check": "no page errors during all tests",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "1-slingshot",
+  "check": "phone viewport boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "2-ruko",
+  "check": "phone viewport boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "3-blaze",
+  "check": "phone viewport boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "4-ice",
+  "check": "phone viewport boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ },
+ {
+  "game": "5-ballista",
+  "check": "phone viewport boots, 0 page errors",
+  "ok": true,
+  "detail": "[]"
+ }
+]
