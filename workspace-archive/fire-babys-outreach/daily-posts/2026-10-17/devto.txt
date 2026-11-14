@@ -1,0 +1,11 @@
+🔋 CHARGING SAFETY WEEK — DAY 5: Designing the Outdoor Charging Zone
+
+Today's game-design note: location is a safety mechanic. In Fire Babys levels we can place an e-bike charging station in two spots — beside the front door, or outside in the open — and let players spot why only one is right: an exit must always stay clear, and big batteries belong outdoors where a problem can't trap anyone inside.
+
+Kids learn the rule by choosing it: big battery, outside, away from exits, grown-up in charge. Level design that makes the safe choice the winning choice teaches faster than any warning label.
+
+The pros: "Get out, stay out and stay alive! Crawl low under smoke — smoke rises, so cleaner, cooler air is near the floor. Get down on your hands and knees and crawl low under the smoke to the nearest exit." — Lynbrook Fire Department, NY (Source: http://lynbrookfd.org/beta05/fire-prevention.html)
+
+Fire Babys games teach fire safety through play; proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships yet — that's the mission.
+
+the future is BLAZING FOR FIRE BABYS 🔥

@@ -1,0 +1,11 @@
+The smoke alarm as a game mechanic: teaching the loudest lesson in 10 seconds
+
+In the Fire Babys games I'm building, the smoke alarm isn't scenery — it's a mechanic. When the alarm object "sounds," a pulsing sound ring expands across the level and every character it touches auto-paths to their assigned exit. Kids learn the causal chain by playing it: alarm sounds → characters move → exits matter.
+
+That's the pedagogy trick: game systems teach the sequence (alarm → get out → meeting place) without a single lecture. Today's art is basically a cutscene — Blaze presses the test button, the BEEP ring goes out, Cinder covers her ears. Kids remember what they DO, not what they're told.
+
+The pros: "If the smoke alarm sounds, GET OUT AND STAY OUT. Never go back inside for people or pets. If you have to escape through smoke, GET LOW AND GO under the smoke to your way out. Call the fire department (911) from outside your home." — National Fire Protection Association (NFPA) (Source: https://www.longisland.com/news/01-06-17/nfpa-cpsc-fire-safety-challenge-toolkit.html)
+
+Fire Babys games teach fire safety through play; proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships yet — that's the mission.
+
+the future is BLAZING FOR FIRE BABYS 🔥

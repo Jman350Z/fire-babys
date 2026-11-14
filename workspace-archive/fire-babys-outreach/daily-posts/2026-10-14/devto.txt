@@ -1,0 +1,13 @@
+Charging Safety Week, Day 2 — Designing a Cord-Check Mechanic
+
+Day 2 of Charging Safety Week: use the right charger, check cords, unplug when full.
+
+As a game-design problem, this is an inspection mechanic. In Fire Babys, the charging-station level asks players to sort chargers: match the right charger to each device, spot the frayed cord and send it to recycling, and unplug at 100%. No timers punishing kids, no fail-state scare — just pattern recognition practiced until it's a habit at home.
+
+That's the design bet behind the whole project: a safety routine rehearsed in play is a routine a child actually remembers.
+
+The pros: "Get out, stay out and stay alive! Crawl low under smoke — smoke rises, so cleaner, cooler air is near the floor. Get down on your hands and knees and crawl low under the smoke to the nearest exit." — Lynbrook Fire Department, NY (Source: http://lynbrookfd.org/beta05/fire-prevention.html)
+
+Fire Babys games teach fire safety through play; proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships yet.
+
+the future is BLAZING FOR FIRE BABYS 🔥

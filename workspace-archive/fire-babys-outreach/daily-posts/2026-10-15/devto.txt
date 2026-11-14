@@ -1,0 +1,13 @@
+Charging Safety Week, Day 3 — Designing "Stay Nearby" Into a Kids' Game
+
+Day 3 of Charging Safety Week is a design problem: how do you teach "never leave a charging device unattended" without a lecture?
+
+Our answer in Fire Babys concept work is a charging-station mechanic with a proximity rule. The station only charges safely while a character stays in its zone. Wander too far and charging pauses and a friendly grown-up character waves you back. Kids feel the rule as gameplay — attention is the resource — instead of reading it as a warning label.
+
+It's concept design, not finished gameplay footage, and it follows the same sequence we use at home: pick a visible spot, stay near, unplug when full.
+
+The pros: "Get out, stay out and stay alive! Crawl low under smoke — smoke rises, so cleaner, cooler air is near the floor. Get down on your hands and knees and crawl low under the smoke to the nearest exit." — Lynbrook Fire Department, NY (Source: http://lynbrookfd.org/beta05/fire-prevention.html)
+
+Fire Babys games teach fire safety through play; proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships yet — that's the mission we're building toward.
+
+the future is BLAZING FOR FIRE BABYS 🔥
