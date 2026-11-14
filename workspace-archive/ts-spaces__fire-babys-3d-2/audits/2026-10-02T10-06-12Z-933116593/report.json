@@ -1,0 +1,120 @@
+{
+  "ok": true,
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-e3ed4af3-b3a8-4021-a4c0-dc18ff83cfcd/",
+  "duration_ms": 55062.800738,
+  "output_dir": "/home/hatch/workspace/ts-spaces/fire-babys-3d-2/audits/2026-10-02T10-06-12Z-933116593",
+  "nav_status": 200,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d-2/audits/2026-10-02T10-06-12Z-933116593/screenshot.png",
+      "fullpage_screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d-2/audits/2026-10-02T10-06-12Z-933116593/screenshot-full.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d-2/audits/2026-10-02T10-06-12Z-933116593/screenshot-mobile.png"
+    }
+  },
+  "mobile_layout": {
+    "viewport_width": 390,
+    "scroll_width": 390,
+    "overflow_px": 0,
+    "widest_selector": null,
+    "verdict": "pass"
+  },
+  "horizontal_scrollers": [],
+  "unreachable_controls": {
+    "desktop": [],
+    "mobile": []
+  },
+  "clipped": {
+    "desktop": [],
+    "mobile": []
+  },
+  "images": {
+    "total": 0,
+    "broken": [],
+    "duplicate": [],
+    "unstable": [],
+    "failed_requests": [],
+    "external_blocked": {
+      "count": 0,
+      "sample": []
+    },
+    "sample_urls": [],
+    "verdict": "pass"
+  },
+  "text_issues": [
+    {
+      "kind": "blank_region",
+      "selector": "body"
+    }
+  ],
+  "console_errors": [],
+  "console_warnings": [
+    "console.warn: []Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content. (about:srcdoc)",
+    "console.warn: []Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content. (about:srcdoc)"
+  ],
+  "external_fetch_failures": 0,
+  "external_fetch_failure_samples": [],
+  "blocked_requests": [],
+  "external_requests": [],
+  "external_requests_dropped": 0,
+  "external_requests_dropped_data_bearing": 0,
+  "transport_ledger_active": true,
+  "egress_lockdown": true,
+  "transport_connections": [
+    {
+      "host": "artifact-capture.invalid",
+      "port": 443,
+      "connects": 2,
+      "bytes_up": 4036,
+      "bytes_down": 2483
+    }
+  ],
+  "transport_udp_attempts": 0,
+  "transport_overflow": 0,
+  "unexplained_transport_hosts": [],
+  "broken_assets": [],
+  "blocked_affordances": [],
+  "interactive_nodes": 0,
+  "aria_snapshot": "- iframe",
+  "audit_session_id": "2f0a9c6f-4d42-454b-a651-8a0133773bc5",
+  "readiness": {
+    "desktop": {
+      "settled": true,
+      "settle_ms": 15637,
+      "in_flight": 0,
+      "network_idle": true,
+      "retried": true
+    },
+    "mobile": {
+      "settled": true,
+      "settle_ms": 7666,
+      "in_flight": 0,
+      "network_idle": true,
+      "retried": true
+    }
+  },
+  "color_scheme": {
+    "declared": "dark",
+    "media_dependent": null,
+    "dark_frame": false
+  },
+  "mobile_ms": 16305.595186999999,
+  "cold_launch_ms": 545.669049,
+  "desktop_ms": 53423.665847000004,
+  "browser_launches": 1,
+  "audit_path": "shared-concurrent",
+  "diagnostics": {
+    "audit_path": "shared-concurrent",
+    "concurrent_ran": true,
+    "concurrent_desktop_retry": false,
+    "concurrent_mobile_retry": false,
+    "shared_launch_failed": false,
+    "nav_retries": 0,
+    "settle_retries": 2
+  }
+}

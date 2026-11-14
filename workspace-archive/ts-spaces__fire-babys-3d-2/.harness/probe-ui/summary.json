@@ -1,0 +1,13 @@
+{
+  "schema_version": "hatch.probe_ui_summary.v1",
+  "slug": "fire-babys-3d-2",
+  "session_id": "ae145d15-ab88-4aa6-90d3-e91363484739",
+  "observes": 2,
+  "acts": 1,
+  "acts_ok": 0,
+  "interactive_nodes": 1,
+  "viewports_seen": [
+    "desktop"
+  ],
+  "findings": []
+}

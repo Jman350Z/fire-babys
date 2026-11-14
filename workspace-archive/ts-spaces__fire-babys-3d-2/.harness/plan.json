@@ -1,0 +1,9 @@
+{
+  "design_brief": {
+    "aesthetic": "Immersive arcade-fire adventure, preserving the supplied game's full-screen 3D presentation exactly rather than wrapping it in new shell UI",
+    "colors": "Preserve the supplied palette exactly: ember-black #140806, flame orange #ff7a2e, hot red #e8352c, gold #ffd76a, and warm off-white highlights",
+    "hero_element": "The supplied full-screen 3D game canvas and its existing title/mode overlay",
+    "moment": "A player opens the big Fire Babys update on a phone and immediately enters the six-biome 3D world, chooses a mode, and walks into monster encounters while progress saves locally",
+    "typography": "Preserve the supplied system-ui, -apple-system, Segoe UI, Roboto stack embedded in the game file"
+  }
+}
