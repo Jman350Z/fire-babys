@@ -24,8 +24,6 @@ canvas{display:block;width:100%;height:100%}
 #overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px;color:#fff}
 #overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
 #overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
-#mathgate{background:#2a1a0e;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
-#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
 .hidden{display:none!important}
 #back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
 #levelSel{display:flex;gap:10px;margin:12px 0}
@@ -56,9 +54,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #overlay button{transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
 #overlay button:hover:not(:active){filter:brightness(1.08);transform:translateY(-1px)}
 #overlay .lesson{border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.35)}
-#mathgate{border:1px solid rgba(255,106,26,0.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
-#mathgate input{transition:border-color .12s ease,box-shadow .12s ease}
-#mathgate input:focus{border-color:#ff6a1a;box-shadow:0 0 0 3px rgba(255,106,26,0.35);outline:none}
 .lvlBtn{transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
 .lvlBtn:hover:not(:active){filter:brightness(1.35);transform:translateY(-1px)}
 #back{background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);transition:filter .12s ease,transform .12s ease}
@@ -98,6 +93,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 #fbLangSlot #fb-lang-btn{position:static;width:40px;height:40px;border-radius:12px}
 #pausedTxt #back{position:static;background:rgba(255,255,255,.07);color:#ffe9d6;border:1px solid rgba(255,255,255,.3);box-shadow:none;border-radius:999px;padding:11px 18px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
 @media (max-height:500px){#fbTabbar{height:48px;padding:4px 6px}#fbStatus{top:48px}#fbTabbar .pill{font-size:13px;padding:3px 9px}#fbTabbar .heroChip{min-width:50px;font-size:12px;padding:2px 7px}#combo{top:80px}.fbMenuCard{gap:8px;padding:14px 18px}.fbMenuTitle{font-size:24px}}
+</style>
+<style data-fbphonefit="1">
+/* ═══ PHONE FIT (2026-11-14) — on narrow portrait screens the tab bar
+   wraps: essentials (score · level · shots · trophy · POW · ⏸) on row 1,
+   the four hero tabs spread across row 2. Every control stays on screen —
+   no sideways scrolling, nothing cut off at the right edge. fbHeaderH()
+   measures the real bar height at runtime, so the play field's ground
+   line follows the taller bar automatically. Presentation only. ═══ */
+@media (max-width:600px){
+  #fbTabbar{flex-wrap:wrap;height:auto;overflow-x:hidden;row-gap:4px;padding:6px}
+  #fbTabbar .pill{font-size:13px;padding:3px 9px}
+  #fbTabbar #heroBar{order:2;flex:1 1 100%;justify-content:center}
+  #fbTabbar .heroChip{min-width:0;flex:1 1 0;padding:3px 4px;font-size:12px}
+  #fbTabbar .heroChip small{display:none!important}
+  #fbTabbar .fbtn{padding:0 12px;font-size:14px!important}
+  #fbTabbar #pauseBtn{width:40px}
+}
+@media (max-width:380px){
+  #fbTabbar{gap:4px}
+  #fbTabbar .pill{font-size:12px;padding:2px 6px}
+  #fbTabbar .fbtn{padding:0 8px;font-size:13px!important}
+  #fbTabbar #pauseBtn{width:36px}
+}
 </style>
 </head>
 <body>
@@ -143,7 +161,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 <div id="obody"><p>Drag <b>Blaze</b> back on the slingshot and <b>release</b> to launch! Your mission: smash <b>EVERY 💀 skeleton</b> — knock the towers down to get them! Fewer shots = more stars!</p>
 <p>🫧 <b>New villain: the Slimer!</b> He is made of oil — <b>water makes him GROW</b>, so do not splash him! Drop the tower on him and <b>bury him to smother him</b>. <b>Oil fire? Never spray it — smother it, and get a grown-up.</b></p>
 <div id="levelSel"></div></div>
-<div id="mathgate" class="hidden"><p>🔒 Math Check</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
 <div class="lesson" id="olesson">🔥 Fire Safety: Never play with matches or lighters — tell a grown-up right away!</div>
 <button id="obtn">▶ PLAY</button>
 </div>
@@ -155,12 +172,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visibl
    - Custom physics (no external deps)
    - Trauma-based screen shake, hit-stop, squash & stretch
    - Layered Web Audio, combo system, 5 levels, star ratings
-   - Math gate, zero PII/trackers, COPPA compliant
+   - zero PII/trackers, COPPA compliant
    ============================================================ */
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
       obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),
-      olesson=document.getElementById('olesson'),mathgate=document.getElementById('mathgate'),
+      olesson=document.getElementById('olesson'),
       comboEl=document.getElementById('combo');
 let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
@@ -774,17 +791,7 @@ function gameComplete(){
     '↻ PLAY AGAIN',()=>{G.level=1;G.score=0;updateScoreUI();buildLevel(1);G.state='play';});
 }
 
-/* ---------------- Overlay & gates ---------------- */
-let mathAnswer=0;
-function showMathGate(){
-  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
-  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
-  mathgate.classList.remove('hidden');
-}
-function checkMath(){
-  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){mathgate.classList.add('hidden');startGame();}
-  else document.getElementById('ma').value='';
-}
+/* ---------------- Overlay ---------------- */
 function showOverlay(title,body,lesson,btn,cb){
   otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
   obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
@@ -796,17 +803,17 @@ function startGame(){
 }
 function showTitle(){
   const lv=document.getElementById('levelSel');
-  // level select (all unlocked for kids)
+  // level select (every level open)
   let h='';
   for(let i=1;i<=10;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();selLevel(${i})">${i}</button>`;
   obody.innerHTML=`<p>Pick your hero, drag back on the slingshot and <b>release</b> to launch! While your hero is flying, <b>tap anywhere</b> (or press <b>Space</b>) to fire their special — once per launch. Your mission: smash EVERY <b>💀 skeleton</b> (+500 each) to win the level! The towers are just what they stand on — knock bricks down to drop, crush and topple them. Fewer shots = more stars!</p><p>🫧 <b>New villain: the Slimer!</b> He is made of oil — <b>water makes him GROW</b>, so do not splash him! Drop the tower on him and <b>bury him to smother him</b>. <b>Oil fire? Never spray it — smother it, and get a grown-up.</b></p><div class="heroPick heroPickSlot"></div><div id="levelSel">${h}</div>`;
   refreshHeroChips();
   obtn.textContent='▶ PLAY';
-  obtn.onclick=()=>{showMathGate();};
+  obtn.onclick=()=>{startGame();};
   overlay.classList.remove('hidden');
 }
-function selLevel(n){sfx.click();G.level=n;G.score=0;updateScoreUI();mathgate.classList.add('hidden');buildLevel(n);G.state='play';overlay.classList.add('hidden');}
-obtn.onclick=()=>{showMathGate();};
+function selLevel(n){sfx.click();G.level=n;G.score=0;updateScoreUI();buildLevel(n);G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{startGame();};
 
 /* ---------------- Rendering ---------------- */
 const HERO_ART={
@@ -1203,89 +1210,6 @@ addEventListener('keydown',()=>MUS.start());
 </style>
 <div id='fbCtl'><div class='fbR' style='bottom:14px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='POW' style='font-size:14px'>POW</button></div></div>
 <script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);var _rb=document.createElement('button');_rb.id='fbRestart';_rb.type='button';_rb.title='Restart';_rb.setAttribute('aria-label','Restart');_rb.textContent='↻';var _host=document.querySelector('#sysbtns');if(_host)_host.appendChild(_rb);else document.body.appendChild(_rb);_rb.addEventListener('click',function(){try{if(typeof __setPaused==='function')__setPaused(false);if(typeof buildLevel==='function'&&typeof G!=='undefined'){buildLevel(G.level);G.state='play';}}catch(err){}});})();</script>
-<script>
-/* ============================================================
-   Fire Babys Math Check — 24-HOUR UNLOCK (Jeff, 2026-10-21)
-   The math check itself is unchanged. NEW: solve 5 problems in
-   a row right here and ALL games unlock for 24 hours. The unlock
-   is a device-side localStorage timestamp (fb_gate_unlock_until),
-   checked by this snippet on every gated page, so it works the
-   same on firebabys.io and in the offline downloadable build.
-   When the 24 hours run out, the normal math check simply
-   returns — no lockout, no progress lost.
-   ============================================================ */
-(function(){
-'use strict';
-var KEY='fb_gate_unlock_until';
-function until(){try{var v=parseInt(localStorage.getItem(KEY),10);return isNaN(v)?0:v;}catch(e){return 0;}}
-function unlocked(){return until()>Date.now();}
-function leftStr(){var ms=until()-Date.now();if(ms<=0)return '';var h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return h+'h '+(m<10?'0':'')+m+'m';}
-function gateEl(){return document.getElementById('mathgate');}
-function isVis(g){if(!g||g.classList.contains('hidden'))return false;var s=getComputedStyle(g);if(s.display==='none'||s.visibility==='hidden')return false;return g.offsetParent!==null||s.position==='fixed';}
-var passed=false;
-function tryPass(){
-  var g=gateEl();if(!g)return;
-  if(!isVis(g)){passed=false;return;}
-  buildUI(g);
-  if(!unlocked()||passed)return;
-  var mq=document.getElementById('mq'),ma=document.getElementById('ma');
-  if(!mq||!ma)return;
-  var m=/(\d+)\s*([+\-x×*])\s*(\d+)/.exec(mq.textContent||'');
-  if(!m)return;
-  var a=+m[1],b=+m[3],ans=(m[2]==='+')?a+b:((m[2]==='-')?a-b:a*b);
-  ma.value=ans;passed=true;
-  var btn=g.querySelector('button');
-  setTimeout(function(){if(btn)btn.click();},150);
-  setTimeout(function(){if(isVis(gateEl()))passed=false;},1000);
-}
-function buildUI(g){
-  if(g.querySelector('.fbg-chal'))return;
-  var box=document.createElement('div');box.className='fbg-chal';
-  box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.35);font-size:15px';
-  if(unlocked()){
-    box.innerHTML='<p style="margin:0">✅ <b>All games unlocked!</b> ⏰ '+leftStr()+' left</p>';
-    g.appendChild(box);return;
-  }
-  box.innerHTML='<p style="margin:0 0 6px">🏆 <b>Math Challenge:</b> solve <b>5 problems in a row</b> to unlock <b>ALL games for 24 hours</b>!</p>'
-    +'<button type="button" class="fbg-start" style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:10px;cursor:pointer">START CHALLENGE</button>'
-    +'<div class="fbg-play" style="display:none;margin-top:8px">'
-    +'<p style="margin:0 0 6px">Problem <span class="fbg-n">1</span> of 5: <b class="fbg-q"></b> = '
-    +'<input type="number" class="fbg-a" inputmode="numeric" style="width:84px;font-size:18px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;color:#000"> '
-    +'<button type="button" class="fbg-check" style="font-size:16px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer">CHECK</button></p>'
-    +'<p class="fbg-msg" style="margin:0;min-height:20px"></p></div>';
-  g.appendChild(box);
-  var n=0,ans=0;
-  var qEl=box.querySelector('.fbg-q'),nEl=box.querySelector('.fbg-n'),
-      aEl=box.querySelector('.fbg-a'),msgEl=box.querySelector('.fbg-msg');
-  function next(){
-    var kind=Math.floor(Math.random()*3),a,b;
-    if(kind===0){a=2+Math.floor(Math.random()*19);b=2+Math.floor(Math.random()*19);ans=a+b;qEl.textContent=a+' + '+b;}
-    else if(kind===1){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;qEl.textContent=a+' − '+b;}
-    else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;qEl.textContent=a+' × '+b;}
-    nEl.textContent=(n+1);aEl.value='';
-  }
-  box.querySelector('.fbg-start').addEventListener('click',function(){
-    this.style.display='none';box.querySelector('.fbg-play').style.display='';next();aEl.focus();
-  });
-  function check(){
-    if(parseInt(aEl.value,10)===ans){
-      n++;
-      if(n>=5){
-        try{localStorage.setItem(KEY,String(Date.now()+24*3600000));}catch(e){}
-        box.innerHTML='<p style="margin:0">🎉 <b>You did it!</b> ALL games are unlocked for 24 hours! ⏰</p>';
-        passed=false;setTimeout(tryPass,400);
-      }else{msgEl.textContent='✅ Correct! '+(5-n)+' to go.';next();aEl.focus();}
-    }else{
-      n=0;msgEl.textContent='❌ Not quite — streak reset. Back to problem 1!';next();aEl.focus();
-    }
-  }
-  box.querySelector('.fbg-check').addEventListener('click',check);
-  aEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
-}
-setInterval(tryPass,300);
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tryPass);else tryPass();
-})();
-</script>
 
 <script id="fbTabbarScript">
 /* ═══ FB TAB BAR pattern — layout wiring (Jeff, 2026-10-21), part of the
@@ -1319,6 +1243,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   var mo=new MutationObserver(wire);
   mo.observe(document.body,{childList:true,subtree:true});
   setTimeout(function(){try{mo.disconnect();}catch(e){}},20000);
+})();
+</script>
+
+<script id='fbPhoneFitScript'>
+/* ═══ PHONE FIT (2026-11-14): on narrow screens the tab bar wraps to two
+   rows, so the status strip (and the combo popup) are glued under the
+   bar's REAL height instead of the single-row height. Desktop untouched. ═══ */
+(function(){
+  function sync(){
+    if(innerWidth>600)return;
+    var bar=document.getElementById('fbTabbar'),st=document.getElementById('fbStatus'),cb=document.getElementById('combo');
+    if(!bar)return;
+    var top=bar.offsetHeight;
+    if(st)st.style.top=top+'px';
+    if(cb)cb.style.top=(top+((st&&st.offsetHeight)||24)+8)+'px';
+  }
+  addEventListener('resize',sync);
+  addEventListener('orientationchange',sync);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',sync);else sync();
+  setTimeout(sync,300);setTimeout(sync,1000);
 })();
 </script>
 
