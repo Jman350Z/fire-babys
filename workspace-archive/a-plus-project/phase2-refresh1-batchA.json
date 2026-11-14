@@ -1,0 +1,16 @@
+{
+ "/3d.html": {
+  "csp_violations": [
+   "Executing inline script violates the following Content Security Policy directive 'script-src 'self' https://firebabys.io https://accounts.google.com 'sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=' 'sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=' 'sha256-JFAStX56WdJze+C5SdYe+LXXdnJ8xx6/Myq5HsKZtoI=' 'sha256-vy6BFtfC4Tl3crCVqhYuFh/OO0CvxbZH9AftytuBmlc=' 'sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=' 'sha256-7QqO4DupHfHMnoeSx9bIVe/fPyGG5JpWtgC1nqVGVdc=' 'sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=' 'sha256-qEX44roVMCGAw72/6MiSynJKkb+EUANzd93txWcRPlE=' 'sha256-J3JIxt8iy2w/IBaswsMYjlUZwvl1zlnnuL6BXz15X5M=' 'sha256-xhI58F4twDgcb0HqZW/RvonEwWBwgpvMhVYoQkW03XY=''. Either the 'unsafe-inline' keyword, a hash ('sha256-y0vgYMqPN08i13vkz3Q53tSuecST14XNS/lISpkRo84='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+  ],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 6,
+  "strict_errors": 6
+ },
+ "/fire-world.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 4,
+  "strict_errors": 4
+ }
+}

@@ -1,0 +1,13 @@
+Pre-move DNS snapshot (via Cloudflare DoH, 2026-10-20 ~13:20 PDT)
+A:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":1}],"Answer":[{"name":"firebabys.io","type":1,"TTL":1799,"data":"185.199.108.153"},{"name":"firebabys.io","type":1,"TTL":1799,"data":"185.199.109.153"},{"name":"firebabys.io","type":1,"TTL":1799,"data":"185.199.110.153"},{"name":"firebabys.io","type":1,"TTL":1799,"data":"185.199.111.153"}]}
+AAAA:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":28}],"Authority":[{"name":"firebabys.io","type":6,"TTL":3598,"data":"dns1.registrar-servers.com. hostmaster.registrar-servers.com. 1792381052 43200 3600 604800 3601"}]}
+MX:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":15}],"Answer":[{"name":"firebabys.io","type":15,"TTL":1800,"data":"10 eforward1.registrar-servers.com."},{"name":"firebabys.io","type":15,"TTL":1800,"data":"10 eforward2.registrar-servers.com."},{"name":"firebabys.io","type":15,"TTL":1800,"data":"10 eforward3.registrar-servers.com."},{"name":"firebabys.io","type":15,"TTL":1800,"data":"15 eforward4.registrar-servers.com."},{"name":"firebabys.io","type":15,"TTL":1800,"data":"20 eforward5.registrar-servers.com."}]}
+TXT:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":16}],"Answer":[{"name":"firebabys.io","type":16,"TTL":1800,"data":"\"v=spf1 include:spf.efwd.registrar-servers.com ~all\""}]}
+CAA:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":257}],"Authority":[{"name":"firebabys.io","type":6,"TTL":3601,"data":"dns1.registrar-servers.com. hostmaster.registrar-servers.com. 1792381052 43200 3600 604800 3601"}]}
+NS:
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":true,"CD":false,"Question":[{"name":"firebabys.io","type":2}],"Answer":[{"name":"firebabys.io","type":2,"TTL":1800,"data":"dns1.registrar-servers.com."},{"name":"firebabys.io","type":2,"TTL":1800,"data":"dns2.registrar-servers.com."}]}

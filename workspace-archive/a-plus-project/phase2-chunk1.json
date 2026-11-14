@@ -1,0 +1,104 @@
+{
+ "/fire-world/game-02-blaze-runner.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-04-cinders-ice-rink-chaos.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-05-lord-infernos-ballista-siege.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-06-blazes-magma-bounce.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-07-rukos-turbo-drift.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-08-sizzles-spark-jump.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-09-ember-cascade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-10-caldera-climb.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-11-magma-trench-dodge.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-12-volcanic-pinball.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-13-pyra-prime-defense.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-14-sparky-speedway.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-15-cinders-melt-down.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-16-inferno-drop.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-17-flame-sprint-2d.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-18-blazes-thermal-run.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-19-rukos-lava-leap.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ }
+}

@@ -1,0 +1,98 @@
+{
+ "/fire-world/games/game-40-sizzles-spark-run.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-41-blazes-inferno-roll.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-42-rukos-speed-trap.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-43-boulders-blockade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-44-cinders-slide.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-45-lord-infernos-strike.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-46-magma-jump-2d.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-47-pyra-prime-dash.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-48-ash-heap-hero.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-49-thermal-track.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-50-ember-bounce-master.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-51-volcanic-target.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-52-lava-rush-arcade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-53-flame-drop-physics.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-54-blazes-zenith.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-55-rukos-final-dash.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ }
+}

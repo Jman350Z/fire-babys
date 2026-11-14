@@ -1,0 +1,3487 @@
+{
+ "summary": {
+  "totals": {
+   "inline_scripts": 214,
+   "script_blocks": 0,
+   "style_blocks": 208,
+   "style_attrs": 194,
+   "handlers": 120,
+   "js_urls": 0,
+   "pages": 70,
+   "pages_with_inline_script": 64,
+   "pages_with_handlers": 59,
+   "pages_with_style_attr": 45
+  },
+  "unique_inline_script_hashes": 127,
+  "ext_script_srcs": [
+   "/auth-gate.js",
+   "dark-knight.js",
+   "https://firebabys.io/auth-gate.js",
+   "https://static.cloudflareinsights.com/beacon.min.js",
+   "onboarding.js"
+  ],
+  "danger": {
+   "eval(": [],
+   "new Function": [],
+   "setTimeout-string": [],
+   "setInterval-string": [],
+   "document.write": [],
+   "innerHTML-script": []
+  }
+ },
+ "pages": {
+  "3d.html": {
+   "inline_scripts": 6,
+   "hashes": [
+    {
+     "hash": "sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=",
+     "bytes": 9920,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=",
+     "bytes": 633103,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=",
+     "bytes": 126814,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-sk2VRlHEkteiKlZnSyk/kLpByaxEqcs+ZUKjnuX31KU=",
+     "bytes": 160284,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=",
+     "bytes": 1727,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-YVNgBqNxBAetWNKvpcL2jymN4/tnKmn3ASeCCkOwgcA=",
+     "bytes": 67352,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-f/TvnNSYyWUjUfklJud/TMJJtzhKLs8ZaWNlFffB338=",
+    "sha256-T/KUyBsJxDT3C+5KlKXcIGzpKbT603p2U/Bw4E9+3rQ="
+   ],
+   "style_attrs": 63,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js",
+    "dark-knight.js"
+   ]
+  },
+  "404.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-aIkCISxmdHtC8QXhp08UoE+1zI3EfuGPtOG03e3aOSk="
+   ],
+   "style_attrs": 1,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": []
+  },
+  "arcade.html": {
+   "inline_scripts": 1,
+   "hashes": [
+    {
+     "hash": "sha256-X71HPQvPoET9+DNLDoitT4r5nKZFMrFZjtStU09DoGU=",
+     "bytes": 147,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-izp8KXMIYVkR8z3ItTGe9SYldcfCGaTtR+p2hFEBcKA="
+   ],
+   "style_attrs": 2,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "blog.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-C6jlaMM9bxN3SG4MWTapPEg4lRwdlOm07gqRRL1hBXc="
+   ],
+   "style_attrs": 0,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "characters.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-JPptvY8yO76bEqqo4LaKJA7SnU/tPI0Pd0ekvlFcWpc=",
+    "sha256-tJrw5xDyE5Ayzv1rS4bIHKsqwcJz7TRIQaCdBMGvELs="
+   ],
+   "style_attrs": 4,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "/auth-gate.js",
+    "https://static.cloudflareinsights.com/beacon.min.js"
+   ]
+  },
+  "fire-world.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-m8zYHh/Rfpz+R4G04UK2H6wEmuM6DnDQBM2fri5DmaQ=",
+     "bytes": 11791,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-6Vf1H/Fad4eC43XofXPiEZcKoqGnhG7gFO5/6yBHMKU=",
+     "bytes": 8176,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-1bmGCULJbxm6q6u31BqOMHMUGeQ//JtyLKogoXDAwVA=",
+     "bytes": 2665,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-KAGnVAMQnQj9SHZm7bpg5xngAA47am7UQ9DZG3fYRAk="
+   ],
+   "style_attrs": 6,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js",
+    "dark-knight.js",
+    "onboarding.js"
+   ]
+  },
+  "history.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-hfL0GI+ka6GeVrdtdTC9GkrlBMMZaMJuy1FlAcFWAAo="
+   ],
+   "style_attrs": 0,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "index.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-Xys0mb4xlIvGlwRhOYNwvPXbCeXAhfmuKfKMXIaOMqI="
+   ],
+   "style_attrs": 4,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "parents.html": {
+   "inline_scripts": 0,
+   "hashes": [],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-kBB+Y5QfImBGuDxqie8Och7sXn4Sp6k3f43DxZSeyMY="
+   ],
+   "style_attrs": 4,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "/auth-gate.js",
+    "https://static.cloudflareinsights.com/beacon.min.js"
+   ]
+  },
+  "play-all.html": {
+   "inline_scripts": 1,
+   "hashes": [
+    {
+     "hash": "sha256-fA37XNFXTKdLkZ9/Y1NkaEU/HPhOmmCZS1Zq3msG5MY=",
+     "bytes": 10423,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-FUyrn0CEZhq5UK1yJsC3bqy0WHi5aCnHUNIZ+qqQZqc="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "input",
+     "oninput",
+     "filterGames()"
+    ],
+    [
+     "button",
+     "onclick",
+     "randomGame()"
+    ],
+    [
+     "button",
+     "onclick",
+     "randomGame()"
+    ],
+    [
+     "button",
+     "onclick",
+     "closeGame()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [
+    ""
+   ],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "play.html": {
+   "inline_scripts": 35,
+   "hashes": [
+    {
+     "hash": "sha256-9ps6bRMPmftcgD8Wun+5ukXZgLE09a4D+Bu+vZpgkzo=",
+     "bytes": 71761,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-CylCARtZF+nx3fxMNSsf5awGDiB2a7vAnk93zvoXUv0=",
+     "bytes": 10826,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-w/huLeprskylWexnnueEnlm9P5fLyT6NMWCU9GZgOHo=",
+     "bytes": 11073,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-59nAjUm33SOlpd8w6qaz1gJi0xFwt8xVEfQzfJGyKHU=",
+     "bytes": 67538,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0ZFMx3RG6TDzRoz1Vi4fsfutKx7dXVBiIBXQ9yro4fk=",
+     "bytes": 8456,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-xl0BQINUwAG9jbJzycrgnY4gzx6KKRng6ujND8tVwXI=",
+     "bytes": 2148,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-xmHM95A/7yktaZkP2bScWcb17H3SQcaJSn4ksQRLo2c=",
+     "bytes": 1107,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-QPkrf6ciaNjVqLDEk+OOqCcdGuL1Kdv1PkrYwKVozt0=",
+     "bytes": 21668,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-LF2WQcMFZjVWQxyQoefAtv7CuAMBF+mGRwmwC6f41/A=",
+     "bytes": 11387,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-QNQCii4zCqpF05W7E4VoObpR98YA9jBDvQbjjS5eb1g=",
+     "bytes": 4418,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-Eu1WvtwJC97KS/YBggSA4BMRNrNee5umuC7bmy3vwcE=",
+     "bytes": 6169,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-hIhi1AUVir1jxVjrDeuvsaBoObSrdr5dfM3j/QXCbQ4=",
+     "bytes": 11148,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-4gcs9se/JiDqhKHYiMQ5mdzTRaeqNhUAqQLvQ7w5Elk=",
+     "bytes": 26811,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-JwN+Ubs+0tTOqegDxZnPv1gYAoLIIHbFZzHjWeLbLSk=",
+     "bytes": 9472,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-lCsrOP4sUrZY22dYZ83JApbALjt6mqVs4h8pftI8lZs=",
+     "bytes": 17427,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-L6pwc9Ww76XaIZKl9fooljgcfv+wMEm9ItXfJ7+VlME=",
+     "bytes": 20805,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-46lOXS0DHNiv2dKV4fHg717bVepimfGXoozC5DGSvcA=",
+     "bytes": 20197,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-xCM0bSnRNMNf3yDI269aXmtlSS/g/M+82Zm7AJgVxII=",
+     "bytes": 2035,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-jFXm5tbcDgCOReO9HWz9zfE8rqjI018dLxk680jiZIA=",
+     "bytes": 5753,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-mQ+bPyuebbYptIzokHQ0AAqDIq4aYp5wEjJA9EzCWxo=",
+     "bytes": 22532,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-P61hvqchN1vDwAOfkms6AWh3WUo3xeELKiSGjOwPOYo=",
+     "bytes": 7416,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-4Oo1jKKal9jhqwGp4J78xRjFJuzF/td5Cc3IDOQawUY=",
+     "bytes": 1868,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-kdf0y58XG4rLAIJDFJwfodbdYnV5NyxKP0HEMdgNW/U=",
+     "bytes": 10862,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-NdOsNYjAUO1IbMDWIoOCjA0I7PvOj5c9KOCHAXjE14Y=",
+     "bytes": 13714,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-mM4E0lSMKWM+MdtETMlkU3QrPmRnBs0f/nIbxkP6SNo=",
+     "bytes": 14815,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-fvE4kXAyBatRS1dnZ5ShcWH+8DWCanwI5WlPnlBPbbk=",
+     "bytes": 25205,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-1fnc0y1M61Jxp9E75SGi41E7zzRq1wP23+hJ8x2jXU8=",
+     "bytes": 11959,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-Q47/14escu68RgIgKqS7AxGn9Sflcuw9EGrGj3k8Ack=",
+     "bytes": 14864,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-K1YGvq9CkV2jR4XG7OBzlxPPeD2ycY6IsJVYFrv9cmQ=",
+     "bytes": 6466,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-sbeRrIXEvCCmnD+HfCL/swxtbW8tXnyhuiOt3zGcwgE=",
+     "bytes": 33672,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-ZNn4NuIJAgZ065FKT851jOU37KLkHWctRRZE9klBb2U=",
+     "bytes": 2888,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-/wpuDIN5KdK0U2W9F/WHUTyRQqBGyCN7qqe5Wm8ONgY=",
+     "bytes": 9113,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-8Y3+/1qY5O5t7snBQXqj8J6wcGc6rOfQXTHf7trqVyE=",
+     "bytes": 25370,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-MlEUqY7NlVNvjnzp7Q8X3cqQK/YKaF2Hm09/hD85wHo=",
+     "bytes": 8903,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-5ktnV2n/ci+lhnWRRvj/v6EdzrhItAkmNPcAidf6Nv8=",
+     "bytes": 19126,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 1,
+   "style_hashes": [
+    "sha256-BJ8NjFkg3awVUnEQLqU93bAi2rr/8AzzmMX+S9J6wF4="
+   ],
+   "style_attrs": 0,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "dark-knight.js"
+   ]
+  },
+  "fire-world/game-02-blaze-runner.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-0e7GOLq47JhrYh+p33kmfYMJETrt2wUk8j3ZAzF3p/c=",
+     "bytes": 14514,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-5WtvEuFIMUOz4yaYEbuKIUXMaff9N87KZOuko/H4wVk=",
+     "bytes": 954,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-WT4IqQn0UeKZhOWZGlGAI9xNq/+n7Jch5SZTKmHb378=",
+    "sha256-46W8IRKQyweHAffwblyayQZ2wHo9qFKzPLd34GQ3V7c=",
+    "sha256-xKN5iDbkKHwM9wWo75Pz/EhCJ8jlAF1k5SL7YZ/hd70="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/slingshot-cascade/index.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-Dwzr7rkBvjIOidGEGJHYQmiDtImI4ZHn/C8qN8rYdJk=",
+     "bytes": 52160,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-PWPTHeJpaE/+KJ3QAbS+Q1u1VmIFgibWUs9F/1GKD9o=",
+     "bytes": 1367,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-kqqXspWfIGXwsKfRSZPHqTi0XvtU0pGvO55rqJCjH/c=",
+     "bytes": 1709,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 5,
+   "style_hashes": [
+    "sha256-qt4++Kwl478JeRW29ZFDSNMw8gvdyByLz0EG4v9LJkw=",
+    "sha256-ULN+K59Pjt/TYqyOS7/cz5o02CzX5AfjMiRn5bCUW0k=",
+    "sha256-JufRR1DCRAyEHBsbUIiPaOFijrGZPKmvrutHC+8b0yw=",
+    "sha256-NneffJFKmbsndcRJVreXxo2HP2SVYE4PohU7jDtbVeU=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "__setPaused(false)"
+    ],
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/rukos-panic-dash/index.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-UJxh+JjMATCcHB3NpeiOH8lqCDX6Qrg/bwiuwFdGVQE=",
+     "bytes": 28979,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-M2myzU0KmfT1w/YotDMIXjuVYA6NvLmAg1uewI54Jn0=",
+     "bytes": 533,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-ClO+It4G4/DVs/j1CXmA0e11CnFs4Krad60l6RkqKIY=",
+    "sha256-SsrcyKIWM4MdfRk2tXOVBO1wSnG8EL5HQa1Us08TUhM=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/tristans-dark-knight-rescue/index.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-HWHR9aeJsUMClItONTxuSGUX+YbUVcDxQexfJMXaUbU=",
+     "bytes": 30208,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-CTpt5r1D/dOm/h47r1ia/ep/UcF9mD04pV72phB+MbY=",
+     "bytes": 460,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-SKuhC2M2poe/fRc8olyhvmNAuwjsQYB11AH3iyZSpAE=",
+     "bytes": 955,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 5,
+   "style_hashes": [
+    "sha256-Wq58Y4HbnsFUwofYV/dQP4IZbTUH7C3JV2JWAm4c1I0=",
+    "sha256-cICO2qyymZMtWX3/3ticrGl+l8dlJm/g+8nhjLrWQI0=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE=",
+    "sha256-ydv4x2A42Vqbvhy9yFUPmuRPw9ryxDySfWSHyknqNsk=",
+    "sha256-xKY2dGqvO9ialADD+NBFG5E++wsqLC2M18Pq/53Sk4o="
+   ],
+   "style_attrs": 4,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ],
+    [
+     "button",
+     "onclick",
+     "startGame()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/trinitys-holy-lightning-rescue/index.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-/GpXE4T60Z8KSoay84O2AvunR0AloPaqHBWXbsGSJ/k=",
+     "bytes": 31038,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-CTpt5r1D/dOm/h47r1ia/ep/UcF9mD04pV72phB+MbY=",
+     "bytes": 460,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-sRYndG/dHLqTJf3s3EIeo62zaIiB0vWL2U/5WuPWaw0=",
+     "bytes": 1024,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 5,
+   "style_hashes": [
+    "sha256-BIyHypsFEQYDYZx+35bRXz2gjQpcC1Jwr3LTc5LAxbI=",
+    "sha256-3VIZXHfWiE+JfN+XmpH/cYljESXHB4YASEuhRNuuEYk=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE=",
+    "sha256-ydv4x2A42Vqbvhy9yFUPmuRPw9ryxDySfWSHyknqNsk=",
+    "sha256-sxHQrqJHNISPRpYsc8WC+aE3fim8IPTCtpiNGeFqWCg="
+   ],
+   "style_attrs": 5,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-04-cinders-ice-rink-chaos.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-Evz/DZYfB3mO8VrKfcDSLzOSPpFFm3uR5ffwDMWtphA=",
+     "bytes": 25274,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-jZEy6Xnxf8Xg3buqcAfBryoCx8Ui2TVrQo4KguzJqmo=",
+    "sha256-SpKZGUmhzY38IZPE1GLfhvfSGXTUc5SBYUMavfHLlGI="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-05-lord-infernos-ballista-siege.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-r8XhhsqsLl8kcOnfGVdCFH6MoIGmBHpOInWr8FTirao=",
+     "bytes": 54743,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-v/jozGtVvd+t8Omx3mEcUV8p7UtymFxqhPQU00KTLk4=",
+    "sha256-nx26dJO7hd6rPbyxHbfhLN5l7lLsvW8VS8BzLxP0XXc="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-06-blazes-magma-bounce.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-APqCbGfTsUGUTcjM923XhHIEXbLrYDHxor2ZQhSCs40=",
+     "bytes": 24998,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-F5xznMXaW1gzY5BJGBz1PjYjg59wVwTq2V6MMx+VetU=",
+     "bytes": 1075,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-K0xkj3Ri3hOw7WcCpDfNswIEaqanroJbzrkPuepDClc=",
+    "sha256-Cv1bXSaxzNkjo5j5/WRmCOYuh6vlsHVD5e857YvsLck=",
+    "sha256-/M8ZQ6/NGHJp9G7cwv+w1Bg0D9FgrDAQ5nQK1+Z9YK0="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-07-rukos-turbo-drift.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-ybbL9XtK7vH6Yr0w0EMvDU0hWrRG07Mm4licB4WBMqc=",
+     "bytes": 26189,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-SQiUmOkc+3yZ/YeEdu1Hg/9d63IEaxe0MiKBVOW/LYY=",
+    "sha256-TgnOlIcTU1pT3wC1mRzm/cdqjBfMnEiFO7/qOlnt1dM=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-08-sizzles-spark-jump.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-ENFBu0RqvljZCcOs86T0pNBjzz8AQn0b1TFEAePeBKo=",
+     "bytes": 31235,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-EGRlOy7k3mySSnJTZXGzXrTiLNKW15ixv9IDvmz1b64=",
+    "sha256-5/Rvool/wsKFkPEB65dJ/SJUEW1dlW9aM6DFQI5c5XQ=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-09-ember-cascade.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-dlZqzcFFpDedGVygSqe+QXzb6h0boktWxAoJtgyGM0Y=",
+     "bytes": 27345,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-hdr4DcPfyG1NhLHH6HUVrEbz/AgpzLtTRNJ55SR4WMg=",
+    "sha256-SsrcyKIWM4MdfRk2tXOVBO1wSnG8EL5HQa1Us08TUhM="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-10-caldera-climb.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-rd/HYkiyqZLf4F5icGsV4zD8OtNXG+xrxrlDnrDlHjQ=",
+     "bytes": 24756,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-O2l62jVDHRMqr6U6cATOysRRN65BUx1/UW1ywT44vEw=",
+    "sha256-ULN+K59Pjt/TYqyOS7/cz5o02CzX5AfjMiRn5bCUW0k=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-11-magma-trench-dodge.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-4htIY/z643s0MuRYAptrjblus5bjwgOzeGYvGYCK4rs=",
+     "bytes": 25692,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-z8TSHGHGWHMlZpblylbtpZOYTPFjXTdBy+FFVx+HDGI=",
+    "sha256-SsrcyKIWM4MdfRk2tXOVBO1wSnG8EL5HQa1Us08TUhM=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-12-volcanic-pinball.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-cxf6Xh6CvvUGOTO/LNVldRDEaWrPZtukG6zUIbf8FnY=",
+     "bytes": 21041,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-Ad70UFpWWUrdcwT8PjhZq8/PtIXdYYW0+FC5pVtaRPo=",
+    "sha256-SsrcyKIWM4MdfRk2tXOVBO1wSnG8EL5HQa1Us08TUhM=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 5,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-13-pyra-prime-defense.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-7t1xLqKnRQAjnOAJ9lt/WJ/KF6Vpri1D5RcrcO0n7lY=",
+     "bytes": 35507,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-28uBRGhXIf0yS8967WOp7rqBT/HBGqF5u+wT7/dTffE=",
+    "sha256-ULN+K59Pjt/TYqyOS7/cz5o02CzX5AfjMiRn5bCUW0k=",
+    "sha256-9jrQfH6/ftkuJPE4/QABVGgAXru+gscQv29337W27xk=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-14-sparky-speedway.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-8LLlHzJvfJ7beO8SJqJcrDLv6A/2No4oOTaR0KSVLCw=",
+     "bytes": 17640,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-vKknMv/lyPc5e2PMqrkWXaBQjtNfxF5NX8behDzqBLA=",
+    "sha256-4a0b8IiywhYS++zPYfI8pQKZYlQyjXiHmepUlW8bITk="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-15-cinders-melt-down.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-Rr/eSqeBfQ6YpLbDIOV1+JwP9tZQ6FbnubHB9+mA3DU=",
+     "bytes": 24955,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-g2U7sBrNCkMajst4L/mxUY65G1mp/QaHqYUQUMhB+zs=",
+    "sha256-FY3pJuTf8oq1MxoCGX6vM6IfJX4yY6547BIKv0dZzi4="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-16-inferno-drop.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-w261M9DDy7YRtjh4uUJVGdQJHerqCP2e5yV9rxTqPyA=",
+     "bytes": 17076,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-fC7ePrWu+lWNHwAJpFvTRc/Kgn8VmwoVqGzQVpWUnug=",
+    "sha256-lynMQDra8gN4PsSHJbNMNmL6Lkq5K4vW9oCh5zbpZrQ="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-17-flame-sprint-2d.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-0AnfDXR8Edr2t7FL5LFdRJgjczvate02Sww8Nli8pnk=",
+     "bytes": 13928,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-5dAea0rhJVDF/V7L0j9o1H8ycYe/Az/dZ2/Yw04IO1k=",
+    "sha256-lynMQDra8gN4PsSHJbNMNmL6Lkq5K4vW9oCh5zbpZrQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-18-blazes-thermal-run.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-VunrmTLsBeDoPLP7Oi/QkN1SlQmFbboJdSUOs+Xaw4M=",
+     "bytes": 16626,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-W5s24wJSLJMPrZBVpvRdiE6PfUp4xHr9ubG/sh6lN1Y=",
+    "sha256-aPpQD4mXo4rvzkOJNxgquxDdTkz6I69/AEE1hVXKtu8=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-19-rukos-lava-leap.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-J4B39RMw87/yXA21tgDwujRXw2f4YBM/hx2ac5AMs6s=",
+     "bytes": 23230,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-LjFWG3LITndf2BrwSsJcPSEpXhAyRLraX08IrxaAB5Y=",
+    "sha256-aPpQD4mXo4rvzkOJNxgquxDdTkz6I69/AEE1hVXKtu8=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-20-boulders-fortress.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-80zA7KcvPjJOBdUZTVlwLU6ifxDtSD8TNlXop/2MFas=",
+     "bytes": 15427,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-cx7mzH1xWka7AO8ppkRuaDj2UZJeX3Z97pdWUaafll0=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-21-sizzles-target-pop.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-zeZAGmvEhFwzSXG01eY9D/ilWrAIpQFwLcyDphgkzuo=",
+     "bytes": 16570,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-7SYn8D2Rolup6JiT2RyXtB/w5T9+QsRWRj4jV30yKi8=",
+    "sha256-aPpQD4mXo4rvzkOJNxgquxDdTkz6I69/AEE1hVXKtu8="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-22-magma-block-breaker.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-X0b1oe6Je27wKUl/gPHFkjCq/+0U8gOCdkyER61CYYs=",
+     "bytes": 16412,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-iPKdikg8BOm72pfUTc1enpeW0Hx3bWTbC2S020wB4ro=",
+    "sha256-HjTv/WMiBHmHOVZ6TPQTFFywLMyCAezEPjKGnpdw0kE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-23-crater-catcher.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-0buzV9BPUkbphPcxMQIb58/iu7i4lYUeXmk4qN5SanA=",
+     "bytes": 14577,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-pT0+54cE+3VxGSg/V5XNsy161jaUaWBmS2xzy1LC5d4=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-24-ash-storm-survivor.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-k/P3XDHq2QkmUO7JNVyKm1GEPbQ8yqtyVBLtHSqiD/I=",
+     "bytes": 21171,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-j2L+YTGZHUDej4/SU2eZJvu5QrbQBGGRYXQmk7PWfvQ=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-25-lava-line-draw.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-QAkO3c73snMZgFzur37ECNUpg6TL/0mhiWh1hbWaiRQ=",
+     "bytes": 17387,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-FHtdFaurQNy8gwNf7KNirCuT2v/nvPxqJxkFFgv2r2Q=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-26-pyra-paddle-battle.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-4JDxY/o/I+DwmdHeNtxcIhPjn4y7I8EP3pJtn5ZdQqM=",
+     "bytes": 15149,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-C++lSTfFMBxfn2L+Kamg7fBhVnZ4Tud5nDDaa2B+L80=",
+    "sha256-ND+WyUCcBnNVXR0l0bLl8xbw/jGxVcGdpShddgioYOw=",
+    "sha256-EPWWodVUTxntEnm4uHT6MyPTU/IcMUovYiv39FC7CyI="
+   ],
+   "style_attrs": 4,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-27-ember-bounce-2d.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-wNB1Vh2ona8rCDXU+HqXrGnQu6ZfpNL5egBv5mdkyQ0=",
+     "bytes": 13535,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-Xj/mBh99uJ5q6wcPqr1M6e7+gZZ5Y4NSOKJvSwigKIM=",
+     "bytes": 1522,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-z5A+2vFQhHNjBqcHJrNoIY5vtRLSnuEbbastdftpkxo=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-28-thermal-tug-of-war.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-1ozSB8+o4pUH0LjblPJmZLg+at8nZzYCXMkVlMt/VUo=",
+     "bytes": 17337,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-sS/iqJubHIkt2cpLITPqraOS8/2ZCEm3pxGFbCJofto=",
+    "sha256-ND+WyUCcBnNVXR0l0bLl8xbw/jGxVcGdpShddgioYOw=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-29-blazes-jump-quest.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-2IhyXlpQVv6H5GoYuEOIGJQgbYEUlfrWgFSKtAX/294=",
+     "bytes": 21763,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-tZH8XyrllhMlGmcN0yHNGFmj5pV8t5TR7qmry0ijgis=",
+     "bytes": 417,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-gXLvr2S9NBX7Hcfbr1L8KV2aGfSCuZ6V5ap8ZfTvPuU=",
+     "bytes": 1023,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-WamAc6OjpS/20PPjGLF6EvmWIA+geWDXYtjurA3JkZ0=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE=",
+    "sha256-s1kByV3wRNGAXw7LJ3skb+eB23EaJ4b1eoqpQX3xLcY="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-30-rukos-dash-blitz.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-AX8sFK/L9GjEXhhZZ0QK329m3QIBlGQRsLwTJ6bynGk=",
+     "bytes": 16185,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-Ffdwa0e+3PF6I0R582LuyGG+qe1pn+hcyoqsidDtUYM=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-31-boulders-rampart.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-WcBMyybiqM7wUZ5v8x0VIhYm+3NKloC35HaB/QMJ8v4=",
+     "bytes": 21672,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-DNtaBbF4MVgnrnJ9VpmgJao2coar6kF4N92DZTzpNRs=",
+     "bytes": 323,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-2SLVzQijyuVxz63UiBcaEteuIRN3laRphaMXRJBkiJQ=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-32-cinders-glide.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-ZKDeFtxEM0u8w9WOdgvhTFN/gNDNlShV5fSKhyxY9Rs=",
+     "bytes": 16190,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-j54Jiu+h+zo2Zz4Rmt1uNI+X89zfkOp/0M2m5X4JmvQ=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-33-inferno-aim.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-DiUCjIn7Jv2Lbcq5lPXxIULLfzUD1FOrufnu0Cyw/9U=",
+     "bytes": 16863,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-oZs8y+3WVulCaSnbye1MO+t9Yfwwf5NaQtorzp6pmuc=",
+     "bytes": 306,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-Q99V2d3VcgVWViFGV8aAa5UULzDLBy7cXq6T4HtWWXk=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-34-spark-jump-arcade.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-2En8/3m1M5l69PmvGpyiDqlSG/lAcRLooKGUrctrG6Y=",
+     "bytes": 13797,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-Xj/mBh99uJ5q6wcPqr1M6e7+gZZ5Y4NSOKJvSwigKIM=",
+     "bytes": 1522,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-tOAMH+Q2c7z0QRb+ouY4my4m+LQ7UyqulOOaf780ArI=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-35-lava-moat-defense.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-dxRP5caTcbP4MfEpcd/BrPPYYXPx2Co4j47wD21HZM0=",
+     "bytes": 23798,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-oZs8y+3WVulCaSnbye1MO+t9Yfwwf5NaQtorzp6pmuc=",
+     "bytes": 306,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-zdvFJk8Cw7Hl/3v/rR8SSY4mTyNuHq6/lhOP77rZcO8=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JzI5gw4bb6OjA9eMpEG8OxVZfgDdx/Xtp8I3EusfauE=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-36-magma-drop-physics.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-cu/TjVJTL0EwgfWFVaKT7tWsw0GuP8TAxe/xA/KJrbI=",
+     "bytes": 15156,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-JE7F1lLMqmg0iY4jEDoduxeXXdoAB3zCP2G/fk3yKsw=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-37-volcanic-stack-smash.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-Fwa350FVvMVdtRYCwxWpMS0FgV9MFc7fY9QUB3nZ+Ds=",
+     "bytes": 14218,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-Xj/mBh99uJ5q6wcPqr1M6e7+gZZ5Y4NSOKJvSwigKIM=",
+     "bytes": 1522,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-tOAMH+Q2c7z0QRb+ouY4my4m+LQ7UyqulOOaf780ArI=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-38-fire-baby-rally.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-dm9fXQAOrLKJW+Hcd5UlLvNwvRu6CsQrLAdDSTGKRws=",
+     "bytes": 17850,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-+L2wmZUQ5DuxHkMckrHFNOf6DNtGMTYa2RRG1RiUKMU=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-39-caldera-bounce.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-cEnk/d+uh2xgbHSPikExyCPxgrEBnuK+G+DJsDJuSF8=",
+     "bytes": 18306,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-V8/lsTxjk2g97Tlx/FRXzcNAS9RFVC1rEUfyPs9mHpQ=",
+     "bytes": 331,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 5,
+   "style_hashes": [
+    "sha256-H5pXZTFw8Wrm59HQAtzC1NxxzbNoM7DE7SvXVpg6Ew0=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-uoWHXVQSWC8GRvKoLjXZr00spOC5Q/P6QsUwkiWML4s=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-40-sizzles-spark-run.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-m96ebekVpoNkKArvYUk3wZEgsbAD/dy28WzaF/hYKGc=",
+     "bytes": 18221,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-nQ8HAW3/duWI2lfUOWmpAwNpbYMTR4HRBYGhv8Po6v4=",
+     "bytes": 1659,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-nHnMxaQ6QgIIX3ZCmYHrWJXdb7M6rikvszjhVnhssNE=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-41-blazes-inferno-roll.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-8jveYUCA8oUENgHo1+zd5tf09Ahk5DQfppUWusR9RBg=",
+     "bytes": 20778,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-XHkBAjisdRMwWes1NunuzTEy+bQEqViossIS9hp/NLA=",
+     "bytes": 317,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-qXPJvFbruKULLFn6lhDdbDfTkqHM8A0YYjeUiWnZ5Pk=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-uoWHXVQSWC8GRvKoLjXZr00spOC5Q/P6QsUwkiWML4s=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 1,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-42-rukos-speed-trap.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-f6FeE/j0xGnzH28yubRDlEq5IlfGtZcMNvVPDXjRYrg=",
+     "bytes": 13603,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-oZs8y+3WVulCaSnbye1MO+t9Yfwwf5NaQtorzp6pmuc=",
+     "bytes": 306,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-g3jabgnGaZIIobDpxNi1DQjeFTaEPBBU+MpdYjLC2x4=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg=",
+    "sha256-uoWHXVQSWC8GRvKoLjXZr00spOC5Q/P6QsUwkiWML4s=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 3,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-43-boulders-blockade.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-GXSyWkq1z4q6ID90WD1rC+ZVc4Hx57f0grlOVGYNkmE=",
+     "bytes": 16335,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-vEo51zurq2JHj3poF8IFyhohEEWXXVAmHpPdDJWe2ao=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-44-cinders-slide.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-BrQnWvDNFfLZmrfro3h7CFQAEbPgfg124NYU+ZJhSH0=",
+     "bytes": 13833,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-viYWDRhtS/hAWM3wrOcQuslM2ReVZma5UtJkbEkTig8=",
+     "bytes": 314,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-EOtdIpsY4tAqCN8t3x7Ke3VKv1jzH25x3chQkdefHfA=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-uoWHXVQSWC8GRvKoLjXZr00spOC5Q/P6QsUwkiWML4s=",
+    "sha256-EJ9DI8SSQ9LEFT4BS/Ir6Zy+YQ4Z4lf2zgPgkfthkH8="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-45-lord-infernos-strike.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-1P3eslbrm9ojijahr3W0hW6S+XZDWBNwoLnFJpqzPug=",
+     "bytes": 17226,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-2lsKLclsySuaJ7P+kkNTQKgRYENrBkJr3LbLqlnJzVE=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-46-magma-jump-2d.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-G6SNXgbh9jISAQY7AKGi6JjLHAp3LuzuBzAm2VUnyWQ=",
+     "bytes": 15932,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-BUQeh9/6EcSB4oOUxC2As7dY+jFJI8z9eGm36qpaS6w=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-47-pyra-prime-dash.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-S1DNYya8RSdG12FBk0U2qm42GbgbfIV/v9K3HJAct/g=",
+     "bytes": 15528,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-AgzdtBDE/7y6bbL5Fu2Ql+7m5OcUGGbOq0x4hSVsANU=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-48-ash-heap-hero.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-SD4LLOFt8R1STCm8ePV8ZNXJEIhNjKCSkIikq7IsV5c=",
+     "bytes": 15107,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-tJ2PYOVfNL1Xp9Lo1U50WtL7OGSFOuU8b8WgxxlIxJE=",
+    "sha256-s7dPonxSc79zF72eUwRb1YU0C0qdNh16wQKRhM3keTg="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-49-thermal-track.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-h6iGRAWFnQAYNqhl7JEvU4OIhEFIw5uDkl21uw7Lmts=",
+     "bytes": 15116,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-Dx4LymZXp7mrSsINutkGsS0YQSF17v0xxfY17x9hkSY=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-bwhOiu6TjLrXFMK1kviXL+QkfPDwRR1XkP8hp6Qp8yE="
+   ],
+   "style_attrs": 0,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-50-ember-bounce-master.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-k/qxNYlDwQO3xqK8xS6qvIqVAzrJtSr/ZPboPepzWHM=",
+     "bytes": 18792,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-i4QtifEsoFwqJ6dkKVjhWALk640b1WB+1Z6fVAVxm5o=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 2,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-51-volcanic-target.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-sD0iB3XUC0u57JY9MDk9k0ZRI3TqR492Ex4p2n5zZ7Y=",
+     "bytes": 14112,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 2,
+   "style_hashes": [
+    "sha256-OeJ7spSsvDdSIL7vkC7DZ1iT/lBR1iHBW8wdmIzbxzI=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc="
+   ],
+   "style_attrs": 5,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-52-lava-rush-arcade.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-OTpzku0cyS0sbBnS6NU2gCZNmR6BPL0iIzV1GiM7BiU=",
+     "bytes": 17324,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-pDRBbGFP1PKOqwFsJQy3jqQ/fw71S3bbfZ7EbUjTCVA=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 8,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-53-flame-drop-physics.html": {
+   "inline_scripts": 2,
+   "hashes": [
+    {
+     "hash": "sha256-dmNHCeJk5Ipuan8L0HRhnZKT10nGtTRt5E+Weu865Hs=",
+     "bytes": 29438,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 3,
+   "style_hashes": [
+    "sha256-ByTr62ef2KTfPjTQWi7gpRjWazmAs04Uct2qf6rEL6E=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-bwhOiu6TjLrXFMK1kviXL+QkfPDwRR1XkP8hp6Qp8yE="
+   ],
+   "style_attrs": 6,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-54-blazes-zenith.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-5ma0K+W/3y6AnV5kdvYVrg5IfEHl0hlH8t9oHCjH5Zk=",
+     "bytes": 18674,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-AGILMxn6ZuXIHdLwsm241mzl3WrsmYTMHO8v3HMo7nQ=",
+    "sha256-Gibirmp3D8Zx5RTL9ksjAqfFmc1KT30fa7icP4r6efY=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 5,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-55-rukos-final-dash.html": {
+   "inline_scripts": 3,
+   "hashes": [
+    {
+     "hash": "sha256-89TbTx7ETZLO8H6MvoV5NgCXQxKM5un7A0TQPMoRfSo=",
+     "bytes": 17511,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=",
+     "bytes": 886,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=",
+     "bytes": 4759,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 4,
+   "style_hashes": [
+    "sha256-UF1zDCIaTZ1C3oEcIaE6PRiOFou0udTqF7vp7gg4NdI=",
+    "sha256-9rLKMEVkVgFAns1OMsuFUnhPrrdV5GIuHg9LlCoOIFc=",
+    "sha256-JuRWeNFbqnDsQAiTPSYznEDQHLF9n+jNCT0ZXjDUhGQ=",
+    "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE="
+   ],
+   "style_attrs": 7,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "location.href='/fire-world.html'"
+    ],
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "fire-world/games/game-60-fire-babys-arena.html": {
+   "inline_scripts": 4,
+   "hashes": [
+    {
+     "hash": "sha256-L3KJ6G/fW7HbwUUW9wSmmNF1Nyy8qumUgZey3AoNCfU=",
+     "bytes": 80988,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-HopMA6EALrLCU6hAYoSpj5vHEyHmKxmyutuX0bEX9ec=",
+     "bytes": 12227,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-k/1JdoPYPmYGu5D9WQm7zIcxB0g+CFAkIJ1S4sw/AtU=",
+     "bytes": 1370,
+     "type": "classic"
+    },
+    {
+     "hash": "sha256-SEWs/M2ALDK+8XQ61R6RBRBK+4TPtSBV3qQjh7VWv8I=",
+     "bytes": 735,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 6,
+   "style_hashes": [
+    "sha256-pfCWbZBMChfDt31ABZR/TJcZB1FTt07Mg2UKnZ0FA8Y=",
+    "sha256-oxvOnO/pbHbfsLR8+eet6dgWaKADbNK2rdvOIVEsovM=",
+    "sha256-K0s1ela/8IBqMupoNFYQFT/LJCN6Jrdf8fB8AQ3NI+Q=",
+    "sha256-y0GSRf3Ip5tdqj+Ru3pd5KD/apmsHipgAzffmfEVIkU=",
+    "sha256-qi7Gs56WUGWPcwDBlDrUvrh1yWGZrYbLFEtWbHHgjho=",
+    "sha256-Gm+iNg+L44WmpkW3/8zNdJcDPLGMvoc19+n5i0xXsHw="
+   ],
+   "style_attrs": 5,
+   "handlers": [
+    [
+     "button",
+     "onclick",
+     "checkMath()"
+    ]
+   ],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": [
+    "https://firebabys.io/auth-gate.js"
+   ]
+  },
+  "world/index.html": {
+   "inline_scripts": 1,
+   "hashes": [
+    {
+     "hash": "sha256-lbkZICw0qAwobmjMSBIMGySow8p/hdzAMLep11y+RsI=",
+     "bytes": 39,
+     "type": "classic"
+    }
+   ],
+   "inline_styles": 0,
+   "style_hashes": [],
+   "style_attrs": 3,
+   "handlers": [],
+   "js_urls": [],
+   "iframes": [],
+   "ext_srcs": []
+  }
+ },
+ "hash_map": {
+  "sha256-PuuRPOZGEP9nspM8HV0x8ZZcRETjavh7YJkEqrd2DGc=": [
+   "3d.html"
+  ],
+  "sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw=": [
+   "3d.html"
+  ],
+  "sha256-C69PW9jWaj//rPdYz9wO9Dmmu6xn3/juhn3SL7hhzvs=": [
+   "3d.html"
+  ],
+  "sha256-sk2VRlHEkteiKlZnSyk/kLpByaxEqcs+ZUKjnuX31KU=": [
+   "3d.html"
+  ],
+  "sha256-6SdBQjugjxk/W9O6VgXzXxMgJV9ZHA4UN2JfEws3D0k=": [
+   "3d.html"
+  ],
+  "sha256-YVNgBqNxBAetWNKvpcL2jymN4/tnKmn3ASeCCkOwgcA=": [
+   "3d.html"
+  ],
+  "sha256-X71HPQvPoET9+DNLDoitT4r5nKZFMrFZjtStU09DoGU=": [
+   "arcade.html"
+  ],
+  "sha256-m8zYHh/Rfpz+R4G04UK2H6wEmuM6DnDQBM2fri5DmaQ=": [
+   "fire-world.html"
+  ],
+  "sha256-6Vf1H/Fad4eC43XofXPiEZcKoqGnhG7gFO5/6yBHMKU=": [
+   "fire-world.html"
+  ],
+  "sha256-1bmGCULJbxm6q6u31BqOMHMUGeQ//JtyLKogoXDAwVA=": [
+   "fire-world.html"
+  ],
+  "sha256-fA37XNFXTKdLkZ9/Y1NkaEU/HPhOmmCZS1Zq3msG5MY=": [
+   "play-all.html"
+  ],
+  "sha256-9ps6bRMPmftcgD8Wun+5ukXZgLE09a4D+Bu+vZpgkzo=": [
+   "play.html"
+  ],
+  "sha256-CylCARtZF+nx3fxMNSsf5awGDiB2a7vAnk93zvoXUv0=": [
+   "play.html"
+  ],
+  "sha256-w/huLeprskylWexnnueEnlm9P5fLyT6NMWCU9GZgOHo=": [
+   "play.html"
+  ],
+  "sha256-59nAjUm33SOlpd8w6qaz1gJi0xFwt8xVEfQzfJGyKHU=": [
+   "play.html"
+  ],
+  "sha256-0ZFMx3RG6TDzRoz1Vi4fsfutKx7dXVBiIBXQ9yro4fk=": [
+   "play.html"
+  ],
+  "sha256-xl0BQINUwAG9jbJzycrgnY4gzx6KKRng6ujND8tVwXI=": [
+   "play.html"
+  ],
+  "sha256-xmHM95A/7yktaZkP2bScWcb17H3SQcaJSn4ksQRLo2c=": [
+   "play.html"
+  ],
+  "sha256-QPkrf6ciaNjVqLDEk+OOqCcdGuL1Kdv1PkrYwKVozt0=": [
+   "play.html"
+  ],
+  "sha256-LF2WQcMFZjVWQxyQoefAtv7CuAMBF+mGRwmwC6f41/A=": [
+   "play.html"
+  ],
+  "sha256-QNQCii4zCqpF05W7E4VoObpR98YA9jBDvQbjjS5eb1g=": [
+   "play.html"
+  ],
+  "sha256-Eu1WvtwJC97KS/YBggSA4BMRNrNee5umuC7bmy3vwcE=": [
+   "play.html"
+  ],
+  "sha256-hIhi1AUVir1jxVjrDeuvsaBoObSrdr5dfM3j/QXCbQ4=": [
+   "play.html"
+  ],
+  "sha256-4gcs9se/JiDqhKHYiMQ5mdzTRaeqNhUAqQLvQ7w5Elk=": [
+   "play.html"
+  ],
+  "sha256-JwN+Ubs+0tTOqegDxZnPv1gYAoLIIHbFZzHjWeLbLSk=": [
+   "play.html"
+  ],
+  "sha256-lCsrOP4sUrZY22dYZ83JApbALjt6mqVs4h8pftI8lZs=": [
+   "play.html"
+  ],
+  "sha256-L6pwc9Ww76XaIZKl9fooljgcfv+wMEm9ItXfJ7+VlME=": [
+   "play.html"
+  ],
+  "sha256-46lOXS0DHNiv2dKV4fHg717bVepimfGXoozC5DGSvcA=": [
+   "play.html"
+  ],
+  "sha256-xCM0bSnRNMNf3yDI269aXmtlSS/g/M+82Zm7AJgVxII=": [
+   "play.html"
+  ],
+  "sha256-jFXm5tbcDgCOReO9HWz9zfE8rqjI018dLxk680jiZIA=": [
+   "play.html"
+  ],
+  "sha256-mQ+bPyuebbYptIzokHQ0AAqDIq4aYp5wEjJA9EzCWxo=": [
+   "play.html"
+  ],
+  "sha256-P61hvqchN1vDwAOfkms6AWh3WUo3xeELKiSGjOwPOYo=": [
+   "play.html"
+  ],
+  "sha256-4Oo1jKKal9jhqwGp4J78xRjFJuzF/td5Cc3IDOQawUY=": [
+   "play.html"
+  ],
+  "sha256-kdf0y58XG4rLAIJDFJwfodbdYnV5NyxKP0HEMdgNW/U=": [
+   "play.html"
+  ],
+  "sha256-NdOsNYjAUO1IbMDWIoOCjA0I7PvOj5c9KOCHAXjE14Y=": [
+   "play.html"
+  ],
+  "sha256-mM4E0lSMKWM+MdtETMlkU3QrPmRnBs0f/nIbxkP6SNo=": [
+   "play.html"
+  ],
+  "sha256-fvE4kXAyBatRS1dnZ5ShcWH+8DWCanwI5WlPnlBPbbk=": [
+   "play.html"
+  ],
+  "sha256-1fnc0y1M61Jxp9E75SGi41E7zzRq1wP23+hJ8x2jXU8=": [
+   "play.html"
+  ],
+  "sha256-Q47/14escu68RgIgKqS7AxGn9Sflcuw9EGrGj3k8Ack=": [
+   "play.html"
+  ],
+  "sha256-K1YGvq9CkV2jR4XG7OBzlxPPeD2ycY6IsJVYFrv9cmQ=": [
+   "play.html"
+  ],
+  "sha256-sbeRrIXEvCCmnD+HfCL/swxtbW8tXnyhuiOt3zGcwgE=": [
+   "play.html"
+  ],
+  "sha256-ZNn4NuIJAgZ065FKT851jOU37KLkHWctRRZE9klBb2U=": [
+   "play.html"
+  ],
+  "sha256-/wpuDIN5KdK0U2W9F/WHUTyRQqBGyCN7qqe5Wm8ONgY=": [
+   "play.html"
+  ],
+  "sha256-8Y3+/1qY5O5t7snBQXqj8J6wcGc6rOfQXTHf7trqVyE=": [
+   "play.html"
+  ],
+  "sha256-MlEUqY7NlVNvjnzp7Q8X3cqQK/YKaF2Hm09/hD85wHo=": [
+   "play.html"
+  ],
+  "sha256-5ktnV2n/ci+lhnWRRvj/v6EdzrhItAkmNPcAidf6Nv8=": [
+   "play.html"
+  ],
+  "sha256-0e7GOLq47JhrYh+p33kmfYMJETrt2wUk8j3ZAzF3p/c=": [
+   "fire-world/game-02-blaze-runner.html"
+  ],
+  "sha256-5WtvEuFIMUOz4yaYEbuKIUXMaff9N87KZOuko/H4wVk=": [
+   "fire-world/game-02-blaze-runner.html"
+  ],
+  "sha256-Dwzr7rkBvjIOidGEGJHYQmiDtImI4ZHn/C8qN8rYdJk=": [
+   "fire-world/slingshot-cascade/index.html"
+  ],
+  "sha256-PWPTHeJpaE/+KJ3QAbS+Q1u1VmIFgibWUs9F/1GKD9o=": [
+   "fire-world/slingshot-cascade/index.html"
+  ],
+  "sha256-0JK2yfkN+Jb1PWoPTulvSQ8bu9X2k1Vqdby9YFv5bkU=": [
+   "fire-world/slingshot-cascade/index.html",
+   "fire-world/rukos-panic-dash/index.html",
+   "fire-world/tristans-dark-knight-rescue/index.html",
+   "fire-world/trinitys-holy-lightning-rescue/index.html",
+   "fire-world/games/game-04-cinders-ice-rink-chaos.html",
+   "fire-world/games/game-05-lord-infernos-ballista-siege.html",
+   "fire-world/games/game-06-blazes-magma-bounce.html",
+   "fire-world/games/game-07-rukos-turbo-drift.html",
+   "fire-world/games/game-08-sizzles-spark-jump.html",
+   "fire-world/games/game-09-ember-cascade.html",
+   "fire-world/games/game-10-caldera-climb.html",
+   "fire-world/games/game-11-magma-trench-dodge.html",
+   "fire-world/games/game-12-volcanic-pinball.html",
+   "fire-world/games/game-13-pyra-prime-defense.html",
+   "fire-world/games/game-14-sparky-speedway.html",
+   "fire-world/games/game-15-cinders-melt-down.html",
+   "fire-world/games/game-16-inferno-drop.html",
+   "fire-world/games/game-17-flame-sprint-2d.html",
+   "fire-world/games/game-18-blazes-thermal-run.html",
+   "fire-world/games/game-19-rukos-lava-leap.html",
+   "fire-world/games/game-20-boulders-fortress.html",
+   "fire-world/games/game-21-sizzles-target-pop.html",
+   "fire-world/games/game-22-magma-block-breaker.html",
+   "fire-world/games/game-23-crater-catcher.html",
+   "fire-world/games/game-24-ash-storm-survivor.html",
+   "fire-world/games/game-25-lava-line-draw.html",
+   "fire-world/games/game-26-pyra-paddle-battle.html",
+   "fire-world/games/game-27-ember-bounce-2d.html",
+   "fire-world/games/game-28-thermal-tug-of-war.html",
+   "fire-world/games/game-29-blazes-jump-quest.html",
+   "fire-world/games/game-30-rukos-dash-blitz.html",
+   "fire-world/games/game-31-boulders-rampart.html",
+   "fire-world/games/game-32-cinders-glide.html",
+   "fire-world/games/game-33-inferno-aim.html",
+   "fire-world/games/game-34-spark-jump-arcade.html",
+   "fire-world/games/game-35-lava-moat-defense.html",
+   "fire-world/games/game-36-magma-drop-physics.html",
+   "fire-world/games/game-37-volcanic-stack-smash.html",
+   "fire-world/games/game-38-fire-baby-rally.html",
+   "fire-world/games/game-39-caldera-bounce.html",
+   "fire-world/games/game-40-sizzles-spark-run.html",
+   "fire-world/games/game-41-blazes-inferno-roll.html",
+   "fire-world/games/game-42-rukos-speed-trap.html",
+   "fire-world/games/game-43-boulders-blockade.html",
+   "fire-world/games/game-44-cinders-slide.html",
+   "fire-world/games/game-45-lord-infernos-strike.html",
+   "fire-world/games/game-46-magma-jump-2d.html",
+   "fire-world/games/game-47-pyra-prime-dash.html",
+   "fire-world/games/game-48-ash-heap-hero.html",
+   "fire-world/games/game-49-thermal-track.html",
+   "fire-world/games/game-50-ember-bounce-master.html",
+   "fire-world/games/game-51-volcanic-target.html",
+   "fire-world/games/game-52-lava-rush-arcade.html",
+   "fire-world/games/game-53-flame-drop-physics.html",
+   "fire-world/games/game-54-blazes-zenith.html",
+   "fire-world/games/game-55-rukos-final-dash.html"
+  ],
+  "sha256-kqqXspWfIGXwsKfRSZPHqTi0XvtU0pGvO55rqJCjH/c=": [
+   "fire-world/slingshot-cascade/index.html"
+  ],
+  "sha256-UJxh+JjMATCcHB3NpeiOH8lqCDX6Qrg/bwiuwFdGVQE=": [
+   "fire-world/rukos-panic-dash/index.html"
+  ],
+  "sha256-M2myzU0KmfT1w/YotDMIXjuVYA6NvLmAg1uewI54Jn0=": [
+   "fire-world/rukos-panic-dash/index.html"
+  ],
+  "sha256-VXoQl21W3mM2TnjMT9dWoRuCZ2rFZkRGLBKWe1Yd7o0=": [
+   "fire-world/rukos-panic-dash/index.html",
+   "fire-world/games/game-07-rukos-turbo-drift.html",
+   "fire-world/games/game-08-sizzles-spark-jump.html",
+   "fire-world/games/game-10-caldera-climb.html",
+   "fire-world/games/game-11-magma-trench-dodge.html",
+   "fire-world/games/game-12-volcanic-pinball.html",
+   "fire-world/games/game-13-pyra-prime-defense.html",
+   "fire-world/games/game-17-flame-sprint-2d.html",
+   "fire-world/games/game-18-blazes-thermal-run.html",
+   "fire-world/games/game-19-rukos-lava-leap.html",
+   "fire-world/games/game-20-boulders-fortress.html",
+   "fire-world/games/game-23-crater-catcher.html",
+   "fire-world/games/game-24-ash-storm-survivor.html",
+   "fire-world/games/game-26-pyra-paddle-battle.html",
+   "fire-world/games/game-28-thermal-tug-of-war.html",
+   "fire-world/games/game-30-rukos-dash-blitz.html",
+   "fire-world/games/game-32-cinders-glide.html",
+   "fire-world/games/game-35-lava-moat-defense.html",
+   "fire-world/games/game-38-fire-baby-rally.html",
+   "fire-world/games/game-39-caldera-bounce.html",
+   "fire-world/games/game-41-blazes-inferno-roll.html",
+   "fire-world/games/game-42-rukos-speed-trap.html",
+   "fire-world/games/game-46-magma-jump-2d.html",
+   "fire-world/games/game-47-pyra-prime-dash.html",
+   "fire-world/games/game-50-ember-bounce-master.html",
+   "fire-world/games/game-52-lava-rush-arcade.html",
+   "fire-world/games/game-54-blazes-zenith.html",
+   "fire-world/games/game-55-rukos-final-dash.html"
+  ],
+  "sha256-HWHR9aeJsUMClItONTxuSGUX+YbUVcDxQexfJMXaUbU=": [
+   "fire-world/tristans-dark-knight-rescue/index.html"
+  ],
+  "sha256-CTpt5r1D/dOm/h47r1ia/ep/UcF9mD04pV72phB+MbY=": [
+   "fire-world/tristans-dark-knight-rescue/index.html",
+   "fire-world/trinitys-holy-lightning-rescue/index.html"
+  ],
+  "sha256-SKuhC2M2poe/fRc8olyhvmNAuwjsQYB11AH3iyZSpAE=": [
+   "fire-world/tristans-dark-knight-rescue/index.html"
+  ],
+  "sha256-/GpXE4T60Z8KSoay84O2AvunR0AloPaqHBWXbsGSJ/k=": [
+   "fire-world/trinitys-holy-lightning-rescue/index.html"
+  ],
+  "sha256-sRYndG/dHLqTJf3s3EIeo62zaIiB0vWL2U/5WuPWaw0=": [
+   "fire-world/trinitys-holy-lightning-rescue/index.html"
+  ],
+  "sha256-Evz/DZYfB3mO8VrKfcDSLzOSPpFFm3uR5ffwDMWtphA=": [
+   "fire-world/games/game-04-cinders-ice-rink-chaos.html"
+  ],
+  "sha256-r8XhhsqsLl8kcOnfGVdCFH6MoIGmBHpOInWr8FTirao=": [
+   "fire-world/games/game-05-lord-infernos-ballista-siege.html"
+  ],
+  "sha256-APqCbGfTsUGUTcjM923XhHIEXbLrYDHxor2ZQhSCs40=": [
+   "fire-world/games/game-06-blazes-magma-bounce.html"
+  ],
+  "sha256-F5xznMXaW1gzY5BJGBz1PjYjg59wVwTq2V6MMx+VetU=": [
+   "fire-world/games/game-06-blazes-magma-bounce.html"
+  ],
+  "sha256-ybbL9XtK7vH6Yr0w0EMvDU0hWrRG07Mm4licB4WBMqc=": [
+   "fire-world/games/game-07-rukos-turbo-drift.html"
+  ],
+  "sha256-ENFBu0RqvljZCcOs86T0pNBjzz8AQn0b1TFEAePeBKo=": [
+   "fire-world/games/game-08-sizzles-spark-jump.html"
+  ],
+  "sha256-dlZqzcFFpDedGVygSqe+QXzb6h0boktWxAoJtgyGM0Y=": [
+   "fire-world/games/game-09-ember-cascade.html"
+  ],
+  "sha256-rd/HYkiyqZLf4F5icGsV4zD8OtNXG+xrxrlDnrDlHjQ=": [
+   "fire-world/games/game-10-caldera-climb.html"
+  ],
+  "sha256-4htIY/z643s0MuRYAptrjblus5bjwgOzeGYvGYCK4rs=": [
+   "fire-world/games/game-11-magma-trench-dodge.html"
+  ],
+  "sha256-cxf6Xh6CvvUGOTO/LNVldRDEaWrPZtukG6zUIbf8FnY=": [
+   "fire-world/games/game-12-volcanic-pinball.html"
+  ],
+  "sha256-7t1xLqKnRQAjnOAJ9lt/WJ/KF6Vpri1D5RcrcO0n7lY=": [
+   "fire-world/games/game-13-pyra-prime-defense.html"
+  ],
+  "sha256-8LLlHzJvfJ7beO8SJqJcrDLv6A/2No4oOTaR0KSVLCw=": [
+   "fire-world/games/game-14-sparky-speedway.html"
+  ],
+  "sha256-Rr/eSqeBfQ6YpLbDIOV1+JwP9tZQ6FbnubHB9+mA3DU=": [
+   "fire-world/games/game-15-cinders-melt-down.html"
+  ],
+  "sha256-w261M9DDy7YRtjh4uUJVGdQJHerqCP2e5yV9rxTqPyA=": [
+   "fire-world/games/game-16-inferno-drop.html"
+  ],
+  "sha256-0AnfDXR8Edr2t7FL5LFdRJgjczvate02Sww8Nli8pnk=": [
+   "fire-world/games/game-17-flame-sprint-2d.html"
+  ],
+  "sha256-VunrmTLsBeDoPLP7Oi/QkN1SlQmFbboJdSUOs+Xaw4M=": [
+   "fire-world/games/game-18-blazes-thermal-run.html"
+  ],
+  "sha256-J4B39RMw87/yXA21tgDwujRXw2f4YBM/hx2ac5AMs6s=": [
+   "fire-world/games/game-19-rukos-lava-leap.html"
+  ],
+  "sha256-80zA7KcvPjJOBdUZTVlwLU6ifxDtSD8TNlXop/2MFas=": [
+   "fire-world/games/game-20-boulders-fortress.html"
+  ],
+  "sha256-zeZAGmvEhFwzSXG01eY9D/ilWrAIpQFwLcyDphgkzuo=": [
+   "fire-world/games/game-21-sizzles-target-pop.html"
+  ],
+  "sha256-X0b1oe6Je27wKUl/gPHFkjCq/+0U8gOCdkyER61CYYs=": [
+   "fire-world/games/game-22-magma-block-breaker.html"
+  ],
+  "sha256-0buzV9BPUkbphPcxMQIb58/iu7i4lYUeXmk4qN5SanA=": [
+   "fire-world/games/game-23-crater-catcher.html"
+  ],
+  "sha256-k/P3XDHq2QkmUO7JNVyKm1GEPbQ8yqtyVBLtHSqiD/I=": [
+   "fire-world/games/game-24-ash-storm-survivor.html"
+  ],
+  "sha256-QAkO3c73snMZgFzur37ECNUpg6TL/0mhiWh1hbWaiRQ=": [
+   "fire-world/games/game-25-lava-line-draw.html"
+  ],
+  "sha256-4JDxY/o/I+DwmdHeNtxcIhPjn4y7I8EP3pJtn5ZdQqM=": [
+   "fire-world/games/game-26-pyra-paddle-battle.html"
+  ],
+  "sha256-wNB1Vh2ona8rCDXU+HqXrGnQu6ZfpNL5egBv5mdkyQ0=": [
+   "fire-world/games/game-27-ember-bounce-2d.html"
+  ],
+  "sha256-Xj/mBh99uJ5q6wcPqr1M6e7+gZZ5Y4NSOKJvSwigKIM=": [
+   "fire-world/games/game-27-ember-bounce-2d.html",
+   "fire-world/games/game-34-spark-jump-arcade.html",
+   "fire-world/games/game-37-volcanic-stack-smash.html"
+  ],
+  "sha256-1ozSB8+o4pUH0LjblPJmZLg+at8nZzYCXMkVlMt/VUo=": [
+   "fire-world/games/game-28-thermal-tug-of-war.html"
+  ],
+  "sha256-2IhyXlpQVv6H5GoYuEOIGJQgbYEUlfrWgFSKtAX/294=": [
+   "fire-world/games/game-29-blazes-jump-quest.html"
+  ],
+  "sha256-tZH8XyrllhMlGmcN0yHNGFmj5pV8t5TR7qmry0ijgis=": [
+   "fire-world/games/game-29-blazes-jump-quest.html"
+  ],
+  "sha256-gXLvr2S9NBX7Hcfbr1L8KV2aGfSCuZ6V5ap8ZfTvPuU=": [
+   "fire-world/games/game-29-blazes-jump-quest.html"
+  ],
+  "sha256-AX8sFK/L9GjEXhhZZ0QK329m3QIBlGQRsLwTJ6bynGk=": [
+   "fire-world/games/game-30-rukos-dash-blitz.html"
+  ],
+  "sha256-WcBMyybiqM7wUZ5v8x0VIhYm+3NKloC35HaB/QMJ8v4=": [
+   "fire-world/games/game-31-boulders-rampart.html"
+  ],
+  "sha256-DNtaBbF4MVgnrnJ9VpmgJao2coar6kF4N92DZTzpNRs=": [
+   "fire-world/games/game-31-boulders-rampart.html"
+  ],
+  "sha256-ZKDeFtxEM0u8w9WOdgvhTFN/gNDNlShV5fSKhyxY9Rs=": [
+   "fire-world/games/game-32-cinders-glide.html"
+  ],
+  "sha256-DiUCjIn7Jv2Lbcq5lPXxIULLfzUD1FOrufnu0Cyw/9U=": [
+   "fire-world/games/game-33-inferno-aim.html"
+  ],
+  "sha256-oZs8y+3WVulCaSnbye1MO+t9Yfwwf5NaQtorzp6pmuc=": [
+   "fire-world/games/game-33-inferno-aim.html",
+   "fire-world/games/game-35-lava-moat-defense.html",
+   "fire-world/games/game-42-rukos-speed-trap.html"
+  ],
+  "sha256-2En8/3m1M5l69PmvGpyiDqlSG/lAcRLooKGUrctrG6Y=": [
+   "fire-world/games/game-34-spark-jump-arcade.html"
+  ],
+  "sha256-dxRP5caTcbP4MfEpcd/BrPPYYXPx2Co4j47wD21HZM0=": [
+   "fire-world/games/game-35-lava-moat-defense.html"
+  ],
+  "sha256-cu/TjVJTL0EwgfWFVaKT7tWsw0GuP8TAxe/xA/KJrbI=": [
+   "fire-world/games/game-36-magma-drop-physics.html"
+  ],
+  "sha256-Fwa350FVvMVdtRYCwxWpMS0FgV9MFc7fY9QUB3nZ+Ds=": [
+   "fire-world/games/game-37-volcanic-stack-smash.html"
+  ],
+  "sha256-dm9fXQAOrLKJW+Hcd5UlLvNwvRu6CsQrLAdDSTGKRws=": [
+   "fire-world/games/game-38-fire-baby-rally.html"
+  ],
+  "sha256-cEnk/d+uh2xgbHSPikExyCPxgrEBnuK+G+DJsDJuSF8=": [
+   "fire-world/games/game-39-caldera-bounce.html"
+  ],
+  "sha256-V8/lsTxjk2g97Tlx/FRXzcNAS9RFVC1rEUfyPs9mHpQ=": [
+   "fire-world/games/game-39-caldera-bounce.html"
+  ],
+  "sha256-m96ebekVpoNkKArvYUk3wZEgsbAD/dy28WzaF/hYKGc=": [
+   "fire-world/games/game-40-sizzles-spark-run.html"
+  ],
+  "sha256-nQ8HAW3/duWI2lfUOWmpAwNpbYMTR4HRBYGhv8Po6v4=": [
+   "fire-world/games/game-40-sizzles-spark-run.html"
+  ],
+  "sha256-8jveYUCA8oUENgHo1+zd5tf09Ahk5DQfppUWusR9RBg=": [
+   "fire-world/games/game-41-blazes-inferno-roll.html"
+  ],
+  "sha256-XHkBAjisdRMwWes1NunuzTEy+bQEqViossIS9hp/NLA=": [
+   "fire-world/games/game-41-blazes-inferno-roll.html"
+  ],
+  "sha256-f6FeE/j0xGnzH28yubRDlEq5IlfGtZcMNvVPDXjRYrg=": [
+   "fire-world/games/game-42-rukos-speed-trap.html"
+  ],
+  "sha256-GXSyWkq1z4q6ID90WD1rC+ZVc4Hx57f0grlOVGYNkmE=": [
+   "fire-world/games/game-43-boulders-blockade.html"
+  ],
+  "sha256-BrQnWvDNFfLZmrfro3h7CFQAEbPgfg124NYU+ZJhSH0=": [
+   "fire-world/games/game-44-cinders-slide.html"
+  ],
+  "sha256-viYWDRhtS/hAWM3wrOcQuslM2ReVZma5UtJkbEkTig8=": [
+   "fire-world/games/game-44-cinders-slide.html"
+  ],
+  "sha256-1P3eslbrm9ojijahr3W0hW6S+XZDWBNwoLnFJpqzPug=": [
+   "fire-world/games/game-45-lord-infernos-strike.html"
+  ],
+  "sha256-G6SNXgbh9jISAQY7AKGi6JjLHAp3LuzuBzAm2VUnyWQ=": [
+   "fire-world/games/game-46-magma-jump-2d.html"
+  ],
+  "sha256-S1DNYya8RSdG12FBk0U2qm42GbgbfIV/v9K3HJAct/g=": [
+   "fire-world/games/game-47-pyra-prime-dash.html"
+  ],
+  "sha256-SD4LLOFt8R1STCm8ePV8ZNXJEIhNjKCSkIikq7IsV5c=": [
+   "fire-world/games/game-48-ash-heap-hero.html"
+  ],
+  "sha256-h6iGRAWFnQAYNqhl7JEvU4OIhEFIw5uDkl21uw7Lmts=": [
+   "fire-world/games/game-49-thermal-track.html"
+  ],
+  "sha256-k/qxNYlDwQO3xqK8xS6qvIqVAzrJtSr/ZPboPepzWHM=": [
+   "fire-world/games/game-50-ember-bounce-master.html"
+  ],
+  "sha256-sD0iB3XUC0u57JY9MDk9k0ZRI3TqR492Ex4p2n5zZ7Y=": [
+   "fire-world/games/game-51-volcanic-target.html"
+  ],
+  "sha256-OTpzku0cyS0sbBnS6NU2gCZNmR6BPL0iIzV1GiM7BiU=": [
+   "fire-world/games/game-52-lava-rush-arcade.html"
+  ],
+  "sha256-dmNHCeJk5Ipuan8L0HRhnZKT10nGtTRt5E+Weu865Hs=": [
+   "fire-world/games/game-53-flame-drop-physics.html"
+  ],
+  "sha256-5ma0K+W/3y6AnV5kdvYVrg5IfEHl0hlH8t9oHCjH5Zk=": [
+   "fire-world/games/game-54-blazes-zenith.html"
+  ],
+  "sha256-89TbTx7ETZLO8H6MvoV5NgCXQxKM5un7A0TQPMoRfSo=": [
+   "fire-world/games/game-55-rukos-final-dash.html"
+  ],
+  "sha256-L3KJ6G/fW7HbwUUW9wSmmNF1Nyy8qumUgZey3AoNCfU=": [
+   "fire-world/games/game-60-fire-babys-arena.html"
+  ],
+  "sha256-HopMA6EALrLCU6hAYoSpj5vHEyHmKxmyutuX0bEX9ec=": [
+   "fire-world/games/game-60-fire-babys-arena.html"
+  ],
+  "sha256-k/1JdoPYPmYGu5D9WQm7zIcxB0g+CFAkIJ1S4sw/AtU=": [
+   "fire-world/games/game-60-fire-babys-arena.html"
+  ],
+  "sha256-SEWs/M2ALDK+8XQ61R6RBRBK+4TPtSBV3qQjh7VWv8I=": [
+   "fire-world/games/game-60-fire-babys-arena.html"
+  ],
+  "sha256-lbkZICw0qAwobmjMSBIMGySow8p/hdzAMLep11y+RsI=": [
+   "world/index.html"
+  ]
+ }
+}

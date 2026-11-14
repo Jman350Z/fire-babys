@@ -1,0 +1,38 @@
+{
+ "/fire-world/rukos-panic-dash/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/slingshot-cascade/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/trinitys-holy-lightning-rescue/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/tristans-dark-knight-rescue/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/world/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 4,
+  "strict_errors": 4
+ }
+}

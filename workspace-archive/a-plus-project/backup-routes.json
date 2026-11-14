@@ -1,0 +1,14 @@
+[
+ {
+  "id": "f105db6aa0a44c7982478b66579c009f",
+  "pattern": "firebabys.io/*",
+  "script": "fire-babys-headers",
+  "request_limit_fail_open": false
+ },
+ {
+  "id": "8ae5889063314616a7ecb6f0517a9612",
+  "pattern": "www.firebabys.io/*",
+  "script": "fire-babys-headers",
+  "request_limit_fail_open": false
+ }
+]

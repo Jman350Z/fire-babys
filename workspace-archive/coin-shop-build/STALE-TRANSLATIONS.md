@@ -1,0 +1,125 @@
+# Stale gate-string translations — zeroed 2026-10-21
+
+The i18n source string `"🔒 Parental Gate"` was renamed to `"🔒 Math Check"` (Jeff's wording scrub, 2026-10-21).
+Every language below had a translation of the old string. Per Jeff's rule (never invent translations),
+each was set to empty in dict-source.json, so those languages now fall back to the English "🔒 Math Check"
+until the string is retranslated. This file is the full stale list for the retranslation pass.
+
+- `es`: 🔒 Control parental
+- `fr`: 🔒 Contrôle parental
+- `de`: 🔒 Elternsperre
+- `it`: 🔒 Controllo genitori
+- `pt`: 🔒 Controlo parental
+- `ru`: 🔒 Родительский контроль
+- `uk`: 🔒 Батьківський контроль
+- `pl`: 🔒 Bramka rodzicielska
+- `nl`: 🔒 Ouderpoort
+- `sv`: 🔒 Föräldragrind
+- `da`: 🔒 Forældreport
+- `nb`: 🔒 Foreldreport
+- `fi`: 🔒 Vanhempien portti
+- `cs`: 🔒 Rodičovská brána
+- `sk`: 🔒 Rodičovská brána
+- `hu`: 🔒 Szülői kapu
+- `ro`: 🔒 Poartă Parentală
+- `bg`: 🔒 Родителска защита
+- `el`: 🔒 Γονική Πύλη
+- `tr`: 🔒 Ebeveyn Kapısı
+- `ar`: 🔒 بوابة الأهل
+- `fa`: 🔒 دروازه والدین
+- `ur`: 🔒 والدین کا گیٹ
+- `hi`: 🔒 माता-पिता गेट
+- `bn`: 🔒 অভিভাবক গেট
+- `pa`: 🔒 ਮਾਪਿਆਂ ਦਾ ਗੇਟ
+- `ta`: 🔒 பெற்றோர் வாயில்
+- `te`: 🔒 తల్లిదండ్రుల గేట్
+- `ml`: 🔒 രക്ഷാകർതൃ ഗേറ്റ്
+- `mr`: 🔒 पालक गेट
+- `gu`: 🔒 વાલી ગેટ
+- `kn`: 🔒 ಪೋಷಕರ ಗೇಟ್
+- `th`: 🔒 ประตูผู้ปกครอง
+- `vi`: 🔒 Cổng Phụ Huynh
+- `id`: 🔒 Gerbang Orang Tua
+- `ms`: 🔒 Gerbang Orang Tua
+- `tl`: 🔒 Gate para sa Magulang
+- `ja`: 🔒 保護者ゲート
+- `ko`: 🔒 학부모 게이트
+- `zh-Hans`: 🔒 家长门
+- `zh-Hant`: 🔒 家長門
+- `he`: 🔒 שער הורים
+- `sw`: 🔒 Kizuizi cha Wazazi
+- `am`: 🔒 የወላጅ በር
+- `ha`: 🔒 Ƙofar Iyaye
+- `yo`: 🔒 Ẹnu-ọna Obi
+- `ig`: 🔒 Ọnụ ụzọ ndị nne na nna
+- `zu`: 🔒 Isango Labazali
+- `af`: 🔒 Ouerslot
+- `ca`: 🔒 Control parental
+- `eu`: 🔒 Gurasoen atea
+- `gl`: 🔒 Control parental
+- `hr`: 🔒 Roditeljska brava
+- `sr`: 🔒 Roditeljska brava
+- `sl`: 🔒 Starševska vrata
+- `lt`: 🔒 Tėvų vartai
+- `lv`: 🔒 Vecāku vārti
+- `et`: 🔒 Vanemavärav
+- `is`: 🔒 Foreldrahlið
+- `ga`: 🔒 Geata Tuismitheora
+- `cy`: 🔒 Giât Rhieni
+- `sq`: 🔒 Porta e Prindërve
+- `mk`: 🔒 Родителска брава
+- `bs`: 🔒 Roditeljska brava
+- `az`: 🔒 Valideyn Qapısı
+- `ka`: 🔒 მშობლების კარიბჭე
+- `hy`: 🔒 Ծնողական դարպաս
+- `kk`: 🔒 Ата-ана қақпасы
+- `uz`: 🔒 Ota-ona darvozasi
+- `ky`: 🔒 Ата-эне дарбазасы
+- `tg`: 🔒 Дарвозаи Волидайн
+- `mn`: 🔒 Эцэг эхийн хаалга
+- `ne`: 🔒 अभिभावक गेट
+- `si`: 🔒 දෙමාපිය දොරටුව
+- `km`: 🔒 ទ្វារឪពុកម្តាយ
+- `lo`: 🔒 ປະຕູສຳລັບພໍ່ແມ່
+- `my`: 🔒 မိဘတံခါး
+- `ps`: 🔒 د مور او پلار دروازه
+- `sd`: 🔒 والدين جو دروازو
+- `or`: 🔒 ପିତାମାତା ଦ୍ୱାର
+- `as`: 🔒 পিতৃ-মাতৃৰ দুৱাৰ
+- `mai`: 🔒 माता-पिताक गेट
+- `kok`: 🔒 आवयबापायचो गेट
+- `sa`: 🔒 पित्रोः द्वारम्
+- `tt`: 🔒 Ата-ана капкасы
+- `ba`: 🔒 Ата-әсә ҡапҡаһы
+- `be`: 🔒 Бацькоўская брама
+- `lb`: 🔒 Eltereschloss
+- `mt`: 🔒 Bieb tal-Ġenituri
+- `fo`: 🔒 Foreldralás
+- `br`: 🔒 Nor ar Gerent
+- `oc`: 🔒 Pòrta dels Parents
+- `co`: 🔒 Porta di i Genitori
+- `fy`: 🔒 Alderslot
+- `gd`: 🔒 Geata nam Pàrant
+- `kw`: 🔒 Yet Kerens
+- `haw`: 🔒 Puka Mākua
+- `mi`: 🔒 Kēti Mātua
+- `sm`: 🔒 Faitotoa o Matua
+- `to`: 🔒 Matapā 'a e Mātu'a
+- `ay`: 🔒 Jiliri Punkü
+- `qu`: 🔒 Taytamama Punka
+- `gn`: 🔒 Sy ha Túva Okẽ
+- `ht`: 🔒 Pòtay Paran
+- `jv`: 🔒 Gapura Wong Tua
+- `su`: 🔒 Gerbang Kolot
+- `mg`: 🔒 Vavahadin'ny Ray aman-dreny
+- `ny`: 🔒 Chipata cha Makolo
+- `st`: 🔒 Heike ya Batswadi
+- `sn`: 🔒 Gedhi reVabereki
+- `rw`: 🔒 Irembo ry'Ababyeyi
+- `so`: 🔒 Albaabka Waalidka
+- `ti`: 🔒 ደንበ ወለዲ
+- `tk`: 🔒 Ene-ata derwezesi
+- `ug`: 🔒 ئاتا-ئانا دەرۋازىسى
+- `yi`: 🔒 עלטערן-טויער
+
+Total: 116 languages.

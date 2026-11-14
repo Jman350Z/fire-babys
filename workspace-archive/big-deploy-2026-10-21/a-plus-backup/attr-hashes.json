@@ -1,0 +1,637 @@
+{
+ "3d.html": {
+  "style_attr_hashes": [
+   "sha256-+tAOKdcYqH4lZNsHF1GD7xI8ntB31urpBaqNDqAiSTw=",
+   "sha256-35KBScVH0mcisYaS+jYHDa1tlFGmOrghafQWiYvD7Us=",
+   "sha256-3P50agM6wr/hDvob6B8x+tAyy+2thPiSKy53TXIalgU=",
+   "sha256-Ac9tpx9VamqGcJXlgONVlikR6TewRyknm4AkJkET9jg=",
+   "sha256-Duf2atnAuKYQJLP8weHjB4u7h1/rXqGctpxZ7QK2sds=",
+   "sha256-Dx2D5OTMvUVHF/Ptxr/QD8sYeC+28UcDGO0/qs9CI3A=",
+   "sha256-EpjvfDj90ZvUvJt3+8SF++GwuDHL1dm6WC+HphuT1hQ=",
+   "sha256-F32oZGvPvun3ixsGz3r65yKQ2bo0VsJYNZnksV64dgc=",
+   "sha256-FuIjOXhbGqSJI+dx8zw6sBHNDAaA3wH/tm+HKMFEjLM=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-JQPqAVcHk/RsTUxeVgkHZwD+3IfEyYYwmDNl42m467A=",
+   "sha256-O0O6VNjsTlU1QNoHtVH92kGl+wssfQcu9uJHm/341nw=",
+   "sha256-R2UCj3F5a0U2iRwGU9X4IUYyKkf16LGo9nwmgVO/STw=",
+   "sha256-R9TcpMSnXb23In0ni+tsstqbflhlTwb51+bYlKR12Og=",
+   "sha256-RVXSD7c7laFLr9HPQ4I77YGmRMUkiW/4mVHDdzhUf78=",
+   "sha256-VKABBXMBXL3qmAqxupHyk4NNoXm3PuIhRpQYIfXj49A=",
+   "sha256-WdJOJ6VXddVpSrvgruvJDhNcCMzGUkJzJNg8+UbtkMQ=",
+   "sha256-ZJSS2GccL2pDsPuFJuvQzitQEllpHBjZdih28Y+oM/Q=",
+   "sha256-Zd/8dSquevBA5/gisY2UF0d732phjTVxmQIVmw98cAE=",
+   "sha256-aqNNdDLnnrDOnTNdkJpYlAxKVJtLt9CtFLklmInuUAE=",
+   "sha256-gPbMhIcyOpzoNT0xowWTWoax35EzVM5k74Fmj7fwNnY=",
+   "sha256-jrssf7q8oCuJ0JSKUuVaNtV2TEpGBm5SCoMR3tRxAIo=",
+   "sha256-mRbwq8AsEYIaB6FhDHqGN5155pic8Z62nMxqrXGq+90=",
+   "sha256-mXs7BFZUSXTY74JeJ7N8IGOcDighK6Gnag+SGjskKVw=",
+   "sha256-pTvEgwaYKsFf04u67iRT4MhZY6+piEsC3ZrEHZwFgek=",
+   "sha256-rvFwXpsXfBwbOkplgk5k8Ha8KviMWOaLh64fbNhgpwc=",
+   "sha256-xT6h2iOFCmc+b0YYoNajguP1/DpiqxRRQMAc8B17igQ=",
+   "sha256-ytMzOv804JQ65sXl6Nf4Y448VqcXs1HFqKKg5PKvEtM="
+  ],
+  "handler_hashes": []
+ },
+ "play.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": []
+ },
+ "blog.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": []
+ },
+ "arcade.html": {
+  "style_attr_hashes": [
+   "sha256-8HTLAthlg/7MDg/NRuch5k5GkgHmvJwkkoS5A6nwAHQ=",
+   "sha256-Duf2atnAuKYQJLP8weHjB4u7h1/rXqGctpxZ7QK2sds=",
+   "sha256-GP0LQc8/j3kZsnZlvWocGkDJQ3k1EPHj3RI/mDHGp0g=",
+   "sha256-uyEUvo9VgAIWEIx1cGi0yol8fcrwxcQZyLFsA+J+KMw=",
+   "sha256-v0ohjgWrXH1tnjESsaiLDdpi8kFgF5469B18EPd13KU="
+  ],
+  "handler_hashes": []
+ },
+ "history.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": []
+ },
+ "play-all.html": {
+  "style_attr_hashes": [
+   "sha256-l07agikUM9fhcSsyLpyj8oC9LIU/nqt8MFAFPgYTouM="
+  ],
+  "handler_hashes": [
+   "sha256-/hlhymA+aJ9ujeWss3dZ1LXDCOsA2GdPcDXLzTOwXS8=",
+   "sha256-Vul5U4IvsYBQ9gazCgUHY0cpZG0aU80o77T+uxa0d0o=",
+   "sha256-XKsMWUT10EpYCKmaVrOGJRma/4Wqih/CgVnUJDxmNww="
+  ]
+ },
+ "characters.html": {
+  "style_attr_hashes": [
+   "sha256-35KBScVH0mcisYaS+jYHDa1tlFGmOrghafQWiYvD7Us=",
+   "sha256-C5vSwR5/kEAaIU43Gu5tkwsmCazzcYAgA5ibkiT97K0=",
+   "sha256-pL0DniPi21WbNrtJ7XSJKPc8z6YrALii41sGusXjYc4=",
+   "sha256-sjxDYWoAZg/B77LJMyDG5NFUuVF0m6jDW4mv8VX8mZo="
+  ],
+  "handler_hashes": []
+ },
+ "parents.html": {
+  "style_attr_hashes": [
+   "sha256-0B+aoLiRUpZHm7m92erkgB3mBTYP7Z80JGHii/FGEzc=",
+   "sha256-35KBScVH0mcisYaS+jYHDa1tlFGmOrghafQWiYvD7Us=",
+   "sha256-37cdh1Ifrrm21STXzdPOJzc7QtH3ia57DwBcZWHpWuQ=",
+   "sha256-5PsQ6YJrINTgz4qdrT7y6zu9c8WZ7v443lZwLhCTHIY=",
+   "sha256-ksGPa9rBx3qdJd85P0QDyQNATrJagvS5YtLUpHxWuto=",
+   "sha256-lcDUDIBjnezXAiCAxexK5RjITj3LV+n0gKSwnXtC8Ko="
+  ],
+  "handler_hashes": []
+ },
+ "404.html": {
+  "style_attr_hashes": [
+   "sha256-8nijXSl159gJAXbdv++gPM+1QVc4aE3/Kw9KdAhNN1g="
+  ],
+  "handler_hashes": []
+ },
+ "index.html": {
+  "style_attr_hashes": [
+   "sha256-35KBScVH0mcisYaS+jYHDa1tlFGmOrghafQWiYvD7Us=",
+   "sha256-37cdh1Ifrrm21STXzdPOJzc7QtH3ia57DwBcZWHpWuQ=",
+   "sha256-G+uT60Tg12tcVDwRQCUD29nyyEO0UhFDLjbxeGT8Jcc=",
+   "sha256-LR10W21xNLa0r0qZfwKRo3uZYfE6uvoEco8bk3rnuxk="
+  ],
+  "handler_hashes": []
+ },
+ "fire-world.html": {
+  "style_attr_hashes": [
+   "sha256-JMxP3t+TJg1xPIcghHUHh68ibGntMfw7lEM0Rptr0UQ="
+  ],
+  "handler_hashes": []
+ },
+ "fire-world/game-02-blaze-runner.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4="
+  ]
+ },
+ "fire-world/slingshot-cascade/index.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/rukos-panic-dash/index.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-wO+uqURNyH87jTH+GNVZwYGFWr38XgmEVq13wcL4zas="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/tristans-dark-knight-rescue/index.html": {
+  "style_attr_hashes": [
+   "sha256-5HVGrJLbB0Hq9GRc+8RfpK4+UATtatRu9ML0puqr63A=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-M+4pgSeYlp0wXL1F8uNB9++VZ6LeW1qaNjnAUfeZMEg=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns=",
+   "sha256-oKLiGXR87i5eNX2N+EJdJXwQFeEUbsmcKlNCtWTzwHY="
+  ]
+ },
+ "fire-world/trinitys-holy-lightning-rescue/index.html": {
+  "style_attr_hashes": [
+   "sha256-5HVGrJLbB0Hq9GRc+8RfpK4+UATtatRu9ML0puqr63A=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-M+4pgSeYlp0wXL1F8uNB9++VZ6LeW1qaNjnAUfeZMEg=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-04-cinders-ice-rink-chaos.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-05-lord-infernos-ballista-siege.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-06-blazes-magma-bounce.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-07-rukos-turbo-drift.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-08-sizzles-spark-jump.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-09-ember-cascade.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-10-caldera-climb.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-11-magma-trench-dodge.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-12-volcanic-pinball.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-fmYJ5fZDbab0lqb+I9dYG6tZxLu3scLBaQlAngVm7oU=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE=",
+   "sha256-vSmcitZ0mWqLDt/JA8+UNgGFApFnV0Yv7OL+P7R6Oz0="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-13-pyra-prime-defense.html": {
+  "style_attr_hashes": [
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE=",
+   "sha256-vSmcitZ0mWqLDt/JA8+UNgGFApFnV0Yv7OL+P7R6Oz0="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-14-sparky-speedway.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-15-cinders-melt-down.html": {
+  "style_attr_hashes": [
+   "sha256-MBZH9QZeml0E0yon5qCXUR0ySivGGUxaqL8ogCbXaKA="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-16-inferno-drop.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-17-flame-sprint-2d.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-18-blazes-thermal-run.html": {
+  "style_attr_hashes": [
+   "sha256-5HVGrJLbB0Hq9GRc+8RfpK4+UATtatRu9ML0puqr63A=",
+   "sha256-S/ASQ9EKkL+TLD6uJM9VQS68N4Vm2YIS3aFQ6NK6cGo=",
+   "sha256-mogWxlS8sth4AcCSitLnRhcWo4tUKwT74BF5++SNQbs="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-19-rukos-lava-leap.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-20-boulders-fortress.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-21-sizzles-target-pop.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-22-magma-block-breaker.html": {
+  "style_attr_hashes": [
+   "sha256-OnmslOBKEosakEBk8qqQQr6Io1zXD2kfzJ02Kqs5bGg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-23-crater-catcher.html": {
+  "style_attr_hashes": [
+   "sha256-mogWxlS8sth4AcCSitLnRhcWo4tUKwT74BF5++SNQbs=",
+   "sha256-p6nbaYTOOSeFtOZFqVb2uUNXicHWjq+XeD/+A85n+DE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-24-ash-storm-survivor.html": {
+  "style_attr_hashes": [
+   "sha256-5HVGrJLbB0Hq9GRc+8RfpK4+UATtatRu9ML0puqr63A="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-25-lava-line-draw.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-26-pyra-paddle-battle.html": {
+  "style_attr_hashes": [
+   "sha256-JfZlrIvvRd4y0zXEOFPbPZ2Rtp+P5Rsm/o6zjcKoKTY=",
+   "sha256-OnmslOBKEosakEBk8qqQQr6Io1zXD2kfzJ02Kqs5bGg=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE=",
+   "sha256-zcnOnGPjlwmmQCCyC8i85XgLtmNxx7PvVxxWHkkhB7w="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-27-ember-bounce-2d.html": {
+  "style_attr_hashes": [
+   "sha256-p6nbaYTOOSeFtOZFqVb2uUNXicHWjq+XeD/+A85n+DE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-28-thermal-tug-of-war.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-29-blazes-jump-quest.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-30-rukos-dash-blitz.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-fmYJ5fZDbab0lqb+I9dYG6tZxLu3scLBaQlAngVm7oU=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-31-boulders-rampart.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-32-cinders-glide.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-33-inferno-aim.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-34-spark-jump-arcade.html": {
+  "style_attr_hashes": [
+   "sha256-7Tmg1prlaVD0ig4IM0NeKiMN7REn5CifdXWaa1uVMfg=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-35-lava-moat-defense.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-36-magma-drop-physics.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-37-volcanic-stack-smash.html": {
+  "style_attr_hashes": [
+   "sha256-7Tmg1prlaVD0ig4IM0NeKiMN7REn5CifdXWaa1uVMfg=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-38-fire-baby-rally.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-39-caldera-bounce.html": {
+  "style_attr_hashes": [
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE=",
+   "sha256-vSmcitZ0mWqLDt/JA8+UNgGFApFnV0Yv7OL+P7R6Oz0="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-41-blazes-inferno-roll.html": {
+  "style_attr_hashes": [
+   "sha256-5HVGrJLbB0Hq9GRc+8RfpK4+UATtatRu9ML0puqr63A="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-42-rukos-speed-trap.html": {
+  "style_attr_hashes": [
+   "sha256-7Tmg1prlaVD0ig4IM0NeKiMN7REn5CifdXWaa1uVMfg=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-43-boulders-blockade.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-44-cinders-slide.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-46-magma-jump-2d.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-48-ash-heap-hero.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-50-ember-bounce-master.html": {
+  "style_attr_hashes": [
+   "sha256-icCh88H3RZtUZmHjD9icruaLgojJ59XzWymd92ZItlg=",
+   "sha256-vSmcitZ0mWqLDt/JA8+UNgGFApFnV0Yv7OL+P7R6Oz0="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-51-volcanic-target.html": {
+  "style_attr_hashes": [
+   "sha256-a/qE+zZYzw2MOzCMRGD+D1LEgKy8W5vdCrwWIjpki/w=",
+   "sha256-fjH8/b7XA+w5lF9UgM0FhY3see/HNqhFM5fg5PQVFOY=",
+   "sha256-kgLZOljp4pHbMAdYVcQ825aJVjbYiOqrWsRINOpjKVU="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-53-flame-drop-physics.html": {
+  "style_attr_hashes": [
+   "sha256-CrnucoDSmNxfr1AIXdMkkR3UH6EiKytIU6+M5RtO/sM=",
+   "sha256-a/qE+zZYzw2MOzCMRGD+D1LEgKy8W5vdCrwWIjpki/w=",
+   "sha256-fjH8/b7XA+w5lF9UgM0FhY3see/HNqhFM5fg5PQVFOY=",
+   "sha256-kgLZOljp4pHbMAdYVcQ825aJVjbYiOqrWsRINOpjKVU="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-54-blazes-zenith.html": {
+  "style_attr_hashes": [
+   "sha256-a/qE+zZYzw2MOzCMRGD+D1LEgKy8W5vdCrwWIjpki/w=",
+   "sha256-fjH8/b7XA+w5lF9UgM0FhY3see/HNqhFM5fg5PQVFOY=",
+   "sha256-kgLZOljp4pHbMAdYVcQ825aJVjbYiOqrWsRINOpjKVU="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-55-rukos-final-dash.html": {
+  "style_attr_hashes": [
+   "sha256-/W0piFW1DSX935oic6dlrgqnXXqUTS8Cn+NBMRqyl8I=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-a/qE+zZYzw2MOzCMRGD+D1LEgKy8W5vdCrwWIjpki/w=",
+   "sha256-fjH8/b7XA+w5lF9UgM0FhY3see/HNqhFM5fg5PQVFOY=",
+   "sha256-kgLZOljp4pHbMAdYVcQ825aJVjbYiOqrWsRINOpjKVU="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-40-sizzles-spark-run.html": {
+  "style_attr_hashes": [
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-45-lord-infernos-strike.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-47-pyra-prime-dash.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-49-thermal-track.html": {
+  "style_attr_hashes": [],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "fire-world/games/game-52-lava-rush-arcade.html": {
+  "style_attr_hashes": [
+   "sha256-/W0piFW1DSX935oic6dlrgqnXXqUTS8Cn+NBMRqyl8I=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-a/qE+zZYzw2MOzCMRGD+D1LEgKy8W5vdCrwWIjpki/w=",
+   "sha256-fjH8/b7XA+w5lF9UgM0FhY3see/HNqhFM5fg5PQVFOY=",
+   "sha256-fmYJ5fZDbab0lqb+I9dYG6tZxLu3scLBaQlAngVm7oU=",
+   "sha256-kgLZOljp4pHbMAdYVcQ825aJVjbYiOqrWsRINOpjKVU="
+  ],
+  "handler_hashes": [
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns="
+  ]
+ },
+ "world/index.html": {
+  "style_attr_hashes": [
+   "sha256-UdmIVtBDjR39Tr8X1Sh2OuiUGutosIUFdrpCkBA0Zyo=",
+   "sha256-gYIFq4BNIhJgWvJZopH/IEqmdHrmAFDiyeoI07ClSRg=",
+   "sha256-iv8KtOuk6Kcuq3mo9CRa6nlrD4xWttqPOuKsASlcdb8="
+  ],
+  "handler_hashes": []
+ }
+}

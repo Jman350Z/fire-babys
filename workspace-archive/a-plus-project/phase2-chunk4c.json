@@ -1,0 +1,142 @@
+{
+ "/3d.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 4,
+  "strict_errors": 4
+ },
+ "/404.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 0,
+  "strict_errors": 0
+ },
+ "/arcade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 5,
+  "strict_errors": 5
+ },
+ "/blog.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/characters.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 3,
+  "strict_errors": 3
+ },
+ "/fire-world.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-07-rukos-turbo-drift.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-19-rukos-lava-leap.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-30-rukos-dash-blitz.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-34-spark-jump-arcade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-42-rukos-speed-trap.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-52-lava-rush-arcade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/games/game-55-rukos-final-dash.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/rukos-panic-dash/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/slingshot-cascade/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/trinitys-holy-lightning-rescue/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/fire-world/tristans-dark-knight-rescue/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/history.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/parents.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 3,
+  "strict_errors": 3
+ },
+ "/play-all.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/play.html": {
+  "csp_violations": [
+   "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element."
+  ],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 4,
+  "strict_errors": 4
+ },
+ "/world/index.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ }
+}

@@ -1,0 +1,246 @@
+{
+ "/": {
+  "csp_msgs": [],
+  "dom_handlers": [],
+  "dom_handler_vals": [],
+  "dom_styles": [
+   "sha256-+Y8ROYTDNJvseWGEZSwfMGCmW2sa250/JBl9FJ4aabc=",
+   "sha256-SRps4zIkMEF4y8JuNSAScrOxyjc+yLK4aa7sVp8S1S4=",
+   "sha256-Xys0mb4xlIvGlwRhOYNwvPXbCeXAhfmuKfKMXIaOMqI=",
+   "sha256-fp8hjiDnfGxlHO/cTN6FuS2E0Wg3NN7u1tyUXyvcyf8="
+  ],
+  "dom_scripts": [],
+  "dom_style_attrs": [
+   "sha256-04W0YqpOwE8XX3tl6GgHu7zE1dQ6mTaEVKfqFWmMKME=",
+   "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+   "sha256-0tfm/+dSAKkOdtk+X5yxq1NPQNE8V+NEkVj6Fp3DVEQ=",
+   "sha256-2fayEE/osvgBskirtg4lSLzaL51sWisPu03HibDQL40=",
+   "sha256-35KBScVH0mcisYaS+jYHDa1tlFGmOrghafQWiYvD7Us=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-37cdh1Ifrrm21STXzdPOJzc7QtH3ia57DwBcZWHpWuQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-9ipTP7n8WqzxZsHV6KEoDafsLfB5Mr7FyKNVGiclHCI=",
+   "sha256-G+uT60Tg12tcVDwRQCUD29nyyEO0UhFDLjbxeGT8Jcc=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-LR10W21xNLa0r0qZfwKRo3uZYfE6uvoEco8bk3rnuxk=",
+   "sha256-O4fN33RQnEyFq/bJ9sQmlWvN0Rt5Z4rQLGJpnit3Ruc=",
+   "sha256-StFGQ2STbUxrZlLFL92fio1AOR8HsDbEpLKPPBg+ch8=",
+   "sha256-T8tJaFzShoSnAT5XW2gMXmvv47f17gIpoTYNO+hjWEY=",
+   "sha256-WsiW39EiCHuPqu6JR6sa1TL0gdS4k4uPFi2sIpYlDWg=",
+   "sha256-fjF8sA5PPqzSoa/hQiwGGAEiToL7qYNMEBwKajBX1vY=",
+   "sha256-j23agvy6A5GZ6g6B2as7+Sy49pwdg9Ya2zJQ7IKDtSA=",
+   "sha256-jd7T7xRQFDg5K13IBgh3fgiuHd8Z0/0Sqo4g73rMVpE=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-sh2aC1K6GopYOga7BMX77hU8DybN6tHBbscBt0Ned+o=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ]
+ },
+ "/fire-world/games/game-05-lord-infernos-ballista-siege.html": {
+  "csp_msgs": [],
+  "dom_handlers": [
+   "sha256-07s/PV660w3MDhwRiYgymZELeUWFNXBbzpml1TXpRoI=",
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns=",
+   "sha256-K11R4J4lBrKZXeTtmxwJC2AbG0f0G0B+o++GtvXpzx8=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eAecQKWs6ajgHR0RCgbDhGWtUiY8Ay1hgyMsFNgb8OA=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-oWBo18OKG67BktyODOqS4Vcw7Enuw7GG8adkDQ8Tnxw=",
+   "sha256-opzRjYNfXLiRO441jfmsYdliOTu/MhNqK5UuNbn7VRg=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "dom_handler_vals": [
+   "checkMath()",
+   "event.stopPropagation();selLevel(1)",
+   "event.stopPropagation();selLevel(10)",
+   "event.stopPropagation();selLevel(11)",
+   "event.stopPropagation();selLevel(12)",
+   "event.stopPropagation();selLevel(13)",
+   "event.stopPropagation();selLevel(14)",
+   "event.stopPropagation();selLevel(15)",
+   "event.stopPropagation();selLevel(2)",
+   "event.stopPropagation();selLevel(3)",
+   "event.stopPropagation();selLevel(4)",
+   "event.stopPropagation();selLevel(5)",
+   "event.stopPropagation();selLevel(6)",
+   "event.stopPropagation();selLevel(7)",
+   "event.stopPropagation();selLevel(8)",
+   "event.stopPropagation();selLevel(9)",
+   "location.href='/fire-world.html'"
+  ],
+  "dom_styles": [
+   "sha256-+Y8ROYTDNJvseWGEZSwfMGCmW2sa250/JBl9FJ4aabc=",
+   "sha256-SRps4zIkMEF4y8JuNSAScrOxyjc+yLK4aa7sVp8S1S4=",
+   "sha256-fp8hjiDnfGxlHO/cTN6FuS2E0Wg3NN7u1tyUXyvcyf8=",
+   "sha256-nx26dJO7hd6rPbyxHbfhLN5l7lLsvW8VS8BzLxP0XXc=",
+   "sha256-v/jozGtVvd+t8Omx3mEcUV8p7UtymFxqhPQU00KTLk4="
+  ],
+  "dom_scripts": [
+   "sha256-r8XhhsqsLl8kcOnfGVdCFH6MoIGmBHpOInWr8FTirao="
+  ],
+  "dom_style_attrs": [
+   "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+   "sha256-2fayEE/osvgBskirtg4lSLzaL51sWisPu03HibDQL40=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc=",
+   "sha256-T8tJaFzShoSnAT5XW2gMXmvv47f17gIpoTYNO+hjWEY="
+  ]
+ },
+ "/fire-world/slingshot-cascade/": {
+  "csp_msgs": [],
+  "dom_handlers": [
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-9WNtsZ2B69qv51SimK0hTK4GdjYuJG2W9GRISS62jss=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eIwnhCJFXymfcdne/NeAURJioPXj71hLsTYPm8f1XR0=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-ovVj6g1iFhW5u8970ISs+e6CgpGiTRoa2f+wQJUhlSc=",
+   "sha256-tqV1azA6h3RTpSHxK2lludOA0HnD3TPesL18woPKljk=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "dom_handler_vals": [
+   "checkMath()",
+   "event.stopPropagation();selHero('aqua')",
+   "event.stopPropagation();selHero('blaze')",
+   "event.stopPropagation();selHero('ruko')",
+   "event.stopPropagation();selHero('sparky')",
+   "event.stopPropagation();selLevel(1)",
+   "event.stopPropagation();selLevel(10)",
+   "event.stopPropagation();selLevel(2)",
+   "event.stopPropagation();selLevel(3)",
+   "event.stopPropagation();selLevel(4)",
+   "event.stopPropagation();selLevel(5)",
+   "event.stopPropagation();selLevel(6)",
+   "event.stopPropagation();selLevel(7)",
+   "event.stopPropagation();selLevel(8)",
+   "event.stopPropagation();selLevel(9)",
+   "location.href='/fire-world.html'"
+  ],
+  "dom_styles": [
+   "sha256-+Y8ROYTDNJvseWGEZSwfMGCmW2sa250/JBl9FJ4aabc=",
+   "sha256-JufRR1DCRAyEHBsbUIiPaOFijrGZPKmvrutHC+8b0yw=",
+   "sha256-SRps4zIkMEF4y8JuNSAScrOxyjc+yLK4aa7sVp8S1S4=",
+   "sha256-ULN+K59Pjt/TYqyOS7/cz5o02CzX5AfjMiRn5bCUW0k=",
+   "sha256-fp8hjiDnfGxlHO/cTN6FuS2E0Wg3NN7u1tyUXyvcyf8=",
+   "sha256-mADSYahSPoqq1DkFCwuY1Q+MZUrbGDpc9z0EBTdaSCE=",
+   "sha256-qt4++Kwl478JeRW29ZFDSNMw8gvdyByLz0EG4v9LJkw="
+  ],
+  "dom_scripts": [
+   "sha256-PWPTHeJpaE/+KJ3QAbS+Q1u1VmIFgibWUs9F/1GKD9o=",
+   "sha256-hYIeqBHbUQrT4QX36DTMXcaGOFsxvvxpJzc9ecEf4S0="
+  ],
+  "dom_style_attrs": [
+   "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+   "sha256-2fayEE/osvgBskirtg4lSLzaL51sWisPu03HibDQL40=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY=",
+   "sha256-ImRE02ZFFz/0nRW8Gh9wk8S1OfP1/3yM9f7tWf49uYQ=",
+   "sha256-T8tJaFzShoSnAT5XW2gMXmvv47f17gIpoTYNO+hjWEY=",
+   "sha256-vNAukJWB+ybBU5x8beEAcBflwPo/iBRqqpvKwZQE9iE="
+  ]
+ },
+ "/fire-world/games/game-04-cinders-ice-rink-chaos.html": {
+  "csp_msgs": [],
+  "dom_handlers": [
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8hnLGstMzQDT2wUKjtxTTb3hlYXQ6x2OE1aiPMGhHy4=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EPop0gBXaU/synQLW9aSLJNC8W07xoWxFumzYFUTEns=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "dom_handler_vals": [
+   "checkMath()",
+   "event.stopPropagation();selLevel(1)",
+   "event.stopPropagation();selLevel(10)",
+   "event.stopPropagation();selLevel(2)",
+   "event.stopPropagation();selLevel(3)",
+   "event.stopPropagation();selLevel(4)",
+   "event.stopPropagation();selLevel(5)",
+   "event.stopPropagation();selLevel(6)",
+   "event.stopPropagation();selLevel(7)",
+   "event.stopPropagation();selLevel(8)",
+   "event.stopPropagation();selLevel(9)",
+   "location.href='/fire-world.html'"
+  ],
+  "dom_styles": [
+   "sha256-+Y8ROYTDNJvseWGEZSwfMGCmW2sa250/JBl9FJ4aabc=",
+   "sha256-SRps4zIkMEF4y8JuNSAScrOxyjc+yLK4aa7sVp8S1S4=",
+   "sha256-SpKZGUmhzY38IZPE1GLfhvfSGXTUc5SBYUMavfHLlGI=",
+   "sha256-fp8hjiDnfGxlHO/cTN6FuS2E0Wg3NN7u1tyUXyvcyf8=",
+   "sha256-jZEy6Xnxf8Xg3buqcAfBryoCx8Ui2TVrQo4KguzJqmo="
+  ],
+  "dom_scripts": [
+   "sha256-/c5f+pQZI8Oy5QPjONN0j9Y739VXLVINSiO7pIXNl+o="
+  ],
+  "dom_style_attrs": [
+   "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-2fayEE/osvgBskirtg4lSLzaL51sWisPu03HibDQL40=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-T8tJaFzShoSnAT5XW2gMXmvv47f17gIpoTYNO+hjWEY="
+  ]
+ },
+ "/fire-world.html": {
+  "csp_msgs": [],
+  "dom_handlers": [],
+  "dom_handler_vals": [],
+  "dom_styles": [
+   "sha256-+Y8ROYTDNJvseWGEZSwfMGCmW2sa250/JBl9FJ4aabc=",
+   "sha256-SRps4zIkMEF4y8JuNSAScrOxyjc+yLK4aa7sVp8S1S4=",
+   "sha256-fp8hjiDnfGxlHO/cTN6FuS2E0Wg3NN7u1tyUXyvcyf8=",
+   "sha256-y73C0Jsyf1Iz/bWDXdvgCBwSSCYDK+fHYfX656/4K00="
+  ],
+  "dom_scripts": [],
+  "dom_style_attrs": [
+   "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+   "sha256-2fayEE/osvgBskirtg4lSLzaL51sWisPu03HibDQL40=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-3P098bqTEt8n8EcQtUJaBiRAB+85Zo2Gtpo1x5dIbvM=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-4cPPn7sOtIIMVHMp9mqkWV+j+HStN55FVQB7y2B+WWM=",
+   "sha256-4yKxD6vSNK5oasK3hanaRgzDGQ3B2ogBY/cYYThOvsY=",
+   "sha256-9B/A9Wqjpkw7JgrzHkho5MULUYy0/zKwozrSXVCURY4=",
+   "sha256-IpbjVOZoRnN9GhkFlc74o6AayiUGk67+gM7nXNtP6DA=",
+   "sha256-JMxP3t+TJg1xPIcghHUHh68ibGntMfw7lEM0Rptr0UQ=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-LpzbgJ/X5284zXVObTXT0vTXsPh5NjyJjYTY/TSmLj8=",
+   "sha256-QYYIX7Ad2NYrXWpVz/p/GozICEERYDsTyPEN8TQqDYY=",
+   "sha256-T8tJaFzShoSnAT5XW2gMXmvv47f17gIpoTYNO+hjWEY=",
+   "sha256-Zo9yOQdiy8B23tkiX9cF86xirhN6ZU+Y0DogtIN13/o=",
+   "sha256-Zzd0iNarpWCRiqMSBj2/jg5AbBOy8NAm/crIccnT7RE=",
+   "sha256-Zzq0uS9UUheKabpufC4fhKiodKMZHxb/gzBrSwdVQfE=",
+   "sha256-fN375KSZhs3YS+4q6nYhzzgrha3xkFyf0w/cyB4u2O0=",
+   "sha256-ge2WHu3koBQeh2L61TQDHAfsQp1YzPwpXqL454Og5II=",
+   "sha256-jKZfRi4s53gyENpUvcUj8pn41vDwjlTAgHcvduMV26g=",
+   "sha256-jPV4WCMvXHDM+a3Tj+iyLIbRlcxIt8aIHRVMl7uRCao=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-n40OY6WVNTXKQTuKCMqHs2BA1kI4Q3mfF+OcWSJicyk=",
+   "sha256-qKDUXw57nvKNFnsD5YRMsAbCo+681v65AZ/6Z2qtNWU=",
+   "sha256-qqBvY4x8dDclC5sT5tX3UV/CfqPObGEih4VpbEXQ0dI=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o=",
+   "sha256-zSFFTkGzsT6gIt00RNRIveqFkRln3asDOnz9knCZ11s="
+  ]
+ }
+}

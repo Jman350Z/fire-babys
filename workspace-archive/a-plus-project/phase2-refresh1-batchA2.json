@@ -1,0 +1,14 @@
+{
+ "/3d.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 5,
+  "strict_errors": 5
+ },
+ "/fire-world.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 4,
+  "strict_errors": 4
+ }
+}

@@ -1,0 +1,1381 @@
+{
+ "/3d.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-ZMHjVh265v2oOMaiCSbzhb3ZgDFLtMIuxXe/uH/IAXI="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/arcade.html": {
+  "a": [],
+  "t": [
+   "sha256-0JG0GXkwt1C/hNBVW7BPJkux4lR8NluO/k8w+6DP1bw=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-3ksw/21+nGY7kkSb5IYzrrnOIPKqcNUxOYKaLqTPx/M=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-6ohUi/ShcBwy7K0IhP39g8JBlzt8H337oN0fSRuxJ04=",
+   "sha256-8Klh1Fl2qXWTYRoC2lkvahrtkYedKQnIwifiMG0nRSc=",
+   "sha256-Df41hheeTNMoX2nAnT9tPP4HhPOx1FQJH4zN+2jxJr0=",
+   "sha256-JPzTawKM1nMtNz+biqKHhadYe+bWb15R4xTujZ2Qe6E=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-Twx8oXV21xWn7ABYoDNuTKton13Cosy+gsHhT4SSSjc=",
+   "sha256-Ufb9YwbUjvCKPc+++1ShbB8ji9uG8EGjaqmFxCO/R7g=",
+   "sha256-Yv/cZ1amrtBvbH7AtLSXG/yQIZV+mx5Cv2BpzZbgkg4=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-wAUbEy4Jvf2Sf0OqGwotHmqZaMi4MdUXOlPfemfohQU=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/blog.html": {
+  "a": [],
+  "t": [
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-3eHqz+L2FoOtaDaPZiVMT823qVzGFEICWsb5kIbvLBg=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-ETQPU6BmJw0VJI9r7X0C9BYQTI5X++AWdxXFVy6mJQ8=",
+   "sha256-INADjpg7eJOe1Q1XPC4wrTMDAo814AQ/ImXnSBRv7mM=",
+   "sha256-Iu8XMsH8LBtyccgDI3ipDVuyBDiObR/XdHR0vKfQznk=",
+   "sha256-JipzE1Drfs5xPs4yqLlE37r/LwTaaI4M4Ggk3MY/xK8=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-PAVwEux6JqY1F9VVFgwEo+4uL0lN++fo67CZlrzxA1g=",
+   "sha256-WX10Jl8+suANloyYPsDvwEgDYKVEBCvLz0jf2QpyAXU=",
+   "sha256-ZfhuL4k3YEMaVqggTMjPMCt0ZQtP7QJ1eO0dP2Uk06A=",
+   "sha256-f/lr36qv6sBS8QdbbF8jKJ2KgrA9kCfKxt9dACDhLwc=",
+   "sha256-fX6XbcIJrcGObrL5RVGCSiq1EAbVdLcYFceLPQcIiPs=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/characters.html": {
+  "a": [],
+  "t": [
+   "sha256-1mT77O30AOFCrAMIbCKDdBhWsc21jUfMBKP37xeWvwU=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-Al+PFksCJSrp3txsAgZDBkDKq9+JlnoUY3bPAaqvQOo=",
+   "sha256-JHKmjS69bJ+SJIbP+8PYUJvSRE0AGAaa7Ut1LEWNqtU=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-P7eaOSkeh978K1Joz2GPtsUkPjkiFqfJ/DhQqXQgEkE=",
+   "sha256-Pe8hQtR68yVgFqI02M9wHyc5U4aqymVCPcoEqYitesQ=",
+   "sha256-TS2jn5u+j0LiqK44NoZFaaR5TsY2iy+KJYWv/s3+PHM=",
+   "sha256-c5l85gD/d7RQfDOn198vCME2N6YwoeIqZVKjvfdvXIc=",
+   "sha256-kXPn8Yx4OzBhILiq7TspauT0W/xnxv+O7drJ0EvMPXM=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-s3u5ze2QZxhTaE/UnaDOFoqQCAost+yO2jR1Z7GYhW4=",
+   "sha256-wraauoGcDsSyWr/4eFa5jn9ezkyP0NcSpnbeRuSsGxU=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world.html": {
+  "a": [],
+  "t": [
+   "sha256-21DxEao+suTfQyhT1FTlYokyzDDzPtWyUjJj+Urb07w=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-4cPPn7sOtIIMVHMp9mqkWV+j+HStN55FVQB7y2B+WWM=",
+   "sha256-4yKxD6vSNK5oasK3hanaRgzDGQ3B2ogBY/cYYThOvsY=",
+   "sha256-D2jHQFJ2RjOk/OEykkzshCwSAvOsd5ELWjT0NkEvSxM=",
+   "sha256-Kum4Pkh2GOGphFMbff80F9Q40IRMQkKrtU8N9U1pJ/g=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-LpzbgJ/X5284zXVObTXT0vTXsPh5NjyJjYTY/TSmLj8=",
+   "sha256-OTCCcxMTFsL/b6fHrNv8AJ0oDhioA/jremEb5bo4qEw=",
+   "sha256-QYYIX7Ad2NYrXWpVz/p/GozICEERYDsTyPEN8TQqDYY=",
+   "sha256-SUEhvoeOKL+5a1LrOU2ikuPAqxA5TQLI2y2i0VzjiTU=",
+   "sha256-U7bttQbOJK2j86U300WfI9KloRpvGjOdroiLgamTC64=",
+   "sha256-U8jxNW8U6+Ub4ktuFv95TV3ra6gQORlqVq2A3Hs7HNU=",
+   "sha256-UUmiSPaYEM7uou4fCzztKEDv6iVy5NInDnKhpIvX8ZE=",
+   "sha256-Zzd0iNarpWCRiqMSBj2/jg5AbBOy8NAm/crIccnT7RE=",
+   "sha256-Zzq0uS9UUheKabpufC4fhKiodKMZHxb/gzBrSwdVQfE=",
+   "sha256-bWDGJGYvYngB6s2y9bfZP2JpUgnb5mK7asO8PHa+A6g=",
+   "sha256-fN375KSZhs3YS+4q6nYhzzgrha3xkFyf0w/cyB4u2O0=",
+   "sha256-mgQ4ENlL+AQnYXsfzNvU74ZlqcAqplgl/TMHxUnRhXY=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-qKDUXw57nvKNFnsD5YRMsAbCo+681v65AZ/6Z2qtNWU=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/game-02-blaze-runner.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-04-cinders-ice-rink-chaos.html": {
+  "a": [
+   "sha256-+JKipZPvtaECPaa1XZnFzRmbMVksNu9bHJ7zDV9SaNo=",
+   "sha256-07s/PV660w3MDhwRiYgymZELeUWFNXBbzpml1TXpRoI=",
+   "sha256-0kIUWbsQH422CI/CztJnkaADbejBfcAuLMJUANEXbwM=",
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EVGyYMswiy0SOcvbk40wR6Y0gxYI2rih3swEQxCpOuU=",
+   "sha256-GYKpCr/l4RYfbplFMI9hcHNK0KBMI25qz+IvzsS6Ag0=",
+   "sha256-K11R4J4lBrKZXeTtmxwJC2AbG0f0G0B+o++GtvXpzx8=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-QE/V2AcRNGbTSxZqdjuMICueOTVZsdv+4tHY1W7gL2Y=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-ZZO02WUPpY6kiP3SPQ/LWJlr0nxTY47Sdw8In7JLUYc=",
+   "sha256-cITFXU4nHNYEJ7kZ6Qq8ZkPwwxgkkK2VWuFfs3jM8J0=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eAecQKWs6ajgHR0RCgbDhGWtUiY8Ay1hgyMsFNgb8OA=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-oWBo18OKG67BktyODOqS4Vcw7Enuw7GG8adkDQ8Tnxw=",
+   "sha256-opzRjYNfXLiRO441jfmsYdliOTu/MhNqK5UuNbn7VRg=",
+   "sha256-qf2eMXbp67LUCy/lHDKPXJh+M54imAF6Z1WwAjetg+Q=",
+   "sha256-rpi5g0GKwwBUuf94SFNDmbs7LDSNBGz3aBHabNCJkX8=",
+   "sha256-vk9jvRV0VElAg4D64CT79bV0e9tQh6wsX6DZY2mvDvE=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-05-lord-infernos-ballista-siege.html": {
+  "a": [
+   "sha256-+JKipZPvtaECPaa1XZnFzRmbMVksNu9bHJ7zDV9SaNo=",
+   "sha256-07s/PV660w3MDhwRiYgymZELeUWFNXBbzpml1TXpRoI=",
+   "sha256-0kIUWbsQH422CI/CztJnkaADbejBfcAuLMJUANEXbwM=",
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EVGyYMswiy0SOcvbk40wR6Y0gxYI2rih3swEQxCpOuU=",
+   "sha256-GYKpCr/l4RYfbplFMI9hcHNK0KBMI25qz+IvzsS6Ag0=",
+   "sha256-K11R4J4lBrKZXeTtmxwJC2AbG0f0G0B+o++GtvXpzx8=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-QE/V2AcRNGbTSxZqdjuMICueOTVZsdv+4tHY1W7gL2Y=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-ZZO02WUPpY6kiP3SPQ/LWJlr0nxTY47Sdw8In7JLUYc=",
+   "sha256-cITFXU4nHNYEJ7kZ6Qq8ZkPwwxgkkK2VWuFfs3jM8J0=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eAecQKWs6ajgHR0RCgbDhGWtUiY8Ay1hgyMsFNgb8OA=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-oWBo18OKG67BktyODOqS4Vcw7Enuw7GG8adkDQ8Tnxw=",
+   "sha256-opzRjYNfXLiRO441jfmsYdliOTu/MhNqK5UuNbn7VRg=",
+   "sha256-qf2eMXbp67LUCy/lHDKPXJh+M54imAF6Z1WwAjetg+Q=",
+   "sha256-rpi5g0GKwwBUuf94SFNDmbs7LDSNBGz3aBHabNCJkX8=",
+   "sha256-vk9jvRV0VElAg4D64CT79bV0e9tQh6wsX6DZY2mvDvE=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-06-blazes-magma-bounce.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-07-rukos-turbo-drift.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-08-sizzles-spark-jump.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-09-ember-cascade.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-10-caldera-climb.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc=",
+   "sha256-n3bnshiv1yDec08Op0Xt61QWnEVwZ1A/hRsD4jOpqfc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-11-magma-trench-dodge.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-12-volcanic-pinball.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-13-pyra-prime-defense.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-14-sparky-speedway.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc=",
+   "sha256-n3bnshiv1yDec08Op0Xt61QWnEVwZ1A/hRsD4jOpqfc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-15-cinders-melt-down.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-16-inferno-drop.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-17-flame-sprint-2d.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-18-blazes-thermal-run.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-19-rukos-lava-leap.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-20-boulders-fortress.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-21-sizzles-target-pop.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-22-magma-block-breaker.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-23-crater-catcher.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-24-ash-storm-survivor.html": {
+  "a": [
+   "sha256-/Gf/AT1IquVGz2HidPsfz5fL3IvN2WJbMhXe886hnSg=",
+   "sha256-289+KMPfLtgMEekAMcJAtI6KVFDFtizsskwSG5B3sXw=",
+   "sha256-LAhstdDlyZhnjhZfQ1zeqYAFq+Jinapz5aeaDVt37hU=",
+   "sha256-M0AmjLb1S96qcVQuGCeo12wFSEpt+O8u/pa5wsMG0oY=",
+   "sha256-PzLzaUTI0m5gJAqjXt/N/LnSCXmI3gumeDkNpPMGuBY=",
+   "sha256-USOgl7kWIBg7fVyQRcvlwzqW7C0xxfpRunhbkyeHD/U=",
+   "sha256-Ua0HXGoOtXsp00pDZotmHkZSZXw2XrfCStra+8R46Us=",
+   "sha256-m1VDEYAqx1fKQl2vZekGqTe+TCpKVqBe5s/+yMv0wxc=",
+   "sha256-maFVs73gsx01RAASmyF1vLlTudC5P019Nhh3w4ESmW0=",
+   "sha256-n0ja3AB5XPoRS0cqs/FTzgL7xcn9BMcQtjw0u6KSlGI=",
+   "sha256-uGOacH2C7xEKbyRt0EgbJBAhxYd6TdEtIAODTH4Sh6g=",
+   "sha256-uyPAf8eqLdinm/rJDb1tesrnq80m873htezGxPDF9q4=",
+   "sha256-vyL9Tp2BQuAh4UPJGRBqDtcNC2VCXK2htOsWJ2AZS0s="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-25-lava-line-draw.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-26-pyra-paddle-battle.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-27-ember-bounce-2d.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-28-thermal-tug-of-war.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-29-blazes-jump-quest.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-30-rukos-dash-blitz.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-31-boulders-rampart.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-32-cinders-glide.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-33-inferno-aim.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-34-spark-jump-arcade.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-35-lava-moat-defense.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-36-magma-drop-physics.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-OwVVZMoD3/ed0InSg1mBMYtHIKsZHTtLx3cQeyUCUBc="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-37-volcanic-stack-smash.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-38-fire-baby-rally.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-39-caldera-bounce.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-40-sizzles-spark-run.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY=",
+   "sha256-kB31RHQwjFnMzB6QcoysUr5raETpYaZa+qapR7QcZRQ="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-41-blazes-inferno-roll.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-42-rukos-speed-trap.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-43-boulders-blockade.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-44-cinders-slide.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-45-lord-infernos-strike.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-46-magma-jump-2d.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-47-pyra-prime-dash.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-48-ash-heap-hero.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-49-thermal-track.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-50-ember-bounce-master.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-51-volcanic-target.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-52-lava-rush-arcade.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-53-flame-drop-physics.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-54-blazes-zenith.html": {
+  "a": [
+   "sha256-/V7focwX7C3UHxOf2+h4NVLvmLQgtpAcxRNQWXulBL8=",
+   "sha256-/wL6kKtlo4KjGHC9apFwMP4DVxvs3WN6Rhe25I6217k=",
+   "sha256-075nZ5nLGv5etvFUDgvYzq2gPjMuYPb/tNYa27Oqnkc=",
+   "sha256-CCDzTuRkmFcHzwzXVdMip/BzgUfAB4EbhPnyWGXig9A=",
+   "sha256-DH+c7QH2H6HiuiGVhvokBwa1+klFF68odxXnhGDG2Yo=",
+   "sha256-FvuQfXtFpCWwfW6Xvmqnr/DlrDM3nRsnAjGXzmgCKjY=",
+   "sha256-IfgtclLfMloUEp4kzOEhHRkUVUXdNwtCCqcWyW9/m5I=",
+   "sha256-JwMgiXawM6CnVRGnIRctJre2Hk6b1gk1sszSyQIdDJQ=",
+   "sha256-Q5fYVL65fEhPYEZIuLnV5L608pccZZFJqYupM2i5D+k=",
+   "sha256-RoFyWo5krb+HjEW4/TiXGJJQMGib263+AbrxKKTUVHI=",
+   "sha256-VcTIILBflVt9kGCIugmURmLS0jUDK9Wo5awRYJ/FDkA=",
+   "sha256-W/oAYgU5xrPRLaKJvpk/nd8HNa8NIATqIdwxpe5Ka+M=",
+   "sha256-Z4ifb9Wum2EU9RNRKfZeVNlH8v6tJ4T+K4BqctUnrw0=",
+   "sha256-ZB64NFPXFE6Z41KbTNQ88J1A0swqjkwbpuwIr3ZY0sE=",
+   "sha256-ctdJkbQKrODmFnnQeYeEhelkjCbnkVCRQdGz8GFqXQs=",
+   "sha256-j4L9NOpLjrYkO1J/VzsuY+nLNwRojs1Be3MfkwyyUE0=",
+   "sha256-lbmBlYPsOcUNk3yUW1Y4QSVUtJwITfnnZxHxWm13JqE=",
+   "sha256-n+oVzirN/xXfzcC+pv/icwJDxin46H2bKCmGfFpyPZU=",
+   "sha256-obUktskL1r4vchAd3laOZ48YjJl2njjexqEAGkSxE6E=",
+   "sha256-pjL4ucypIMUejp+Tpf27W5SojrrFMG/BvhT1Qu3WpSQ=",
+   "sha256-qaPupCz5tfPgVOPf9xUaYBZk8FA0IHFX8YG8dABYIEo=",
+   "sha256-tB4G0x/FHB1U9rJwxPhZFeC25PiojkhtN4YTv4nfHIg=",
+   "sha256-voR6OsBAz6aT3UEaTQOttV3J12JYBIn2Ie8g7EYaeFI=",
+   "sha256-wcItG0FX6pDJ0CKaHhSkgIJJ9N+SzgqzmAPR0e41Xg4=",
+   "sha256-ybNdEw70mnExap+GHImFiUvFlZOXGCCRHlxS9/JUZh4="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/games/game-55-rukos-final-dash.html": {
+  "a": [],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/rukos-panic-dash/index.html": {
+  "a": [
+   "sha256-+JKipZPvtaECPaa1XZnFzRmbMVksNu9bHJ7zDV9SaNo=",
+   "sha256-07s/PV660w3MDhwRiYgymZELeUWFNXBbzpml1TXpRoI=",
+   "sha256-0kIUWbsQH422CI/CztJnkaADbejBfcAuLMJUANEXbwM=",
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EVGyYMswiy0SOcvbk40wR6Y0gxYI2rih3swEQxCpOuU=",
+   "sha256-GYKpCr/l4RYfbplFMI9hcHNK0KBMI25qz+IvzsS6Ag0=",
+   "sha256-K11R4J4lBrKZXeTtmxwJC2AbG0f0G0B+o++GtvXpzx8=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-QE/V2AcRNGbTSxZqdjuMICueOTVZsdv+4tHY1W7gL2Y=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-ZZO02WUPpY6kiP3SPQ/LWJlr0nxTY47Sdw8In7JLUYc=",
+   "sha256-cITFXU4nHNYEJ7kZ6Qq8ZkPwwxgkkK2VWuFfs3jM8J0=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eAecQKWs6ajgHR0RCgbDhGWtUiY8Ay1hgyMsFNgb8OA=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-oWBo18OKG67BktyODOqS4Vcw7Enuw7GG8adkDQ8Tnxw=",
+   "sha256-opzRjYNfXLiRO441jfmsYdliOTu/MhNqK5UuNbn7VRg=",
+   "sha256-qf2eMXbp67LUCy/lHDKPXJh+M54imAF6Z1WwAjetg+Q=",
+   "sha256-rpi5g0GKwwBUuf94SFNDmbs7LDSNBGz3aBHabNCJkX8=",
+   "sha256-vk9jvRV0VElAg4D64CT79bV0e9tQh6wsX6DZY2mvDvE=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "t": [
+   "sha256-14ugdAeouhQNqEAYnztiicNUjQE4vuJeNacxMzAptNE=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/slingshot-cascade/index.html": {
+  "a": [
+   "sha256-+JKipZPvtaECPaa1XZnFzRmbMVksNu9bHJ7zDV9SaNo=",
+   "sha256-07s/PV660w3MDhwRiYgymZELeUWFNXBbzpml1TXpRoI=",
+   "sha256-0kIUWbsQH422CI/CztJnkaADbejBfcAuLMJUANEXbwM=",
+   "sha256-4l9RE2L/8dr5EdjWBXQmhYW6MNnPJw7oS9Q2wJ0Blkc=",
+   "sha256-8mUSCWM67Gkfxvu1yJRX+iLgKZSwM7ZcpHwYCnZd4rw=",
+   "sha256-9WNtsZ2B69qv51SimK0hTK4GdjYuJG2W9GRISS62jss=",
+   "sha256-C7Uk3KK2mQ+pj1/Jk+Cf3XDEDfArXqxqsG5II+SeBkU=",
+   "sha256-EVGyYMswiy0SOcvbk40wR6Y0gxYI2rih3swEQxCpOuU=",
+   "sha256-GYKpCr/l4RYfbplFMI9hcHNK0KBMI25qz+IvzsS6Ag0=",
+   "sha256-K11R4J4lBrKZXeTtmxwJC2AbG0f0G0B+o++GtvXpzx8=",
+   "sha256-P6a17ZzeC0/7R6kA4KEUE9k/YujnZZjJXESNQvc9dSY=",
+   "sha256-Q/+RJ9G8kOGjYHxFAUYGz3pN0pxeC70rSBG754XjpG8=",
+   "sha256-QE/V2AcRNGbTSxZqdjuMICueOTVZsdv+4tHY1W7gL2Y=",
+   "sha256-UW6yc59bTGei5nBny6bsGPoumJzO6ywr6mHOJZ6UhHg=",
+   "sha256-Y/YV9ZqLV52Yo4+sC7sRk9sEqvJ9zDz5K+PjBuT+Q1E=",
+   "sha256-ZZO02WUPpY6kiP3SPQ/LWJlr0nxTY47Sdw8In7JLUYc=",
+   "sha256-cITFXU4nHNYEJ7kZ6Qq8ZkPwwxgkkK2VWuFfs3jM8J0=",
+   "sha256-dnIquk+NAnHochNulkg+/cgWbV3zoIVIdDfMFe1U/RQ=",
+   "sha256-eAecQKWs6ajgHR0RCgbDhGWtUiY8Ay1hgyMsFNgb8OA=",
+   "sha256-eIwnhCJFXymfcdne/NeAURJioPXj71hLsTYPm8f1XR0=",
+   "sha256-lqxjiAHlk4xsjGgMCW1QSyGjYbrOIGFwiYdoBYe085Q=",
+   "sha256-oWBo18OKG67BktyODOqS4Vcw7Enuw7GG8adkDQ8Tnxw=",
+   "sha256-opzRjYNfXLiRO441jfmsYdliOTu/MhNqK5UuNbn7VRg=",
+   "sha256-ovVj6g1iFhW5u8970ISs+e6CgpGiTRoa2f+wQJUhlSc=",
+   "sha256-qf2eMXbp67LUCy/lHDKPXJh+M54imAF6Z1WwAjetg+Q=",
+   "sha256-rpi5g0GKwwBUuf94SFNDmbs7LDSNBGz3aBHabNCJkX8=",
+   "sha256-tqV1azA6h3RTpSHxK2lludOA0HnD3TPesL18woPKljk=",
+   "sha256-vk9jvRV0VElAg4D64CT79bV0e9tQh6wsX6DZY2mvDvE=",
+   "sha256-zaYj7zu9Vv1QUPJ5fn82nkZMUyUq2Vaf7WaWfTLyoyc="
+  ],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/trinitys-holy-lightning-rescue/index.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/fire-world/tristans-dark-knight-rescue/index.html": {
+  "a": [],
+  "t": [
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-IXsSI6zRUOyzjk/bNBFNMUhsKdTUflHLpopnGGpwjtY="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/history.html": {
+  "a": [],
+  "t": [
+   "sha256-1+oWdt9HH6QDH0TmbtbtK8W/2Jb8uiYrrdU4IIyj+vo=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-9d7cmOZoy0c0zLG3aNBFuGsVlaqLl3YvJKRQoC327ew=",
+   "sha256-FB5rVGx3YkpPdlCFdyXmjr8PZ5RJ0wpBgv8rqQv4Q6k=",
+   "sha256-JUJacTrL7CFebnSjTHiR089qWizzguu4A5DHFgobmig=",
+   "sha256-LDwoEXcao/mBlb+vhMI7OKq41weOn2Iglmt5ZLIq0QU=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-j6kkFWgyJIn3tyAMli9a64eSxJIL0b5BQuhLgIysCpY=",
+   "sha256-m5O6r6YPZbnt0c7J0/1nStcsT5rAYxwhp+DO0Ffxz+o=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-r5j7JO/vbzPW4Rq/zsesOEIs2V4W0KK8UmwcEy0LQsc=",
+   "sha256-syiS764jzd4lFhB+xW+i6/VfClJu95M0aLowXWjS6/w=",
+   "sha256-wCNh1e1AMnOm9Zb+lq0gyN0k5uBueFhJ3/LLws/TTSA=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/index.html": {
+  "a": [],
+  "t": [
+   "sha256-/0bNFVUYY/m2SXkhPPpf0SuZ5nSczvIZWISruA+jfRw=",
+   "sha256-14U/OTWMr68HNV6NIVpDoxZFt/IrVoCz/XmPDJy5oYQ=",
+   "sha256-2/i/vtrVTSfTA1n8PnPI9UPMPV2459yU45rN3nAGwb8=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-GjhPkyz9P2kSgv+cDmXbHgbgszZbHer2Hvuc79vlUfY=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-ShtI5HqOcgzqx0towCFWs1FQ4a+l8TJ2ktObYlQYL5s=",
+   "sha256-Yqgy1mWlP8QZKq8bfL+zMeZsd7K5sjo9ROXt6Pzo+wQ=",
+   "sha256-YrluMrZiGMwI68TI6dTa18jPGGHrsQNsSjdZVqA7UeY=",
+   "sha256-e4X6WYPhtThFvKI8ReM40m6W6laasIzxJs57LOS7vSM=",
+   "sha256-ka1/XJgwd11xbm45IvJkzRCu5mbqFbbY24KgBbGqGRk=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-nDf+Xk1poynAmBq1ngFIYbNM2sx0jYH5wgTDxLywDeM=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/parents.html": {
+  "a": [],
+  "t": [
+   "sha256-1als1Dy2K3MzKrDN1r6b5DD0uIZyQ7e7dZ320gDolZE=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-DzyAzFpXsE9Gr8VoYUWY4Gs3hU9brD1sKAFv57AzjW8=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-UE5Qize5t2WZcmigK6EBeEMSnxrEQw+oAOfJayu5Ojs=",
+   "sha256-WWZCU6C4CXOEbPlKDWlM9ZECZoPEnHE5FbEw/qiKWCI=",
+   "sha256-XhganQCfLW1y0NPni3PLFRLAui+Lj3a/thIWdc4OAw0=",
+   "sha256-Xqcm7lfREB1rirzm/yuoDgPfziFlQKcmzSd6Wvh28WA=",
+   "sha256-aQpewTTh8V+HJIfZ1lCtNV5HnT/SVFDZxzvUkFeON+0=",
+   "sha256-hQ1wMKUlg5JYHJu+IzGpIoNbwQNHVY05M7pxc3mGmTE=",
+   "sha256-kJO1Y5mAu9nnidz7ZgIwkl6afq0yFMr3150GUJHSAOY=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-oshySasRlbmVp07wlUlr/mBzVuk1rKm0GjhgWnol7lg=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/play-all.html": {
+  "a": [
+   "sha256-+a84Rf9NDCXTX/6wud7opEZsPQft/kTXa4pnw/p0xj0=",
+   "sha256-+x9V3MJoHtKJhNUkKEJszHTqZDW94TitNss2h8F+jO8=",
+   "sha256-/+7/R91l3E2G+KwvC/Jpl5Jeb1lqap+e0Gamkc7QC2g=",
+   "sha256-1CI0aoyJJrWJk/L3SwVzXVpd/y9/jWphElPCWwAhEa4=",
+   "sha256-1xP1ii8QZ14ov3+9BQSswseDuSoRCS8V8+X5baE9peA=",
+   "sha256-3FsdxeQ+vZ+zJxUkW/GqhJReE5Im8WKg6ejWP2J1DR8=",
+   "sha256-4+pgEznIEjxCMUKgWzd6sP2wfjlI/OaTwPuEEJZsBfo=",
+   "sha256-98k/jeNv5oDvCJSByhZh38+9qHCoIRMr2IDvRo8p6Vo=",
+   "sha256-An3LL4d6FKq9gJBUOjyD10H4m78Os7M2m7WWUrZk2L0=",
+   "sha256-Ax6cR7MxD5uAoM25ecf5q/ZLEq3HkC1ND7NmV8a5FkM=",
+   "sha256-B/h7/1KNkSJWaNzkaT2UA/tt3jLx6Jd3WrRg23dH71o=",
+   "sha256-ECgBmuTcyP3zBBVmZMOzni4HoXiIxBqB64M5DKjzxM8=",
+   "sha256-EJTpomBIJ71kuBW7vkfRL0uz1JOdxCVtkW/lH+DmUdU=",
+   "sha256-EoC6ldY4aLWkl51ODjOYlw4XjHRWT1de6qvHdDGXnRw=",
+   "sha256-GTt7TLCBTlUj8cNjTxl1pNJU3x6heSqoNrGwFWS3NLo=",
+   "sha256-Hyb6rL1j56jf5lQ23PaCohtuUedX75Cxufr4Tuos9CQ=",
+   "sha256-Iu11PDsRTIooXjgwytBpTHi9bRJbz1A4cdwmc3MgKsE=",
+   "sha256-KIrmGCPSHR+o4qSfTUJUpTmcA3MU8Bhy4kwPbyC6lPU=",
+   "sha256-Kz5dUXIkt4OGuYj4u+5nGeyvy8P2ZistupJUxgQz1gU=",
+   "sha256-L5PKNyZNc5FOgWohUs5pwrA/rBYfcARgSMAQFj0o/H0=",
+   "sha256-M9B5qdVmoITMPJNOTPQLKyu7gSBo5llZGTRxWJAcuDk=",
+   "sha256-MZv6aQ9fM+16tbKMSaMdmUgoySFcLOMyufDXcq4TMkc=",
+   "sha256-O8T5ecjf20rgQSp1QJ8v3Rh8vEP+k4wpz6Keis79/NY=",
+   "sha256-OJsWaGO7r+rVa8OGG6f+vrpT+/AHE/I/pVLfB+fV8h8=",
+   "sha256-QBrV0vaUeKa4yfozQr8wC0cFjeq4sg6o58wAT5tITRA=",
+   "sha256-QJIcg7czU+W5zqm1ggwCtDW6i43C26lwUpO8b1i+uSk=",
+   "sha256-SyTjF4WSDyLuqQpvYUtUuEgnbl6u0E4smB+VpO96Qo8=",
+   "sha256-ToRODVbgIr3yU4F5weI87bsot+akfTG6G5jGYes78f0=",
+   "sha256-U/AGPu+GrsqiCCcyX2yCWy9Zv2/SxiAkf5GzxfZblkA=",
+   "sha256-UMu4fFlTRvsDe84zYUNThdF+cqVVf9kBuDCaXA6ZssM=",
+   "sha256-UPsws/oGjI66MAL34ujN+Y/R2iqfxh6U9h2EXN5PccA=",
+   "sha256-Wl5ejlGAGffF1vyaOfcNztFMUuhg5BbDnmhpN0FxKQc=",
+   "sha256-WyzuKde+0+XmN1t/PLJ2em1yj1dK8xJShGPZ9oiyb2c=",
+   "sha256-XcNlrGsQQv1EGpsdfB/SmuRxO5h9CXe2oMHfLXq8cB8=",
+   "sha256-XoZqVoz/iNDq1xxX1Zpru45WEsiAx1nZ6gmu+8ghHJA=",
+   "sha256-Yh5yHe4n1Sq+ZvW8HB/rAcrn4p6JS192ynPdU2HYXck=",
+   "sha256-YzKl/ekBeB1dc6Rn3RMWOfDGQCB0kpU90uqT2aQAl2Y=",
+   "sha256-Zzaj4rYVjkYsLbN19rps77x5v6ZLDUiRqCTAybQc3t8=",
+   "sha256-ac3nJewNNh9FfAqflHdiRC7i/B2Bz+IHybt1qPrtlA4=",
+   "sha256-azwjRqUg9FJ6gm63wNdmkhgtdZg1jnVT+LVj3fbS+Ic=",
+   "sha256-dch48NlpXtNkca9DVLIV1/ojvC8viYt/VrF7NzHQzx4=",
+   "sha256-fmWjABNTDeBVudmyqhZgdbKWEwnIV/BIC4FszmUplj0=",
+   "sha256-gXTgw6midcegUNGzuAkN3c3BT6iF0/5IUDn8SBeWCnI=",
+   "sha256-isqOSc9Jgajw4cwN3gPx7cjacRVwRSldx4CeuTN/5rI=",
+   "sha256-llV+uvl2EICGeP+gHBsnX7eoPDSJM+LIyTftcQOiGRU=",
+   "sha256-luK+z6EP2FLDeDha/1DfiCJfkNqQsF3CDj+lElBTxHM=",
+   "sha256-lutv2XBHEDGvSuLy57tY6CpihHHBVnbaxMbOoaOv6aU=",
+   "sha256-mG+EYZtFuYQHLiXcyqbxQDoD9RHBCtSTVF+XFktAL7s=",
+   "sha256-me9H/CZj5XLTKF5hmAktTa1O0XYzfPR/sKLdaOQxB/0=",
+   "sha256-n6eC6a/Fut/XyMRwuLnjdaJnYQh2qFsZ8H/pJc338h8=",
+   "sha256-p2kVKZZInU0tg8VneK6mIJxoVYuG2QlzjFPT5rJwU54=",
+   "sha256-pANCP2FTE5P2/1MXRnbjK9wm4WHZMV+NQyUEzBVR3dg=",
+   "sha256-qOZ2XC43klLMrd8qaqsKCM58Jh16p9umUtXNR/m+enQ=",
+   "sha256-sd6v3VKpmTWyMDMY3KlQ62iXL5joxNZPY8HuS/DkVPA=",
+   "sha256-sf0vMwIVPRKwbM1Hpens1wDdMJ9GtHzCd8BMHDVvNFw=",
+   "sha256-tI1mM2J3HMzW3hPMvFpiyA5xfxQoFrkFPtEwn+AUPSw=",
+   "sha256-uzVW0kROotXk+j0UUEeHmZ++DaFvrNlymiguSwB3Luw=",
+   "sha256-vROlY9Kb0OaDAAmQDcfY7b1oChRIpz97ilLgCWpWfNY=",
+   "sha256-wzvKHcnHjLVhQ5ykwnCl+rgXz/ewA7fI3GkoXbrqp/g=",
+   "sha256-ytNPae3AITF5606I7WBTyCLkNRUgjusLIBphRYSghgQ=",
+   "sha256-z9HHYbUxO+2SMJ502wuqH/Lwn5yuVVj/RU4S5ZhSC/w=",
+   "sha256-zC/+8bUXw+lD8Tzu4gaJO9D7wxOdVmwPGHPZ2TQ360E="
+  ],
+  "t": [
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-4/rePOczuooEbn0GfYYLlgrda+quIAZSDdT7eDRmzWQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-BnQMht6ynw3rCXLC+EsedqCKsVjhPrfvHp/TKIZFWOA=",
+   "sha256-Bt8nBInSKCViGMt3ibom1ZqBGSkgQqBDjuaQeNrJm1I=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-TjAN69zj2etJyoJMmjgSA1rMcolYhMgdx3ZxVUlackM=",
+   "sha256-ZMHjVh265v2oOMaiCSbzhb3ZgDFLtMIuxXe/uH/IAXI=",
+   "sha256-bVGtoEexgqQf6lkcO4xR0EOYhEdOyNYhbkNfM7kE7Kg=",
+   "sha256-cIWJjn7kwe86x37oYdNJ9CM+RbDh6JaERj+Db7DxzDY=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-pulcZNXUFmyKYtPwj/ekp0VJR367Lnfm4B1IQzMecsM=",
+   "sha256-rzJobw/Qnivwo1xoVitAyUsIzx8dzjquThSR+R1KFjU=",
+   "sha256-uokdJotaIORwKzIM5/zyiBVQ44oBufL9yRpFvxadiRI=",
+   "sha256-vl7dw/mfZZl98kvOvdlM4jsF/ttQy4nwXP3FN+mcgaE=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/play.html": {
+  "a": [],
+  "t": [
+   "sha256-+5NYdQjd5qR1nBV0ROVF9ttbOU+zuKDvtvvU/tAL3ho=",
+   "sha256-0kNe07DJHqXYUIrDFlMC2XFtkvU5Qmdk+gpoeN2yRrs=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-85dcYbhXMnnCmJH+fAuzRu40pTgChRQAmsFVrFDKLao=",
+   "sha256-8ur+1B8GRQj4xbdgkqY3lgQ6TdK99D+SxuvsagwZQzY=",
+   "sha256-AL6BNY1WxPhQPbBir0e9ZEUfn+doYiGSsLcBIbn5ILk=",
+   "sha256-D2E+eiepmqMr9r6tHi003v1sUO2KUyLr2o5rV+MkjNc=",
+   "sha256-DFw/fBquXip0UqpxTu/wKplXb2A+qsc4ag0CPQyXRzI=",
+   "sha256-F+1l0umzBIRFSgdFd2EbSpBoCzPhZxE6amr5AsLEk/s=",
+   "sha256-FHu1kKRV4u1fpXl+eMlfKVQpmgxkvN4uCHQ73oN5+zY=",
+   "sha256-HqMH9297DukJd/zWl1D0zd/0n8tkwYRE0vz1qps7Lv4=",
+   "sha256-OzoiQsfptCwLUJuQdtVjVQjAXzFpanIVbePlknZlcfY=",
+   "sha256-PvKVg8TNabsX8/jmRJh1ArbvcpHzbLXyXQnVaVxe4IU=",
+   "sha256-Twn+ggyhXyES7RTBfNvaDLiZoBZRVc2n003AxZDnA74=",
+   "sha256-Twpws8Cs8rI0NEQ7s+PtHzgoEgc0IFDd0BEqDuOvDdA=",
+   "sha256-UIX+o4IH32DveJKI1yZBh+jJV+9Wg1flgD32l/SmKFc=",
+   "sha256-X40Nv3zyi7dNSEFpMjjB5TAkae052m5Dv/2KgnNfvZA=",
+   "sha256-ZMHjVh265v2oOMaiCSbzhb3ZgDFLtMIuxXe/uH/IAXI=",
+   "sha256-biLFinpqYMtWHmXfkA1BPeCY0/fNt46SAZ+BBk5YUog=",
+   "sha256-bx3eXPIftd+wu4MhZB2C0VYCzqzL7d5yiFl3fyM2Msk=",
+   "sha256-dICij4owt9O6XL2U7qKLJ1Q+DdaO6xGA4E9RFqL5XFU=",
+   "sha256-dSom+oR5CK0vM0CUJDd5shE6wi2C8IZ2BZPmVczAYys=",
+   "sha256-gb80yeERB9huGhyG3WL5BRHQrfr9UxGHeBhWHUpc9Zc=",
+   "sha256-iA4WWWzXfqreczNw8LD8xfS6zH1CbTSfE+/J6WwnX7k=",
+   "sha256-leTXuP/ToeIVjHBiZB8EQWgUa8ZNzwkHOXDmD3z/1Wc=",
+   "sha256-mjUy7dFc9gDb60NcMaH4/R0NQGqCh192/PlG/UkLyOI=",
+   "sha256-odid7lj6yVjkAWGmmqrvHZNypIwYgqZgVkj4erXL1OE=",
+   "sha256-uzuQbepcnvP2GmPPbZ923X+CgeVVPysJSD5YVu4pT2U="
+  ],
+  "y": [],
+  "s": []
+ },
+ "/world/index.html": {
+  "a": [],
+  "t": [
+   "sha256-/dgnzFHZPIAIUPYLHSZRiatSOgH9RCrYrHqecB2mGG8=",
+   "sha256-37aflArYZmQe3Er7qJnqCR4UDiPbz8ADitZg/dXptKQ=",
+   "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+   "sha256-4cPPn7sOtIIMVHMp9mqkWV+j+HStN55FVQB7y2B+WWM=",
+   "sha256-4yKxD6vSNK5oasK3hanaRgzDGQ3B2ogBY/cYYThOvsY=",
+   "sha256-58o/QDtOOIODDvW0fQ/+g38RZLwQ0m6QepoFKtsjHxM=",
+   "sha256-CiL2/Fg6xzL5BCy5P6DeFG06GhpaJE7nhU3E59YSvGQ=",
+   "sha256-JMxP3t+TJg1xPIcghHUHh68ibGntMfw7lEM0Rptr0UQ=",
+   "sha256-LM004HeATCr9ZGPwkYHLO82ApFwfTQE6gsoXFjEYD+Q=",
+   "sha256-LpzbgJ/X5284zXVObTXT0vTXsPh5NjyJjYTY/TSmLj8=",
+   "sha256-QYYIX7Ad2NYrXWpVz/p/GozICEERYDsTyPEN8TQqDYY=",
+   "sha256-UDZ95uhr1lOrWAOkGJVtPEIawRVAzweu/2QHLs6X8q0=",
+   "sha256-Zzd0iNarpWCRiqMSBj2/jg5AbBOy8NAm/crIccnT7RE=",
+   "sha256-Zzq0uS9UUheKabpufC4fhKiodKMZHxb/gzBrSwdVQfE=",
+   "sha256-d17lagVil9L3aZpK6E3PjKM9Ur18EqPnjgPTtWV3b00=",
+   "sha256-fN375KSZhs3YS+4q6nYhzzgrha3xkFyf0w/cyB4u2O0=",
+   "sha256-jS1BtJiN35CPPGaXbkeIDX+GQESTmI5uStYzKAp8r2c=",
+   "sha256-mw2SmCWoMwoIpZlnhE75zK9i+n7XfbnTYqup+2kMqyI=",
+   "sha256-qKDUXw57nvKNFnsD5YRMsAbCo+681v65AZ/6Z2qtNWU=",
+   "sha256-qkg7qp+Ejb3Pxlq73Cq7ypU4Z2qVU4cwSfzXLcSQGXQ=",
+   "sha256-uamom1hb+tuCGMJQzBE3W26C02wPXIFAv2v9s8atrWw=",
+   "sha256-wvfb/TT3cMuMGIJSjsrtRZiefmip3LlbklxwQS0Dgek=",
+   "sha256-z7AaI86SKlo2RqctTIY8bQm9kcNO4Utawei8aQaxt/o=",
+   "sha256-zKZnfE7cnzBX9/kP4ePvuZx9heg0XU9hse4/VN1IMQg="
+  ],
+  "y": [
+   "sha256-y73C0Jsyf1Iz/bWDXdvgCBwSSCYDK+fHYfX656/4K00="
+  ],
+  "s": []
+ }
+}

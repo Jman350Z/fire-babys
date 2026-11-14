@@ -1,0 +1,22 @@
+{
+ "/arcade.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/play-all.html": {
+  "csp_violations": [],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 2,
+  "strict_errors": 2
+ },
+ "/play.html": {
+  "csp_violations": [
+   "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element."
+  ],
+  "new_errors_vs_baseline": [],
+  "baseline_errors": 5,
+  "strict_errors": 5
+ }
+}
