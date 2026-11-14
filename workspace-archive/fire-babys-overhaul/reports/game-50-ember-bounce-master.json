@@ -1,0 +1,32 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-50-ember-bounce-master.html",
+  "slug": "game-50-ember-bounce-master",
+  "runs": 1,
+  "started_at": "2026-10-12T21:58:36.427337+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 7,
+        "clicks_sent": 6,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T21:59:21.525047+00:00"
+}

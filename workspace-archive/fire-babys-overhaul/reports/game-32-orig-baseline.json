@@ -1,0 +1,38 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-32-orig-baseline.html",
+  "slug": "game-32-orig-baseline",
+  "runs": 1,
+  "started_at": "2026-10-12T22:00:43.735034+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 1,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 34,
+        "clicks_sent": 6,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [
+    {
+      "type": "pageerror",
+      "text": "Cannot read properties of undefined (reading 'length')",
+      "first_seen_run": 1
+    }
+  ],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T22:00:59.788097+00:00"
+}

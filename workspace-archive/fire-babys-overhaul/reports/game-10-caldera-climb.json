@@ -1,0 +1,32 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-10-caldera-climb.html",
+  "slug": "game-10-caldera-climb",
+  "runs": 1,
+  "started_at": "2026-10-12T21:54:25.795483+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 13,
+        "clicks_sent": 6,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T21:54:52.189611+00:00"
+}

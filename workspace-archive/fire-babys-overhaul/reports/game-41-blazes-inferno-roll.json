@@ -1,0 +1,32 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-41-blazes-inferno-roll.html",
+  "slug": "game-41-blazes-inferno-roll",
+  "runs": 1,
+  "started_at": "2026-10-12T21:56:50.719185+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 5,
+        "clicks_sent": 0,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T21:57:34.961450+00:00"
+}
