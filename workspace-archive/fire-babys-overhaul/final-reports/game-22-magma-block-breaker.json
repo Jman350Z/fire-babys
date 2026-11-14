@@ -1,0 +1,32 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-22-magma-block-breaker.html",
+  "slug": "game-22-magma-block-breaker",
+  "runs": 1,
+  "started_at": "2026-10-12T22:09:32.172362+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 19,
+        "clicks_sent": 10,
+        "game_over_seen": true,
+        "restart_clicked": true,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T22:09:50.959190+00:00"
+}

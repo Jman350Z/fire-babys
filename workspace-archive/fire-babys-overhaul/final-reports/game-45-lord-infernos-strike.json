@@ -1,0 +1,32 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-45-lord-infernos-strike.html",
+  "slug": "game-45-lord-infernos-strike",
+  "runs": 1,
+  "started_at": "2026-10-12T22:16:27.855267+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": true,
+        "start_clicked": true,
+        "math_solved": true
+      },
+      "gameplay": {
+        "keys_sent": 26,
+        "clicks_sent": 7,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T22:16:47.232406+00:00"
+}

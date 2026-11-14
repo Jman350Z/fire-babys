@@ -1,0 +1,45 @@
+{
+  "url": "http://localhost:8901/3d.html",
+  "slug": "http-localhost-8901-3d-html",
+  "runs": 1,
+  "started_at": "2026-10-12T22:02:52.253578+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 2,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": false,
+        "start_clicked": false,
+        "math_solved": false
+      },
+      "gameplay": {
+        "keys_sent": 24,
+        "clicks_sent": 11,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR",
+      "location": "{'url': 'https://firebabys.io/auth-gate.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}",
+      "first_seen_run": 1
+    },
+    {
+      "type": "error",
+      "text": "Loading the script 'https://static.cloudflareinsights.com/beacon.min.js' violates the following Content Security Policy directive: \"script-src 'self' 'unsafe-inline' https://firebabys.io https://accounts.google.com\". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.",
+      "location": "{'url': 'http://localhost:8901/3d.html', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}",
+      "first_seen_run": 1
+    }
+  ],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T22:03:36.698803+00:00"
+}

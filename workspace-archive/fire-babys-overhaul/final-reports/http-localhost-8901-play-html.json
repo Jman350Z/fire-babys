@@ -1,0 +1,45 @@
+{
+  "url": "http://localhost:8901/play.html",
+  "slug": "http-localhost-8901-play-html",
+  "runs": 1,
+  "started_at": "2026-10-12T22:02:07.150053+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": true,
+      "failed": false,
+      "fail_reason": null,
+      "console_error_count": 2,
+      "page_error_count": 0,
+      "title": {
+        "overlay_found": false,
+        "start_clicked": true,
+        "math_solved": false
+      },
+      "gameplay": {
+        "keys_sent": 38,
+        "clicks_sent": 9,
+        "game_over_seen": false,
+        "restart_clicked": false,
+        "canvas_visible": true
+      }
+    }
+  ],
+  "errors": [
+    {
+      "type": "error",
+      "text": "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.",
+      "location": "{'url': 'http://localhost:8901/play.html', 'line': 19, 'column': 0, 'lineNumber': 19, 'columnNumber': 0}",
+      "first_seen_run": 1
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: net::ERR_SSL_PROTOCOL_ERROR",
+      "location": "{'url': 'https://firebabys.io/auth-gate.js', 'line': 0, 'column': 0, 'lineNumber': 0, 'columnNumber': 0}",
+      "first_seen_run": 1
+    }
+  ],
+  "loadFailures": 0,
+  "gameplayIssues": [],
+  "finished_at": "2026-10-12T22:02:52.253092+00:00"
+}
