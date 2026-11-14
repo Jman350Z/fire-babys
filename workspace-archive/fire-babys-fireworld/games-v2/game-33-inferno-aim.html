@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Inferno Aim — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#12060a;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,6,10,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ff2a6d}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#c41e5a;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">0m</div><div id="best"></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🌀 INFERNO AIM</h1>
+<div id="obody"><p>Lord Inferno runs on his own — <b>TAP anywhere to FLIP gravity!</b></p><p>Run on the floor... or the ceiling! Dodge the <b style="color:#ff2a2a">spikes</b>. How far can you go?</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Never use elevators during a fire — always take the stairs!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.2,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',dist:0,best:0,speed:320,px:0,py:0,vy:0,grav:1,spikes:[],parts:[],shake:0,bgX:0};
+const PR=18;
+function spikeTop(){return 70;}
+function spikeBot(){return H-70;}
+function spawnSpike(x){
+  const top=Math.random()<0.5;
+  const w=26+Math.random()*20;
+  G.spikes.push({x:x,top:top,w:w});
+}
+function start(){ac();G.state='play';G.dist=0;G.speed=320;G.px=W*0.3;G.py=spikeBot()-PR;G.vy=0;G.grav=1;G.spikes=[];G.parts=[];
+  for(let x=W+200;x<W+2000;x+=260+Math.random()*200)spawnSpike(x);
+  overlay.classList.add('hidden');}
+function gameOver(){G.state='over';G.best=Math.max(G.best,G.dist);sfx(300,60,0.5,'sawtooth');G.shake=12;
+  for(let i=0;i<20;i++)G.parts.push({x:G.px,y:G.py,vx:(Math.random()-0.5)*400,vy:(Math.random()-0.5)*400,life:0.7,color:'#ff2a6d',s:5});
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent='💥 SPIKED!';
+  obody.innerHTML='<p>You ran <b>'+Math.floor(G.dist)+'m</b>!</p><p>Best: '+Math.floor(G.best)+'m</p>';
+  obtn.textContent='↻ TRY AGAIN';obtn.onclick=()=>{start();};}
+function flip(){if(G.state!=='play')return;G.grav*=-1;G.vy=0;sfx(300,700,0.15,'square');
+  for(let i=0;i<8;i++)G.parts.push({x:G.px,y:G.py,vx:(Math.random()-0.5)*150,vy:(Math.random()-0.5)*150,life:0.4,color:'#7ae2ff',s:4});}
+canvas.addEventListener('pointerdown',flip);
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp')flip();});
+function update(dt){
+  if(G.state!=='play')return;
+  G.speed+=dt*8;G.dist+=G.speed*dt/50;G.bgX=(G.bgX+G.speed*dt)%80;
+  G.vy+=2200*G.grav*dt;G.py+=G.vy*dt;
+  const targetY=G.grav===1?spikeBot()-PR:spikeTop()+PR;
+  if((G.grav===1&&G.py>=targetY)||(G.grav===-1&&G.py<=targetY)){G.py=targetY;G.vy=0;}
+  for(const s of G.spikes){
+    s.x-=G.speed*dt;
+    if(G.px+PR>s.x&&G.px-PR<s.x+s.w){
+      if(s.top){if(G.grav===-1&&G.py-PR<spikeTop()+s.w*1.1){gameOver();return;}}
+      else{if(G.grav===1&&G.py+PR>spikeBot()-s.w*1.1){gameOver();return;}}
+    }
+  }
+  while(G.spikes.length&&G.spikes[0].x<-80)G.spikes.shift();
+  let lastX=G.spikes.length?G.spikes[G.spikes.length-1].x:W;
+  while(lastX<W+600){lastX+=240+Math.random()*220;spawnSpike(lastX);}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.shake>0)G.shake-=dt*30;
+  document.getElementById('score').textContent=Math.floor(G.dist)+'m';
+  document.getElementById('best').textContent='BEST '+Math.floor(G.best)+'m';
+}
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1c0a14');g.addColorStop(0.5,'#12060a');g.addColorStop(1,'#1c0a14');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  ctx.fillStyle='rgba(255,42,109,0.12)';
+  for(let x=-80+G.bgX;x<W;x+=80)ctx.fillRect(x,0,30,H);
+  ctx.fillStyle='#3a2a3a';ctx.fillRect(0,0,W,spikeTop());ctx.fillRect(0,spikeBot(),W,H-spikeBot());
+  ctx.fillStyle='#ff2a6d';ctx.fillRect(0,spikeTop()-4,W,4);ctx.fillRect(0,spikeBot(),W,4);
+  for(const s of G.spikes){
+    ctx.fillStyle='#ff2a2a';
+    const n=Math.ceil(s.w/18);
+    for(let i=0;i<n;i++){
+      const sx=s.x+i*18;
+      ctx.beginPath();
+      if(s.top){ctx.moveTo(sx,spikeTop());ctx.lineTo(sx+9,spikeTop()+s.w*1.2);ctx.lineTo(sx+18,spikeTop());}
+      else{ctx.moveTo(sx,spikeBot());ctx.lineTo(sx+9,spikeBot()-s.w*1.2);ctx.lineTo(sx+18,spikeBot());}
+      ctx.closePath();ctx.fill();
+    }
+  }
+  ctx.save();ctx.translate(G.px,G.py);if(G.grav===-1)ctx.scale(1,-1);
+  const ig=ctx.createRadialGradient(-5,-8,4,0,0,22);
+  ig.addColorStop(0,'#ff8a5e');ig.addColorStop(1,'#a01030');
+  ctx.fillStyle=ig;ctx.beginPath();ctx.arc(0,0,PR,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffd23f';ctx.beginPath();
+  ctx.moveTo(-8,-12);ctx.lineTo(-4,-24);ctx.lineTo(0,-12);ctx.lineTo(4,-24);ctx.lineTo(8,-12);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-6,-2,4,0,Math.PI*2);ctx.arc(6,-2,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-6,-2,2,0,Math.PI*2);ctx.arc(6,-2,2,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*2,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

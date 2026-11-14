@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b26">
+<title>Cinder's Ice Rink Chaos — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#0d1b26;
+    font-family:'Trebuchet MS','Comic Sans MS','Chalkboard SE',sans-serif;
+    touch-action:none; user-select:none; -webkit-user-select:none; }
+  #gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #hud { position:absolute; top:0; left:0; right:0; display:flex; align-items:center;
+    justify-content:space-between; padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+    pointer-events:none; z-index:5; gap:6px; }
+  #hud .pill { background:rgba(10,20,30,.72); border:2px solid #7ad9ff; border-radius:999px;
+    color:#eaf7ff; font-weight:bold; font-size:14px; padding:7px 12px;
+    text-shadow:0 2px 0 #000; white-space:nowrap; }
+  #comboPill.hot { border-color:#ffb13c; color:#ffd23c; }
+  #gearBtn { pointer-events:auto; background:rgba(10,20,30,.72); border:2px solid #7ad9ff;
+    border-radius:50%; width:44px; height:44px; font-size:20px; color:#eaf7ff; cursor:pointer; }
+  .overlay { position:absolute; inset:0; z-index:10; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:24px;
+    background:radial-gradient(ellipse at center, rgba(14,30,44,.90), rgba(6,12,18,.96)); }
+  .hidden { display:none !important; }
+  .gameTitle { font-size:40px; font-weight:900; color:#aee6ff; letter-spacing:1px;
+    text-shadow:0 3px 0 #0a4a6b, 0 6px 0 rgba(0,0,0,.55), 0 0 26px rgba(122,217,255,.65);
+    margin-bottom:6px; line-height:1.08; }
+  .gameSub { color:#9fd0e8; font-size:16px; font-weight:bold; margin-bottom:14px; text-shadow:0 2px 0 #000; }
+  .bigBtn { background:linear-gradient(180deg,#7ad9ff,#2a9ad9); border:3px solid #eaf7ff;
+    border-radius:999px; color:#06314d; font-size:24px; font-weight:900; font-family:inherit;
+    padding:16px 52px; cursor:pointer; box-shadow:0 6px 0 #0a4a6b, 0 10px 22px rgba(0,0,0,.5); margin-top:10px; }
+  .bigBtn:active { transform:translateY(4px); box-shadow:0 2px 0 #0a4a6b; }
+  .hint { color:#8fb8cc; font-size:14px; margin-top:16px; line-height:1.6; max-width:340px; }
+  .statRow { display:flex; gap:14px; margin:14px 0 6px; }
+  .statBox { background:rgba(10,20,30,.8); border:2px solid #7ad9ff; border-radius:16px;
+    padding:12px 20px; color:#eaf7ff; min-width:100px; }
+  .statBox .v { font-size:28px; font-weight:900; color:#aee6ff; }
+  .statBox .l { font-size:12px; color:#9fd0e8; font-weight:bold; letter-spacing:1px; }
+  #newBest { color:#7dff8a; font-weight:900; font-size:18px; margin-top:8px;
+    text-shadow:0 0 12px rgba(125,255,138,.7); }
+  #gateModal { background:rgba(5,9,14,.94); z-index:20; }
+  #gateCard { background:#10222f; border:3px solid #7ad9ff; border-radius:20px;
+    padding:28px 26px; max-width:330px; width:100%; }
+  #gateCard h2 { color:#aee6ff; font-size:22px; margin-bottom:10px; }
+  #gateCard p { color:#9fd0e8; font-size:15px; margin-bottom:12px; }
+  #gateQ { color:#fff; font-size:30px; font-weight:900; margin:10px 0; }
+  #gateInput { font-size:26px; width:120px; text-align:center; padding:10px; border-radius:12px;
+    border:3px solid #7ad9ff; background:#0d1b26; color:#aee6ff; font-family:inherit; font-weight:bold; }
+  #gateMsg { min-height:22px; color:#ff8a8a; font-weight:bold; margin-top:8px; font-size:14px; }
+  .rowBtns { display:flex; gap:10px; justify-content:center; margin-top:10px; }
+  .smallBtn { background:#1a3446; border:2px solid #7ad9ff; color:#eaf7ff; border-radius:12px;
+    font-family:inherit; font-weight:bold; font-size:16px; padding:10px 22px; cursor:pointer; }
+  #settingsPanel { margin-top:14px; }
+  #muteBtn { width:100%; }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+  <div class="pill" id="scorePill">🏆 0</div>
+  <div class="pill" id="timePill">⏱ 90</div>
+  <div class="pill" id="comboPill">🔥 ×1</div>
+  <button id="gearBtn" aria-label="Settings">⚙</button>
+</div>
+
+<div class="overlay" id="startScreen">
+  <div class="gameTitle">CINDER'S<br>ICE RINK CHAOS</div>
+  <div class="gameSub">Starring Cinder &amp; Blaze ⛸</div>
+  <button class="bigBtn" id="startBtn">TAP TO START</button>
+  <div class="hint">Drag anywhere to skate Cinder around the rink — momentum is real, so plan your slides!<br>
+    Bump rival fire babies into the bubbling blue pools. Watch out: Blaze hits back!<br>
+    Dunk 12 points before the clock runs out. Cinder always climbs back out!</div>
+</div>
+
+<div class="overlay hidden" id="overScreen">
+  <div class="gameTitle" id="overTitle">VICTORY!</div>
+  <div class="gameSub" id="overSub">Cinder rules the rink!</div>
+  <div class="statRow">
+    <div class="statBox"><div class="v" id="finalScore">0</div><div class="l">POINTS</div></div>
+    <div class="statBox"><div class="v" id="finalDunks">0</div><div class="l">DUNKS</div></div>
+  </div>
+  <div id="newBest" class="hidden">★ NEW BEST! ★</div>
+  <button class="bigBtn" id="restartBtn">TAP TO RESTART</button>
+</div>
+
+<div class="overlay hidden" id="gateModal">
+  <div id="gateCard">
+    <h2>Grown-ups only</h2>
+    <p>Ask a grown-up to solve this to open Settings:</p>
+    <div id="gateQ">?</div>
+    <input id="gateInput" inputmode="numeric" autocomplete="off" aria-label="Answer">
+    <div id="gateMsg"></div>
+    <div class="rowBtns">
+      <button class="smallBtn" id="gateOk">OK</button>
+      <button class="smallBtn" id="gateCancel">Cancel</button>
+    </div>
+    <div id="settingsPanel" class="hidden">
+      <button class="smallBtn" id="muteBtn">🔊 Sound: ON</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   CINDER'S ICE RINK CHAOS — a Fire Babys physics bumper / arena brawler
+   100% original code & characters. No network calls, no trackers,
+   no PII collection. Local best-score only (this device).
+   ===================================================================== */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+const rand = (a, b) => a + Math.random() * (b - a);
+const randi = (a, b) => Math.floor(rand(a, b + 1));
+const pick = arr => arr[(Math.random() * arr.length) | 0];
+
+const TARGET = 12, MATCH_T = 90, COMBO_WIN = 6;
+
+// ---------------- Audio ----------------
+const AudioSys = {
+  ctx: null, muted: false,
+  init() {
+    if (!this.ctx) {
+      try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { this.ctx = null; }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq, dur, type, vol, slideTo) {
+    if (this.muted || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square'; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(30, slideTo), t + dur);
+    g.gain.setValueAtTime(vol || 0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(dur, vol, lowFreq, highSweep) {
+    if (this.muted || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    const len = Math.max(1, (dur * this.ctx.sampleRate) | 0);
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass';
+    f.frequency.setValueAtTime(lowFreq || 800, t);
+    if (highSweep) f.frequency.exponentialRampToValueAtTime(highSweep, t + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol || 0.2, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    src.start(t);
+  },
+  bump()   { this.tone(200, 0.1, 'sine', 0.2, 90); this.noise(0.08, 0.1, 900); },
+  smash()  { this.noise(0.3, 0.28, 500); this.tone(80, 0.3, 'sine', 0.28, 40); },
+  splash() { this.noise(0.5, 0.22, 2500, 300); this.tone(600, 0.35, 'sine', 0.1, 150); },
+  beep()   { this.tone(880, 0.09, 'square', 0.1); },
+  whistle(){ this.tone(1400, 0.7, 'sine', 0.14, 2200); },
+  start()  { const n = [392, 523, 659, 784]; n.forEach((f, i) => setTimeout(() => this.tone(f, 0.12, 'square', 0.1), i * 90)); },
+  over(win){ const n = win ? [523, 659, 784, 1047] : [392, 330, 262, 196];
+             n.forEach((f, i) => setTimeout(() => this.tone(f, 0.22, 'triangle', 0.15), i * 150)); },
+  click()  { this.tone(700, 0.06, 'square', 0.08); }
+};
+document.addEventListener('visibilitychange', () => { if (!document.hidden) AudioSys.init(); });
+
+// ---------------- State ----------------
+const ST = { MENU: 0, PLAY: 1, OVER: 2 };
+const game = {
+  state: ST.MENU, paused: false,
+  score: 0, dunks: 0, best: 0,
+  combo: 0, comboT: 0,
+  time: MATCH_T, lastBeep: -1,
+  shakeT: 0, shakeMag: 0
+};
+try { game.best = parseInt(localStorage.getItem('circ_best') || '0', 10) || 0; } catch (e) {}
+
+const arena = { x: 0, y: 0, R: 100 };
+let pools = [];        // {x,y,r,bub[]}
+let icePatches = [];   // {x,y,rx,ry}
+const player = { x: 0, y: 0, vx: 0, vy: 0, r: 24, mass: 1.0, stun: 0, spin: 0 };
+const rivals = [];     // {x,y,vx,vy,r,mass,blaze,alive,respT,wanderA,wanderT,accel,maxSp}
+const joy = { active: false, ox: 0, oy: 0, dx: 0, dy: 0, id: null };
+
+// ---------------- Pools (particles / popups) ----------------
+function makePool(n, factory) {
+  const a = [];
+  for (let i = 0; i < n; i++) a.push(factory());
+  return { items: a, n: 0,
+    get() { return this.n < a.length ? a[this.n++] : null; },
+    reset() { this.n = 0; },
+    each(fn) { for (let i = 0; i < this.n; i++) fn(a[i], i); } };
+}
+const parts = makePool(280, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, size: 4, col: '#fff', grav: 0 }));
+const popups = makePool(24, () => ({ x: 0, y: 0, txt: '', life: 0, max: 1, col: '#aee6ff' }));
+function spawnPart(x, y, vx, vy, life, size, col, grav) {
+  const p = parts.get(); if (!p) return;
+  p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.max = life;
+  p.size = size; p.col = col; p.grav = grav || 0;
+}
+function popup(x, y, txt, col) {
+  const p = popups.get(); if (!p) return;
+  p.x = x; p.y = y; p.txt = txt; p.life = 1.1; p.max = 1.1; p.col = col || '#aee6ff';
+}
+function burst(x, y, n, cols, spd, grav) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, TAU), s = rand(spd * 0.35, spd);
+    spawnPart(x, y, Math.cos(a) * s, Math.sin(a) * s, rand(0.35, 0.8), rand(3, 8), pick(cols), grav || 200);
+  }
+}
+
+// ---------------- Layout ----------------
+function buildLayout() {
+  arena.x = W / 2; arena.y = H * 0.47;
+  arena.R = Math.min(W, H * 0.78) * 0.44;
+  pools = [];
+  const pr = Math.max(34, arena.R * 0.20);
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * TAU - Math.PI / 2 + 0.5;
+    const d = arena.R * 0.58;
+    const px = arena.x + Math.cos(a) * d, py = arena.y + Math.sin(a) * d;
+    const bub = [];
+    for (let k = 0; k < 8; k++) bub.push({ a: rand(0, TAU), r: rand(4, pr * 0.7), sp: rand(1, 3), sz: rand(2, 5) });
+    pools.push({ x: px, y: py, r: pr, bub });
+  }
+  icePatches = [];
+  for (let i = 0; i < 4; i++) {
+    icePatches.push({ x: arena.x + rand(-0.6, 0.6) * arena.R, y: arena.y + rand(-0.6, 0.6) * arena.R,
+                      rx: rand(40, 70), ry: rand(26, 44), rot: rand(0, TAU) });
+  }
+}
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = Math.floor(W * DPR); canvas.height = Math.floor(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  buildLayout();
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+
+// ---------------- Run control ----------------
+function resetRun() {
+  game.score = 0; game.dunks = 0; game.combo = 0; game.comboT = 0;
+  game.time = MATCH_T; game.lastBeep = -1;
+  game.shakeT = 0;
+  player.x = arena.x; player.y = arena.y; player.vx = 0; player.vy = 0; player.stun = 0;
+  rivals.length = 0;
+  const spots = [0.3, 2.4, 4.2, 5.5];
+  for (let i = 0; i < 4; i++) {
+    const a = spots[i], d = arena.R * 0.72;
+    rivals.push({
+      x: arena.x + Math.cos(a) * d, y: arena.y + Math.sin(a) * d,
+      vx: 0, vy: 0, r: i === 0 ? 28 : 21, mass: i === 0 ? 1.45 : 0.9,
+      blaze: i === 0, alive: true, respT: 0,
+      wanderA: rand(0, TAU), wanderT: rand(1, 2),
+      accel: i === 0 ? 1050 : 760, maxSp: i === 0 ? 470 : 380
+    });
+  }
+  parts.reset(); popups.reset();
+  updateHUD();
+}
+function startGame() {
+  AudioSys.init(); AudioSys.start();
+  resetRun();
+  game.state = ST.PLAY; game.paused = false;
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('overScreen').classList.add('hidden');
+  closeGate();
+}
+function endGame() {
+  game.state = ST.OVER;
+  const win = game.score >= TARGET;
+  AudioSys.whistle(); setTimeout(() => AudioSys.over(win), 500);
+  document.getElementById('overTitle').textContent = win ? 'VICTORY!' : 'TIME UP!';
+  document.getElementById('overTitle').style.color = win ? '#aee6ff' : '#ffb37a';
+  document.getElementById('overSub').textContent = win
+    ? 'Cinder rules the rink! Blaze wants a rematch!'
+    : 'So close! Dunk ' + TARGET + ' points to win — go again!';
+  document.getElementById('finalScore').textContent = game.score;
+  document.getElementById('finalDunks').textContent = game.dunks;
+  const nb = document.getElementById('newBest');
+  if (game.score > game.best) {
+    game.best = game.score;
+    try { localStorage.setItem('circ_best', String(game.score)); } catch (e) {}
+    nb.classList.remove('hidden');
+  } else nb.classList.add('hidden');
+  setTimeout(() => document.getElementById('overScreen').classList.remove('hidden'), 600);
+}
+
+// ---------------- Physics helpers ----------------
+function iceFriction(x, y) {
+  for (const p of icePatches) {
+    const dx = x - p.x, dy = y - p.y;
+    if ((dx * dx) / (p.rx * p.rx) + (dy * dy) / (p.ry * p.ry) < 1) return 0.12; // extra slick
+  }
+  return 0.55; // normal rink ice (low friction)
+}
+function collide(a, b, heavy) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const d = Math.hypot(dx, dy), minD = a.r + b.r;
+  if (d >= minD || d < 0.01) return;
+  const nx = dx / d, ny = dy / d, total = a.mass + b.mass;
+  const overlap = minD - d;
+  a.x -= nx * overlap * (b.mass / total); a.y -= ny * overlap * (b.mass / total);
+  b.x += nx * overlap * (a.mass / total); b.y += ny * overlap * (a.mass / total);
+  const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+  const velAlong = rvx * nx + rvy * ny;
+  if (velAlong >= 0) return;
+  const e = 0.92;
+  const j = -(1 + e) * velAlong / (1 / a.mass + 1 / b.mass);
+  a.vx -= j * nx / a.mass; a.vy -= j * ny / a.mass;
+  b.vx += j * nx / b.mass; b.vy += j * ny / b.mass;
+  const impact = Math.abs(velAlong);
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  if (impact > 300) {
+    game.shakeT = 0.28; game.shakeMag = 10;
+    AudioSys.smash();
+    burst(mx, my, 22, ['#fff', '#aee6ff', '#ffd23c'], 380, 300);
+    popup(mx, my - 24, heavy ? 'SMASH!' : 'BUMP!', '#ffd23c');
+  } else if (impact > 120) {
+    AudioSys.bump();
+    burst(mx, my, 8, ['#dff4ff', '#aee6ff'], 220, 200);
+  }
+}
+function inPool(e) {
+  for (const p of pools) {
+    if (Math.hypot(e.x - p.x, e.y - p.y) < p.r - e.r * 0.25) return p;
+  }
+  return null;
+}
+
+// ---------------- Scoring events ----------------
+function dunkRival(r) {
+  r.alive = false; r.respT = 2.2;
+  const mult = Math.min(5, 1 + game.combo);
+  const pts = (r.blaze ? 3 : 1) * mult;
+  game.score += pts; game.dunks++;
+  game.combo++; game.comboT = COMBO_WIN;
+  AudioSys.splash();
+  const pl = pools[0]; // burst at rival pos
+  burst(r.x, r.y, 34, ['#7ad9ff', '#dff4ff', '#fff', '#2a9ad9'], 380, 420);
+  popup(r.x, r.y - 30, '+' + pts + (r.blaze ? ' BLAZE!' : ''), '#7dff8a');
+  game.shakeT = 0.2; game.shakeMag = 6;
+  updateHUD();
+}
+function splashPlayer() {
+  player.stun = 1.2;
+  game.combo = 0; game.comboT = 0;
+  AudioSys.splash();
+  burst(player.x, player.y, 30, ['#7ad9ff', '#dff4ff', '#fff'], 340, 420);
+  popup(player.x, player.y - 34, 'SPLASHED!', '#7ad9ff');
+  // climb back out to center
+  player.x = arena.x; player.y = arena.y; player.vx = 0; player.vy = 0;
+  updateHUD();
+}
+
+// ---------------- Update ----------------
+function update(dt) {
+  game.time -= dt;
+  if (game.time <= 5.5 && game.time > 0) {
+    const s = Math.ceil(game.time);
+    if (s !== game.lastBeep) { game.lastBeep = s; AudioSys.beep(); }
+  }
+  if (game.time <= 0) { game.time = 0; updateHUD(); endGame(); return; }
+  if (game.comboT > 0) {
+    game.comboT -= dt;
+    if (game.comboT <= 0) game.combo = 0;
+  }
+
+  // --- player ---
+  if (player.stun > 0) player.stun -= dt;
+  else if (joy.active) {
+    const jx = joy.dx / 60, jy = joy.dy / 60; // -1..1
+    const m = Math.hypot(jx, jy);
+    if (m > 0.12) {
+      const cl = Math.min(1, m);
+      player.vx += (jx / m) * cl * 1500 * dt;
+      player.vy += (jy / m) * cl * 1500 * dt;
+      player.spin += dt * 8 * cl;
+    }
+  }
+  const fr = iceFriction(player.x, player.y);
+  const f = Math.pow(fr, dt);
+  player.vx *= f; player.vy *= f;
+  const ps = Math.hypot(player.vx, player.vy);
+  if (ps > 540) { player.vx *= 540 / ps; player.vy *= 540 / ps; }
+  player.x += player.vx * dt; player.y += player.vy * dt;
+
+  // arena wall bounce (player)
+  wallBounce(player);
+
+  // player pool?
+  if (player.stun <= 0 && inPool(player)) splashPlayer();
+
+  // --- rivals ---
+  for (const r of rivals) {
+    if (!r.alive) {
+      r.respT -= dt;
+      if (r.respT <= 0) {
+        // respawn at arena edge away from pools
+        const a = rand(0, TAU), d = arena.R * 0.8;
+        r.x = arena.x + Math.cos(a) * d; r.y = arena.y + Math.sin(a) * d;
+        r.vx = 0; r.vy = 0; r.alive = true;
+        burst(r.x, r.y, 12, ['#ffb37a', '#ff7a1a'], 240, 200);
+      }
+      continue;
+    }
+    // AI
+    r.wanderT -= dt;
+    if (r.wanderT <= 0) { r.wanderA = rand(0, TAU); r.wanderT = rand(1, 2.4); }
+    let ax = Math.cos(r.wanderA) * 130, ay = Math.sin(r.wanderA) * 130;
+    const pdx = player.x - r.x, pdy = player.y - r.y, pd = Math.hypot(pdx, pdy) || 1;
+    if (pd < 320 && player.stun <= 0) {
+      // chase & bump; Blaze aims to shove player toward nearest pool
+      let tx = pdx / pd, ty = pdy / pd;
+      if (r.blaze) {
+        let bestPool = null, bestD = 1e9;
+        for (const p of pools) { const d = Math.hypot(player.x - p.x, player.y - p.y); if (d < bestD) { bestD = d; bestPool = p; } }
+        if (bestPool && bestD < 260) {
+          // get on far side of player from pool, shove toward it
+          const fx = player.x - bestPool.x, fy = player.y - bestPool.y, fd = Math.hypot(fx, fy) || 1;
+          tx = fx / fd; ty = fy / fd;
+        }
+      }
+      ax = tx * 300; ay = ty * 300;
+    }
+    // pool avoidance
+    for (const p of pools) {
+      const dx = r.x - p.x, dy = r.y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < p.r + 95) { ax += (dx / d) * 900; ay += (dy / d) * 900; }
+    }
+    r.vx += ax * dt * (r.accel / 300); r.vy += ay * dt * (r.accel / 300);
+    const rf = Math.pow(iceFriction(r.x, r.y), dt);
+    r.vx *= rf; r.vy *= rf;
+    const rs = Math.hypot(r.vx, r.vy);
+    if (rs > r.maxSp) { r.vx *= r.maxSp / rs; r.vy *= r.maxSp / rs; }
+    r.x += r.vx * dt; r.y += r.vy * dt;
+    wallBounce(r);
+    if (inPool(r)) { dunkRival(r); continue; }
+  }
+
+  // collisions
+  for (const r of rivals) if (r.alive) collide(player, r, r.blaze);
+  for (let i = 0; i < rivals.length; i++) {
+    if (!rivals[i].alive) continue;
+    for (let k = i + 1; k < rivals.length; k++) {
+      if (!rivals[k].alive) continue;
+      collide(rivals[i], rivals[k], false);
+    }
+  }
+
+  parts.each(p => {
+    if (p.life <= 0) return;
+    p.life -= dt; p.vy += p.grav * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+  });
+  popups.each(p => { if (p.life > 0) { p.life -= dt; p.y -= 42 * dt; } });
+  if (game.shakeT > 0) game.shakeT -= dt;
+  updateHUD();
+}
+function wallBounce(e) {
+  const dx = e.x - arena.x, dy = e.y - arena.y;
+  const d = Math.hypot(dx, dy), maxD = arena.R - e.r;
+  if (d > maxD) {
+    const nx = dx / (d || 1), ny = dy / (d || 1);
+    e.x = arena.x + nx * maxD; e.y = arena.y + ny * maxD;
+    const vn = e.vx * nx + e.vy * ny;
+    if (vn > 0) {
+      e.vx -= 1.85 * vn * nx; e.vy -= 1.85 * vn * ny;
+      if (vn > 300) { AudioSys.bump(); burst(e.x, e.y, 8, ['#dff4ff'], 200, 150); }
+    }
+  }
+}
+
+// ---------------- Drawing ----------------
+function drawRink() {
+  // lava glow ring outside
+  const t = performance.now() / 1000;
+  const og = ctx.createRadialGradient(arena.x, arena.y, arena.R, arena.x, arena.y, arena.R + 90);
+  const fl = 0.5 + 0.3 * Math.sin(t * 3);
+  og.addColorStop(0, 'rgba(255,110,20,' + (0.35 * fl + 0.2).toFixed(3) + ')');
+  og.addColorStop(1, 'rgba(255,110,20,0)');
+  ctx.fillStyle = og;
+  ctx.beginPath(); ctx.arc(arena.x, arena.y, arena.R + 90, 0, TAU); ctx.fill();
+
+  // ice surface
+  const g = ctx.createRadialGradient(arena.x, arena.y, 10, arena.x, arena.y, arena.R);
+  g.addColorStop(0, '#dff2fb'); g.addColorStop(0.7, '#b9dcec'); g.addColorStop(1, '#93c2da');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(arena.x, arena.y, arena.R, 0, TAU); ctx.fill();
+
+  // skate marks
+  ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 2;
+  for (let i = 0; i < 14; i++) {
+    const a = (i / 14) * TAU + 0.2, r1 = arena.R * (0.25 + (i % 4) * 0.16);
+    ctx.beginPath(); ctx.arc(arena.x, arena.y, r1, a, a + 0.7); ctx.stroke();
+  }
+
+  // slick patches
+  for (const p of icePatches) {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(0, 0, p.rx, p.ry, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.beginPath(); ctx.ellipse(-p.rx * 0.25, -p.ry * 0.25, p.rx * 0.35, p.ry * 0.3, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  // pools (bubbling blue water)
+  for (const p of pools) {
+    const pg = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, p.r);
+    pg.addColorStop(0, '#3a7bd9'); pg.addColorStop(0.75, '#1f5fb8'); pg.addColorStop(1, '#144a8f');
+    ctx.fillStyle = pg;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = '#0d2f57'; ctx.stroke();
+    ctx.strokeStyle = 'rgba(160,220,255,.6)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r - 5, 0, TAU); ctx.stroke();
+    // bubbles
+    for (const b of p.bub) {
+      b.a += b.sp * 0.03;
+      const bx = p.x + Math.cos(b.a) * b.r, by = p.y + Math.sin(b.a * 1.3) * b.r * 0.8;
+      ctx.fillStyle = 'rgba(200,235,255,.55)';
+      ctx.beginPath(); ctx.arc(bx, by, b.sz * (0.7 + 0.3 * Math.sin(t * 4 + b.a)), 0, TAU); ctx.fill();
+    }
+  }
+
+  // rink wall
+  ctx.lineWidth = 12; ctx.strokeStyle = '#0d2f57';
+  ctx.beginPath(); ctx.arc(arena.x, arena.y, arena.R + 6, 0, TAU); ctx.stroke();
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(160,220,255,.7)';
+  ctx.beginPath(); ctx.arc(arena.x, arena.y, arena.R + 6, 0, TAU); ctx.stroke();
+}
+
+function drawCinderChar() {
+  const r = player.r;
+  ctx.save(); ctx.translate(player.x, player.y);
+  if (player.stun > 0 && ((performance.now() / 130) | 0) % 2 === 0) ctx.globalAlpha = 0.45;
+  ctx.rotate(player.spin * 0.15);
+  ctx.fillStyle = 'rgba(20,40,60,.25)';
+  ctx.beginPath(); ctx.ellipse(0, r * 0.9, r * 0.8, r * 0.24, 0, 0, TAU); ctx.fill();
+  const fl = Math.sin(performance.now() / 115) * 3;
+  ctx.fillStyle = '#8a6cff';
+  for (let i = -2; i <= 2; i++) {
+    const fx = i * r * 0.32, fh = r * (0.65 + (Math.abs(i) === 2 ? -0.15 : 0.3)) + fl * (i % 2 ? 0.5 : 1);
+    ctx.beginPath();
+    ctx.moveTo(fx - r * 0.18, -r * 0.68);
+    ctx.lineTo(fx + r * 0.08, -r * 0.68 - fh);
+    ctx.lineTo(fx + r * 0.22, -r * 0.68);
+    ctx.closePath(); ctx.fill();
+  }
+  const bg = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.15, 0, 0, r * 1.1);
+  bg.addColorStop(0, '#b49cff'); bg.addColorStop(0.55, '#6a4dff'); bg.addColorStop(1, '#3415cc');
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = '#241066'; ctx.stroke();
+  // gleeful chaos eyes
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(s * r * 0.30, -r * 0.10, r * 0.18, r * 0.24, s * 0.2, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ff2a6a';
+    ctx.beginPath(); ctx.arc(s * r * 0.32, -r * 0.06, r * 0.09, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(s * r * 0.29, -r * 0.09, r * 0.03, 0, TAU); ctx.fill();
+  }
+  // big cheeky grin
+  ctx.strokeStyle = '#160a3a'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(0, r * 0.18, r * 0.42, 0.25, Math.PI - 0.25); ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-r * 0.16, r * 0.44, r * 0.13, r * 0.15);
+  ctx.restore();
+}
+
+function drawRival(r) {
+  if (!r.alive) return;
+  const rad = r.r;
+  ctx.save(); ctx.translate(r.x, r.y);
+  ctx.fillStyle = 'rgba(20,40,60,.22)';
+  ctx.beginPath(); ctx.ellipse(0, rad * 0.9, rad * 0.75, rad * 0.22, 0, 0, TAU); ctx.fill();
+  let bg;
+  if (r.blaze) {
+    bg = ctx.createRadialGradient(-rad * 0.3, -rad * 0.3, rad * 0.15, 0, 0, rad * 1.1);
+    bg.addColorStop(0, '#ffe27a'); bg.addColorStop(0.55, '#ffb13c'); bg.addColorStop(1, '#d96a00');
+  } else {
+    bg = ctx.createRadialGradient(-rad * 0.3, -rad * 0.3, rad * 0.15, 0, 0, rad * 1.1);
+    bg.addColorStop(0, '#ff9a5e'); bg.addColorStop(0.55, '#e04a1a'); bg.addColorStop(1, '#a32a00');
+  }
+  ctx.fillStyle = bg;
+  ctx.beginPath(); ctx.arc(0, 0, rad, 0, TAU); ctx.fill();
+  ctx.lineWidth = 2.5; ctx.strokeStyle = r.blaze ? '#8a4a00' : '#6b1a00'; ctx.stroke();
+  if (r.blaze) {
+    // golden flame crest
+    ctx.fillStyle = '#fff3b0';
+    for (let i = -1; i <= 1; i++) {
+      const fx = i * rad * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(fx - rad * 0.2, -rad * 0.72);
+      ctx.lineTo(fx + rad * 0.05, -rad * 1.15);
+      ctx.lineTo(fx + rad * 0.24, -rad * 0.72);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  // grumpy eyes
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(s * rad * 0.30, -rad * 0.08, rad * 0.17, rad * 0.21, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#5a1000';
+    ctx.beginPath(); ctx.arc(s * rad * 0.30, -rad * 0.04, rad * 0.08, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#3a0a00'; ctx.lineWidth = rad * 0.09; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(s * rad * 0.48, -rad * 0.42);
+    ctx.lineTo(s * rad * 0.14, -rad * 0.28);
+    ctx.stroke();
+  }
+  // frown
+  ctx.strokeStyle = '#3a0a00'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, rad * 0.52, rad * 0.3, Math.PI + 0.4, TAU - 0.4); ctx.stroke();
+  if (r.blaze) {
+    ctx.fillStyle = '#fff'; ctx.font = '900 ' + Math.floor(rad * 0.7) + 'px "Trebuchet MS", sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('B', 0, -rad * 1.35);
+  }
+  ctx.restore();
+}
+
+function drawJoystick() {
+  if (!joy.active || game.state !== ST.PLAY) return;
+  ctx.save();
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 52, 0, TAU); ctx.stroke();
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = '#aee6ff';
+  ctx.beginPath(); ctx.arc(joy.ox + joy.dx, joy.oy + joy.dy, 24, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+
+function drawComboBar() {
+  if (game.state !== ST.PLAY || game.comboT <= 0) return;
+  const bw = W * 0.5, bx = (W - bw) / 2, by = 66 + (window.safeAreaTop || 0);
+  ctx.fillStyle = 'rgba(10,20,30,.6)';
+  ctx.fillRect(bx, by, bw, 8);
+  ctx.fillStyle = '#ffb13c';
+  ctx.fillRect(bx, by, bw * clamp(game.comboT / COMBO_WIN, 0, 1), 8);
+}
+
+function draw() {
+  ctx.save();
+  if (game.shakeT > 0) {
+    const m = game.shakeMag * clamp(game.shakeT / 0.28, 0, 1);
+    ctx.translate(rand(-m, m), rand(-m, m));
+  }
+  // deep background
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#0d1b26'); g.addColorStop(1, '#160d0a');
+  ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+  drawRink();
+  rivals.forEach(drawRival);
+  if (game.state !== ST.OVER) drawCinderChar();
+  else if (game.state === ST.MENU) drawCinderChar();
+  parts.each(p => {
+    if (p.life <= 0) return;
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = p.col;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  });
+  ctx.globalAlpha = 1;
+  popups.each(p => {
+    if (p.life <= 0) return;
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = p.col;
+    ctx.font = '900 22px "Trebuchet MS", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 4;
+    ctx.strokeText(p.txt, p.x, p.y);
+    ctx.fillText(p.txt, p.x, p.y);
+  });
+  ctx.globalAlpha = 1;
+  drawComboBar();
+  drawJoystick();
+  ctx.restore();
+}
+
+// ---------------- HUD ----------------
+const scoreEl = document.getElementById('scorePill');
+const timeEl = document.getElementById('timePill');
+const comboEl = document.getElementById('comboPill');
+function updateHUD() {
+  scoreEl.textContent = '🏆 ' + game.score + '/' + TARGET;
+  const t = Math.ceil(game.time);
+  timeEl.textContent = '⏱ ' + t;
+  timeEl.style.color = t <= 10 ? '#ff8a8a' : '#eaf7ff';
+  const mult = Math.min(5, 1 + game.combo);
+  comboEl.textContent = '🔥 ×' + mult;
+  comboEl.classList.toggle('hot', game.combo > 0);
+}
+
+// ---------------- Input: virtual joystick ----------------
+function joyStart(x, y, id) {
+  joy.active = true; joy.ox = x; joy.oy = y; joy.dx = 0; joy.dy = 0; joy.id = id;
+}
+function joyMove(x, y) {
+  if (!joy.active) return;
+  let dx = x - joy.ox, dy = y - joy.oy;
+  const d = Math.hypot(dx, dy);
+  if (d > 60) { dx *= 60 / d; dy *= 60 / d; }
+  joy.dx = dx; joy.dy = dy;
+}
+function joyEnd(id) {
+  if (joy.id === id || id === undefined) { joy.active = false; joy.dx = 0; joy.dy = 0; }
+}
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault(); AudioSys.init();
+  const t = e.changedTouches[0];
+  joyStart(t.clientX, t.clientY, t.identifier);
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches) if (t.identifier === joy.id) joyMove(t.clientX, t.clientY);
+}, { passive: false });
+const endTouch = e => { e.preventDefault(); for (const t of e.changedTouches) joyEnd(t.identifier); };
+canvas.addEventListener('touchend', endTouch, { passive: false });
+canvas.addEventListener('touchcancel', endTouch, { passive: false });
+canvas.addEventListener('mousedown', e => { AudioSys.init(); joyStart(e.clientX, e.clientY, 'm'); });
+canvas.addEventListener('mousemove', e => { if (joy.id === 'm') joyMove(e.clientX, e.clientY); });
+canvas.addEventListener('mouseup', () => joyEnd('m'));
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('restartBtn').addEventListener('click', startGame);
+
+// ---------------- Parental gate (COPPA) ----------------
+const gateModal = document.getElementById('gateModal');
+const gateQ = document.getElementById('gateQ');
+const gateInput = document.getElementById('gateInput');
+const gateMsg = document.getElementById('gateMsg');
+const settingsPanel = document.getElementById('settingsPanel');
+let gateA = 0, gateB = 0;
+function randi2(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
+function newGateQ() {
+  gateA = randi2(2, 9); gateB = randi2(2, 9);
+  gateQ.textContent = gateA + ' + ' + gateB + ' = ?';
+  gateInput.value = ''; gateMsg.textContent = '';
+  settingsPanel.classList.add('hidden');
+  setTimeout(() => gateInput.focus(), 60);
+}
+function openGate() {
+  AudioSys.click();
+  game.paused = true;
+  newGateQ();
+  gateModal.classList.remove('hidden');
+}
+function closeGate() {
+  gateModal.classList.add('hidden');
+  game.paused = false;
+}
+document.getElementById('gearBtn').addEventListener('click', openGate);
+document.getElementById('gateCancel').addEventListener('click', () => { AudioSys.click(); closeGate(); });
+document.getElementById('gateOk').addEventListener('click', () => {
+  const v = parseInt(gateInput.value, 10);
+  if (v === gateA + gateB) {
+    AudioSys.click();
+    gateMsg.textContent = '';
+    settingsPanel.classList.remove('hidden');
+  } else {
+    AudioSys.bump();
+    gateMsg.textContent = 'Try again — ask a grown-up!';
+    newGateQ();
+  }
+});
+document.getElementById('muteBtn').addEventListener('click', function () {
+  AudioSys.muted = !AudioSys.muted;
+  this.textContent = AudioSys.muted ? '🔇 Sound: OFF' : '🔊 Sound: ON';
+  if (!AudioSys.muted) AudioSys.click();
+});
+
+// ---------------- Main loop ----------------
+let lastT = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  let dt = (now - lastT) / 1000;
+  lastT = now;
+  if (dt > 1 / 30) dt = 1 / 30;
+  if (dt <= 0) return;
+  if (!game.paused && game.state === ST.PLAY) update(dt);
+  draw();
+}
+
+// ---------------- Boot ----------------
+resize();
+player.x = arena.x; player.y = arena.y;
+updateHUD();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruko's Dash Blitz — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0a05;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ff6a00}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">SCORE 0</div><div id="combo"></div><div id="time">60</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🎈 RUKO'S DASH BLITZ</h1>
+<div id="obody"><p>Pop the <b style="color:#ff6a00">lava balloons</b> before they float away! But NEVER pop a <b style="color:#ffd23f">Fire Baby</b> balloon — they're precious!</p><p>Tap fast for combos. 60 seconds on the clock!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Never let balloons or decorations touch hot lights or heaters — they can catch fire!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.22,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',score:0,combo:0,comboT:0,time:60,balloons:[],parts:[],shake:0,spawnT:0};
+function spawnBalloon(){
+  const baby=Math.random()<0.22;
+  G.balloons.push({x:40+Math.random()*(W-80),y:H+50,vy:-(60+Math.random()*90+G.score*0.02),
+    r:26+Math.random()*12,baby:baby,wob:Math.random()*6,popped:false});
+}
+function update(dt){
+  if(G.state!=='play')return;
+  G.time-=dt;
+  if(G.time<=0){G.time=0;gameOver();return;}
+  document.getElementById('time').textContent=Math.ceil(G.time);
+  G.spawnT-=dt;
+  if(G.spawnT<=0){G.spawnT=Math.max(0.25,0.8-G.score*0.0004);spawnBalloon();}
+  for(let i=G.balloons.length-1;i>=0;i--){const b=G.balloons[i];b.y+=b.vy*dt;b.wob+=dt*4;
+    if(b.y<-60)G.balloons.splice(i,1);}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=500*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  G.comboT-=dt;if(G.comboT<=0)G.combo=0;
+  if(G.shake>0)G.shake-=dt*30;
+  document.getElementById('score').textContent='SCORE '+G.score;
+  document.getElementById('combo').textContent=G.combo>1?('COMBO x'+G.combo):'';
+}
+function pop(b){
+  const idx=G.balloons.indexOf(b);if(idx>=0)G.balloons.splice(idx,1);
+  if(b.baby){
+    G.score=Math.max(0,G.score-150);G.combo=0;G.shake=8;sfx(300,80,0.3,'sawtooth');
+    for(let i=0;i<10;i++)G.parts.push({x:b.x,y:b.y,vx:(Math.random()-0.5)*200,vy:(Math.random()-0.5)*200,life:0.6,color:'#ff3b2e',s:4});
+  }else{
+    G.combo++;G.comboT=2;const pts=10*G.combo;G.score+=pts;sfx(600+G.combo*40,1200,0.12,'square');G.shake=3;
+    for(let i=0;i<14;i++)G.parts.push({x:b.x,y:b.y,vx:(Math.random()-0.5)*300,vy:(Math.random()-0.5)*300,life:0.5,color:Math.random()<0.5?'#ff6a00':'#ffd23f',s:5});
+  }
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  for(let i=G.balloons.length-1;i>=0;i--){const b=G.balloons[i];
+    if(Math.hypot(b.x-mx,b.y-my)<b.r+8){pop(b);break;}}
+});
+function drawBaby(x,y,r){
+  const g=ctx.createRadialGradient(x-4,y-6,3,x,y,r);
+  g.addColorStop(0,'#fff3b0');g.addColorStop(0.6,'#ffb300');g.addColorStop(1,'#e8640c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(x-r*0.4,y-r*0.55);ctx.quadraticCurveTo(x,y-r*1.25,x+r*0.4,y-r*0.55);ctx.quadraticCurveTo(x,y-r*0.8,x-r*0.4,y-r*0.55);ctx.fill();
+  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(x-r*0.22,y-r*0.05,r*0.09,0,Math.PI*2);ctx.arc(x+r*0.22,y-r*0.05,r*0.09,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+r*0.28,r*0.2,0.2,Math.PI-0.2);ctx.stroke();
+}
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2a0f08');g.addColorStop(1,'#0d0505');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  for(const b of G.balloons){
+    const wx=Math.sin(b.wob)*8;
+    ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(b.x+wx,b.y+b.r);ctx.lineTo(b.x+wx,b.y+b.r+30);ctx.stroke();
+    if(b.baby){drawBaby(b.x+wx,b.y,b.r);}
+    else{
+      const bg=ctx.createRadialGradient(b.x+wx-8,b.y-10,4,b.x+wx,b.y,b.r);
+      bg.addColorStop(0,'#ff9a5e');bg.addColorStop(1,'#c41e12');
+      ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(b.x+wx,b.y,b.r*0.85,b.r,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ffea00';ctx.beginPath();ctx.arc(b.x+wx-6,b.y-8,5,0,Math.PI*2);ctx.fill();
+    }
+  }
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*2,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+function start(){ac();G.state='play';G.score=0;G.combo=0;G.time=60;G.balloons=[];G.parts=[];overlay.classList.add('hidden');}
+function gameOver(){G.state='over';
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent="⏰ TIME'S UP!";
+  obody.innerHTML='<p>You popped your way to <b>'+G.score+' points</b>!</p><p>Remember: Fire Babys are precious — never pop them! 💛</p>';
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{start();};}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Caldera Bounce — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0c0a10;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,10,16,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#c8a8ff}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#7a5ac4;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">MAZE 1/3</div><div id="time">0:00</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🌀 CALDERA BOUNCE</h1>
+<div id="obody"><p>Guide the <b style="color:#c8a8ff">marble</b> through the maze!</p><p><b>Drag anywhere</b> — the marble rolls toward your finger. Reach the <b style="color:#7affa8">green goal</b>! 3 mazes!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Practice your home escape route — know two ways out of every room!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.18,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const MAZES=[
+["##########","#S...#...#","#.##.#.#.#","#.#..#.#.#","#.#.##.#.#","#....#...#","#.####.#.#","#......#G#","##########"],
+["############","#S..#.....##","##..#.###.#","#...#...#.#","#.#####.#.#","#.#...#.#.#","#.#.#.#.#.#","#..##..#..#","#.####.##.#","#......#..G","############"],
+["#############","#S....#....#","#.###.#.###.#","#.#...#...#.#","#.#.#####.#.#","#.#.....#.#.#","#.#####.#.#.#","#.....#.#...#","#####.#.###.#","#.....#.....#","#.#########.#","#...........G","#############"],
+];
+const G={state:'title',maze:0,mx:0,my:0,vx:0,vy:0,tx:0,ty:0,drag:false,walls:[],cs:0,ox:0,oy:0,gx:0,gy:0,startT:0,trail:[]};
+function buildMaze(){
+  const M=MAZES[G.maze],rows=M.length,cols=M[0].length;
+  const cs=Math.min(W/cols,(H-140)/rows);
+  G.cs=cs;G.ox=(W-cs*cols)/2;G.oy=(H-cs*rows)/2+60;
+  G.walls=[];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(M[r][c]==='#')G.walls.push({x:G.ox+c*cs,y:G.oy+r*cs});
+    if(M[r][c]==='S'){G.mx=G.ox+(c+0.5)*cs;G.my=G.oy+(r+0.5)*cs;}
+    if(M[r][c]==='G'){G.gx=G.ox+(c+0.5)*cs;G.gy=G.oy+(r+0.5)*cs;}
+  }
+  G.vx=0;G.vy=0;G.trail=[];
+  document.getElementById('score').textContent='MAZE '+(G.maze+1)+'/3';
+}
+function start(){ac();G.state='play';G.maze=0;G.startT=Date.now();buildMaze();overlay.classList.add('hidden');}
+function win(){
+  sfx(523,1047,0.5,'sine');
+  G.maze++;
+  if(G.maze>=MAZES.length){
+    G.state='over';
+    const s=Math.floor((Date.now()-G.startT)/1000);
+    overlay.classList.remove('hidden');
+    document.querySelector('#overlay h1').textContent='🏆 MAZES CLEAR!';
+    obody.innerHTML='<p>You escaped all 3 mazes in <b>'+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'</b>!</p>';
+    obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{start();};
+  }else{buildMaze();}
+}
+canvas.addEventListener('pointerdown',e=>{G.drag=true;const r=canvas.getBoundingClientRect();G.tx=e.clientX-r.left;G.ty=e.clientY-r.top;});
+canvas.addEventListener('pointermove',e=>{if(G.drag){const r=canvas.getBoundingClientRect();G.tx=e.clientX-r.left;G.ty=e.clientY-r.top;}});
+addEventListener('pointerup',()=>{G.drag=false;});
+function update(dt){
+  if(G.state!=='play')return;
+  if(G.drag){
+    const dx=G.tx-G.mx,dy=G.ty-G.my,d=Math.hypot(dx,dy);
+    if(d>8){G.vx+=dx/d*1400*dt;G.vy+=dy/d*1400*dt;}
+  }
+  G.vx*=Math.pow(0.12,dt);G.vy*=Math.pow(0.12,dt);
+  const sp=Math.hypot(G.vx,G.vy),max=420;
+  if(sp>max){G.vx*=max/sp;G.vy*=max/sp;}
+  const R=G.cs*0.28;
+  let nx=G.mx+G.vx*dt;
+  for(const w of G.walls){if(nx+R>w.x&&nx-R<w.x+G.cs&&G.my+R>w.y&&G.my-R<w.y+G.cs){if(G.vx>0)nx=w.x-R;else nx=w.x+G.cs+R;G.vx*=-0.3;sfx(200,150,0.06,'square');}}
+  G.mx=nx;
+  let ny=G.my+G.vy*dt;
+  for(const w of G.walls){if(G.mx+R>w.x&&G.mx-R<w.x+G.cs&&ny+R>w.y&&ny-R<w.y+G.cs){if(G.vy>0)ny=w.y-R;else ny=w.y+G.cs+R;G.vy*=-0.3;sfx(200,150,0.06,'square');}}
+  G.my=ny;
+  G.trail.push({x:G.mx,y:G.my});if(G.trail.length>24)G.trail.shift();
+  if(Math.hypot(G.gx-G.mx,G.gy-G.my)<G.cs*0.5)win();
+  const s=Math.floor((Date.now()-G.startT)/1000);
+  document.getElementById('time').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+function render(){
+  ctx.fillStyle='#0c0a10';ctx.fillRect(0,0,W,H);
+  if(G.state==='title')return;
+  for(const w of G.walls){
+    ctx.fillStyle='#3a3a5a';ctx.fillRect(w.x,w.y,G.cs,G.cs);
+    ctx.fillStyle='#5a5a7a';ctx.fillRect(w.x,w.y,G.cs,3);
+  }
+  const pulse=1+Math.sin(Date.now()/250)*0.15;
+  ctx.fillStyle='#1e6b26';
+  ctx.beginPath();ctx.arc(G.gx,G.gy,G.cs*0.36*pulse,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#7affa8';ctx.font='bold '+(G.cs*0.4)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('★',G.gx,G.gy+1);
+  for(let i=0;i<G.trail.length;i++){const t=G.trail[i];ctx.globalAlpha=i/G.trail.length*0.4;ctx.fillStyle='#c8a8ff';ctx.beginPath();ctx.arc(t.x,t.y,G.cs*0.2,0,Math.PI*2);ctx.fill();}
+  ctx.globalAlpha=1;
+  const mg=ctx.createRadialGradient(G.mx-4,G.my-5,2,G.mx,G.my,G.cs*0.3);
+  mg.addColorStop(0,'#e8d8ff');mg.addColorStop(1,'#7a5ac4');
+  ctx.fillStyle=mg;ctx.beginPath();ctx.arc(G.mx,G.my,G.cs*0.28,0,Math.PI*2);ctx.fill();
+  ctx.textBaseline='alphabetic';
+  if(G.drag){ctx.strokeStyle='rgba(200,168,255,0.5)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(G.mx,G.my);ctx.lineTo(G.tx,G.ty);ctx.stroke();}
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

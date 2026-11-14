@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cinder's Melt-Down — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#141020;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,14,30,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#e2a0ff}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#7a3aa0;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#221a30;border-radius:12px;padding:16px;margin:12px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
+.hidden{display:none!important}
+#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">PAIRS 0/8</div><div id="moves">FLIPS 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🃏 CINDER'S<br>MELT-DOWN</h1>
+<div id="obody"><p><b style="color:#e2a0ff">Lord Inferno</b> & <b style="color:#e2a0ff">Ruko</b> test your memory!</p><p>🖱️ <b>Flip</b> two cards at a time — find all 8 matching fire baby pairs! Fewer flips = higher score!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Remember your family's fire escape plan — practice it twice a year!</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+let W,H,CW,CH,OX,OY;const COLS=4,ROWS=4;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;
+  CW=Math.min(W*0.22,H*0.13);CH=CW*1.25;OX=(W-CW*COLS)/2;OY=H*0.18;}
+addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+// 8 fire baby faces (color + expression combos)
+const FACES=[
+  {c:'#ff8a2e',e:'happy'},{c:'#ff3b2e',e:'angry'},{c:'#ffd23f',e:'happy'},{c:'#ff2a6d',e:'silly'},
+  {c:'#ff6a00',e:'happy'},{c:'#c4a0ff',e:'calm'},{c:'#7ac4ff',e:'happy'},{c:'#e63900',e:'brave'}
+];
+const G={state:'title',cards:[],first:null,lock:false,pairs:0,flips:0,parts:[],shake:0,combo:0};
+function startGame(){audio();G.pairs=0;G.flips=0;G.first=null;G.lock=false;G.parts=[];G.combo=0;
+  const deck=[];for(let i=0;i<8;i++){deck.push(i,i);}
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  G.cards=deck.map((v,i)=>({v,flipped:false,matched:false,flip:0}));
+  G.state='play';updHud();overlay.classList.add('hidden');}
+function updHud(){document.getElementById('score').textContent='PAIRS '+G.pairs+'/8';document.getElementById('moves').textContent='FLIPS '+G.flips;}
+function boom(x,y,n,c){for(let i=0;i<n;i++)G.parts.push({x,y,vx:(Math.random()-0.5)*300,vy:(Math.random()-0.5)*300,life:0.6,max:0.6,c});}
+function flipCard(i){
+  if(G.state!=='play'||G.lock)return;
+  const c=G.cards[i];
+  if(c.flipped||c.matched)return;
+  c.flipped=true;G.flips++;sfx(500,700,0.1,'sine',0.15);updHud();
+  if(!G.first){G.first=i;}
+  else{
+    const a=G.cards[G.first],b=c;
+    if(a.v===b.v){
+      G.lock=true;
+      setTimeout(()=>{a.matched=true;b.matched=true;G.pairs++;G.combo++;
+        const cx=OX+(i%COLS)*CW+CW/2,cy=OY+Math.floor(i/COLS)*CH+CH/2;
+        boom(cx,cy,20,FACES[a.v].c);sfx(600,1200,0.25,'sine',0.2);G.shake=6;
+        G.first=null;G.lock=false;updHud();
+        if(G.pairs>=8)endGame();},400);
+    }else{
+      G.lock=true;G.combo=0;
+      const f=G.first;
+      setTimeout(()=>{a.flipped=false;b.flipped=false;G.first=null;G.lock=false;sfx(300,200,0.15,'square',0.12);},800);
+    }
+  }
+}
+function endGame(){G.state='over';
+  const score=Math.max(100,1000-G.flips*10+G.combo*50);
+  obody.innerHTML='<p>🎉 All pairs found in <b>'+G.flips+'</b> flips! Score: <b>'+score+'</b></p>';
+  document.querySelector('#overlay h1').textContent='🏆 YOU WIN!';
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');
+  sfx(523,1047,0.5,'sine',0.25);}
+function drawFace(x,y,r,face,alpha){
+  ctx.save();ctx.globalAlpha=alpha;
+  const g=ctx.createRadialGradient(x-4,y-5,3,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(0.4,face.c);g.addColorStop(1,face.c);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(x-r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.7,x+r*0.4,y-r*0.7);ctx.quadraticCurveTo(x,y-r*1.1,x-r*0.4,y-r*0.7);ctx.fill();
+  ctx.fillStyle='#2b1a0e';
+  if(face.e==='angry'){ctx.fillRect(x-11,y-8,9,3);ctx.fillRect(x+2,y-8,9,3);}
+  ctx.beginPath();ctx.arc(x-5,y-1,3,0,Math.PI*2);ctx.arc(x+5,y-1,3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();
+  if(face.e==='silly'){ctx.moveTo(x-7,y+8);ctx.lineTo(x+7,y+4);}
+  else ctx.arc(x,y+5,6,0.2,Math.PI-0.2);
+  ctx.stroke();ctx.restore();
+}
+function render(){
+  ctx.fillStyle='#141020';ctx.fillRect(0,0,W,H);
+  ctx.save();if(G.shake>0){ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);G.shake*=0.9;}
+  G.cards.forEach((c,i)=>{
+    const x=OX+(i%COLS)*CW+4,y=OY+Math.floor(i/COLS)*CH+4,w=CW-8,h=CH-8;
+    if(c.matched){
+      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],0.35);
+    }else if(c.flipped){
+      ctx.fillStyle='#2a2040';ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
+      drawFace(x+w/2,y+h/2,Math.min(w,h)*0.36,FACES[c.v],1);
+    }else{
+      const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,'#4a3a6a');g.addColorStop(1,'#2a2040');
+      ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();
+      ctx.fillStyle='#e2a0ff';ctx.font='bold '+Math.floor(h*0.3)+'px sans-serif';ctx.textAlign='center';ctx.fillText('🔥',x+w/2,y+h/2+h*0.1);ctx.textAlign='left';}
+  });
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*0.016;p.y+=p.vy*0.016;p.life-=0.016;if(p.life<=0){G.parts.splice(i,1);continue;}ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+function tapAt(x,y){
+  if(G.state!=='play')return;
+  const c=Math.floor((x-OX)/CW),r=Math.floor((y-OY)/CH);
+  if(c>=0&&c<COLS&&r>=0&&r<ROWS)flipCard(r*COLS+c);
+}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];tapAt(t.clientX,t.clientY);},{passive:false});
+canvas.addEventListener('mousedown',e=>{tapAt(e.clientX,e.clientY);});
+let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  render();requestAnimationFrame(loop);}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

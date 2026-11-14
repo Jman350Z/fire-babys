@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lava Line Draw — by Jman350Z & fire team</title>
+<meta name="description" content="Draw lines to guide the fire baby home! Physics puzzle. A Fire Babys game.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140d08;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#inkbar{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:min(280px,60vw);height:12px;background:rgba(0,0,0,.5);border-radius:6px;z-index:5;pointer-events:none;overflow:hidden}
+#inkfill{height:100%;width:100%;background:linear-gradient(90deg,#7fd4ff,#4a90d9);border-radius:6px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,6,3,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#1a0e08;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
+.hidden{display:none!important}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
+.lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#1a0e08;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
+#clearBtn{position:fixed;bottom:14px;right:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #ff6a1a;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#ctl{position:fixed;top:64px;right:12px;z-index:15;display:flex;gap:8px}
+#ctl button{background:rgba(0,0,0,.55);color:#fff;border:2px solid rgba(255,255,255,.35);border-radius:10px;padding:8px 12px;font-size:16px;font-weight:800;cursor:pointer;min-width:44px;min-height:44px}
+#ballBtn{position:fixed;bottom:14px;right:118px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:2px solid #4caf50;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="level">LV 1/8</div>
+<div class="pill" id="stars">⭐ 0/3</div>
+</div>
+<div id="inkbar"><div id="inkfill"></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<button id="clearBtn">🗑️ Clear</button>
+<button id="ballBtn">↻ Ball</button>
+<div id="ctl"><button id="pauseBtn" title="Pause (P)">⏸</button><button id="muteBtn" title="Sound on/off">🔊</button></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1 id="otitle">✏️ LAVA LINE DRAW</h1>
+<div id="obody"><p>Guide the little fire baby home!</p><p><b>DRAW</b> lines with your finger to make ramps and bridges! Then tap <b>▶ GO</b> to roll the fire baby to the golden goal. You have limited ink — plan wisely!</p><div id="lvlSel"></div></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Draw your family's escape route on paper — know two ways out!</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  draw(){tone(600,700,0.03,'sine',0.04);},
+  go(){tone(400,800,0.2,'triangle',0.14);},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.25,'triangle',0.18,i*0.1));},
+  bump(){tone(300,200,0.06,'square',0.08);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+// levels: start, goal, obstacles
+const LEVELS=[
+  {sx:0.15,sy:0.3,gx:0.85,gy:0.7,ink:400,obs:[]},
+  {sx:0.12,sy:0.75,gx:0.88,gy:0.25,ink:450,obs:[{x:0.4,y:0.4,w:0.2,h:0.06}]},
+  {sx:0.5,sy:0.15,gx:0.5,gy:0.85,ink:500,obs:[{x:0.3,y:0.45,w:0.4,h:0.06}]},
+  {sx:0.1,sy:0.5,gx:0.9,gy:0.5,ink:420,obs:[{x:0.42,y:0.2,w:0.06,h:0.6}]},
+  {sx:0.15,sy:0.2,gx:0.85,gy:0.8,ink:550,obs:[{x:0.35,y:0.3,w:0.3,h:0.06},{x:0.35,y:0.6,w:0.3,h:0.06}]},
+  {sx:0.85,sy:0.15,gx:0.15,gy:0.85,ink:600,obs:[{x:0.4,y:0.4,w:0.2,h:0.2}]},
+  {sx:0.1,sy:0.85,gx:0.9,gy:0.15,ink:600,obs:[{x:0.25,y:0.3,w:0.5,h:0.05},{x:0.25,y:0.6,w:0.5,h:0.05}]},
+  {sx:0.5,sy:0.1,gx:0.5,gy:0.9,ink:650,obs:[{x:0.2,y:0.35,w:0.25,h:0.05},{x:0.55,y:0.35,w:0.25,h:0.05},{x:0.2,y:0.65,w:0.25,h:0.05},{x:0.55,y:0.65,w:0.25,h:0.05}]},
+];
+const G={state:'title',level:1,lines:[],drawing:null,ink:400,maxInk:400,
+  ball:null,rolling:false,score:0,time:0,hintT:0,goBtn:{x:0,y:0,w:90,h:44}};
+function initLevel(n){
+  const L=LEVELS[n-1];
+  G.level=n;G.lines=[];segCache=null;G.drawing=null;G.ink=L.ink;G.maxInk=L.ink;
+  G.ball={x:L.sx*W,y:L.sy*H,vx:0,vy:0,r:16};
+  G.rolling=false;G.rollT=0;G.stillT=0;G.score=G.score||0;
+  G.goBtn={x:W-110,y:H-118,w:90,h:44};
+  document.getElementById('level').textContent=`LV ${n}/8`;
+  updateInk();updateHUD();
+}
+function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
+function updateInk(){document.getElementById('inkfill').style.width=(G.ink/G.maxInk*100)+'%';}
+// drawing
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  // GO button
+  const gb=G.goBtn;
+  if(!G.rolling&&x>gb.x&&x<gb.x+gb.w&&y>gb.y&&y<gb.y+gb.h){
+    if(!G.lines.length){G.hintT=1.4;sfx.bump();return;}
+    G.rolling=true;sfx.go();return;
+  }
+  if(G.rolling)return;
+  G.drawing={pts:[{x,y}]};
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!G.drawing)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const last=G.drawing.pts[G.drawing.pts.length-1];
+  const d=Math.hypot(x-last.x,y-last.y);
+  if(d>6){
+    if(G.ink<d){finishLine();return;}
+    G.ink-=d;updateInk();
+    G.drawing.pts.push({x,y});
+    if(Math.random()<0.3)sfx.draw();
+  }
+});
+canvas.addEventListener('pointerup',()=>finishLine());
+function finishLine(){
+  if(G.drawing&&G.drawing.pts.length>3){G.lines.push(G.drawing);segCache=null;}
+  G.drawing=null;
+}
+document.getElementById('ballBtn').addEventListener('click',()=>{
+  if(G.state==='play'){
+    const L=LEVELS[G.level-1];
+    G.ball={x:L.sx*W,y:L.sy*H,vx:0,vy:0,r:16};
+    G.rolling=false;G.rollT=0;G.stillT=0;sfx.click();
+  }
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(G.state==='play'&&!G.rolling){
+    G.lines=[];segCache=null;const L=LEVELS[G.level-1];G.ink=L.ink;updateInk();sfx.click();
+  }
+});
+// physics
+let segCache=null;
+function lineSegs(){
+  if(segCache)return segCache;
+  const segs=[];
+  for(const line of G.lines){
+    for(let i=0;i<line.pts.length-1;i++)
+      segs.push({x1:line.pts[i].x,y1:line.pts[i].y,x2:line.pts[i+1].x,y2:line.pts[i+1].y});
+  }
+  segCache=segs;return segs;
+}
+function distToSeg(px,py,x1,y1,x2,y2){
+  const dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy||1;
+  let t=((px-x1)*dx+(py-y1)*dy)/L2;t=Math.max(0,Math.min(1,t));
+  return{d:Math.hypot(px-(x1+t*dx),py-(y1+t*dy)),x:x1+t*dx,y:y1+t*dy,nx:-dy/Math.sqrt(L2),ny:dx/Math.sqrt(L2)};
+}
+const particles=[];
+for(let i=0;i<60;i++)particles.push({a:false});
+function update(dt){
+  G.time+=dt;if(G.hintT>0)G.hintT-=dt;
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  if(!G.rolling||G.state!=='play')return;
+  const b=G.ball,L=LEVELS[G.level-1];
+  b.vy+=1400*dt;
+  b.vx*=0.998;
+  b.x+=b.vx*dt;b.y+=b.vy*dt;
+  // line collisions
+  for(const s of lineSegs()){
+    const c=distToSeg(b.x,b.y,s.x1,s.y1,s.x2,s.y2);
+    if(c.d<b.r+4){
+      // push out
+      const nx=c.nx,ny=c.ny;
+      // ensure normal points away from ball velocity or upward
+      const dot=b.vx*nx+b.vy*ny;
+      const px=dot<0?nx:-nx,py=dot<0?ny:-ny;
+      b.x=c.x+px*(b.r+4);b.y=c.y+py*(b.r+4);
+      const vn=b.vx*px+b.vy*py;
+      if(vn<0){
+        b.vx-=1.7*vn*px;b.vy-=1.7*vn*py;
+        b.vx*=0.96;b.vy*=0.96;
+        if(Math.abs(vn)>120)sfx.bump();
+      }
+      // friction along line
+      b.vx*=0.999;b.vy*=0.999;
+    }
+  }
+  // obstacle collisions (solid blocks)
+  for(const o of L.obs){
+    const ox=o.x*W,oy=o.y*H,ow=o.w*W,oh=o.h*H;
+    if(b.x+b.r>ox&&b.x-b.r<ox+ow&&b.y+b.r>oy&&b.y-b.r<oy+oh){
+      // push out (simple)
+      const dl=b.x+b.r-ox,dr=ox+ow-(b.x-b.r),dt2=b.y+b.r-oy,db=oy+oh-(b.y-b.r);
+      const m=Math.min(dl,dr,dt2,db);
+      if(m===dl){b.x=ox-b.r;b.vx=-Math.abs(b.vx)*0.6;}
+      else if(m===dr){b.x=ox+ow+b.r;b.vx=Math.abs(b.vx)*0.6;}
+      else if(m===dt2){b.y=oy-b.r;b.vy=-Math.abs(b.vy)*0.6;}
+      else{b.y=oy+oh+b.r;b.vy=Math.abs(b.vy)*0.6;}
+      sfx.bump();
+    }
+  }
+  // walls
+  if(b.x<b.r){b.x=b.r;b.vx=Math.abs(b.vx)*0.7;}
+  if(b.x>W-b.r){b.x=W-b.r;b.vx=-Math.abs(b.vx)*0.7;}
+  if(b.y>H-b.r){b.y=H-b.r;b.vy=-Math.abs(b.vy)*0.5;b.vx*=0.9;}
+  // goal check
+  const gx=L.gx*W,gy=L.gy*H;
+  if(Math.hypot(b.x-gx,b.y-gy)<34){
+    levelComplete();return;
+  }
+  // stuck: ball at rest for 2.5s, or 12s total roll, ends the attempt
+  G.rollT=(G.rollT||0)+dt;
+  if(Math.hypot(b.vx,b.vy)<28)G.stillT=(G.stillT||0)+dt;else G.stillT=0;
+  if(G.stillT>2.5||G.rollT>12){levelFailed();return;}
+}
+function levelComplete(){
+  G.state='clear';sfx.win();
+  const inkBonus=Math.round(G.ink/G.maxInk*300);
+  const pts=200+inkBonus;G.score+=pts;updateHUD();
+  const stars=G.ink/G.maxInk>0.5?3:G.ink/G.maxInk>0.25?2:1;
+  document.getElementById('stars').textContent=`⭐ ${stars}/3`;
+  for(let i=0;i<20;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    const L=LEVELS[G.level-1];
+    p.a=true;p.x=L.gx*W;p.y=L.gy*H;
+    const a=Math.random()*Math.PI*2;p.vx=Math.cos(a)*250;p.vy=Math.sin(a)*250;
+    p.life=0.7;p.max=0.7;p.color='#ffd23f';p.size=4;}
+  setTimeout(()=>{
+    if(G.level>=8){
+      showOverlay('🏆 MASTER ARTIST!',
+        `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 8 levels solved!</p>`,
+        '🔥 Fire Safety: You\'re a champion!',
+        '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';});
+    }else{
+      showOverlay(`⭐ LEVEL ${G.level} COMPLETE!`,
+        `<div style="color:#ffd23f;font-size:26px">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p>+${pts} pts (+${inkBonus} ink bonus)</p>`,
+        '🔥 Fire Safety: Draw your escape route!',
+        '▶ NEXT LEVEL',()=>{initLevel(G.level+1);G.state='play';});
+    }
+  },800);
+}
+function levelFailed(){
+  G.state='clear';
+  setTimeout(()=>{
+    showOverlay('💥 STUCK!',
+      `<p>The fire baby couldn't reach the goal.</p><p>Try a different line!</p>`,
+      '🔥 Fire Safety: Never give up!',
+      '↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';});
+  },500);
+}
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');showLevels();
+  }else document.getElementById('ma').value='';
+}
+function showLevels(){
+  otitle.innerHTML='✏️ PICK LEVEL';
+  let h='';
+  for(let i=1;i<=8;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  obody.innerHTML=`<p>Draw lines to guide the fire baby to the goal!</p><div id="lvlSel">${h}</div>`;
+  obtn.style.display='none';
+  overlay.classList.remove('hidden');
+}
+function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
+  obtn.textContent=btn;obtn.style.display='';
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+obtn.onclick=()=>{showMathGate();};
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#140d08');bg.addColorStop(1,'#1e1208');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  if(G.state==='title')return;
+  // living ember background (additive glow)
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let i=0;i<24;i++){
+    const ex=((i*173+Math.sin(G.time*0.7+i)*12)%W+W)%W;
+    const ey=H-((i*137+G.time*(22+(i%5)*7))%(H+30));
+    ctx.globalAlpha=0.08+((i*29)%26)/100;ctx.fillStyle=i%3?'#ff7a2a':'#ffd23f';
+    ctx.shadowColor='#ff6a00';ctx.shadowBlur=8;
+    ctx.beginPath();ctx.arc(ex,ey,1.6+(i%3),0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();ctx.globalAlpha=1;
+  const L=LEVELS[G.level-1];
+  // obstacles
+  for(const o of L.obs){
+    ctx.fillStyle='#3a2a1a';
+    ctx.fillRect(o.x*W,o.y*H,o.w*W,o.h*H);
+    ctx.strokeStyle='#5a4a3a';ctx.lineWidth=2;
+    ctx.strokeRect(o.x*W,o.y*H,o.w*W,o.h*H);
+  }
+  // start & goal
+  const sx=L.sx*W,sy=L.sy*H,gx=L.gx*W,gy=L.gy*H;
+  ctx.fillStyle='#4caf50';ctx.globalAlpha=0.3;
+  ctx.beginPath();ctx.arc(sx,sy,30,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#4caf50';ctx.font='900 13px system-ui';ctx.textAlign='center';
+  ctx.fillText('START',sx,sy-36);ctx.textAlign='left';
+  // goal: pulsing
+  const pulse=1+Math.sin(G.time*4)*0.12;
+  ctx.save();ctx.translate(gx,gy);ctx.scale(pulse,pulse);
+  const gg=ctx.createRadialGradient(0,0,5,0,0,34);
+  gg.addColorStop(0,'rgba(255,210,63,0.9)');gg.addColorStop(1,'rgba(255,210,63,0.1)');
+  ctx.fillStyle=gg;ctx.beginPath();ctx.arc(0,0,34,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffd23f';ctx.font='28px system-ui';ctx.textAlign='center';
+  ctx.fillText('🏁',0,10);ctx.textAlign='left';
+  ctx.restore();
+  // drawn lines
+  ctx.strokeStyle='#7fd4ff';ctx.lineWidth=7;ctx.lineCap='round';ctx.lineJoin='round';
+  for(const line of G.lines){
+    ctx.beginPath();
+    line.pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;
+    ctx.stroke();
+    ctx.strokeStyle='#7fd4ff';ctx.lineWidth=7;
+  }
+  if(G.drawing){
+    ctx.beginPath();
+    G.drawing.pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.stroke();
+  }
+  // ball
+  const b=G.ball;
+  if(b){
+    const g=ctx.createRadialGradient(b.x-5,b.y-6,3,b.x,b.y,b.r);
+    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.fillStyle=g;ctx.shadowColor='#ff7a2a';ctx.shadowBlur=16;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='#2b1a0e';
+    ctx.beginPath();ctx.arc(b.x-5,b.y-3,3,0,Math.PI*2);ctx.arc(b.x+5,b.y-3,3,0,Math.PI*2);ctx.fill();
+  }
+  // GO button
+  if(!G.rolling&&G.state==='play'){
+    const gb=G.goBtn;
+    ctx.fillStyle=G.lines.length?'#4caf50':'#555';
+    ctx.beginPath();ctx.roundRect(gb.x,gb.y,gb.w,gb.h,12);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 18px system-ui';ctx.textAlign='center';
+    ctx.fillText('▶ GO',gb.x+gb.w/2,gb.y+gb.h/2+6);ctx.textAlign='left';
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  if(G.hintT>0){
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.beginPath();ctx.roundRect(W/2-130,H*0.3-24,260,48,12);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.font='900 19px system-ui';ctx.textAlign='center';
+    ctx.fillText('✏️ Draw a line first!',W/2,H*0.3+7);ctx.textAlign='left';
+  }
+  if(PAUSED){
+    ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font='900 34px system-ui';ctx.textAlign='center';
+    ctx.fillText('⏸ PAUSED',W/2,H/2);ctx.textAlign='left';
+  }
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(G.state==='play'&&!PAUSED)update(dt);else G.time+=dt;
+  render();
+  requestAnimationFrame(loop);
+}
+let MUTED=false,PAUSED=false;
+const _tone25=tone;
+tone=function(f0,f1,dur,type,vol,delay=0){if(MUTED)return;_tone25(f0,f1,dur,type,vol,delay);};
+document.getElementById('muteBtn').onclick=()=>{MUTED=!MUTED;document.getElementById('muteBtn').textContent=MUTED?'🔇':'🔊';if(!MUTED)sfx.click();};
+function setPaused(p){PAUSED=p;document.getElementById('pauseBtn').textContent=PAUSED?'▶':'⏸';}
+document.getElementById('pauseBtn').onclick=()=>{if(G.state==='play')setPaused(!PAUSED);};
+addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P'||e.key==='Escape')&&G.state==='play')setPaused(!PAUSED);});
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

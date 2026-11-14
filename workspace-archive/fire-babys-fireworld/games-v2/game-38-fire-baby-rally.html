@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fire Baby Rally — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0d18;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,13,24,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#7ae2ff}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#2a7ac4;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">0m</div><div id="best"></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🚀 FIRE BABY RALLY</h1>
+<div id="obody"><p><b>HOLD</b> anywhere to thrust UP — <b>RELEASE</b> to fall!</p><p>Fly Cinder through the crystal caves. Don't touch the walls!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Smoke rises to the ceiling — stay LOW and get out fast!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.18,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',dist:0,best:0,speed:260,px:0,py:0,vy:0,thrust:false,walls:[],parts:[],shake:0,bgX:0,flame:0};
+function addWall(x){
+  const gapH=Math.max(150,230-G.dist*0.06);
+  const gy=80+Math.random()*(H-160-gapH);
+  G.walls.push({x:x,gapY:gy,gapH:gapH,passed:false});
+}
+function start(){ac();G.state='play';G.dist=0;G.speed=260;G.px=W*0.3;G.py=H/2;G.vy=0;G.thrust=false;G.walls=[];G.parts=[];
+  for(let x=W+100;x<W+1600;x+=340)addWall(x);
+  overlay.classList.add('hidden');}
+function gameOver(){G.state='over';G.best=Math.max(G.best,G.dist);sfx(400,70,0.5,'sawtooth');G.shake=12;
+  for(let i=0;i<24;i++)G.parts.push({x:G.px,y:G.py,vx:(Math.random()-0.5)*400,vy:(Math.random()-0.5)*400,life:0.8,color:'#7ae2ff',s:5});
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent='💥 CRASH!';
+  obody.innerHTML='<p>You flew <b>'+Math.floor(G.dist)+'m</b>!</p><p>Best: '+Math.floor(G.best)+'m</p>';
+  obtn.textContent='↻ FLY AGAIN';obtn.onclick=()=>{start();};}
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();G.thrust=true;});
+addEventListener('pointerup',()=>{G.thrust=false;});
+addEventListener('pointercancel',()=>{G.thrust=false;});
+addEventListener('keydown',e=>{if(e.key===' ')G.thrust=true;});
+addEventListener('keyup',e=>{if(e.key===' ')G.thrust=false;});
+function update(dt){
+  if(G.state!=='play')return;
+  G.speed+=dt*7;G.dist+=G.speed*dt/50;G.bgX=(G.bgX+G.speed*dt)%60;
+  if(G.thrust){G.vy-=1500*dt;G.flame=Math.min(1,G.flame+dt*5);
+    if(Math.random()<0.5)G.parts.push({x:G.px-14,y:G.py+10,vx:-120,vy:60,life:0.4,color:'#ff9a00',s:6});
+  }else{G.vy+=1100*dt;G.flame=Math.max(0,G.flame-dt*5);}
+  G.vy=Math.max(-420,Math.min(520,G.vy));
+  G.py+=G.vy*dt;
+  for(const w of G.walls){
+    w.x-=G.speed*dt;
+    if(!w.passed&&w.x<G.px){w.passed=true;sfx(700,900,0.1,'sine');}
+    if(G.px+14>w.x&&G.px-14<w.x+50){
+      if(G.py-14<w.gapY||G.py+14>w.gapY+w.gapH){gameOver();return;}
+    }
+  }
+  while(G.walls.length&&G.walls[0].x<-80)G.walls.shift();
+  let lastX=G.walls.length?G.walls[G.walls.length-1].x:W;
+  while(lastX<W+400){lastX+=320;addWall(lastX);}
+  if(G.py<0||G.py>H){gameOver();return;}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.shake>0)G.shake-=dt*30;
+  document.getElementById('score').textContent=Math.floor(G.dist)+'m';
+  document.getElementById('best').textContent='BEST '+Math.floor(G.best)+'m';
+}
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#101a30');g.addColorStop(1,'#080a14');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  ctx.fillStyle='rgba(122,226,255,0.06)';
+  for(let x=-60+G.bgX;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+20,0);ctx.lineTo(x+10,H);ctx.lineTo(x-10,H);ctx.fill();}
+  for(const w of G.walls){
+    const cg=ctx.createLinearGradient(w.x,0,w.x+50,0);
+    cg.addColorStop(0,'#3a5a7a');cg.addColorStop(0.5,'#5a8aaa');cg.addColorStop(1,'#3a5a7a');
+    ctx.fillStyle=cg;
+    ctx.fillRect(w.x,0,50,w.gapY);ctx.fillRect(w.x,w.gapY+w.gapH,50,H-(w.gapY+w.gapH));
+    ctx.fillStyle='#7ae2ff';
+    ctx.fillRect(w.x,w.gapY-8,50,8);ctx.fillRect(w.x,w.gapY+w.gapH,50,8);
+  }
+  ctx.save();ctx.translate(G.px,G.py);ctx.rotate(Math.max(-0.4,Math.min(0.4,G.vy/900)));
+  if(G.flame>0){
+    ctx.fillStyle='rgba(255,154,0,'+(0.7*G.flame)+')';
+    ctx.beginPath();ctx.moveTo(-14,4);ctx.lineTo(-14-30*G.flame,10);ctx.lineTo(-14,16);ctx.closePath();ctx.fill();
+  }
+  const bg=ctx.createRadialGradient(-4,-6,3,0,0,20);
+  bg.addColorStop(0,'#ffe8c8');bg.addColorStop(0.6,'#ffb36a');bg.addColorStop(1,'#d46a1a');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(5,-3,2.5,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(6,5,4,0.2,Math.PI-0.2);ctx.stroke();
+  ctx.restore();
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*2.5,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

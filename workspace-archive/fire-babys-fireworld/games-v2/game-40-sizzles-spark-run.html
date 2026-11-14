@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sizzle's Spark Run — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140a04;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,10,4,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ffd23f}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#d4880c;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">LEVEL 1</div><div id="taps">TAPS LEFT 1</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>💥 SIZZLE'S SPARK RUN</h1>
+<div id="obody"><p><b>Tap ONE ember</b> to set it off — its blast triggers nearby embers in a <b>chain reaction</b>!</p><p>Chain <b>ALL</b> embers with your limited taps. 6 levels, each trickier!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: One tiny spark can start a huge fire — never play with matches or lighters!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.25,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',level:0,embers:[],parts:[],taps:0,shake:0,levelDone:false};
+const LEVELS=[{n:8,taps:1},{n:12,taps:1},{n:16,taps:2},{n:20,taps:2},{n:24,taps:3},{n:28,taps:3}];
+function buildLevel(){
+  const L=LEVELS[G.level];
+  G.embers=[];G.parts=[];G.taps=L.taps;G.levelDone=false;
+  const margin=60;
+  for(let i=0;i<L.n;i++){
+    G.embers.push({x:margin+Math.random()*(W-2*margin),y:120+Math.random()*(H-240),
+      r:16+Math.random()*8,chained:false,blast:0,ph:Math.random()*6});
+  }
+  document.getElementById('score').textContent='LEVEL '+(G.level+1)+'/6';
+  document.getElementById('taps').textContent='TAPS LEFT '+G.taps;
+}
+function explode(e){
+  e.chained=true;e.blast=0.01;
+  sfx(150,40,0.35,'sawtooth');G.shake=8;
+  for(let i=0;i<16;i++)G.parts.push({x:e.x,y:e.y,vx:(Math.random()-0.5)*380,vy:(Math.random()-0.5)*380,life:0.6,color:['#ffd23f','#ff6a00','#ff3b2e'][i%3],s:6});
+  const R=110;
+  setTimeout(()=>{
+    if(G.state!=='play')return;
+    for(const o of G.embers){
+      if(!o.chained&&Math.hypot(o.x-e.x,o.y-e.y)<R+o.r)explode(o);
+    }
+    setTimeout(checkLevel,400);
+  },180);
+}
+function checkLevel(){
+  if(G.levelDone||G.state!=='play')return;
+  if(G.embers.every(e=>e.chained)){
+    G.levelDone=true;
+    setTimeout(()=>{
+      G.level++;
+      if(G.level>=LEVELS.length){
+        G.state='over';sfx(523,1047,0.6,'sine');
+        overlay.classList.remove('hidden');
+        document.querySelector('#overlay h1').textContent='⛓️ CHAIN MASTER!';
+        obody.innerHTML='<p>You chained every ember across all 6 levels!</p><p>Sizzle is impressed! ⚡</p>';
+        obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{start();};
+      }else{sfx(660,990,0.3,'sine');buildLevel();}
+    },500);
+  }else if(G.taps<=0){
+    G.levelDone=true;
+    setTimeout(()=>{
+      if(G.state!=='play')return;
+      G.state='over';
+      overlay.classList.remove('hidden');
+      document.querySelector('#overlay h1').textContent='💨 FIZZLED OUT';
+      obody.innerHTML='<p>'+G.embers.filter(e=>e.chained).length+'/'+G.embers.length+' embers chained.</p><p>Out of taps — try a better first tap!</p>';
+      obtn.textContent='↻ RETRY LEVEL';obtn.onclick=()=>{G.state='play';overlay.classList.add('hidden');buildLevel();};
+    },900);
+  }
+}
+function start(){ac();G.state='play';G.level=0;buildLevel();overlay.classList.add('hidden');}
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.taps<=0||G.levelDone)return;
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  for(const em of G.embers){
+    if(!em.chained&&Math.hypot(em.x-mx,em.y-my)<em.r+12){
+      G.taps--;
+      document.getElementById('taps').textContent='TAPS LEFT '+G.taps;
+      explode(em);
+      break;
+    }
+  }
+});
+function update(dt){
+  for(const e of G.embers){e.ph+=dt*4;if(e.blast>0&&e.blast<1)e.blast=Math.min(1,e.blast+dt*3);}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.shake>0)G.shake-=dt*30;
+}
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#241208');g.addColorStop(1,'#0d0603');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  if(G.state==='title'){ctx.restore();return;}
+  for(const e of G.embers){
+    if(e.chained)continue;
+    ctx.strokeStyle='rgba(255,210,63,0.15)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(e.x,e.y,110,0,Math.PI*2);ctx.stroke();
+  }
+  for(const e of G.embers){
+    if(e.chained){
+      if(e.blast<1){
+        ctx.strokeStyle='rgba(255,106,0,'+(1-e.blast)+')';ctx.lineWidth=6;
+        ctx.beginPath();ctx.arc(e.x,e.y,e.blast*110,0,Math.PI*2);ctx.stroke();
+      }
+      continue;
+    }
+    const pulse=1+Math.sin(e.ph)*0.12;
+    const eg=ctx.createRadialGradient(e.x-4,e.y-5,2,e.x,e.y,e.r*pulse);
+    eg.addColorStop(0,'#fff3b0');eg.addColorStop(0.6,'#ff9a00');eg.addColorStop(1,'#c43e12');
+    ctx.fillStyle=eg;ctx.beginPath();ctx.arc(e.x,e.y,e.r*pulse,0,Math.PI*2);ctx.fill();
+  }
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*1.8,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

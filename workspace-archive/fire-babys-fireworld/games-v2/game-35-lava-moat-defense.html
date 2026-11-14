@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lava Moat Defense — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#160b06;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(22,11,6,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ff8a00}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#e8640c;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">FOUND 0/5</div><div id="time">90</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🔍 LAVA MOAT DEFENSE</h1>
+<div id="obody"><p><b>Spot 5 differences</b> between the two volcano scenes! Tap the difference on <b>either</b> side.</p><p>Look closely — some are sneaky! 90 seconds!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: Spot the dangers! Look for fire hazards in your home — frayed cords, overloaded outlets!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.2,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const DIFFS=[
+ {nx:0.20,ny:0.30},
+ {nx:0.72,ny:0.22},
+ {nx:0.50,ny:0.55},
+ {nx:0.15,ny:0.70},
+ {nx:0.80,ny:0.68},
+];
+const G={state:'title',found:0,time:90,diffs:[],marks:[],wrong:0};
+function layout(){
+  const pw=W/2,ph=H-120,py=90;
+  return [{x:0,y:py,w:pw,h:ph},{x:pw,y:py,w:pw,h:ph}];
+}
+function start(){ac();G.state='play';G.found=0;G.time=90;G.wrong=0;G.marks=[];
+  G.diffs=DIFFS.map(d=>({nx:d.nx,ny:d.ny,found:false}));
+  overlay.classList.add('hidden');}
+function gameOver(win){
+  G.state='over';
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent=win?'🎉 ALL FOUND!':"⏰ TIME'S UP!";
+  obody.innerHTML='<p>You found <b>'+G.found+'/5</b> differences!</p>'+(win?'<p>Sharp eyes! 👀</p>':'<p>Wrong taps: '+G.wrong+'</p>');
+  obtn.textContent='↻ PLAY AGAIN';obtn.onclick=()=>{start();};
+  if(win)sfx(523,1047,0.5,'sine');
+}
+function drawScene(px,py,pw,ph,variant){
+  ctx.save();
+  ctx.beginPath();ctx.rect(px,py,pw,ph);ctx.clip();
+  const g=ctx.createLinearGradient(0,py,0,py+ph);
+  g.addColorStop(0,'#2a1a3a');g.addColorStop(0.6,'#4a2030');g.addColorStop(1,'#1a0a08');
+  ctx.fillStyle=g;ctx.fillRect(px,py,pw,ph);
+  const vx=px+pw*0.5,vbase=py+ph*0.85,vtop=py+ph*0.35;
+  ctx.fillStyle='#5a3a4a';
+  ctx.beginPath();ctx.moveTo(vx-pw*0.3,vbase);ctx.lineTo(vx-pw*0.08,vtop);ctx.lineTo(vx+pw*0.08,vtop);ctx.lineTo(vx+pw*0.3,vbase);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff6a00';
+  ctx.beginPath();ctx.moveTo(vx-pw*0.08,vtop);ctx.lineTo(vx+pw*0.08,vtop);ctx.lineTo(vx+pw*0.05,vtop+ph*0.12);ctx.lineTo(vx-pw*0.05,vtop+ph*0.12);ctx.closePath();ctx.fill();
+  if(variant==='B'){ctx.fillRect(vx+pw*0.12,vtop+ph*0.05,10,ph*0.2);}
+  if(variant==='A'){ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(px+pw*0.20,py+ph*0.30,ph*0.05,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(200,200,220,0.7)';
+  ctx.beginPath();ctx.ellipse(px+pw*0.5,py+ph*0.15,pw*0.08,ph*0.03,0,0,Math.PI*2);ctx.fill();
+  if(variant==='B'){ctx.beginPath();ctx.ellipse(px+pw*0.72,py+ph*0.22,pw*0.07,ph*0.028,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle=variant==='A'?'#ff3b2e':'#ff9a00';
+  ctx.beginPath();ctx.ellipse(vx,py+ph*0.55,pw*0.2,ph*0.05,0,0,Math.PI*2);ctx.fill();
+  if(variant==='A'){ctx.fillStyle='#777';ctx.beginPath();ctx.arc(px+pw*0.15,py+ph*0.70,ph*0.045,0,Math.PI*2);ctx.fill();}
+  if(variant==='B'){
+    const bx=px+pw*0.80,by=py+ph*0.68;
+    ctx.fillStyle='#ffb300';ctx.beginPath();ctx.arc(bx,by,ph*0.04,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(bx-ph*0.02,by-ph*0.03);ctx.quadraticCurveTo(bx,by-ph*0.09,bx+ph*0.02,by-ph*0.03);ctx.fill();
+  }
+  for(const m of G.marks){
+    ctx.strokeStyle='#7affa8';ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(px+m.nx*pw,py+m.ny*ph,ph*0.055,0,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.strokeRect(px,py,pw,ph);
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  const r=canvas.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  const panels=layout();
+  let panel=null;
+  for(const p of panels){if(mx>=p.x&&mx<=p.x+p.w&&my>=p.y&&my<=p.y+p.h){panel=p;break;}}
+  if(!panel)return;
+  const nx=(mx-panel.x)/panel.w, ny=(my-panel.y)/panel.h;
+  for(const d of G.diffs){
+    if(d.found)continue;
+    if(Math.hypot(d.nx-nx,d.ny-ny)<0.09){
+      d.found=true;G.found++;G.marks.push({nx:d.nx,ny:d.ny});
+      sfx(660,990,0.2,'sine');
+      document.getElementById('score').textContent='FOUND '+G.found+'/5';
+      if(G.found>=5){gameOver(true);}
+      return;
+    }
+  }
+  G.wrong++;sfx(200,120,0.2,'square');
+});
+function update(dt){
+  if(G.state!=='play')return;
+  G.time-=dt;
+  document.getElementById('time').textContent=Math.ceil(G.time);
+  if(G.time<=0){gameOver(false);}
+}
+function render(){
+  ctx.fillStyle='#160b06';ctx.fillRect(0,0,W,H);
+  if(G.state==='title')return;
+  const panels=layout();
+  drawScene(panels[0].x,panels[0].y,panels[0].w,panels[0].h,'A');
+  drawScene(panels[1].x,panels[1].y,panels[1].w,panels[1].h,'B');
+  ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';
+  ctx.fillText('A',panels[0].x+24,panels[0].y-12);
+  ctx.fillText('B',panels[1].x+24,panels[1].y-12);
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>

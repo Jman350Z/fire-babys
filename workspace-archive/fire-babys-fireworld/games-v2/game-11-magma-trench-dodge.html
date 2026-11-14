@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Magma Trench Dodge — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140806;font-family:system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:20px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,5,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin-bottom:12px;color:#ff6a00}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:460px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:#c44a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:14px 38px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a1a10;border-radius:12px;padding:16px;margin:12px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:8px;border-radius:8px;border:2px solid #555;margin:0 8px}
+.hidden{display:none!important}
+#back{position:fixed;top:56px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">0m</div><div id="gems">💎 0</div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>⚡ MAGMA TRENCH<br>DODGE</h1>
+<div id="obody"><p><b style="color:#ff6a00">Ruko</b> & <b style="color:#ff6a00">Sizzle</b> sprint for their lives!</p><p>👆 <b>TAP anywhere</b> to jump! Double-tap for a double jump! Dodge lava geysers, grab crystals. How far can you run?</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()" style="font-size:16px;padding:8px 20px">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: If fire blocks your path, never try to jump over it — get LOW, get OUT, call 911!</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+let W,H,GY;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;GY=H-110;}addEventListener('resize',resize);resize();
+let AC=null;function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type,vol){const ac=audio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const t=ac.currentTime;o.type=type||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);g.gain.setValueAtTime(vol||0.18,t);g.gain.exponentialRampToValueAtTime(0.01,t+dur);o.start(t);o.stop(t+dur+0.05);}
+let mathA=0;function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathA=a+b;document.getElementById('mq').textContent=a+' + '+b;document.getElementById('mathgate').classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathA){document.getElementById('mathgate').classList.add('hidden');startGame();}else document.getElementById('ma').value='';}
+const G={state:'title',dist:0,gems:0,best:0,px:0,py:0,vy:0,jumps:0,speed:0,obs:[],crys:[],parts:[],spawnT:0,shake:0,bgX:0};
+function startGame(){audio();G.dist=0;G.gems=0;G.px=W*0.25;G.py=GY;G.vy=0;G.jumps=0;G.speed=380;G.obs=[];G.crys=[];G.parts=[];G.spawnT=1;G.state='play';document.getElementById('score').textContent='0m';document.getElementById('gems').textContent='💎 0';overlay.classList.add('hidden');}
+function jump(){
+  if(G.state!=='play')return;
+  if(G.jumps<2){G.vy=-720;G.jumps++;sfx(350,650,0.12,'sine',0.18);
+    for(let i=0;i<8;i++)G.parts.push({x:G.px,y:G.py+18,vx:(Math.random()-0.5)*200,vy:Math.random()*150,life:0.4,max:0.4,c:'#8a8a8a'});}
+}
+function boom(x,y,n,c){for(let i=0;i<n;i++)G.parts.push({x,y,vx:(Math.random()-0.5)*380,vy:(Math.random()-0.5)*380-100,life:0.6,max:0.6,c});}
+function update(dt){
+  if(G.shake>0)G.shake-=dt*30;
+  G.speed=Math.min(700,380+G.dist*0.15);
+  G.dist+=G.speed*dt/50;G.bgX=(G.bgX+G.speed*dt)%80;
+  G.vy+=2200*dt;G.py+=G.vy*dt;
+  if(G.py>=GY){G.py=GY;G.vy=0;G.jumps=0;}
+  G.spawnT-=dt;
+  if(G.spawnT<=0){G.spawnT=Math.max(0.55,1.3-G.dist/4000);
+    if(Math.random()<0.7)G.obs.push({x:W+40,w:34+Math.random()*20,h:50+Math.random()*40,geyser:Math.random()<0.4,ph:Math.random()*6});
+    else for(let i=0;i<3;i++)G.crys.push({x:W+40+i*50,y:GY-60-Math.random()*160,taken:false});}
+  for(let i=G.obs.length-1;i>=0;i--){const o=G.obs[i];o.x-=G.speed*dt;
+    let oy=GY-o.h,oh=o.h;
+    if(o.geyser){o.ph+=dt*4;oh=o.h*(0.6+0.4*Math.abs(Math.sin(o.ph)));oy=GY-oh;}
+    if(o.x<-60){G.obs.splice(i,1);continue;}
+    if(G.px+16>o.x&&G.px-16<o.x+o.w&&G.py+18>oy&&G.py-18<oy+oh){gameOver();return;}}
+  for(let i=G.crys.length-1;i>=0;i--){const c=G.crys[i];c.x-=G.speed*dt;
+    if(c.x<-40){G.crys.splice(i,1);continue;}
+    if(!c.taken&&Math.hypot(c.x-G.px,c.y-G.py)<38){c.taken=true;G.gems++;boom(c.x,c.y,10,'#7ac4ff');sfx(880,1320,0.15,'sine',0.18);document.getElementById('gems').textContent='💎 '+G.gems;}}
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=600*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  document.getElementById('score').textContent=Math.floor(G.dist)+'m';
+}
+function gameOver(){G.state='over';G.best=Math.max(G.best,Math.floor(G.dist));
+  obody.innerHTML='<p>Ouch, lava! Distance: <b>'+Math.floor(G.dist)+'m</b> • Crystals: '+G.gems+' • Best: '+G.best+'m</p>';
+  document.querySelector('#overlay h1').textContent='🔥 WIPED OUT';
+  obtn.textContent='↻ RUN AGAIN';obtn.onclick=()=>{startGame();};overlay.classList.remove('hidden');
+  sfx(400,80,0.4,'sawtooth',0.25);G.shake=12;}
+function drawBaby(x,y){const r=20;const g=ctx.createRadialGradient(x-5,y-6,4,x,y,r);g.addColorStop(0,'#fff3b0');g.addColorStop(0.5,'#ff8a2e');g.addColorStop(1,'#e63900');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  // angry Ruko headband
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(x-r,y-r*0.55,r*2,9);
+  ctx.fillStyle='#2b1a0e';ctx.beginPath();ctx.arc(x-6,y,3,0,Math.PI*2);ctx.arc(x+6,y,3,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#2b1a0e';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-8,y+9);ctx.lineTo(x+8,y+6);ctx.stroke();}
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0d0605');bg.addColorStop(1,'#2e1208');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  // parallax rocks
+  ctx.fillStyle='#1e0e08';
+  for(let x=-80+G.bgX*0.3;x<W;x+=160){ctx.beginPath();ctx.moveTo(x,H);ctx.lineTo(x+40,GY-140);ctx.lineTo(x+80,H);ctx.fill();}
+  // ground
+  ctx.fillStyle='#3a2010';ctx.fillRect(0,GY,W,H-GY);
+  ctx.fillStyle='#ff3b2e';ctx.fillRect(0,GY,W,6);
+  for(const o of G.obs){const oh=o.geyser?o.h*(0.6+0.4*Math.abs(Math.sin(o.ph))):o.h;
+    const g2=ctx.createLinearGradient(0,GY-oh,0,GY);g2.addColorStop(0,'#ffd23f');g2.addColorStop(1,'#ff3b2e');
+    ctx.fillStyle=g2;ctx.fillRect(o.x,GY-oh,o.w,oh);}
+  for(const c of G.crys){if(c.taken)continue;ctx.fillStyle='#7ac4ff';ctx.save();ctx.translate(c.x,c.y);ctx.rotate(0.5);ctx.fillRect(-9,-9,18,18);ctx.restore();ctx.fillStyle='#fff';ctx.fillRect(c.x-3,c.y-3,6,6);}
+  const squash=G.py>=GY?1:1+Math.min(Math.abs(G.vy)/3000,0.25);
+  ctx.save();ctx.translate(G.px,G.py);ctx.scale(1/squash,squash);ctx.translate(-G.px,-G.py);drawBaby(G.px,G.py);ctx.restore();
+  for(const p of G.parts){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.c;ctx.fillRect(p.x-3,p.y-3,6,6);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
+canvas.addEventListener('mousedown',()=>{jump();});
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp')jump();});
+let lastT=0;function loop(t){const dt=Math.min((t-lastT)/1000||0.016,0.05);lastT=t;if(G.state==='play')update(dt);render();requestAnimationFrame(loop);}
+obtn.onclick=()=>{showGate();};
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Blaze's Inferno Roll — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#120c06;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;text-shadow:0 2px 0 #000;font-size:18px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,12,6,.94);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(26px,6vw,40px);font-weight:900;margin-bottom:10px;color:#ff8a00}
+#overlay p{font-size:15px;margin-bottom:8px;max-width:440px;line-height:1.5}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+#overlay button{background:#e8640c;color:#fff;border:3px solid #fff;font-size:19px;font-weight:800;padding:12px 34px;border-radius:999px;cursor:pointer;margin-top:8px}
+#mathgate{background:#2a2a2a;border-radius:12px;padding:14px;margin:10px 0}
+#mathgate input{font-size:22px;width:80px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;margin:0 6px}
+.hidden{display:none!important}
+#back{position:fixed;bottom:12px;left:10px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+#drop{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:10;width:170px;height:90px;border-radius:20px;background:linear-gradient(180deg,#ff8a00,#c41e12);border:4px solid #fff;color:#fff;font-size:22px;font-weight:900;display:none;align-items:center;justify-content:center}
+#drop:active{transform:translateX(-50%) scale(0.94)}
+</style>
+</head>
+<body>
+<div id="hud"><div id="score">HEIGHT 0</div><div id="combo"></div><div id="best"></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div id="drop">DROP! ⬇</div>
+<div id="overlay">
+<h1>🗼 BLAZE'S INFERNO ROLL</h1>
+<div id="obody"><p>A block swings at the top — tap <b>DROP</b> at the <b style="color:#7affa8">perfect moment</b> to stack it!</p><p>Perfect drops build combos. Miss the tower and it's over! How high can you build?</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate: <span id="mq"></span> = <input type="number" id="ma" inputmode="numeric"> <button onclick="checkMath()">GO</button></p></div>
+<div class="lesson">🔥 Fire Safety: When the alarm sounds, timing matters — get out FAST, don't stop for toys!</div>
+<button id="obtn">▶ START</button>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),obody=document.getElementById('obody'),obtn=document.getElementById('obtn');
+const mathgate=document.getElementById('mathgate'),dropBtn=document.getElementById('drop');
+let W,H;function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}addEventListener('resize',resize);resize();
+let AC=null;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function sfx(f0,f1,dur,type){const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type=type||'sine';o.frequency.setValueAtTime(f0,a.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),a.currentTime+dur);g.gain.setValueAtTime(0.22,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+dur);o.start();o.stop(a.currentTime+dur);}
+let mathAns=0;
+function showGate(){const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);mathAns=a+b;document.getElementById('mq').textContent=a+' + '+b;mathgate.classList.remove('hidden');}
+function checkMath(){if(parseInt(document.getElementById('ma').value,10)===mathAns){mathgate.classList.add('hidden');start();}else document.getElementById('ma').value='';}
+const G={state:'title',tower:[],height:0,best:0,combo:0,swing:0,swingDir:1,swingSpeed:2.2,falling:null,parts:[],shake:0,camY:0};
+const BW=120,BH=34;
+function start(){ac();G.state='play';G.tower=[];G.height=0;G.combo=0;G.swing=0;G.swingDir=1;G.swingSpeed=2.2;G.falling=null;G.parts=[];G.camY=0;
+  G.tower.push({x:W/2-BW/2,w:BW,perfect:false});
+  dropBtn.style.display='flex';
+  document.getElementById('score').textContent='HEIGHT 0';
+  document.getElementById('combo').textContent='';
+  document.getElementById('best').textContent='BEST '+G.best;
+  overlay.classList.add('hidden');}
+function drop(){
+  if(G.state!=='play'||G.falling)return;
+  G.falling={x:W/2+Math.sin(G.swing)*W*0.35-BW/2,y:60,vy:0};
+  sfx(500,300,0.1,'square');
+}
+function gameOver(){
+  G.state='over';G.best=Math.max(G.best,G.height);G.shake=12;sfx(300,60,0.5,'sawtooth');
+  dropBtn.style.display='none';
+  overlay.classList.remove('hidden');
+  document.querySelector('#overlay h1').textContent='🗼 TOPPLED!';
+  obody.innerHTML='<p>Your tower reached <b>'+G.height+' blocks</b> high!</p><p>Best: '+G.best+' blocks</p>';
+  obtn.textContent='↻ BUILD AGAIN';obtn.onclick=()=>{start();};
+}
+dropBtn.addEventListener('pointerdown',e=>{e.preventDefault();drop();});
+canvas.addEventListener('pointerdown',e=>{if(e.target===canvas)drop();});
+function update(dt){
+  if(G.state!=='play')return;
+  if(!G.falling){
+    G.swing+=G.swingDir*G.swingSpeed*dt;
+    if(G.swing>1.2||G.swing<-1.2)G.swingDir*=-1;
+  }else{
+    const f=G.falling;
+    f.vy+=2600*dt;f.y+=f.vy*dt;
+    const topY=H-80-G.tower.length*BH+G.camY;
+    if(f.y>=topY-BH){
+      const prev=G.tower[G.tower.length-1];
+      const prevCx=prev.x+prev.w/2, fCx=f.x+BW/2;
+      const offset=Math.abs(fCx-prevCx);
+      if(offset>prev.w/2+BW/2-14){gameOver();return;}
+      const overlap=Math.min(f.x+BW,prev.x+prev.w)-Math.max(f.x,prev.x);
+      const newX=Math.max(f.x,prev.x),newW=overlap;
+      if(newW<24){gameOver();return;}
+      const perfect=offset<12;
+      if(perfect){G.combo++;sfx(700+G.combo*50,1200,0.15,'triangle');G.shake=5;
+        for(let i=0;i<12;i++)G.parts.push({x:fCx,y:topY-BH,vx:(Math.random()-0.5)*250,vy:(Math.random()-0.5)*250,life:0.5,color:'#7affa8',s:5});
+      }else{G.combo=0;sfx(400,200,0.12,'square');G.shake=3;}
+      G.tower.push({x:newX,w:newW,perfect:perfect});
+      G.height++;G.falling=null;
+      G.swingSpeed=Math.min(4.5,2.2+G.height*0.09);
+      const targetCam=Math.max(0,(G.tower.length*BH)-(H-260));
+      G.camY+=(targetCam-G.camY)*Math.min(1,dt*4);
+      document.getElementById('score').textContent='HEIGHT '+G.height;
+      document.getElementById('combo').textContent=G.combo>1?('PERFECT x'+G.combo):'';
+    }
+  }
+  for(let i=G.parts.length-1;i>=0;i--){const p=G.parts[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)G.parts.splice(i,1);}
+  if(G.shake>0)G.shake-=dt*30;
+}
+function render(){
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake,(Math.random()-0.5)*G.shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1c1008');g.addColorStop(1,'#0d0805');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  if(G.state==='title'){ctx.restore();return;}
+  const baseY=H-80+G.camY;
+  ctx.fillStyle='#3a2a1a';ctx.fillRect(0,baseY,W,H-baseY+20);
+  for(let i=0;i<G.tower.length;i++){
+    const t=G.tower[i],y=baseY-(i+1)*BH;
+    if(y<-60||y>H+60)continue;
+    const hue=20+i*8;
+    ctx.fillStyle=t.perfect?'hsl('+hue+',90%,55%)':'hsl('+hue+',60%,42%)';
+    ctx.fillRect(t.x,y,t.w,BH-3);
+    ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fillRect(t.x,y,t.w,5);
+    if(t.perfect){ctx.fillStyle='#7affa8';ctx.fillRect(t.x,y+BH-8,t.w,4);}
+  }
+  if(!G.falling&&G.state==='play'){
+    const sx=W/2+Math.sin(G.swing)*W*0.35;
+    ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(sx,60);ctx.stroke();
+    const hue=20+G.tower.length*8;
+    ctx.fillStyle='hsl('+hue+',70%,50%)';
+    ctx.fillRect(sx-BW/2,60,BW,BH);
+    ctx.fillStyle='rgba(255,255,255,0.25)';ctx.fillRect(sx-BW/2,60,BW,5);
+    const prev=G.tower[G.tower.length-1],pcx=prev.x+prev.w/2;
+    ctx.fillStyle='rgba(122,255,168,0.25)';
+    ctx.fillRect(pcx-12-BW/2,60,BW+24,BH);
+  }
+  if(G.falling){
+    const f=G.falling,hue=20+G.tower.length*8;
+    ctx.fillStyle='hsl('+hue+',70%,50%)';
+    ctx.fillRect(f.x,f.y,BW,BH);
+  }
+  for(const p of G.parts){ctx.globalAlpha=Math.max(p.life*2,0);ctx.fillStyle=p.color;ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);}
+  ctx.globalAlpha=1;ctx.restore();
+}
+obtn.onclick=()=>{showGate();};
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,0.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+</script>
+</body>
+</html>
