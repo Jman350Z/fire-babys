@@ -32,7 +32,7 @@
   ],
   "dependencies": {
     "bun-plugin-tailwind": "0.0.15",
-    "zod": "4.4.3"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@libsql/client": "0.14.0",
