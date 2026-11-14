@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Boulder's Blockade — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#120a06;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,8,3,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ffd23f;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ffd23f;padding:6px;background:#2a1a08;color:#fff}
+#gate button,#startBtn{background:#8a6a3a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud">SCORE 0 · STREAK 0</div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>🪨 BOULDER'S BLOCKADE</h1>
+<p>Rhythm tap! Boulders roll down 4 lanes — TAP each one exactly when it hits the glowing strike zone. Perfect timing = COMBO!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Timing matters! When the smoke alarm beeps, act FAST — get out right away!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.14,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const n1=2+Math.floor(Math.random()*6),n2=3+Math.floor(Math.random()*4);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
+let state='menu',notes=[],parts=[],score=0,streak=0,best=0,shake=0,time=0,spawnT=0,misses=0;
+const LANES=4,laneX=i=>W*(0.2+0.2*i),STRY=()=>H*0.78;
+function start(){state='play';notes=[];parts=[];score=0;streak=0;misses=0;time=0;spawnT=0;ov.classList.add('hidden');}
+function end(){state='over';
+  ov.innerHTML=`<h1>🎵 FINALE!</h1><p>Score: <b>${score}</b> · Best streak: <b>${best}</b></p><div class="lesson">🔥 Fire Safety: Timing matters! When the smoke alarm beeps, act FAST — get out right away!</div><button onclick="location.reload()" style="background:#8a6a3a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ PLAY AGAIN</button>`;ov.classList.remove('hidden');}
+function boom(x,y,c){for(let i=0;i<12;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
+function judge(lane){
+  if(state!=='play')return;
+  let hit=null,hd=1e9;
+  notes.forEach(n=>{if(n.lane===lane&&!n.hit){const d=Math.abs(n.y-STRY());if(d<hd){hd=d;hit=n;}}});
+  if(hit&&hd<70){
+    hit.hit=true;const perfect=hd<28;
+    const pts=(perfect?150:80)*(1+Math.floor(streak/8));
+    score+=pts;streak++;best=Math.max(best,streak);
+    boom(laneX(lane),STRY(),perfect?'#ffd23f':'#aaa');
+    beep(perfect?880:520,.12,'sine');shake=Math.max(shake,perfect?8:4);
+    hud.textContent=`SCORE ${score} · STREAK ${streak}${perfect?' ✨PERFECT!':''}`;
+    notes=notes.filter(n=>n!==hit);
+  }else{streak=0;misses++;beep(160,.2,'sawtooth');hud.textContent=`SCORE ${score} · STREAK ${streak}`;if(misses>=10)end();}
+}
+function update(dt){
+  if(state!=='play')return;time+=dt;shake*=.9;
+  spawnT-=dt;const iv=Math.max(.32,.75-time*.008);
+  if(spawnT<=0){spawnT=iv;notes.push({lane:Math.floor(Math.random()*4),y:-40,spd:420+time*6});}
+  notes.forEach(n=>n.y+=n.spd*dt);
+  notes.forEach(n=>{if(n.y>STRY()+70&&!n.hit){n.hit=true;streak=0;misses++;hud.textContent=`SCORE ${score} · STREAK ${streak}`;if(misses>=10)end();}});
+  notes=notes.filter(n=>n.y<H+60);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.6;});parts=parts.filter(p=>p.life>0);
+  if(time>90)end();
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#120a06');g.addColorStop(1,'#2a1808');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  for(let i=0;i<4;i++){ctx.fillStyle='rgba(255,255,255,.05)';ctx.fillRect(laneX(i)-35,0,70,H);
+    ctx.strokeStyle='rgba(255,210,63,.25)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(laneX(i),0);ctx.lineTo(laneX(i),H);ctx.stroke();}
+  // strike zone
+  const pulse=1+Math.sin(time*6)*.06;
+  ctx.strokeStyle='#ffd23f';ctx.lineWidth=5;
+  for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(laneX(i),STRY(),38*pulse,16*pulse,0,0,7);ctx.stroke();}
+  notes.forEach(n=>{const gg=ctx.createRadialGradient(n.x||laneX(n.lane)-8,n.y-8,4,laneX(n.lane),n.y,24);gg.addColorStop(0,'#b09a7a');gg.addColorStop(1,'#5a4a3a');ctx.fillStyle=gg;ctx.beginPath();ctx.arc(laneX(n.lane),n.y,22,0,7);ctx.fill();ctx.strokeStyle='#33291f';ctx.lineWidth=2;ctx.stroke();});
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+  // Sizzle mascot
+  ctx.save();ctx.translate(W-60,70);const bg=ctx.createRadialGradient(-8,-8,4,0,0,26);bg.addColorStop(0,'#fff3a0');bg.addColorStop(1,'#e6a800');ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,24,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-8,-4,4,0,7);ctx.arc(8,-4,4,0,7);ctx.fill();ctx.strokeStyle='#5a2000';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,8,8,.3,Math.PI-.3);ctx.stroke();ctx.restore();
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left;judge(Math.max(0,Math.min(3,Math.floor((x/W-0.1)/0.2))));});
+addEventListener('keydown',e=>{const m={'d':0,'f':1,'j':2,'k':3};if(m[e.key]!==undefined)judge(m[e.key]);});
+</script>
+</body>
+</html>

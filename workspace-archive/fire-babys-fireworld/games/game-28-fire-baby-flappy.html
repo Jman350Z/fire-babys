@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Fire Baby Flappy — Fire Babys Fire World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#140800;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#wrap{width:min(100vw,480px)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="480" height="720"></canvas></div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const W=480,H=720,PX=120;
+const LESSON="Smoke rises! In a fire, stay LOW under the smoke to breathe cleaner air, then get out fast.";
+let state='title',score=0,best=0,last=0,t=0;
+let by=H/2,bv=0,pipes=[],spawnX=0,puffT=0;
+try{best=parseInt(localStorage.getItem('fb_g28_best')||'0');}catch(e){}
+
+function T(txt,x,y,size,color,align){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign=align||'center';ctx.textBaseline='middle';ctx.fillText(txt,x,y);}
+function wrap(txt,x,y,maxW,lh,size,color){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';let words=txt.split(' '),line='',yy=y;for(const w of words){const t2=line?line+' '+w:w;if(ctx.measureText(t2).width>maxW&&line){ctx.fillText(line,x,yy);line=w;yy+=lh;}else line=t2;}ctx.fillText(line,x,yy);return yy;}
+function baby(x,y,r,mood){ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(0,0,r*0.3,0,0,r*1.9);
+  g.addColorStop(0,'rgba(255,180,60,.55)');g.addColorStop(1,'rgba(255,120,20,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.9,0,7);ctx.fill();
+  ctx.fillStyle='#ff8c1a';ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#ffc63f';ctx.beginPath();
+  ctx.moveTo(-r*0.62,-r*0.35);ctx.quadraticCurveTo(0,-r*2.1,r*0.62,-r*0.35);
+  ctx.quadraticCurveTo(0,-r*0.75,-r*0.62,-r*0.35);ctx.fill();
+  ctx.fillStyle='#ffe08a';ctx.beginPath();ctx.arc(-r*0.25,r*0.15,r*0.45,0,7);ctx.fill();
+  ctx.fillStyle='#40200a';
+  ctx.beginPath();ctx.arc(-r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  if(mood==='sad'){ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.6,r*0.3,1.15*Math.PI,1.85*Math.PI);ctx.stroke();}
+  else{ctx.fillStyle='rgba(255,120,120,.55)';ctx.beginPath();ctx.arc(-r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.beginPath();ctx.arc(r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI);ctx.stroke();}
+  ctx.restore();}
+
+function reset(){score=0;by=H/2;bv=0;pipes=[];spawnX=W+60;puffT=0;}
+function flap(){bv=-380;puffT=0.25;}
+function update(dt){
+  t+=dt;bv+=1050*dt;by+=bv*dt;
+  if(puffT>0)puffT-=dt;
+  spawnX-=dt;
+  if(spawnX<=0){spawnX=1.55;const gapY=140+Math.random()*(H-380),gapH=185;
+    pipes.push({x:W+40,gapY:gapY,gapH:gapH,passed:false});}
+  for(const p of pipes){p.x-=215*dt;
+    if(!p.passed&&p.x+40<PX-24){p.passed=true;score++;}}
+  pipes=pipes.filter(p=>p.x>-80);
+  // collisions
+  if(by>H-40||by<20){die();return;}
+  for(const p of pipes){
+    if(PX+22>p.x&&PX-22<p.x+80){
+      if(by-22<p.gapY-p.gapH/2||by+22>p.gapY+p.gapH/2){die();return;}}}
+}
+function die(){state='over';if(score>best){best=score;try{localStorage.setItem('fb_g28_best',best);}catch(e){}}}
+function drawBG(){
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#8ed6f7');sky.addColorStop(1,'#e8f9ff');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,.85)';
+  for(let i=0;i<5;i++){const cx=((i*150-t*60)%(W+200))-100;ctx.beginPath();ctx.ellipse(cx,90+(i%3)*70,58,22,0,0,7);ctx.fill();}
+  // distant volcano
+  ctx.fillStyle='#7a5a6a';ctx.beginPath();
+  ctx.moveTo(300,H);ctx.lineTo(390,300);ctx.lineTo(480,H);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff5a00';ctx.beginPath();ctx.ellipse(390,300,26,12,0,0,7);ctx.fill();
+}
+function drawPipe(p){
+  const topH=p.gapY-p.gapH/2,bottomY=p.gapY+p.gapH/2;
+  const g=ctx.createLinearGradient(p.x,0,p.x+80,0);
+  g.addColorStop(0,'#5d4037');g.addColorStop(0.5,'#8d6e63');g.addColorStop(1,'#4e342e');
+  ctx.fillStyle=g;
+  ctx.fillRect(p.x,0,80,topH);ctx.fillRect(p.x,bottomY,80,H-bottomY);
+  ctx.fillStyle='#a1887f';
+  ctx.fillRect(p.x-6,topH-26,92,26);ctx.fillRect(p.x-6,bottomY,92,26);
+  ctx.strokeStyle='#3e2723';ctx.lineWidth=3;
+  ctx.strokeRect(p.x,0,80,topH);ctx.strokeRect(p.x,bottomY,80,H-bottomY);
+  // mossy crystal tips
+  ctx.fillStyle='#69f0ae';
+  for(let x=p.x+8;x<p.x+76;x+=20){ctx.beginPath();ctx.arc(x,topH-26,6,Math.PI,0);ctx.fill();ctx.beginPath();ctx.arc(x,bottomY+26,6,0,Math.PI);ctx.fill();}
+}
+function draw(){
+  drawBG();
+  for(const p of pipes)drawPipe(p);
+  ctx.fillStyle='#8fd18f';ctx.fillRect(0,H-30,W,30);
+  // bounce puff
+  if(puffT>0){ctx.fillStyle='rgba(255,255,255,'+(puffT*2)+')';
+    ctx.beginPath();ctx.arc(PX,by+30,26*(0.25-puffT)*4,0,7);ctx.fill();}
+  const tilt=Math.max(-0.4,Math.min(0.5,bv/1400));
+  ctx.save();ctx.translate(PX,by);ctx.rotate(tilt);ctx.translate(-PX,-by);
+  baby(PX,by,26);ctx.restore();
+  // bounce ring hint
+  ctx.strokeStyle='rgba(255,140,26,.5)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(PX,by,34+Math.sin(t*5)*4,0,7);ctx.stroke();
+  T(''+score,W/2,80,56,'#fff');
+  ctx.strokeStyle='rgba(74,44,0,.6)';ctx.lineWidth=2;
+  T(''+score,W/2,80,56,'#fff');
+  T('BEST '+best,W/2,120,20,'#4a2c00');
+}
+function drawTitle(){
+  drawBG();ctx.fillStyle='rgba(10,20,30,.72)';ctx.fillRect(0,0,W,H);
+  baby(W/2,140,52);
+  T('FIRE BABY FLAPPY',W/2,240,42,'#ffb300');
+  T('🔥 Fire Babys Fire World 🔥',W/2,280,20,'#ffd76a');
+  wrap('Tap (or press SPACE) to BOUNCE! No wings needed — Blaze bounces like a bouncy ball. Thread the rock gaps. One bonk and it\'s nap time!',W/2,345,400,30,21,'#fff');
+  ctx.fillStyle='#0e2a3a';ctx.fillRect(40,480,W-80,110);
+  T('🔥 FIRE SAFETY 🔥',W/2,505,22,'#8ef4ff');
+  wrap(LESSON,W/2,540,380,26,19,'#cfeaff');
+  T('Tap to start bouncing!',W/2,640,26,'#7dff9a');
+  T('Made by Jman350Z & the Fire Team',W/2,690,15,'#7a8aa0');
+}
+function drawOver(){
+  draw();ctx.fillStyle='rgba(10,20,30,.72)';ctx.fillRect(0,0,W,H);
+  baby(W/2,160,52,'sad');
+  T('BONK!',W/2,260,44,'#ffb300');
+  T('Gaps cleared: '+score,W/2,320,32,'#fff');
+  T('Best: '+best,W/2,358,24,'#ffd76a');
+  ctx.fillStyle='#0e2a3a';ctx.fillRect(40,400,W-80,130);
+  T('🔥 FIRE SAFETY 🔥',W/2,427,22,'#8ef4ff');
+  wrap(LESSON,W/2,463,380,26,19,'#cfeaff');
+  T('Tap to bounce again!',W/2,590,26,'#7dff9a');
+}
+function loop(ts){const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;
+  if(state==='play')update(dt);else t+=dt;
+  if(state==='title')drawTitle();else if(state==='over')drawOver();else draw();
+  requestAnimationFrame(loop);}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();
+  if(state==='title'||state==='over'){reset();state='play';flap();}else flap();});
+window.addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();
+  if(state==='title'||state==='over'){reset();state='play';}flap();}});
+reset();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

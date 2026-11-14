@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ember Escape — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#1c0f0a;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(255,110,40,.3)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 16: EMBER ESCAPE — dodge the cartoon fire walls, reach the EXIT! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: If there's smoke, STAY LOW AND GO! Crawl under the smoke to reach fresh air.";
+var state='title',level=1,lives=3,bx,by,tx,ty,walls,inv,keys={},drag=false;
+var DOOR={x:W/2-45,w:90};
+function reset(){bx=W/2;by=H-70;tx=bx;ty=by;inv=0;buildWalls();}
+function buildWalls(){
+  walls=[];var n=4+level;
+  for(var i=0;i<n;i++){
+    var y=110+i*((H-220)/n);
+    var side=i%2===0?'L':'R';
+    walls.push({y:y,side:side,base:70+Math.random()*60+level*12,ph:Math.random()*6.28,sp:.6+level*.18+Math.random()*.4});
+  }
+}
+function startGame(){state='play';level=1;lives=3;reset();}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function baby(x,y,r){
+  var g=ctx.createRadialGradient(x-r*.2,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'#ffe680');g.addColorStop(.55,'#ff9f1c');g.addColorStop(1,'#e8590c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r*.75,y-r*.35);
+  ctx.quadraticCurveTo(x-r*.25,y-r*1.7,x+r*.05,y-r*1.05);
+  ctx.quadraticCurveTo(x+r*.35,y-r*1.7,x+r*.75,y-r*.35);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#a33b00';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.32,y-r*.05,r*.12,0,7);ctx.arc(x+r*.32,y-r*.05,r*.12,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=Math.max(2,r*.09);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.28,r*.32,.35,Math.PI-.35);ctx.stroke();
+}
+function flame(x,y,w,h,t){
+  var g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,'#ffd43b');g.addColorStop(.5,'#ff922b');g.addColorStop(1,'#e03131');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(x,y+h);
+  var n=8;
+  for(var i=0;i<=n;i++){var px=x+(i/n)*w;var py=y+Math.abs(Math.sin(t*3+i*1.7))*h*.55;ctx.lineTo(px,py);}
+  ctx.lineTo(x+w,y+h);ctx.closePath();ctx.fill();
+}
+var tick=0;
+function update(){
+  tick++;
+  if(state!=='play')return;
+  var sp=3.4;
+  if(keys.left)tx-=sp*1.6;if(keys.right)tx+=sp*1.6;
+  if(keys.up)ty-=sp*1.6;if(keys.down)ty+=sp*1.6;
+  bx+=(tx-bx)*.18;by+=(ty-by)*.18;
+  bx=Math.max(18,Math.min(W-18,bx));by=Math.max(60,Math.min(H-30,by));
+  tx=Math.max(18,Math.min(W-18,tx));ty=Math.max(60,Math.min(H-30,ty));
+  if(inv>0)inv--;
+  var hit=false;
+  walls.forEach(function(wl){
+    var len=wl.base+Math.sin(tick*.02*wl.sp+wl.ph)*wl.base*.45;
+    wl.len=Math.max(30,len);
+    var x0=wl.side==='L'?0:W-wl.len;
+    if(inv<=0&&bx+12>x0&&bx-12<x0+wl.len&&by+12>wl.y-14&&by-12<wl.y+14)hit=true;
+  });
+  if(hit){lives--;inv=100;bx=W/2;by=H-70;tx=bx;ty=by;if(lives<=0)state='over';}
+  if(by<72&&bx>DOOR.x&&bx<DOOR.x+DOOR.w){level++;reset();}
+}
+function draw(){
+  ctx.fillStyle='#2b2118';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#3a2d1e';
+  for(var gx=0;gx<W;gx+=40)ctx.fillRect(gx,0,2,H);
+  for(var gy=60;gy<H;gy+=40)ctx.fillRect(0,gy,W,2);
+  ctx.fillStyle='#2f9e44';rr(DOOR.x,28,DOOR.w,44,8);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 20px Trebuchet MS';ctx.textAlign='center';
+  ctx.fillText('EXIT',W/2,57);
+  ctx.fillStyle='#69db7c';ctx.font='14px Trebuchet MS';
+  ctx.fillText('▼ get here! ▼',W/2,86);
+  walls.forEach(function(wl){
+    var x0=wl.side==='L'?0:W-wl.len;
+    flame(x0,wl.y-14,wl.len,28,tick*.05+wl.ph);
+  });
+  if(!(inv>0&&((inv/6)|0)%2===0))baby(bx,by,17);
+  if(drag){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(tx,ty);ctx.stroke();}
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 18px Trebuchet MS';
+  ctx.fillText('Lv '+level,12,26);
+  ctx.textAlign='right';ctx.fillText('❤'.repeat(Math.max(0,lives)),W-12,26);
+  if(state==='title'){
+    ctx.fillStyle='rgba(15,8,5,.92)';rr(20,110,W-40,H-260,18);ctx.fill();
+    ctx.strokeStyle='#ff922b';ctx.lineWidth=3;rr(20,110,W-40,H-260,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 27px Trebuchet MS';
+    ctx.fillText('EMBER ESCAPE',W/2,160);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('Drag (or arrow keys) to move!',W/2,200);
+    ctx.fillText('Dodge the cartoon fire walls.',W/2,226);
+    ctx.fillText('Reach the green EXIT at the top!',W/2,252);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,285,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-200);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(15,8,5,.92)';rr(20,110,W-40,H-260,18);ctx.fill();
+    ctx.strokeStyle='#ff6b6b';ctx.lineWidth=3;rr(20,110,W-40,H-260,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 27px Trebuchet MS';
+    ctx.fillText('CAUGHT!',W/2,170);
+    ctx.font='18px Trebuchet MS';
+    ctx.fillText('You escaped '+ (level-1) +' floors!',W/2,215);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,250,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO TRY AGAIN 👆',W/2,H-200);
+  }
+}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){startGame();return;}
+  var p=P(e);tx=p.x;ty=p.y;drag=true;
+});
+addEventListener('pointermove',function(e){if(drag&&state==='play'){var p=P(e);tx=p.x;ty=p.y;}});
+addEventListener('pointerup',function(){drag=false;});
+addEventListener('keydown',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':e.key==='ArrowUp'||e.key==='w'?'up':e.key==='ArrowDown'||e.key==='s'?'down':'x']=true;
+  if((e.key===' '||e.key==='Enter')&&state!=='play')startGame();});
+addEventListener('keyup',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':e.key==='ArrowUp'||e.key==='w'?'up':e.key==='ArrowDown'||e.key==='s'?'down':'x']=false;});
+reset();
+(function loop(){update();draw();requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>

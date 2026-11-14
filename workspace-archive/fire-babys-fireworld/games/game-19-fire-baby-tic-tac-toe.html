@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fire Baby Tic-Tac-Toe — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#1d1206;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(255,160,60,.25)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 19: FIRE BABY TIC-TAC-TOE — you are the Fire Baby, computer is the Water Drop! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Test your smoke alarms every month. Working alarms give your family time to escape!";
+var state='title',board=[],turn='B',wins=0,losses=0,draws=0,msg='Your turn!',over2=false;
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;g.gain.setValueAtTime(.1,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.15);o.start();o.stop(AC.currentTime+.16);}catch(e){}}
+var GX=55,GY=170,CS=96;
+function newBoard(){board=[];for(var i=0;i<9;i++)board.push('');turn='B';over2=false;msg='Your turn! 🔥';}
+function lines(){return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];}
+function winner(b){var L=lines();for(var i=0;i<L.length;i++){var a=L[i];if(b[a[0]]&&b[a[0]]===b[a[1]]&&b[a[1]]===b[a[2]])return b[a[0]];}return b.indexOf('')<0?'D':null;}
+function aiMove(){
+  var L=lines(),i,a;
+  for(i=0;i<L.length;i++){a=L[i];if(canWin(a,'W'))return a[emptyOf(a,'W')];}
+  for(i=0;i<L.length;i++){a=L[i];if(canWin(a,'B'))return a[emptyOf(a,'B')];}
+  if(!board[4])return 4;
+  var opts=[];for(i=0;i<9;i++)if(!board[i])opts.push(i);
+  return opts[(Math.random()*opts.length)|0];
+}
+function canWin(a,who){var c=0,e=0;for(var i=0;i<3;i++){if(board[a[i]]===who)c++;else if(!board[a[i]])e++;}return c===2&&e===1;}
+function emptyOf(a,who){for(var i=0;i<3;i++)if(!board[a[i]])return a[i];return -1;}
+function afterMove(){
+  var w=winner(board);
+  if(w){over2=true;
+    if(w==='B'){wins++;msg='You win! 🎉';beep(660);setTimeout(function(){beep(880);},150);}
+    else if(w==='W'){losses++;msg='Water wins! 💧';beep(200);}
+    else{draws++;msg="It's a draw! 🤝";beep(440);}
+    if(wins>=3||losses>=3)setTimeout(function(){state='over';},1200);
+    else setTimeout(newBoard,1400);
+  }else turn=turn==='B'?'W':'B';
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function baby(x,y,r){
+  var g=ctx.createRadialGradient(x-r*.2,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'#ffe680');g.addColorStop(.55,'#ff9f1c');g.addColorStop(1,'#e8590c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r*.75,y-r*.35);
+  ctx.quadraticCurveTo(x-r*.25,y-r*1.7,x+r*.05,y-r*1.05);
+  ctx.quadraticCurveTo(x+r*.35,y-r*1.7,x+r*.75,y-r*.35);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.32,y-r*.05,r*.12,0,7);ctx.arc(x+r*.32,y-r*.05,r*.12,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=Math.max(2,r*.09);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.28,r*.32,.35,Math.PI-.35);ctx.stroke();
+}
+function drop(x,y,r){
+  var g=ctx.createLinearGradient(x,y-r,x,y+r);
+  g.addColorStop(0,'#a5e8ff');g.addColorStop(1,'#1c7ed6');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r,y+r*.35,x,y+r);ctx.quadraticCurveTo(x-r,y+r*.35,x,y-r);ctx.fill();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.3,y,r*.12,0,7);ctx.arc(x+r*.3,y,r*.12,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.3,r*.3,.35,Math.PI-.35);ctx.stroke();
+}
+function draw(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2b1a08');g.addColorStop(1,'#1d1206');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 25px Trebuchet MS';
+  ctx.fillText('FIRE BABY TIC-TAC-TOE',W/2,55);
+  ctx.font='bold 16px Trebuchet MS';ctx.fillStyle='#ffd166';
+  ctx.fillText('🔥 You '+wins+' — '+losses+' Water 💧   Draws '+draws,W/2,85);
+  ctx.font='15px Trebuchet MS';ctx.fillStyle='#fff';
+  ctx.fillText('First to 3 round wins!',W/2,110);
+  ctx.strokeStyle='#a06a3b';ctx.lineWidth=6;ctx.lineCap='round';
+  for(var i=1;i<3;i++){
+    ctx.beginPath();ctx.moveTo(GX+i*CS,GY);ctx.lineTo(GX+i*CS,GY+3*CS);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(GX,GY+i*CS);ctx.lineTo(GX+3*CS,GY+i*CS);ctx.stroke();
+  }
+  for(var c=0;c<9;c++){
+    var cx=GX+(c%3)*CS+CS/2,cy=GY+((c/3)|0)*CS+CS/2;
+    if(board[c]==='B')baby(cx,cy,30);
+    else if(board[c]==='W')drop(cx,cy,30);
+  }
+  ctx.fillStyle='#fff';ctx.font='bold 17px Trebuchet MS';
+  ctx.fillText(msg,W/2,GY+3*CS+40);
+  baby(40,H-50,24);ctx.textAlign='left';ctx.font='15px Trebuchet MS';
+  ctx.fillText('= you',70,H-44);
+  drop(W-110,H-50,24);ctx.fillText('= computer',W-78,H-44);
+  if(state==='title'){
+    ctx.fillStyle='rgba(20,12,4,.93)';rr(20,130,W-40,H-290,18);ctx.fill();
+    ctx.strokeStyle='#ff9f1c';ctx.lineWidth=3;rr(20,130,W-40,H-290,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 24px Trebuchet MS';
+    ctx.fillText('FIRE BABY',W/2,180);ctx.fillText('TIC-TAC-TOE',W/2,212);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('You are the 🔥 Fire Baby.',W/2,250);
+    ctx.fillText('The computer is the 💧 Water Drop.',W/2,276);
+    ctx.fillText('Get 3 in a row. First to 3 round wins!',W/2,302);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,332,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-215);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(20,12,4,.93)';rr(20,130,W-40,H-290,18);ctx.fill();
+    ctx.strokeStyle=wins>=3?'#ffd43b':'#4dabf7';ctx.lineWidth=3;rr(20,130,W-40,H-290,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText(wins>=3?'🏆 YOU WIN! 🏆':'💧 WATER WINS!',W/2,190);
+    ctx.font='17px Trebuchet MS';
+    ctx.fillText('Rounds: '+wins+' won, '+losses+' lost, '+draws+' drawn',W/2,230);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,265,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO PLAY AGAIN 👆',W/2,H-215);
+  }
+}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state==='title'){state='play';wins=0;losses=0;draws=0;newBoard();return;}
+  if(state==='over'){state='play';wins=0;losses=0;draws=0;newBoard();return;}
+  if(turn!=='B'||over2)return;
+  var p=P(e);
+  var c=((p.x-GX)/CS|0)+((p.y-GY)/CS|0)*3;
+  if(p.x<GX||p.x>GX+3*CS||p.y<GY||p.y>GY+3*CS)return;
+  if(c<0||c>8||board[c])return;
+  board[c]='B';beep(520);afterMove();
+  if(!over2&&turn==='W'){
+    msg='Water is thinking... 💧';
+    setTimeout(function(){
+      if(state!=='play'||over2)return;
+      var m=aiMove();board[m]='W';beep(330);afterMove();
+    },550);
+  }
+});
+addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&state!=='play'){state='play';wins=0;losses=0;draws=0;newBoard();}});
+newBoard();
+(function loop(){draw();requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Fire Truck Rush — Fire Babys Fire World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#140800;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#wrap{width:min(100vw,480px)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="480" height="720"></canvas></div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const W=480,H=720;
+const LESSON="If there's a real fire, get out fast and call 911. Let firefighters do the spraying!";
+let state='title',score=0,best=0,missed=0,last=0,t=0;
+let truckX=W/2,spraying=false;
+let fires=[],drops=[],parts=[];
+try{best=parseInt(localStorage.getItem('fb_g25_best')||'0');}catch(e){}
+
+function T(txt,x,y,size,color,align){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign=align||'center';ctx.textBaseline='middle';ctx.fillText(txt,x,y);}
+function wrap(txt,x,y,maxW,lh,size,color){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';let words=txt.split(' '),line='',yy=y;for(const w of words){const t2=line?line+' '+w:w;if(ctx.measureText(t2).width>maxW&&line){ctx.fillText(line,x,yy);line=w;yy+=lh;}else line=t2;}ctx.fillText(line,x,yy);return yy;}
+function baby(x,y,r,mood){ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(0,0,r*0.3,0,0,r*1.9);
+  g.addColorStop(0,'rgba(255,180,60,.55)');g.addColorStop(1,'rgba(255,120,20,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.9,0,7);ctx.fill();
+  ctx.fillStyle='#ff8c1a';ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#ffc63f';ctx.beginPath();
+  ctx.moveTo(-r*0.62,-r*0.35);ctx.quadraticCurveTo(0,-r*2.1,r*0.62,-r*0.35);
+  ctx.quadraticCurveTo(0,-r*0.75,-r*0.62,-r*0.35);ctx.fill();
+  ctx.fillStyle='#ffe08a';ctx.beginPath();ctx.arc(-r*0.25,r*0.15,r*0.45,0,7);ctx.fill();
+  ctx.fillStyle='#40200a';
+  ctx.beginPath();ctx.arc(-r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  ctx.fillStyle='rgba(255,120,120,.55)';ctx.beginPath();ctx.arc(-r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.beginPath();ctx.arc(r*0.52,r*0.18,r*0.13,0,7);ctx.fill();
+  ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+  ctx.restore();}
+function flame(x,y,s,ph){ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+  const f=Math.sin(ph)*0.12;
+  ctx.fillStyle='#ff5a00';ctx.beginPath();
+  ctx.moveTo(0,26);ctx.quadraticCurveTo(-20,10,-12,-6+f*20);ctx.quadraticCurveTo(-6,-18,0,-30);
+  ctx.quadraticCurveTo(6,-18,12,-6+f*20);ctx.quadraticCurveTo(20,10,0,26);ctx.fill();
+  ctx.fillStyle='#ffb300';ctx.beginPath();
+  ctx.moveTo(0,20);ctx.quadraticCurveTo(-10,10,-6,0);ctx.quadraticCurveTo(-2,-8,0,-16);
+  ctx.quadraticCurveTo(2,-8,6,0);ctx.quadraticCurveTo(10,10,0,20);ctx.fill();
+  ctx.restore();}
+
+function reset(){score=0;missed=0;truckX=W/2;spraying=false;fires=[];drops=[];parts=[];spawnT=1.2;}
+let spawnT=1.2;
+function update(dt){
+  t+=dt;spawnT-=dt;
+  if(spawnT<=0){spawnT=Math.max(0.9,2.4-score*0.02);
+    fires.push({x:50+Math.random()*(W-100),y:-30,hp:3,ph:Math.random()*7,sp:55+Math.random()*40+score*0.6});}
+  for(const f of fires){f.y+=f.sp*dt;f.ph+=dt*9;
+    if(spraying&&Math.abs(f.x-truckX)<46&&f.y>300&&f.y<600){f.hp-=dt*4;
+      if(Math.random()<0.6)drops.push({x:truckX+(Math.random()-0.5)*30,y:520,vy:-420+Math.random()*80,vx:(Math.random()-0.5)*120,life:0.8});
+      if(f.hp<=0&&!f.dead){f.dead=true;score+=10;
+        for(let i=0;i<14;i++)parts.push({x:f.x,y:f.y,vx:(Math.random()-0.5)*260,vy:(Math.random()-0.5)*260,life:0.7,c:'#bfe9ff'});}}}
+  for(const d of drops){d.vy+=900*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.life-=dt;}
+  drops=drops.filter(d=>d.life>0&&d.y<H);
+  for(const p of parts){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}
+  parts=parts.filter(p=>p.life>0);
+  const before=fires.length;
+  fires=fires.filter(f=>!f.dead&&f.y<H+40);
+  const slipped=before-fires.filter(f=>!f.dead).length-fires.length;
+  for(const f of fires){if(f.y>=H-60&&!f.counted){f.counted=true;missed++;
+    for(let i=0;i<10;i++)parts.push({x:f.x,y:H-80,vx:(Math.random()-0.5)*200,vy:-Math.random()*260,life:0.8,c:'#888'});}}
+  fires=fires.filter(f=>!(f.y>=H-40&&f.counted));
+  if(missed>=3){state='over';if(score>best){best=score;try{localStorage.setItem('fb_g25_best',best);}catch(e){}}}
+}
+
+function draw(){
+  // sky + distant town
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#1c2a4a');sky.addColorStop(0.55,'#3a2a55');sky.addColorStop(1,'#20242c');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#141824';
+  for(let i=0;i<10;i++){const bx=i*52,bh=40+((i*37)%60);ctx.fillRect(bx,300-bh,44,bh);
+    ctx.fillStyle='rgba(255,220,120,.5)';for(let wy=300-bh+8;wy<292;wy+=16)for(let wx=bx+6;wx<bx+38;wx+=14)if((wx+wy)%3===0)ctx.fillRect(wx,wy,7,9);
+    ctx.fillStyle='#141824';}
+  // road
+  ctx.fillStyle='#33363e';ctx.fillRect(40,300,W-80,H-300);
+  ctx.strokeStyle='#ffd23f';ctx.lineWidth=6;ctx.setLineDash([30,26]);ctx.lineDashOffset=-t*160;
+  ctx.beginPath();ctx.moveTo(W/2,300);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='#e8e8e8';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(46,300);ctx.lineTo(46,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W-46,300);ctx.lineTo(W-46,H);ctx.stroke();
+  // fires
+  for(const f of fires){flame(f.x,f.y,0.9+f.hp*0.35,f.ph);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(f.x-26,f.y-64,52,7);
+    ctx.fillStyle='#7dff9a';ctx.fillRect(f.x-26,f.y-64,52*(f.hp/3),7);}
+  // water drops
+  ctx.fillStyle='#4fc3ff';
+  for(const d of drops){ctx.beginPath();ctx.arc(d.x,d.y,5,0,7);ctx.fill();}
+  for(const p of parts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fill();ctx.globalAlpha=1;}
+  // truck
+  drawTruck(truckX,610);
+  if(spraying){ctx.strokeStyle='rgba(120,200,255,.85)';ctx.lineWidth=10;ctx.beginPath();
+    ctx.moveTo(truckX,540);ctx.quadraticCurveTo(truckX,420,truckX,340);ctx.stroke();}
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,46);
+  T('🚒 '+score,70,25,24,'#ffd76a','left');
+  T('Missed: '+missed+'/3',W-80,25,22,'#ff9a8a','left');
+  T('BEST '+best,W/2,25,19,'#ffb26a');
+  if(spraying)T('💧 SPRAYING!',W/2,70,20,'#4fc3ff');
+}
+function drawTruck(x,y){
+  ctx.save();ctx.translate(x,y);
+  const blink=Math.floor(t*4)%2===0;
+  ctx.fillStyle='#c62828';ctx.fillRect(-70,-44,140,44);
+  ctx.fillStyle='#e53935';ctx.fillRect(-70,-44,46,44);
+  ctx.fillStyle='#bfe9ff';ctx.fillRect(-62,-38,32,20);
+  ctx.fillStyle='#8e1414';ctx.fillRect(-70,-12,140,12);
+  ctx.fillStyle='#ffd23f';ctx.fillRect(-70,-20,140,5);
+  ctx.fillStyle='#eceff1';ctx.fillRect(-24,-58,110,10);
+  ctx.strokeStyle='#90a4ae';ctx.lineWidth=2;
+  for(let i=-20;i<80;i+=12){ctx.beginPath();ctx.moveTo(i,-58);ctx.lineTo(i,-48);ctx.stroke();}
+  ctx.fillStyle=blink?'#ff3b30':'#3b7bff';ctx.fillRect(-16,-56,32,10);
+  ctx.fillStyle='#212121';
+  ctx.beginPath();ctx.arc(-44,6,16,0,7);ctx.fill();ctx.beginPath();ctx.arc(44,6,16,0,7);ctx.fill();
+  ctx.fillStyle='#9e9e9e';ctx.beginPath();ctx.arc(-44,6,7,0,7);ctx.fill();ctx.beginPath();ctx.arc(44,6,7,0,7);ctx.fill();
+  baby(30,-66,15);
+  ctx.restore();
+}
+function drawTitle(){
+  draw();ctx.fillStyle='rgba(8,4,0,.8)';ctx.fillRect(0,0,W,H);
+  drawTruck(W/2,220);flame(W/2-120,300,1.1,t*9);flame(W/2+120,300,1.1,t*9+3);
+  T('FIRE TRUCK RUSH',W/2,360,42,'#ffb300');
+  T('🚒 Fire Babys Fire World 🚒',W/2,398,20,'#ffd76a');
+  wrap('Drag to drive the truck. HOLD to spray water and put out the spot fires before 3 slip past you!',W/2,452,400,30,21,'#fff');
+  ctx.fillStyle='#3a2408';ctx.fillRect(40,540,W-80,110);
+  T('🔥 FIRE SAFETY 🔥',W/2,565,22,'#ffb300');
+  wrap(LESSON,W/2,598,380,26,19,'#ffe6b0');
+  T('Tap to start!',W/2,686,26,'#7dff9a');
+}
+function drawOver(){
+  draw();ctx.fillStyle='rgba(8,4,0,.82)';ctx.fillRect(0,0,W,H);
+  baby(W/2,170,50,'sad');
+  T('OUT OF TIME!',W/2,270,42,'#ffb300');
+  T('Fires put out: '+score,W/2,330,30,'#fff');
+  T('Best: '+best,W/2,368,24,'#ffd76a');
+  ctx.fillStyle='#3a2408';ctx.fillRect(40,408,W-80,120);
+  T('🔥 FIRE SAFETY 🔥',W/2,435,22,'#ffb300');
+  wrap(LESSON,W/2,470,380,26,19,'#ffe6b0');
+  T('Tap to play again!',W/2,590,26,'#7dff9a');
+  T('Made by Jman350Z & the Fire Team',W/2,680,15,'#a07a4a');
+}
+function loop(ts){const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;
+  if(state==='play')update(dt);else t+=dt;
+  if(state==='title')drawTitle();else if(state==='over')drawOver();else draw();
+  requestAnimationFrame(loop);}
+function setX(cx){const r=cv.getBoundingClientRect();truckX=Math.max(90,Math.min(W-90,(cx-r.left)*W/r.width));}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();setX(e.clientX);
+  if(state==='title'||state==='over'){reset();state='play';}else spraying=true;});
+cv.addEventListener('pointermove',e=>{if(state==='play')setX(e.clientX);});
+cv.addEventListener('pointerup',()=>{spraying=false;});
+cv.addEventListener('pointercancel',()=>{spraying=false;});
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')truckX=Math.max(90,truckX-26);
+  if(e.key==='ArrowRight')truckX=Math.min(W-90,truckX+26);
+  if(e.key===' '){if(state==='title'||state==='over'){reset();state='play';}else spraying=true;}
+  if(e.key==='Enter'&&(state==='title'||state==='over')){reset();state='play';}});
+window.addEventListener('keyup',e=>{if(e.key===' ')spraying=false;});
+reset();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

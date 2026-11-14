@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Lava Leap — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+#power{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:240px;height:22px;background:rgba(0,0,0,.5);border:2px solid #ffb347;border-radius:12px;z-index:4;overflow:hidden}
+#powerfill{height:100%;width:0%;background:linear-gradient(90deg,#7dff9a,#ffdd44,#ff5b1c)}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>🪨 <span id="score">0</span></span><span>🏆 <span id="best">0</span></span></div>
+<canvas id="c"></canvas>
+<div id="power"><div id="powerfill"></div></div>
+<div class="ov" id="title">
+<h1>🔥 Lava Leap 🔥</h1>
+<p><b>Press &amp; HOLD</b> to charge your jump, <b>RELEASE</b> to leap!<br>Land on each rock platform.<br>Don't fall in the lava!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Hot surfaces burn! Never touch stoves, ovens, or grills without a grown-up.</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>💥 Splash!</h1>
+<p>Platforms crossed: <b id="final">0</b></p>
+<div class="safety">🧯 <b>Remember:</b> Hot things burn — always ask a grown-up first!</div>
+<button class="btn" id="againBtn">↻ LEAP AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),pf=document.getElementById('powerfill');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+let plats,cur,px,py,vx,vy,flying,charge,charging,score,best=+(localStorage.getItem('ll_best')||0),run=false,frame=0;
+document.getElementById('best').textContent=best;
+const lavaY=()=>H*0.8;
+function newPlat(x){return{x:x,w:56+Math.random()*36};}
+function reset(){plats=[newPlat(W*0.15)];let x=W*0.15;while(x<W*3){x+=120+Math.random()*130;plats.push(newPlat(x));}
+ cur=0;px=plats[0].x+plats[0].w/2;py=lavaY()-24;vx=0;vy=0;flying=false;charge=0;charging=false;score=0;frame=0;
+ document.getElementById('score').textContent=0;}
+function fireBaby(x,y,r){
+ const g=ctx.createRadialGradient(x,y-r*0.3,x,y,r*1.6);g.addColorStop(0,'#ffe27a');g.addColorStop(0.5,'#ffb347');g.addColorStop(1,'#ff7b1c');
+ ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*1.1,y-r*0.2,x+r*0.75,y+r*0.7);ctx.quadraticCurveTo(x+r*0.4,y+r*1.15,x,y+r*1.05);ctx.quadraticCurveTo(x-r*0.4,y+r*1.15,x-r*0.75,y+r*0.7);ctx.quadraticCurveTo(x-r*1.1,y-r*0.2,x,y-r);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x-r*0.3,y,r*0.2);ctx.arc(x+r*0.3,y,r*0.2);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x-r*0.3,y+r*0.03,r*0.1);ctx.arc(x+r*0.3,y+r*0.03,r*0.1);ctx.fill();
+ ctx.strokeStyle='#5a2400';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+r*0.35,r*0.2,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+cv.addEventListener('pointerdown',e=>{if(run&&!flying){charging=true;charge=0;}});
+cv.addEventListener('pointerup',()=>{if(charging&&run){charging=false;
+ vx=3+charge*0.09;vy=-(6+charge*0.14);flying=true;}});
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&run&&!flying){charging=true;charge=0;}});
+window.addEventListener('keyup',e=>{if(e.code==='Space'&&charging&&run){charging=false;vx=3+charge*0.09;vy=-(6+charge*0.14);flying=true;}});
+let camX=0;
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#160c05');bg.addColorStop(1,'#3a1a08');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ if(run&&charging){charge=Math.min(100,charge+2.2);pf.style.width=charge+'%';}else pf.style.width='0%';
+ if(run&&flying){
+  vy+=0.5;px+=vx;py+=vy;
+  let landed=false;
+  for(let i=0;i<plats.length;i++){let p=plats[i];
+   if(vy>0&&px>p.x&&px<p.x+p.w&&py+22>=lavaY()-8&&py+22<=lavaY()+16){
+    if(i>cur){cur=i;score++;document.getElementById('score').textContent=score;
+     // add more platforms ahead
+     let lx=plats[plats.length-1].x;plats.push(newPlat(lx+120+Math.random()*130));}
+    py=lavaY()-22;vy=0;vx=0;flying=false;landed=true;break;}}
+  if(py>lavaY()+40){gameOver();}
+ }
+ camX+=((px-W*0.3)-camX)*0.1;
+ ctx.save();ctx.translate(-camX,0);
+ // lava
+ let lg=ctx.createLinearGradient(0,lavaY(),0,H);lg.addColorStop(0,'#ffdd44');lg.addColorStop(0.5,'#ff7b1c');lg.addColorStop(1,'#a32e00');
+ ctx.fillStyle=lg;ctx.fillRect(camX-50,lavaY(),W+100,H-lavaY());
+ ctx.fillStyle='#ffedb0';frame++;for(let i=0;i<14;i++){let bx2=camX-50+((i*173+frame*3)%(W+100));ctx.beginPath();ctx.arc(bx2,lavaY()+16+((i*37)%40),5,0,7);ctx.fill();}
+ for(let p of plats){ctx.fillStyle='#5c5c5c';ctx.fillRect(p.x,lavaY()-8,p.w,10);ctx.fillStyle='#7d7d7d';ctx.fillRect(p.x,lavaY()-8,p.w,4);}
+ fireBaby(px,py,22);
+ ctx.restore();
+ requestAnimationFrame(loop);
+}
+function gameOver(){run=false;document.getElementById('final').textContent=score;
+ if(score>best){best=score;localStorage.setItem('ll_best',best);document.getElementById('best').textContent=best;}
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>

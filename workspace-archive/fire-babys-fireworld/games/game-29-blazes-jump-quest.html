@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Blaze's Jump Quest — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#140a06;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+#wrap{position:relative;width:100%;height:100%}
+canvas{display:block}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,2,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+.ov h1{font-size:clamp(26px,7vw,44px);font-weight:900;color:#ff8a3d;margin-bottom:10px}
+.ov p{font-size:15px;max-width:440px;margin-bottom:8px;line-height:1.5}
+.lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.btn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+.btn:active{transform:translateY(2px)}
+#mathgate input{font-size:24px;width:90px;text-align:center;padding:8px;border-radius:10px;border:2px solid #ff8a3d;margin:8px}
+.hide{display:none!important}
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:10px 14px;color:#fff;font-weight:800;font-size:18px;z-index:5;pointer-events:none;text-shadow:0 2px 4px #000}
+#combo{position:absolute;top:52px;left:50%;transform:translateX(-50%);color:#ffd23f;font-weight:900;font-size:24px;z-index:5;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#back{position:absolute;bottom:10px;left:10px;z-index:6;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span id="score">0m</span><span id="best">BEST 0m</span></div>
+<div id="combo"></div>
+<canvas id="c"></canvas>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div class="ov" id="gate">
+<h1>🚀 BLAZE'S<br>JUMP QUEST</h1>
+<p><b>Starring Ruko &amp; Sizzle</b></p>
+<p>Bounce Ruko ever higher! Tilt or drag to steer, land on platforms — <b>green</b> bounce high, <b>cracked</b> ones break! Grab stars for combos. How high can you climb?</p>
+<div class="lesson">🔥 Fire Safety: Climb UP to safety! In a fire, never use elevators — take the stairs.</div>
+<div id="mathgate"><p>Grown-up check: what is <b id="mq">3 + 4</b>?</p><input id="ma" type="number" inputmode="numeric"><br><button class="btn" onclick="checkMath()">START ▶</button></div>
+</div>
+<div class="ov hide" id="over">
+<h1 id="ot">QUEST OVER!</h1>
+<p id="od"></p>
+<div class="lesson" id="ol"></div>
+<button class="btn" onclick="location.reload()">↻ CLIMB AGAIN</button>
+</div>
+</div>
+<script>
+let AC=null;
+function sfx(f,d,type='sine',v=0.12){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,AC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+function boing(p){sfx(300+p*60,.15,'square',.1)} function starS(){sfx(1200,.2,'sine',.12)} function fallS(){sfx(200,.5,'sawtooth',.15)} function winJ(){[523,659,784].forEach((f,i)=>setTimeout(()=>sfx(f,.2,'triangle',.15),i*100))}
+const _a=2+Math.floor(Math.random()*7),_b=2+Math.floor(Math.random()*7);
+document.getElementById('mq').textContent=_a+' + '+_b;
+function checkMath(){if(parseInt(document.getElementById('ma').value)===_a+_b){document.getElementById('gate').classList.add('hide');startGame();}else{document.getElementById('ma').value='';document.getElementById('ma').placeholder='try again!';}}
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),comboEl=document.getElementById('combo');
+let best=parseInt(localStorage.getItem('jq_best')||'0');bestEl.textContent='BEST '+best+'m';
+let running=false,px,py,vx,vy,camY,maxY,plats,stars,parts,shake,combo,comboT,tiltX,score;
+const GRAV=0.45;
+function startGame(){
+  running=true;px=W/2;py=H-120;vx=0;vy=-14;camY=0;maxY=0;plats=[];stars=[];parts=[];shake=0;combo=0;comboT=0;tiltX=0;score=0;
+  plats.push({x:W/2-60,y:H-60,w:120,h:16,t:'norm'});
+  let y=H-160;
+  while(y>-H*3){spawnRow(y);y-=90-Math.random()*30;}
+  requestAnimationFrame(loop);
+}
+function spawnRow(y){
+  const w=70+Math.random()*60,x=Math.random()*(W-w);
+  const r=Math.random();
+  const t=r<0.12?'break':r<0.28?'spring':r<0.4?'move':'norm';
+  plats.push({x,y,w,h:16,t,vx:t==='move'?(Math.random()<.5?-1.5:1.5):0});
+  if(Math.random()<0.25)stars.push({x:x+w/2+(Math.random()-.5)*80,y:y-50,r:12,got:false,spin:0});
+}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,life:1,col,sz:3+Math.random()*4});}}
+let last=0;
+function loop(t){
+  const dt=Math.min((t-last)/1000||0.016,0.05);last=t;
+  update(dt);render();
+  if(running)requestAnimationFrame(loop);
+}
+function update(dt){
+  vy+=GRAV;
+  // tilt / drag steering
+  px+=vx+tiltX*6;vx*=0.92;
+  if(px<-20)px=W+20;if(px>W+20)px=-20;
+  py+=vy;
+  const worldY=py+camY;
+  if(worldY<maxY){maxY=worldY;score=Math.floor(-maxY/10);scoreEl.textContent=score+'m';}
+  if(py<H*0.35){camY+= (H*0.35-py);py=H*0.35;}
+  // generate more
+  let topY=Infinity;plats.forEach(p=>{if(p.y+camY<topY)topY=p.y+camY;});
+  while(topY>0){spawnRowAt(topY-100);topY-=100;}
+  function spawnRowAt(sy){const w=70+Math.random()*60,x=Math.random()*(W-w);const r=Math.random();const t=r<0.12?'break':r<0.28?'spring':r<0.4?'move':'norm';plats.push({x,y:sy-camY,w,h:16,t,vx:t==='move'?(Math.random()<.5?-1.5:1.5):0});if(Math.random()<0.22)stars.push({x:x+w/2,y:sy-camY-50,r:12,got:false,spin:0});}
+  // platforms
+  plats.forEach(p=>{
+    if(p.t==='move'){p.x+=p.vx;if(p.x<0||p.x+p.w>W)p.vx*=-1;}
+    const sy=p.y+camY;
+    if(vy>0&&py+24>sy&&py+24<sy+p.h+14&&px>p.x-14&&px<p.x+p.w+14){
+      if(p.t==='break'){p.gone=true;explode(p.x+p.w/2,sy,10,'#a08060');sfx(150,.2,'triangle',.12);}
+      else{vy=p.t==='spring'?-22:-15;boing(p.t==='spring'?2:0);explode(px,py+24,6,'#ffd23f');if(p.t==='spring'){shake=Math.min(10,shake+4);combo++;comboT=1.2;showCombo();}}
+    }
+  });
+  plats=plats.filter(p=>!p.gone&&p.y+camY<H+60);
+  // stars
+  stars.forEach(s=>{
+    s.spin+=dt*5;
+    if(!s.got&&Math.hypot(px-s.x,py-s.y)<36){s.got=true;starS();explode(s.x,s.y+camY,12,'#ffd23f');combo++;comboT=1.5;score+=25*combo;scoreEl.textContent=score+'m';showCombo();}
+  });
+  stars=stars.filter(s=>!s.got&&s.y+camY<H+60);
+  comboT-=dt;if(comboT<=0){combo=0;comboEl.style.opacity=0;}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.life-=dt*1.8;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+  if(py>H+60){fallS();running=false;showOver();}
+}
+function showCombo(){if(combo>=2){comboEl.textContent='⭐ COMBO x'+combo;comboEl.style.opacity=1;}}
+function showOver(){
+  if(score>best){best=score;localStorage.setItem('jq_best',best);}
+  document.getElementById('od').textContent='Ruko climbed '+score+' meters! Best: '+best+'m';
+  document.getElementById('ol').innerHTML='🔥 Fire Safety: Climb UP to safety! In a fire, never use elevators — take the stairs.';
+  document.getElementById('over').classList.remove('hide');
+}
+// input: drag to steer
+let dragging=false,lx=0;
+cv.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;});
+cv.addEventListener('pointermove',e=>{if(dragging){tiltX=Math.max(-1,Math.min(1,(e.clientX-lx)/60));}});
+addEventListener('pointerup',()=>{dragging=false;tiltX=0;});
+addEventListener('deviceorientation',e=>{if(e.gamma!=null)tiltX=Math.max(-1,Math.min(1,e.gamma/25));});
+function drawBaby(x,y,r,red){
+  ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.2,0,0,r);
+  if(red){g.addColorStop(0,'#ff9a8a');g.addColorStop(0.5,'#ff3b2e');g.addColorStop(1,'#b01005');}
+  else{g.addColorStop(0,'#ffe28a');g.addColorStop(0.5,'#ffb300');g.addColorStop(1,'#e67e00');}
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(0,-r*1.5);ctx.quadraticCurveTo(r*0.9,-r*0.6,r*0.7,r*0.4);ctx.quadraticCurveTo(r*0.4,r,r*0.1,r);
+  ctx.quadraticCurveTo(-r*0.4,r,-r*0.7,r*0.4);ctx.quadraticCurveTo(-r*0.9,-r*0.6,0,-r*1.5);ctx.fill();
+  if(red){ctx.fillStyle='#1a1a1a';ctx.fillRect(-r*0.9,-r*0.45,r*1.8,r*0.32);}
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*0.28,r*0.05,r*0.16,0,7);ctx.arc(r*0.28,r*0.05,r*0.16,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*0.28,r*0.08,r*0.08,0,7);ctx.arc(r*0.28,r*0.08,r*0.08,0,7);ctx.fill();
+  ctx.strokeStyle='#7a2d00';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*0.35,r*0.25,0.3,Math.PI-0.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.save();
+  if(shake>0.5)ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  const t=Math.min(1,-camY/8000);
+  g.addColorStop(0,`rgb(${20+t*40},${10+t*20},${8})`);g.addColorStop(1,`rgb(${40+t*60},${18+t*30},${10})`);
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // distant glow
+  ctx.fillStyle='rgba(255,106,0,.12)';
+  for(let i=0;i<8;i++){const y=((i*400-camY*0.3)%(H+400))-200;ctx.beginPath();ctx.arc(W*0.1+i*W*0.11,y,60,0,7);ctx.fill();}
+  plats.forEach(p=>{
+    const sy=p.y+camY;if(sy<-30||sy>H+30)return;
+    if(p.t==='spring'){ctx.fillStyle='#3fae4a';}
+    else if(p.t==='break'){ctx.fillStyle='#8a6a4a';}
+    else if(p.t==='move'){ctx.fillStyle='#4d9de0';}
+    else{ctx.fillStyle='#c47b30';}
+    ctx.fillRect(p.x,sy,p.w,p.h);
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(p.x,sy,p.w,4);
+  });
+  stars.forEach(s=>{
+    const sy=s.y+camY;if(sy<-30||sy>H+30)return;
+    ctx.save();ctx.translate(s.x,sy);ctx.rotate(s.spin);
+    ctx.fillStyle='#ffd23f';ctx.shadowColor='#ffd23f';ctx.shadowBlur=12;
+    ctx.beginPath();
+    for(let i=0;i<5;i++){const a=i*2*Math.PI/5-Math.PI/2;ctx.lineTo(Math.cos(a)*s.r,Math.sin(a)*s.r);const a2=a+Math.PI/5;ctx.lineTo(Math.cos(a2)*s.r*0.45,Math.sin(a2)*s.r*0.45);}
+    ctx.closePath();ctx.fill();ctx.restore();
+  });
+  drawBaby(px,py,26,true);
+  // Sizzle cheering at bottom when near start
+  if(camY<400){ctx.font='34px serif';ctx.fillText('🔥',W-60,H-50);}
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y+camY*0,p.sz*p.life,0,7);ctx.fill();});
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+</script>
+</body>
+</html>

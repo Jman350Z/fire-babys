@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Blaze Breaker — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>💎 <span id="score">0</span></span><span>❤️ <span id="lives">3</span> 🏆 <span id="best">0</span></span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>🔥 Blaze Breaker 🔥</h1>
+<p><b>Drag / ← → keys</b> to move the paddle.<br>Bounce the fireball to smash all the <b>crystal blocks</b>!<br>Don't let the ball fall!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Fire needs heat + fuel + oxygen. Remove ANY one and the fire goes OUT!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="overT">💥 Game Over!</h1>
+<p>Blocks smashed: <b id="final">0</b></p>
+<div class="safety">🧯 <b>Remember:</b> Remove heat, fuel, or oxygen — and fire goes out!</div>
+<button class="btn" id="againBtn">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+let px,bx,by,bvx,bvy,blocks,score,lives,run=false,best=+(localStorage.getItem('bb_best')||0);
+document.getElementById('best').textContent=best;
+const PW=90,PH=14,BR=11;
+function makeBlocks(){blocks=[];let cols=6,rows=4,bw=(W-20)/cols;
+ const cols2=['#7dd8ff','#a8ff9d','#e8a0ff','#ffd166'];
+ for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
+  blocks.push({x:10+c*bw+4,y:70+r*34,w:bw-8,h:26,col:cols2[r%4],hp:r===3?2:1});}
+function reset(){px=W/2;makeBlocks();score=0;lives=3;serve();
+ document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3;}
+function serve(){bx=px;by=H-120;bvx=3*(Math.random()<0.5?-1:1);bvy=-4.5;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')px=Math.max(PW/2,px-28);if(e.key==='ArrowRight')px=Math.min(W-PW/2,px+28);});
+let drag=false;cv.addEventListener('pointerdown',e=>{drag=true;px=Math.max(PW/2,Math.min(W-PW/2,e.clientX));});
+cv.addEventListener('pointermove',e=>{if(drag)px=Math.max(PW/2,Math.min(W-PW/2,e.clientX));});
+cv.addEventListener('pointerup',()=>drag=false);
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#160d05');bg.addColorStop(1,'#2e1a0c');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ if(run){
+  bx+=bvx;by+=bvy;
+  if(bx<BR||bx>W-BR)bvx*=-1;
+  if(by<BR)bvy*=-1;
+  let py=H-80;
+  if(bvy>0&&by+BR>py&&by+BR<py+PH+12&&Math.abs(bx-px)<PW/2+BR){bvy*=-1;bvx=(bx-px)/14;by=py-BR;}
+  for(let b of blocks){if(b.hp>0&&bx+BR>b.x&&bx-BR<b.x+b.w&&by+BR>b.y&&by-BR<b.y+b.h){
+   b.hp--;bvy*=-1;if(b.hp<=0){score++;document.getElementById('score').textContent=score;}break;}}
+  blocks=blocks.filter(b=>b.hp>0);
+  if(blocks.length===0){win();return;}
+  if(by>H+30){lives--;document.getElementById('lives').textContent=lives;
+   if(lives<=0){gameOver();return;}serve();}
+ }
+ for(let b of blocks){ctx.fillStyle=b.col;ctx.fillRect(b.x,b.y,b.w,b.h);
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(b.x,b.y,b.w,6);
+  if(b.hp>1){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(b.x+3,b.y+3,b.w-6,b.h-6);}}
+ // paddle
+ let py=H-80;ctx.fillStyle='#ffb347';ctx.beginPath();ctx.roundRect(px-PW/2,py,PW,PH,7);ctx.fill();
+ ctx.fillStyle='#ff7b1c';ctx.beginPath();ctx.roundRect(px-PW/2,py,PW,6,3);ctx.fill();
+ // fireball
+ const g=ctx.createRadialGradient(bx-3,by-3,1,bx,by,BR);g.addColorStop(0,'#fff6c8');g.addColorStop(0.5,'#ffcf4d');g.addColorStop(1,'#ff7b1c');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(bx,by,BR,0,7);ctx.fill();
+ requestAnimationFrame(loop);
+}
+function end(s,win2){run=false;document.getElementById('final').textContent=s;
+ document.getElementById('overT').textContent=win2?'🎉 YOU WIN!':'💥 Game Over!';
+ if(s>best){best=s;localStorage.setItem('bb_best',best);document.getElementById('best').textContent=best;}
+ document.getElementById('over').classList.remove('hidden');}
+function gameOver(){end(score,false);}
+function win(){end(score,true);}
+reset();loop();
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Rescue Relay — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#0f2417;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(110,220,140,.25)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 22: RESCUE RELAY — drag every Fire Baby to the safety zone! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Get OUT and STAY OUT! Let firefighters rescue anyone still inside.";
+var state='title',score=0,time=75,babies=[],held=null,tick=0,rescued=0;
+var ZONE={x:W/2,y:120,r:52};
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;g.gain.setValueAtTime(.1,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.15);o.start();o.stop(AC.currentTime+.16);}catch(e){}}
+function startGame(){
+  state='play';score=0;time=75;rescued=0;held=null;babies=[];
+  for(var i=0;i<6;i++){
+    babies.push({x:50+Math.random()*(W-100),y:250+Math.random()*(H-300),
+      vx:(Math.random()-.5)*.8,vy:(Math.random()-.5)*.8,safe:false,hop:0});
+  }
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function baby(x,y,r,alpha){
+  ctx.save();ctx.globalAlpha=alpha==null?1:alpha;
+  var g=ctx.createRadialGradient(x-r*.2,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'#ffe680');g.addColorStop(.55,'#ff9f1c');g.addColorStop(1,'#e8590c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r*.75,y-r*.35);
+  ctx.quadraticCurveTo(x-r*.25,y-r*1.7,x+r*.05,y-r*1.05);
+  ctx.quadraticCurveTo(x+r*.35,y-r*1.7,x+r*.75,y-r*.35);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.32,y-r*.05,r*.12,0,7);ctx.arc(x+r*.32,y-r*.05,r*.12,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.28,r*.32,.35,Math.PI-.35);ctx.stroke();
+  ctx.fillStyle='rgba(255,110,110,.55)';
+  ctx.beginPath();ctx.arc(x-r*.55,y+r*.22,r*.11,0,7);ctx.arc(x+r*.55,y+r*.22,r*.11,0,7);ctx.fill();
+  ctx.restore();
+}
+var last=0;
+function update(dt){
+  tick++;
+  if(state!=='play')return;
+  time-=dt;
+  if(time<=0){time=0;state='over';held=null;}
+  babies.forEach(function(b){
+    if(b.safe||b===held)return;
+    b.x+=b.vx;b.y+=b.vy;
+    if(b.x<30||b.x>W-30)b.vx*=-1;
+    if(b.y<210||b.y>H-40)b.vy*=-1;
+    if(b.hop>0)b.hop--;
+  });
+  if(rescued>=6){state='over';held=null;}
+}
+function draw(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0f2417');g.addColorStop(1,'#1d4028');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,.06)';
+  for(var s=0;s<16;s++){ctx.beginPath();ctx.arc((s*97)%W,(s*61)%H,14,0,7);ctx.fill();}
+  var pulse=1+Math.sin(tick*.08)*.06;
+  ctx.fillStyle='rgba(47,158,68,.35)';
+  ctx.beginPath();ctx.arc(ZONE.x,ZONE.y,ZONE.r*pulse,0,7);ctx.fill();
+  ctx.strokeStyle='#69db7c';ctx.lineWidth=4;ctx.setLineDash([10,8]);
+  ctx.beginPath();ctx.arc(ZONE.x,ZONE.y,ZONE.r*pulse,0,7);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#fff';ctx.font='bold 17px Trebuchet MS';ctx.textAlign='center';
+  ctx.fillText('🏠 SAFE ZONE',ZONE.x,ZONE.y+6);
+  babies.forEach(function(b){
+    if(b.safe){
+      var i=babies.indexOf(b);
+      var sx=ZONE.x-40+(i%3)*40,sy=ZONE.y-14+((i/3)|0)*30;
+      baby(sx,sy+Math.sin(tick*.1+i)*3,15);
+    }else if(b!==held){
+      baby(b.x,b.y,20);
+    }
+  });
+  if(held){
+    var p=lastP;
+    baby(p.x,p.y-24+(held.hop>0?-Math.sin(held.hop*.5)*10:0),20);
+  }
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 19px Trebuchet MS';
+  ctx.fillText('⭐ '+score,12,30);
+  ctx.textAlign='center';ctx.fillStyle=time<10?'#ff6b6b':'#fff';
+  ctx.fillText('⏱ '+Math.ceil(time),W/2,30);
+  ctx.textAlign='right';ctx.fillStyle='#fff';
+  ctx.fillText('🏠 '+rescued+'/6',W-12,30);
+  if(state==='title'){
+    ctx.fillStyle='rgba(8,20,12,.93)';rr(20,140,W-40,H-310,18);ctx.fill();
+    ctx.strokeStyle='#69db7c';ctx.lineWidth=3;rr(20,140,W-40,H-310,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText('RESCUE RELAY',W/2,190);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('Drag each Fire Baby to the',W/2,230);
+    ctx.fillText('green SAFE ZONE at the top!',W/2,256);
+    ctx.fillText('Rescue all 6 before time runs out!',W/2,282);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,312,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-225);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(8,20,12,.93)';rr(20,140,W-40,H-310,18);ctx.fill();
+    ctx.strokeStyle='#ffd43b';ctx.lineWidth=3;rr(20,140,W-40,H-310,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText(rescued>=6?'ALL RESCUED! 🎉':'TIME UP!',W/2,190);
+    ctx.font='18px Trebuchet MS';
+    ctx.fillText('You rescued '+rescued+' of 6 Fire Babys!',W/2,232);
+    ctx.fillText('Score: '+score,W/2,260);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,292,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO PLAY AGAIN 👆',W/2,H-225);
+  }
+}
+var lastP={x:W/2,y:H/2};
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){startGame();return;}
+  var p=P(e);lastP=p;
+  for(var i=0;i<babies.length;i++){var b=babies[i];
+    if(b.safe)continue;
+    var dx=p.x-b.x,dy=p.y-b.y;
+    if(dx*dx+dy*dy<34*34){held=b;beep(500);return;}
+  }
+});
+addEventListener('pointermove',function(e){if(held&&state==='play')lastP=P(e);});
+addEventListener('pointerup',function(){
+  if(held&&state==='play'){
+    var dx=lastP.x-ZONE.x,dy=lastP.y-ZONE.y;
+    if(dx*dx+dy*dy<ZONE.r*ZONE.r){
+      held.safe=true;held.hop=14;rescued++;score+=100;beep(760);
+    }
+    held=null;
+  }
+});
+addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&state!=='play')startGame();});
+(function loop(t){var dt=Math.min(.05,((t-last)/1000)||0);last=t;update(dt);draw();requestAnimationFrame(loop);})(0);
+</script>
+</body>
+</html>

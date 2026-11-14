@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Blaze Racer — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#1b5e20; touch-action:none;
+    font-family:"Trebuchet MS","Comic Sans MS","Chalkboard SE",Verdana,sans-serif; user-select:none; -webkit-user-select:none; }
+  #game { display:block; width:100vw; height:100vh; touch-action:none; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+"use strict";
+/* BLAZE RACER — Fire Babys game 43.
+   Fire-safety lesson: In a real fire, NEVER use elevators — take the stairs!
+   Have a family escape plan and practice it twice a year! */
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0); buildTrack(); }
+window.addEventListener('resize',resize);
+
+/* ---------- track ---------- */
+let TR={cx:0,cy:0,rx:200,ry:140,half:44};
+function buildTrack(){
+  TR.cx=W/2; TR.cy=H*0.40;
+  TR.rx=Math.min(W*0.40,H*0.30); TR.ry=TR.rx*0.70;
+  TR.half=Math.max(30,Math.min(52,TR.rx*0.22));
+}
+function trackPos(theta,d){
+  return { x:TR.cx+(TR.rx+d)*Math.cos(theta), y:TR.cy+(TR.ry+d)*Math.sin(theta) };
+}
+function trackAngle(theta,d){ // heading tangent
+  const dx=-(TR.rx+d)*Math.sin(theta), dy=(TR.ry+d)*Math.cos(theta);
+  return Math.atan2(dy,dx);
+}
+
+/* ---------- state ---------- */
+let state='title'; // title | countdown | play | over
+let theta, dOff, speed, lap, lapStartT, totalT, bestLap, lapsDone;
+let obstacles=[], popups=[], cdT=0, cdShown=3, hitCd=0, bounceV=0;
+const TOTAL_LAPS=3, MAX_SPEED=300, ACCEL=140;
+
+function resetGame(){
+  theta=0.001; dOff=0; speed=0; lap=1; totalT=0; lapStartT=0; bestLap=null; lapsDone=[];
+  obstacles=[]; popups=[]; hitCd=0; bounceV=0;
+  // scatter cones + oil slicks around the track
+  const n=9;
+  for(let i=0;i<n;i++){
+    const th=(i+0.5)*(Math.PI*2/n)+Math.random()*0.3;
+    const type=Math.random()<0.5?'cone':'oil';
+    const dd=(Math.random()*2-1)*TR.half*0.55;
+    obstacles.push({th:th,d:dd,type:type});
+  }
+  state='countdown'; cdT=0; cdShown=3;
+}
+function fmt(t){
+  const m=Math.floor(t/60), s=t-m*60;
+  return m+':'+(s<10?'0':'')+s.toFixed(2);
+}
+
+/* ---------- input ---------- */
+const keys={};
+window.addEventListener('keydown',e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()]=true;
+  if((e.key===' '||e.key==='Enter')){
+    if(state==='title'){ resetGame(); }
+    else if(state==='over'){ resetGame(); }
+  }
+});
+window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+let steerTouch={left:false,right:false};
+function steerBtns(){
+  const s=Math.min(84,W*0.2), y=H-s-24;
+  return { left:{x:24,y:y,w:s,h:s}, right:{x:W-24-s,y:y,w:s,h:s} };
+}
+cv.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  const x=e.clientX,y=e.clientY;
+  if(state==='title'){ if(inBtn(x,y,btnStart)) resetGame(); return; }
+  if(state==='over'){ if(inBtn(x,y,btnRestart)) resetGame(); return; }
+  const b=steerBtns();
+  if(inBtn(x,y,b.left)) steerTouch.left=true;
+  if(inBtn(x,y,b.right)) steerTouch.right=true;
+},{passive:false});
+function touchMove(e){
+  const b=steerBtns();
+  steerTouch.left=false; steerTouch.right=false;
+  for(const t of e.touches){
+    if(inBtn(t.clientX,t.clientY,b.left)) steerTouch.left=true;
+    if(inBtn(t.clientX,t.clientY,b.right)) steerTouch.right=true;
+  }
+}
+cv.addEventListener('touchmove',e=>{ e.preventDefault(); touchMove(e); },{passive:false});
+cv.addEventListener('touchstart',e=>{ touchMove(e); },{passive:true});
+window.addEventListener('pointerup',()=>{ steerTouch.left=false; steerTouch.right=false; });
+window.addEventListener('pointercancel',()=>{ steerTouch.left=false; steerTouch.right=false; });
+let btnStart={x:0,y:0,w:0,h:0}, btnRestart={x:0,y:0,w:0,h:0};
+function inBtn(x,y,b){ return x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h; }
+
+/* ---------- update ---------- */
+function wrapPi(a){ while(a>Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; }
+function update(dt){
+  if(state==='countdown'){
+    cdT+=dt;
+    const n=3-Math.floor(cdT/0.8);
+    cdShown=n;
+    if(cdT>=2.4){ state='play'; }
+    return;
+  }
+  if(state!=='play') return;
+  totalT+=dt;
+  if(hitCd>0) hitCd-=dt;
+  // auto-accelerate
+  speed=Math.min(MAX_SPEED, speed+ACCEL*dt*(speed<MAX_SPEED?1:0));
+  // steering
+  let steer=0;
+  if(keys['arrowleft']||keys['a']||steerTouch.left) steer-=1;
+  if(keys['arrowright']||keys['d']||steerTouch.right) steer+=1;
+  dOff+=steer*TR.half*2.2*dt + bounceV*dt;
+  bounceV*=Math.pow(0.02,dt);
+  dOff=Math.max(-TR.half*0.8,Math.min(TR.half*0.8,dOff));
+  // move along track
+  const rAvg=(TR.rx+TR.ry)/2;
+  const prev=theta;
+  theta+= (speed/rAvg)*dt;
+  // lap counting (crossing theta = 2π multiples)
+  if(Math.floor(theta/(2*Math.PI))>Math.floor(prev/(2*Math.PI))){
+    const lapTime=totalT-lapStartT;
+    lapsDone.push(lapTime);
+    if(bestLap===null||lapTime<bestLap) bestLap=lapTime;
+    lap++;
+    lapStartT=totalT;
+    popups.push({t:1.6,txt:'LAP '+Math.min(lap-1,TOTAL_LAPS)+' — '+fmt(lapTime)});
+    if(lap>TOTAL_LAPS){ state='over'; }
+  }
+  // obstacles
+  if(hitCd<=0){
+    for(const o of obstacles){
+      const dth=Math.abs(wrapPi(theta-o.th))*rAvg;
+      if(dth<34 && Math.abs(dOff-o.d)<30){
+        hitCd=1.0;
+        speed*=0.35;
+        bounceV=(dOff>o.d?1:-1)*160;
+        popups.push({t:1.2,txt:o.type==='cone'?'BONK! Cone bump!':'SPLAT! Oil slick!'});
+        break;
+      }
+    }
+  }
+  for(const p of popups) p.t-=dt;
+  popups=popups.filter(p=>p.t>0);
+}
+
+/* ---------- drawing ---------- */
+function drawFireTruck(x,y,ang){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(3,4,34,20,0,0,7); ctx.fill();
+  // truck body (top-down): red rounded body
+  const g=ctx.createLinearGradient(0,-20,0,20);
+  g.addColorStop(0,'#ef5350'); g.addColorStop(1,'#c62828');
+  ctx.fillStyle=g; ctx.strokeStyle='#5d1010'; ctx.lineWidth=3;
+  roundRectPath(-32,-18,64,36,10); ctx.fill(); ctx.stroke();
+  // yellow stripe
+  ctx.fillStyle='#ffeb3b'; ctx.fillRect(-32,-4,64,8);
+  // cab windshield
+  ctx.fillStyle='#b3e5fc'; ctx.strokeStyle='#37474f'; ctx.lineWidth=2;
+  roundRectPath(12,-12,14,24,5); ctx.fill(); ctx.stroke();
+  // ladder on top
+  ctx.strokeStyle='#eceff1'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(-26,-8); ctx.lineTo(-2,-8); ctx.moveTo(-26,8); ctx.lineTo(-2,8); ctx.stroke();
+  ctx.lineWidth=2;
+  for(let i=0;i<4;i++){ ctx.beginPath(); ctx.moveTo(-24+i*7,-8); ctx.lineTo(-24+i*7,8); ctx.stroke(); }
+  // light bar
+  ctx.fillStyle='#ff1744'; ctx.fillRect(-2,-14,8,7);
+  ctx.fillStyle='#448aff'; ctx.fillRect(-2,7,8,7);
+  // wheels
+  ctx.fillStyle='#212121';
+  for(const [wx,wy] of [[-20,-20],[-20,20],[16,-20],[16,20]]){
+    ctx.beginPath(); ctx.arc(wx,wy,7,0,7); ctx.fill();
+  }
+  // smiling fire baby driver peeking from cab
+  ctx.save(); ctx.translate(19,0);
+  const r=10;
+  const bg2=ctx.createRadialGradient(0,2,1,0,0,13);
+  bg2.addColorStop(0,'#fff59d'); bg2.addColorStop(0.5,'#ffd54f'); bg2.addColorStop(1,'#f4511e');
+  ctx.fillStyle=bg2; ctx.strokeStyle='#5d2c00'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(0,-13);
+  ctx.bezierCurveTo(9,-5, 8,7, 0,10);
+  ctx.bezierCurveTo(-8,7, -9,-5, 0,-13);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle='#4a2400'; ctx.lineWidth=1.8; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(-3.5,0,1.8,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(3.5,0,1.8,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,3.5,3.6,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
+  ctx.restore();
+  ctx.restore();
+}
+function drawCone(x,y){
+  ctx.save(); ctx.translate(x,y);
+  ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(0,4,12,6,0,0,7); ctx.fill();
+  ctx.fillStyle='#ff6f00'; ctx.strokeStyle='#7a2e00'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,-14); ctx.lineTo(10,8); ctx.lineTo(-10,8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.fillRect(-6,-2,12,5);
+  ctx.restore();
+}
+function drawOil(x,y,ph){
+  ctx.save(); ctx.translate(x,y);
+  ctx.fillStyle='rgba(20,10,40,0.9)'; ctx.strokeStyle='#4a3b6b'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.ellipse(0,0,18+Math.sin(ph)*2,12,0.3,0,7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(150,120,255,0.35)';
+  ctx.beginPath(); ctx.ellipse(-4,-2,7,4,-0.3,0,7); ctx.fill();
+  ctx.restore();
+}
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function roundRect(x,y,w,h,r){ roundRectPath(x,y,w,h,r); }
+function bigButton(b,label){
+  const g=ctx.createLinearGradient(0,b.y,0,b.y+b.h);
+  g.addColorStop(0,'#66bb6a'); g.addColorStop(1,'#1b8a2f');
+  ctx.fillStyle=g; roundRect(b.x,b.y,b.w,b.h,18); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 30px "Trebuchet MS"';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+2);
+}
+function wrapText(text,x,y,maxW,lh,font,color){
+  ctx.font=font; ctx.fillStyle=color; ctx.textAlign='center'; ctx.textBaseline='top';
+  const words=text.split(' '); let line='', yy=y;
+  for(const w of words){
+    const t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){ ctx.fillText(line,x,yy); line=w; yy+=lh; } else line=t;
+  }
+  ctx.fillText(line,x,yy); return yy+lh;
+}
+function lessonBox(y){
+  const txt='🔥 FIRE SAFETY: In a real fire, NEVER use elevators — take the stairs! Have a family escape plan and practice it twice a year!';
+  const ly=wrapText(txt,W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#e8f5e9');
+  roundRect(W*0.06,y,W*0.88,(ly-y)+14,16);
+  ctx.fillStyle='rgba(27,138,47,0.30)'; ctx.fill();
+  ctx.strokeStyle='#a5d6a7'; ctx.lineWidth=3; ctx.stroke();
+  wrapText(txt,W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#e8f5e9');
+  return ly;
+}
+
+function draw(){
+  // grass
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#2e7d32'); bg.addColorStop(1,'#1b5e20');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  // grass tufts
+  ctx.fillStyle='rgba(255,255,255,0.06)';
+  for(let i=0;i<60;i++){ const sx=(i*131)%W, sy=(i*77)%H; ctx.fillRect(sx,sy,3,5); }
+
+  if(state==='title'){ drawTitle(); return; }
+
+  // track: thick stroked ellipse
+  ctx.lineCap='round';
+  ctx.strokeStyle='#616161'; ctx.lineWidth=TR.half*2;
+  ctx.beginPath(); ctx.ellipse(TR.cx,TR.cy,TR.rx,TR.ry,0,0,7); ctx.stroke();
+  ctx.strokeStyle='#9e9e9e'; ctx.lineWidth=TR.half*2-14;
+  ctx.beginPath(); ctx.ellipse(TR.cx,TR.cy,TR.rx,TR.ry,0,0,7); ctx.stroke();
+  // red/white curbs
+  ctx.setLineDash([18,18]); ctx.lineWidth=8;
+  ctx.strokeStyle='#e53935';
+  ctx.beginPath(); ctx.ellipse(TR.cx,TR.cy,TR.rx+TR.half-4,TR.ry+TR.half-4,0,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(TR.cx,TR.cy,TR.rx-TR.half+4,TR.ry-TR.half+4,0,0,7); ctx.stroke();
+  ctx.setLineDash([]);
+  // center dashes
+  ctx.setLineDash([24,30]); ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.ellipse(TR.cx,TR.cy,TR.rx,TR.ry,0,0,7); ctx.stroke();
+  ctx.setLineDash([]);
+  // start/finish checkers at theta=0
+  const sp=trackPos(0,0), sa=trackAngle(0,0)+Math.PI/2;
+  ctx.save(); ctx.translate(sp.x,sp.y); ctx.rotate(sa);
+  for(let i=0;i<4;i++)for(let j=0;j<2;j++){
+    ctx.fillStyle=(i+j)%2?'#111':'#fff';
+    ctx.fillRect(-TR.half+i*(TR.half*2/4), -8+j*8, TR.half*2/4, 8);
+  }
+  ctx.restore();
+  // obstacles
+  const tNow=performance.now()/1000;
+  for(const o of obstacles){
+    const p=trackPos(o.th,o.d);
+    if(o.type==='cone') drawCone(p.x,p.y); else drawOil(p.x,p.y,tNow);
+  }
+  // car
+  const cp=trackPos(theta,dOff), ca=trackAngle(theta,dOff);
+  drawFireTruck(cp.x,cp.y,ca);
+  // speed lines
+  if(speed>180&&state==='play'){
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=3;
+    for(let i=0;i<3;i++){
+      const bx=cp.x-Math.cos(ca)*(40+i*14)+(Math.random()-0.5)*10;
+      const by=cp.y-Math.sin(ca)*(40+i*14)+(Math.random()-0.5)*10;
+      ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx-Math.cos(ca)*22,by-Math.sin(ca)*22); ctx.stroke();
+    }
+  }
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,0.5)'; roundRect(8,8,W-16,64,14); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.font='bold 22px "Trebuchet MS"';
+  ctx.fillText('🏁 Lap '+Math.min(lap,TOTAL_LAPS)+'/'+TOTAL_LAPS, 22, 32);
+  ctx.fillStyle='#fff176'; ctx.font='bold 20px "Trebuchet MS"'; ctx.textAlign='center';
+  ctx.fillText('⏱ '+fmt(totalT), W/2, 32);
+  ctx.fillStyle='#a5d6a7'; ctx.textAlign='right'; ctx.font='18px "Trebuchet MS"';
+  ctx.fillText(bestLap!==null?('Best: '+fmt(bestLap)):'', W-22, 32);
+  ctx.textAlign='left'; ctx.fillStyle='#c8e6c9'; ctx.font='16px "Trebuchet MS"';
+  ctx.fillText('Lap: '+fmt(totalT-lapStartT), 22, 58);
+
+  // popups
+  ctx.textAlign='center';
+  for(const p of popups){
+    ctx.globalAlpha=Math.min(1,p.t);
+    ctx.fillStyle='#fff176'; ctx.font='bold 26px "Trebuchet MS"';
+    ctx.fillText(p.txt,W/2,120-(1.6-p.t)*30);
+    ctx.globalAlpha=1;
+  }
+  // steer buttons
+  if(state==='play'){
+    const b=steerBtns();
+    for(const k of ['left','right']){
+      const bb=b[k];
+      ctx.globalAlpha=steerTouch[k]?0.95:0.55;
+      ctx.fillStyle='#ffffff'; roundRect(bb.x,bb.y,bb.w,bb.h,18); ctx.fill();
+      ctx.strokeStyle='#1b8a2f'; ctx.lineWidth=4; ctx.stroke();
+      ctx.fillStyle='#1b8a2f'; ctx.font='bold 40px "Trebuchet MS"';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(k==='left'?'◀':'▶',bb.x+bb.w/2,bb.y+bb.h/2+2);
+      ctx.globalAlpha=1;
+    }
+    ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='15px "Trebuchet MS"'; ctx.textAlign='center';
+    ctx.fillText('Hold ◀ ▶ or use arrow keys — you auto-accelerate!', W/2, H-14);
+  }
+  if(state==='countdown'){
+    ctx.fillStyle='rgba(0,0,0,0.45)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff176'; ctx.font='bold 90px "Trebuchet MS"';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(cdShown>0?String(cdShown):'GO!',W/2,H/2);
+  }
+  if(state==='over') drawOver();
+}
+
+function drawTitle(){
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
+  // mini demo truck
+  drawFireTruck(W/2,140,0);
+  ctx.textAlign='center';
+  const fs=Math.min(44,W*0.095);
+  ctx.fillStyle='#fff176'; ctx.font='bold '+fs+'px "Trebuchet MS"';
+  ctx.fillText('🏁 BLAZE RACER 🚒', W/2, 220);
+  let y=250;
+  y=wrapText('You are the fire baby fire-truck driver! Race 3 laps around the track as fast as you can. Your truck speeds up all by itself — you just steer! Dodge traffic cones and oil slicks: bumping one just slows you down with a funny BONK (nobody gets hurt!).',
+    W/2,y,W*0.86,30,'20px "Trebuchet MS"','#ffffff');
+  y+=16;
+  y=wrapText('🕹️ Hold the ◀ ▶ buttons or use the left/right arrow keys to steer.',
+    W/2,y,W*0.86,28,'19px "Trebuchet MS"','#c8e6c9');
+  y+=16;
+  y=lessonBox(y);
+  y+=30;
+  const bw=Math.min(280,W*0.7);
+  btnStart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnStart,'▶ START RACE');
+}
+function drawOver(){
+  ctx.fillStyle='rgba(0,0,0,0.68)'; ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';
+  ctx.fillStyle='#fff176'; ctx.font='bold 40px "Trebuchet MS"';
+  ctx.fillText('🏁 RACE FINISHED!',W/2,150);
+  ctx.fillStyle='#fff'; ctx.font='bold 28px "Trebuchet MS"';
+  ctx.fillText('⏱ Total time: '+fmt(totalT),W/2,205);
+  ctx.fillStyle='#a5d6a7'; ctx.font='bold 24px "Trebuchet MS"';
+  ctx.fillText('⚡ Best lap: '+(bestLap!==null?fmt(bestLap):'—'),W/2,245);
+  ctx.fillStyle='#fff176'; ctx.font='22px "Trebuchet MS"';
+  ctx.fillText('You finished all '+TOTAL_LAPS+' laps! Great driving, hero!',W/2,282);
+  let y=lessonBox(312);
+  y+=30;
+  const bw=Math.min(280,W*0.7);
+  btnRestart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnRestart,'↻ RACE AGAIN');
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function loop(t){
+  const dt=Math.min(0.05,(t-last)/1000); last=t;
+  update(dt); draw();
+  requestAnimationFrame(loop);
+}
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

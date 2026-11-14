@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Blaze Balance — Fire Babys Fire World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#140800;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#wrap{width:min(100vw,480px)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="480" height="720"></canvas></div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const W=480,H=720,CX=W/2,PIVOT_Y=470;
+const LESSON="Stay calm and balanced! In a real fire: stay low, get out fast, and call 911.";
+let state='title',score=0,best=0,last=0,t=0;
+let angle=0,angVel=0,lean=0,gust=0,gustT=0,warn=0,warnDir=0;
+try{best=parseFloat(localStorage.getItem('fb_g26_best')||'0');}catch(e){}
+
+function T(txt,x,y,size,color,align){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign=align||'center';ctx.textBaseline='middle';ctx.fillText(txt,x,y);}
+function wrap(txt,x,y,maxW,lh,size,color){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';let words=txt.split(' '),line='',yy=y;for(const w of words){const t2=line?line+' '+w:w;if(ctx.measureText(t2).width>maxW&&line){ctx.fillText(line,x,yy);line=w;yy+=lh;}else line=t2;}ctx.fillText(line,x,yy);return yy;}
+function baby(x,y,r,mood,rot){ctx.save();ctx.translate(x,y);ctx.rotate(rot||0);
+  const g=ctx.createRadialGradient(0,0,r*0.3,0,0,r*1.9);
+  g.addColorStop(0,'rgba(255,180,60,.55)');g.addColorStop(1,'rgba(255,120,20,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.9,0,7);ctx.fill();
+  ctx.fillStyle='#ff8c1a';ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#ffc63f';ctx.beginPath();
+  ctx.moveTo(-r*0.62,-r*0.35);ctx.quadraticCurveTo(0,-r*2.1,r*0.62,-r*0.35);
+  ctx.quadraticCurveTo(0,-r*0.75,-r*0.62,-r*0.35);ctx.fill();
+  ctx.fillStyle='#ffe08a';ctx.beginPath();ctx.arc(-r*0.25,r*0.15,r*0.45,0,7);ctx.fill();
+  ctx.fillStyle='#40200a';
+  ctx.beginPath();ctx.arc(-r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  if(mood==='wow'){ctx.beginPath();ctx.arc(0,r*0.32,r*0.15,0,7);ctx.fill();}
+  else{ctx.fillStyle='rgba(255,120,120,.55)';ctx.beginPath();ctx.arc(-r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.beginPath();ctx.arc(r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI);ctx.stroke();}
+  ctx.restore();}
+
+function reset(){score=0;angle=0;angVel=0;lean=0;gust=0;gustT=2.5;warn=0;warnDir=0;}
+function update(dt){
+  t+=dt;score+=dt;
+  gustT-=dt;
+  if(warn>0){warn-=dt;if(warn<=0){gust=warnDir*(1.1+Math.random()*0.9);gustT=2.5+Math.random()*3.5;}}
+  else if(gustT<=0){warnDir=Math.random()<0.5?-1:1;warn=1.0;}
+  gust*=Math.pow(0.25,dt);
+  const sway=Math.sin(t*0.9)*0.35+Math.sin(t*2.3)*0.12;
+  angVel+=(lean*2.4+gust+sway-angle*1.1)*dt*1.6;
+  angVel*=Math.pow(0.55,dt);
+  angle+=angVel*dt;
+  if(Math.abs(angle)>0.55){state='over';
+    if(score>best){best=score;try{localStorage.setItem('fb_g26_best',best.toFixed(1));}catch(e){}}}
+}
+function draw(){
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#7ec8f7');sky.addColorStop(0.6,'#cdeffd');sky.addColorStop(1,'#ffe9c4');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff8d0';ctx.beginPath();ctx.arc(400,110,44,0,7);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  for(let i=0;i<4;i++){const cx2=((i*170+t*14)%(W+160))-80;ctx.beginPath();ctx.ellipse(cx2,120+i*36,52,20,0,0,7);ctx.fill();}
+  // hills + ground
+  ctx.fillStyle='#8fd18f';ctx.beginPath();ctx.ellipse(100,640,300,120,0,0,7);ctx.fill();
+  ctx.beginPath();ctx.ellipse(420,660,280,120,0,0,7);ctx.fill();
+  ctx.fillStyle='#6fb46f';ctx.fillRect(0,640,W,80);
+  // gust warning
+  if(warn>0){T(warnDir<0?'💨 ◀◀':'▶▶ 💨',warnDir<0?90:W-90,220,34,'#fff');
+    T('WIND COMING!',W/2,120,26,'#e65100');}
+  if(Math.abs(gust)>0.25){ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=4;
+    for(let i=0;i<5;i++){const gx=(t*300*(gust>0?1:-1)+i*130)%(W+260)-130;
+      ctx.beginPath();ctx.moveTo(gx,180+i*70);ctx.lineTo(gx+(gust>0?60:-60),180+i*70);ctx.stroke();}}
+  // fulcrum
+  ctx.fillStyle='#8a5a2e';ctx.beginPath();
+  ctx.moveTo(CX-46,PIVOT_Y+96);ctx.lineTo(CX+46,PIVOT_Y+96);ctx.lineTo(CX,PIVOT_Y);ctx.closePath();ctx.fill();
+  // plank
+  ctx.save();ctx.translate(CX,PIVOT_Y);ctx.rotate(angle);
+  ctx.fillStyle='#a06a35';ctx.fillRect(-190,-14,380,28);
+  ctx.fillStyle='#c08a4d';ctx.fillRect(-190,-14,380,10);
+  ctx.strokeStyle='#6b4423';ctx.lineWidth=3;ctx.strokeRect(-190,-14,380,28);
+  // baby standing on plank
+  baby(0,-52,34,Math.abs(angle)>0.38?'wow':'happy',angle*0.4);
+  // little arms for balance
+  ctx.strokeStyle='#ff8c1a';ctx.lineWidth=10;ctx.lineCap='round';
+  const armW=Math.sin(t*6)*10-lean*26;
+  ctx.beginPath();ctx.moveTo(-20,-46);ctx.lineTo(-52,-60+armW);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(20,-46);ctx.lineTo(52,-60-armW);ctx.stroke();
+  ctx.restore();
+  // danger zone markers
+  ctx.fillStyle='rgba(255,60,60,.25)';
+  ctx.fillRect(0,PIVOT_Y-170,40,220);ctx.fillRect(W-40,PIVOT_Y-170,40,220);
+  // tilt meter
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(W/2-120,30,240,26);
+  const mx=W/2+angle/0.55*110;
+  ctx.fillStyle=Math.abs(angle)>0.38?'#ff5252':'#7dff9a';
+  ctx.beginPath();ctx.arc(Math.max(W/2-110,Math.min(W/2+110,mx)),43,12,0,7);ctx.fill();
+  ctx.fillStyle='#ff5252';ctx.fillRect(W/2-120,30,8,26);ctx.fillRect(W/2+112,30,8,26);
+  // HUD
+  T('⏱️ '+score.toFixed(1)+'s',W/2,80,30,'#4a2c00');
+  T('BEST '+best.toFixed(1)+'s',W/2,108,18,'#7a5a2e');
+  // touch zones hint
+  ctx.fillStyle='rgba(255,255,255,.35)';
+  ctx.fillRect(8,H-120,110,104);ctx.fillRect(W-118,H-120,110,104);
+  T('◀',63,H-68,36,'#4a2c00');T('▶',W-63,H-68,36,'#4a2c00');
+}
+function drawTitle(){
+  draw();ctx.fillStyle='rgba(20,10,0,.72)';ctx.fillRect(0,0,W,H);
+  baby(W/2,140,52);T('BLAZE BALANCE',W/2,235,44,'#ffb300');
+  T('⚖️ Fire Babys Fire World ⚖️',W/2,275,20,'#ffd76a');
+  wrap('Hold LEFT or RIGHT side of the screen to lean. Keep Blaze balanced on the seesaw as long as you can — watch out for wind gusts!',W/2,335,400,30,21,'#fff');
+  ctx.fillStyle='#3a2408';ctx.fillRect(40,465,W-80,120);
+  T('🔥 FIRE SAFETY 🔥',W/2,490,22,'#ffb300');
+  wrap(LESSON,W/2,525,380,26,19,'#ffe6b0');
+  T('Tap to start!',W/2,640,26,'#7dff9a');
+  T('Made by Jman350Z & the Fire Team',W/2,690,15,'#a07a4a');
+}
+function drawOver(){
+  draw();ctx.fillStyle='rgba(20,10,0,.75)';ctx.fillRect(0,0,W,H);
+  baby(W/2,150,52,'wow');
+  T('TIMBER!',W/2,245,44,'#ffb300');
+  T('Balanced for: '+score.toFixed(1)+'s',W/2,310,30,'#fff');
+  T('Best: '+best.toFixed(1)+'s',W/2,350,24,'#ffd76a');
+  ctx.fillStyle='#3a2408';ctx.fillRect(40,395,W-80,130);
+  T('🔥 FIRE SAFETY 🔥',W/2,422,22,'#ffb300');
+  wrap(LESSON,W/2,458,380,26,19,'#ffe6b0');
+  T('Tap to try again!',W/2,585,26,'#7dff9a');
+}
+function loop(ts){const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;
+  if(state==='play')update(dt);else t+=dt;
+  if(state==='title')drawTitle();else if(state==='over')drawOver();else draw();
+  requestAnimationFrame(loop);}
+function press(x){
+  if(state==='title'||state==='over'){reset();state='play';return;}
+  lean=x<W/2?-1:1;
+}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();const r=cv.getBoundingClientRect();press((e.clientX-r.left)*W/r.width);});
+cv.addEventListener('pointermove',e=>{if(state!=='play')return;const r=cv.getBoundingClientRect();lean=((e.clientX-r.left)*W/r.width)<W/2?-1:1;});
+cv.addEventListener('pointerup',()=>{lean=0;});
+cv.addEventListener('pointercancel',()=>{lean=0;});
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')lean=-1;if(e.key==='ArrowRight')lean=1;
+  if((e.key===' '||e.key==='Enter')&&(state==='title'||state==='over')){reset();state='play';}});
+window.addEventListener('keyup',()=>{lean=0;});
+reset();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

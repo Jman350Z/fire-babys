@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ember Bounce Master — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0c0812;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,5,16,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ff9adf;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff9adf;padding:6px;background:#1c0e1c;color:#fff}
+#gate button,#startBtn{background:#a04a8a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud">SCORE 0 · 🎯 0/6</div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>🪝 EMBER BOUNCE MASTER</h1>
+<p>Swinging grapple! TAP to shoot your grapple at anchors, then RELEASE at the perfect moment to fling Cinder to the next target. Hit all 6!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Ropes and swings are playground fun — never swing near fires or hot stoves!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.13,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const n1=4+Math.floor(Math.random()*4),n2=2+Math.floor(Math.random()*5);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
+let state='menu',anchors=[],targets=[],px=0,py=0,vx=0,vy=0,grap=null,score=0,got=0,parts=[],shake=0,swA=0,swV=0;
+function build(){
+  anchors=[];targets=[];
+  for(let i=0;i<7;i++)anchors.push({x:W*(0.12+0.76*i/6),y:H*(0.12+Math.random()*0.15)});
+  for(let i=0;i<6;i++)targets.push({x:W*(0.15+0.7*Math.random()),y:H*(0.45+Math.random()*0.4),r:26,got:false});
+}
+function start(){build();state='play';const a=anchors[0];px=a.x;py=a.y+160;vx=0;vy=0;grap={ax:a.x,ay:a.y};swA=.5;score=0;got=0;parts=[];ov.classList.add('hidden');}
+function end(win){state='over';ov.innerHTML=`<h1>${win?'🎯 MASTER!':'💥 OUT!'}</h1><p>Targets: <b>${got}/6</b> · Score: <b>${score}</b></p><div class="lesson">🔥 Fire Safety: Ropes and swings are playground fun — never swing near fires or hot stoves!</div><button onclick="location.reload()" style="background:#a04a8a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ SWING AGAIN</button>`;ov.classList.remove('hidden');}
+function boom(x,y,c){for(let i=0;i<12;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
+function update(dt){
+  if(state!=='play')return;shake*=.9;
+  if(grap){
+    // pendulum physics
+    const dx=px-grap.ax,dy=py-grap.ay,d=Math.hypot(dx,dy),L=170;
+    swV+=(-9.8/d*Math.sin(Math.atan2(dx,-dy)))*dt*3;
+    swV*=.999;
+    let ang=Math.atan2(dx,-dy)+swV*dt*4;
+    px=grap.ax+Math.sin(ang)*L;py=grap.ay+Math.cos(ang)*L;
+  }else{
+    vy+=900*dt;px+=vx*dt;py+=vy*dt;
+    targets.forEach(t=>{if(!t.got&&Math.hypot(t.x-px,t.y-py)<t.r+20){t.got=true;got++;score+=200;boom(t.x,t.y,'#ff9adf',16);beep(700,.15,'sine');shake=Math.max(shake,8);
+      hud.textContent=`SCORE ${score} · 🎯 ${got}/6`;
+      if(got>=6){end(true);return;}
+      // auto-grapple nearest anchor above
+      let best=null,bd=1e9;anchors.forEach(a=>{if(a.y<py){const d=Math.hypot(a.x-px,a.y-py);if(d<bd){bd=d;best=a;}}});
+      if(best){grap={ax:best.x,ay:best.y};swV=vx>0?.6:-.6;beep(500,.1,'square');}
+    }});
+    if(py>H+60||px<-60||px>W+60){end(false);return;}
+  }
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.5;});parts=parts.filter(p=>p.life>0);
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0c0812');g.addColorStop(1,'#1e1028');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  anchors.forEach(a=>{ctx.fillStyle='#8a7a6a';ctx.beginPath();ctx.arc(a.x,a.y,10,0,7);ctx.fill();ctx.strokeStyle='#5a4a3a';ctx.lineWidth=3;ctx.stroke();});
+  targets.forEach(t=>{if(t.got)return;const p=1+Math.sin(performance.now()*.005)*.1;
+    ctx.strokeStyle='#ff9adf';ctx.lineWidth=4;ctx.beginPath();ctx.arc(t.x,t.y,t.r*p,0,7);ctx.stroke();
+    ctx.fillStyle='rgba(255,154,223,.25)';ctx.beginPath();ctx.arc(t.x,t.y,t.r*p,0,7);ctx.fill();
+    ctx.fillStyle='#ff9adf';ctx.font='bold 18px sans-serif';ctx.textAlign='center';ctx.fillText('🎯',t.x,t.y+6);});
+  if(grap&&state==='play'){ctx.strokeStyle='#c9a06a';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(grap.ax,grap.ay);ctx.lineTo(px,py);ctx.stroke();}
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+  if(state==='play'){ctx.save();ctx.translate(px,py);const bg=ctx.createRadialGradient(-7,-7,3,0,0,24);bg.addColorStop(0,'#e0c0ff');bg.addColorStop(1,'#7a3aa0');ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,22,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-7,-3,5,0,7);ctx.arc(7,-3,5,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-7,-2,2.5,0,7);ctx.arc(7,-2,2.5,0,7);ctx.fill();ctx.restore();
+    if(grap){ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('TAP TO RELEASE!',px,py+44);}}
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',()=>{
+  if(state!=='play'||!grap)return;
+  // release with tangential velocity
+  const dx=px-grap.ax,dy=py-grap.ay;
+  vx=-dy*2.2*Math.sign(swV||1);vy=dx*1.2*Math.sign(swV||1)-160;
+  const sp=Math.hypot(vx,vy),mx=620;if(sp>mx){vx*=mx/sp;vy*=mx/sp;}
+  grap=null;beep(350,.12,'square');
+});
+</script>
+</body>
+</html>

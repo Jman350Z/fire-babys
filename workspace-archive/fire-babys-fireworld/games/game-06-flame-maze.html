@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Flame Maze — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.9);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+#pad{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:4px;z-index:4}
+#pad button{background:rgba(255,180,80,.25);border:2px solid #ffb347;border-radius:12px;color:#ffb347;font-size:24px}
+#pad button:active{background:rgba(255,180,80,.5)}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>⏱️ <span id="score">0</span>s</span><span>🏆 <span id="best">—</span></span></div>
+<canvas id="c"></canvas>
+<div id="pad">
+<button style="visibility:hidden"></button><button data-d="0,-1">▲</button><button style="visibility:hidden"></button>
+<button data-d="-1,0">◀</button><button data-d="0,1">▼</button><button data-d="1,0">▶</button>
+<button style="visibility:hidden"></button><button style="visibility:hidden"></button><button style="visibility:hidden"></button>
+</div>
+<div class="ov" id="title">
+<h1>🔥 Flame Maze 🔥</h1>
+<p>Guide the Fire Baby through the maze to the <b>💧 water pool</b>!<br>Use the <b>arrow buttons</b> or <b>swipe</b>.<br>Dodge the lava walls!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Know TWO ways out of every room! Practice your family's fire escape plan.</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>🎉 You made it!</h1>
+<p>Escaped in <b id="final">0</b> seconds!</p>
+<div class="safety">🧯 <b>Remember:</b> Know two ways out of every room — practice your escape plan!</div>
+<button class="btn" id="againBtn">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+// 13x13 maze (1=wall,0=path,S=start,E=end)
+const M=[
+"1111111111111",
+"S000100000001",
+"1110101111101",
+"1000101000101",
+"1011101010101",
+"1010001010101",
+"1010111010101",
+"1000100010101",
+"1110101110101",
+"1000101000101",
+"1011101011101",
+"10000010000E1",
+"1111111111111"];
+let rows=M.length,cols=M[0].length,px,py,t0,run=false,runT=0,best=localStorage.getItem('fm_best');
+if(best)document.getElementById('best').textContent=best+'s';
+function reset(){for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){if(M[y][x]==='S'){px=x;py=y;}}t0=Date.now();runT=0;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+function move(dx,dy){if(!run)return;let nx=px+dx,ny=py+dy;
+ if(nx<0||ny<0||nx>=cols||ny>=rows)return;let c=M[ny][nx];
+ if(c==='1')return;px=nx;py=ny;
+ if(c==='E'){run=false;let s=Math.floor((Date.now()-t0)/1000);runT=s;document.getElementById('final').textContent=s;
+  if(!best||s<+best){best=s;localStorage.setItem('fm_best',s);document.getElementById('best').textContent=s+'s';}
+  document.getElementById('over').classList.remove('hidden');}}
+document.querySelectorAll('#pad button[data-d]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();let d=b.dataset.d.split(',').map(Number);move(d[0],d[1]);});});
+let sw=null;cv.addEventListener('pointerdown',e=>sw={x:e.clientX,y:e.clientY});
+cv.addEventListener('pointerup',e=>{if(!sw)return;let dx=e.clientX-sw.x,dy=e.clientY-sw.y;
+ if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+ if(Math.abs(dx)>Math.abs(dy))move(Math.sign(dx),0);else move(0,Math.sign(dy));sw=null;});
+window.addEventListener('keydown',e=>{if(e.key==='ArrowUp')move(0,-1);if(e.key==='ArrowDown')move(0,1);if(e.key==='ArrowLeft')move(-1,0);if(e.key==='ArrowRight')move(1,0);});
+function loop(){
+ ctx.fillStyle='#1a0e05';ctx.fillRect(0,0,W,H);
+ let ts=Math.min(W/cols,(H-190)/rows),ox=(W-ts*cols)/2,oy=50;
+ if(run)document.getElementById('score').textContent=Math.floor((Date.now()-t0)/1000);
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){let c=M[y][x],X=ox+x*ts,Y=oy+y*ts;
+  if(c==='1'){let g=ctx.createLinearGradient(X,Y,X,Y+ts);g.addColorStop(0,'#ff7b1c');g.addColorStop(1,'#a32e00');ctx.fillStyle=g;ctx.fillRect(X,Y,ts,ts);
+   ctx.fillStyle='rgba(255,220,120,.35)';ctx.fillRect(X+ts*0.2,Y+ts*0.2,ts*0.25,ts*0.25);}
+  else{ctx.fillStyle='#2b1a0c';ctx.fillRect(X,Y,ts,ts);}
+  if(c==='E'){ctx.fillStyle='#2e9fd8';ctx.fillRect(X,Y,ts,ts);ctx.fillStyle='#bfeaff';ctx.font=(ts*0.55)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💧',X+ts/2,Y+ts/2);}
+ }
+ // player fire baby
+ let X=ox+px*ts+ts/2,Y=oy+py*ts+ts/2,r=ts*0.38;
+ const g=ctx.createRadialGradient(X,Y-r*0.3,X,Y,r*1.6);g.addColorStop(0,'#ffe27a');g.addColorStop(0.5,'#ffb347');g.addColorStop(1,'#ff7b1c');
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(X,Y,r,0,7);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(X-r*0.3,Y-r*0.05,r*0.2);ctx.arc(X+r*0.3,Y-r*0.05,r*0.2);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(X-r*0.3,Y,r*0.1);ctx.arc(X+r*0.3,Y,r*0.1);ctx.fill();
+ ctx.strokeStyle='#5a2400';ctx.lineWidth=2;ctx.beginPath();ctx.arc(X,Y+r*0.32,r*0.2,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+ requestAnimationFrame(loop);
+}
+reset();loop();
+</script>
+</body>
+</html>

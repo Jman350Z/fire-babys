@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Magma Trench Dodge — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#120806;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(18,8,6,.93);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:30px;font-weight:900;margin-bottom:10px;color:#ff6a00}
+.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>🌋 MAGMA TRENCH DODGE</h1>
+<p><b>Starring Ruko &amp; Sizzle</b></p>
+<p>Sprint through the trench! TAP to jump over lava geysers and rock slides. Grab floating crystals for bonus points — chain grabs for COMBO! 3 hits and you're out.</p>
+<div class="lesson">🔥 Fire Safety: Lava is VERY hot — in real life, stay far away from anything burning or melting!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">🌋 TRENCHED!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Lava is VERY hot — in real life, stay far away from anything burning or melting!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,GY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;GY=H-120;}addEventListener('resize',rs);rs();
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sJump=()=>beep(400,.1,'square',.09,300),sGem=()=>{beep(1300,.1,'sine',.1,500);},sHurt=()=>beep(140,.3,'sawtooth',.16,-80),sWin=()=>{[523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.2,'square',.12),i*120));};
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+let px,py,vy,ground,obs,gems,parts,shake,score,combo,comboT,hearts,state,dist,spd,spawnT,gemT,jumps;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ px=W*.3;py=GY;vy=0;ground=true;obs=[];gems=[];parts=[];shake=0;score=0;combo=0;comboT=0;hearts=3;dist=0;spd=380;spawnT=0;gemT=0;jumps=0;state='play';
+ beep(600,.07,'square',.1);
+}
+function jump(){if(state!=='play')return;if(ground){vy=-880;ground=false;jumps++;sJump();}else if(jumps<2){vy=-720;jumps++;sJump();}}
+function update(dt){
+ if(state!=='play')return;
+ comboT-=dt;if(comboT<=0)combo=0;
+ spd=Math.min(800,380+dist/60);
+ dist+=spd*dt/50;score+=spd*dt/50;
+ vy+=2400*dt;py+=vy*dt;
+ if(py>=GY){py=GY;vy=0;ground=true;jumps=0;}
+ spawnT-=dt;gemT-=dt;
+ if(spawnT<=0){spawnT=Math.max(.55,1.3-dist/2500);
+  const kind=Math.random();
+  if(kind<.5)obs.push({type:'geyser',x:W+40,w:44,h:90,t:0});
+  else obs.push({type:'rock',x:W+40,y:GY-30,vx:-(spd+120),r:24,rot:0});}
+ if(gemT<=0){gemT=1.1+Math.random();gems.push({x:W+30,y:GY-120-Math.random()*160,r:15,got:false});}
+ obs.forEach(o=>{
+  if(o.type==='geyser'){o.t+=dt;o.x-=spd*dt;}
+  else{o.x+=o.vx*dt;o.rot+=dt*5;if(o.y<GY-24)o.y+=600*dt;if(o.y>GY-24)o.y=GY-24;}
+ });
+ obs=obs.filter(o=>o.x>-80);
+ gems.forEach(g=>{g.x-=spd*dt;});
+ gems=gems.filter(g=>g.x>-40&&!g.got);
+ // collisions
+ const pr=26;
+ obs.forEach(o=>{
+  if(o.type==='geyser'){
+   const erupt=(o.t%1.6)<1.0,hh=erupt?o.h:26;
+   if(Math.abs(o.x-px)<o.w/2+pr-8&&py+pr>GY-hh){o.hit=true;hurt();}
+  }else{
+   if(Math.hypot(o.x-px,o.y-py)<o.r+pr-6){o.hit=true;hurt();}
+  }
+ });
+ obs=obs.filter(o=>!o.hit);
+ gems.forEach(g=>{if(!g.got&&Math.hypot(g.x-px,g.y-(py-10))<g.r+pr){g.got=true;combo++;comboT=1.6;
+  score+=60*(1+combo*.25);sGem();burst(g.x,g.y,'#7fd4ff',12);}});
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.5;});
+ parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);
+ if(hearts<=0){state='over';sWin();
+  document.getElementById('od').textContent=`Distance: ${Math.floor(dist)}m • Score: ${Math.round(score)}`;
+  document.getElementById('over').classList.remove('hidden');}
+}
+function hurt(){hearts--;sHurt();shake=13;burst(px,py,'#f44',18);combo=0;}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
+ parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+function draw(){
+ const g=ctx.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,'#1a0d08');g.addColorStop(.75,'#2a1208');g.addColorStop(1,'#3a1608');
+ ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ // parallax rocks
+ ctx.fillStyle='rgba(0,0,0,.35)';
+ const off=(dist*3)%200;
+ for(let x=-200+off;x<W;x+=200){ctx.beginPath();ctx.arc(x,H-200,60,0,7);ctx.fill();}
+ // ground lava
+ ctx.fillStyle='#3a1608';ctx.fillRect(-20,GY,W+40,H-GY);
+ ctx.fillStyle='#ff6a00';
+ for(let x=-20+((dist*4)%60);x<W;x+=60){ctx.beginPath();ctx.arc(x,GY+8,10,0,7);ctx.fill();}
+ obs.forEach(o=>{
+  if(o.type==='geyser'){
+   const erupt=(o.t%1.6)<1.0,hh=erupt?o.h:26;
+   ctx.fillStyle='#4a2a10';ctx.fillRect(o.x-o.w/2,GY-20,o.w,20);
+   const fg=ctx.createLinearGradient(0,GY-hh,0,GY);
+   fg.addColorStop(0,'#ffd23f');fg.addColorStop(1,'#ff6a00');
+   ctx.fillStyle=fg;
+   ctx.beginPath();ctx.ellipse(o.x,GY-hh/2,o.w/2-4,hh/2,0,0,7);ctx.fill();
+   if(erupt){ctx.fillStyle='rgba(255,210,63,.5)';
+    for(let i=0;i<5;i++)ctx.fillRect(o.x-14+i*7,GY-hh-10-Math.random()*20,4,14);}
+  }else{
+   ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);
+   ctx.fillStyle='#777';ctx.beginPath();
+   for(let i=0;i<7;i++){const a=i/7*6.283;ctx.lineTo(Math.cos(a)*o.r,Math.sin(a)*o.r);}ctx.closePath();ctx.fill();
+   ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.arc(0,0,7,0,7);ctx.fill();ctx.restore();
+  }});
+ gems.forEach(g=>{ctx.save();ctx.translate(g.x,g.y);ctx.rotate(Date.now()/700);
+  ctx.shadowColor='#7fd4ff';ctx.shadowBlur=12;ctx.fillStyle='#4de';
+  ctx.beginPath();ctx.moveTo(0,-g.r);ctx.lineTo(g.r*.7,0);ctx.lineTo(0,g.r);ctx.lineTo(-g.r*.7,0);ctx.closePath();ctx.fill();
+  ctx.restore();});
+ // Ruko
+ ctx.save();ctx.translate(px,py);
+ const rg=ctx.createRadialGradient(-6,-8,4,0,0,30);
+ rg.addColorStop(0,'#ff8a7a');rg.addColorStop(.5,'#ff3b2e');rg.addColorStop(1,'#c41e12');
+ ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,-26,26,0,7);ctx.fill();
+ ctx.fillStyle='#1a1a1a';ctx.fillRect(-26,-38,52,10);
+ ctx.strokeStyle='#1a1a1a';ctx.lineWidth=3.4;
+ ctx.beginPath();ctx.moveTo(-16,-27);ctx.lineTo(-5,-22);ctx.moveTo(16,-27);ctx.lineTo(5,-22);ctx.stroke();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-9,-17,5,0,7);ctx.arc(9,-17,5,0,7);ctx.fill();
+ ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-9,-16,2.5,0,7);ctx.arc(9,-16,2.5,0,7);ctx.fill();
+ ctx.strokeStyle='#1a1a1a';ctx.lineWidth=2.6;ctx.beginPath();ctx.moveTo(-8,-5);ctx.lineTo(8,-8);ctx.stroke();
+ // legs running
+ const lp=Math.sin(Date.now()/90)*8;
+ ctx.strokeStyle='#c41e12';ctx.lineWidth=8;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(-6,-2);ctx.lineTo(-10+lp,0);ctx.moveTo(6,-2);ctx.lineTo(10-lp,0);ctx.stroke();
+ ctx.restore();
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,34);
+ ctx.fillText('❤️'.repeat(Math.max(hearts,0)),W-110,34);
+ if(combo>1){ctx.fillStyle='#7fd4ff';ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillText('GEM COMBO x'+combo,W/2,34);}
+ ctx.textAlign='left';
+ ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='15px sans-serif';ctx.textAlign='center';
+ ctx.fillText('TAP to jump (double-tap = double jump!)',W/2,H-16);ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',()=>jump());
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='ArrowUp')jump();});
+</script>
+</body>
+</html>

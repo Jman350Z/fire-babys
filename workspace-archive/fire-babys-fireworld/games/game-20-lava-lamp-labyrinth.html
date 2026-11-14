@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Lava Lamp Labyrinth — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#20090f;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(255,90,40,.3)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 20: LAVA LAMP LABYRINTH — roll your Fire Baby through the maze! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Pick a family meeting spot OUTSIDE your home. Everyone gathers there during a fire!";
+var CELL=40,COLS=10,ROWS=12,OX=0,OY=110;
+var LEVELS=[
+["##########","#S...#...#","#.##.#.#.#","#.#..#.#.#","#.#.##.#.#","#.#....#.#","#.######.#","#........#","#.######.#","#.#....#.#","#.#.##.#G#","##########"],
+["##########","#S#......#","#.#.####.#","#.#.#..#.#","#.#.#.##.#","#...#..#.#","###.#.##.#","#...#..#.#","#.#####..#","#.#...##.#","#.#.#..G.#","##########"],
+["##########","#S.......#","##.#.##..#","#..#..#.##","#.##.#...#","#..#.###.#","##.#..#..#","#..##.#.##","#.##..#..#","#....#.#.#","#.####.G.#","##########"]
+];
+var state='title',level=0,px,py,vx,vy,time=0,keys={},drag=null,trail=[];
+function loadLevel(){
+  var L=LEVELS[level];
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){
+    if(L[r][c]==='S'){px=c*CELL+CELL/2;py=OY+r*CELL+CELL/2;}
+  }
+  vx=0;vy=0;trail=[];
+}
+function isWall(c,r){if(c<0||c>=COLS||r<0||r>=ROWS)return true;return LEVELS[level][r][c]==='#';}
+function isGoal(c,r){return LEVELS[level][r]&&LEVELS[level][r][c]==='G';}
+function collide(){
+  var r=13;
+  var c0=((px-r-OX)/CELL|0),c1=((px+r-OX)/CELL|0),r0=((py-r-OY)/CELL|0),r1=((py+r-OY)/CELL|0);
+  for(var cr=r0;cr<=r1;cr++)for(var cc=c0;cc<=c1;cc++){
+    if(isWall(cc,cr)){
+      var wx=OX+cc*CELL,wy=OY+cr*CELL;
+      var nx=Math.max(wx,Math.min(px,wx+CELL)),ny=Math.max(wy,Math.min(py,wy+CELL));
+      var dx=px-nx,dy=py-ny,d=dx*dx+dy*dy;
+      if(d<r*r){
+        if(d===0){py=wy-CELL-r;vy=Math.min(0,vy);continue;}
+        var dist=Math.sqrt(d),ux=dx/dist,uy=dy/dist;
+        px=nx+ux*r;py=ny+uy*r;
+        var dot=vx*ux+vy*uy;
+        if(dot<0){vx-=1.6*dot*ux;vy-=1.6*dot*uy;}
+      }
+    }
+  }
+}
+function startGame(){state='play';level=0;time=0;loadLevel();}
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.12);o.start();o.stop(AC.currentTime+.13);}catch(e){}}
+var last=0;
+function update(dt){
+  if(state!=='play')return;
+  time+=dt;
+  var ax=0,ay=0;
+  if(keys.left)ax-=.5;if(keys.right)ax+=.5;
+  if(keys.up)ay-=.5;if(keys.down)ay+=.5;
+  if(drag){ax=(drag.x-px)*.012;ay=(drag.y-py)*.012;}
+  vx+=ax;vy+=ay;vx*=.96;vy*=.96;
+  var sp=Math.hypot(vx,vy),mx=5;
+  if(sp>mx){vx=vx/sp*mx;vy=vy/sp*mx;}
+  px+=vx;py+=vy;
+  collide();
+  trail.push({x:px,y:py,t:14});
+  if(trail.length>26)trail.shift();
+  for(var i=trail.length-1;i>=0;i--){trail[i].t--;if(trail[i].t<=0)trail.splice(i,1);}
+  var gc=((px-OX)/CELL|0),gr=((py-OY)/CELL|0);
+  if(isGoal(gc,gr)){beep(700);level++;
+    if(level>=LEVELS.length){state='over';}else loadLevel();
+  }
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function baby(x,y,r){
+  var g=ctx.createRadialGradient(x-r*.2,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'#ffe680');g.addColorStop(.55,'#ff9f1c');g.addColorStop(1,'#e8590c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r*.75,y-r*.35);
+  ctx.quadraticCurveTo(x-r*.25,y-r*1.7,x+r*.05,y-r*1.05);
+  ctx.quadraticCurveTo(x+r*.35,y-r*1.7,x+r*.75,y-r*.35);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.32,y-r*.05,r*.12,0,7);ctx.arc(x+r*.32,y-r*.05,r*.12,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.28,r*.32,.35,Math.PI-.35);ctx.stroke();
+}
+function draw(){
+  ctx.fillStyle='#20090f';ctx.fillRect(0,0,W,H);
+  for(var r=0;r<ROWS;r++)for(var c=0;c<COLS;c++){
+    var ch=LEVELS[level][r][c],x=OX+c*CELL,y=OY+r*CELL;
+    if(ch==='#'){
+      ctx.fillStyle='#3d2b1f';ctx.fillRect(x,y,CELL,CELL);
+      ctx.strokeStyle='#ff6b35';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(x+6,y+10);ctx.lineTo(x+18,y+26);ctx.lineTo(x+10,y+34);ctx.stroke();
+      ctx.strokeStyle='#1a0f08';ctx.lineWidth=2;ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+    }else{
+      ctx.fillStyle=(r+c)%2?'#2a1216':'#241016';ctx.fillRect(x,y,CELL,CELL);
+      if(ch==='G'){ctx.fillStyle='#2f9e44';ctx.fillRect(x+4,y+4,CELL-8,CELL-8);
+        ctx.fillStyle='#fff';ctx.font='bold 13px Trebuchet MS';ctx.textAlign='center';ctx.fillText('GOAL',x+CELL/2,y+CELL/2+5);}
+      if(ch==='S'){ctx.fillStyle='rgba(255,214,102,.25)';ctx.fillRect(x+4,y+4,CELL-8,CELL-8);}
+    }
+  }
+  trail.forEach(function(t){ctx.fillStyle='rgba(255,159,28,'+(t.t/40)+')';ctx.beginPath();ctx.arc(t.x,t.y,7,0,7);ctx.fill();});
+  if(state==='play')baby(px,py,13);
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 18px Trebuchet MS';
+  ctx.fillText('🌀 Maze '+(level+1)+'/3',12,30);
+  ctx.textAlign='center';ctx.fillText('⏱ '+time.toFixed(1)+'s',W/2,30);
+  ctx.textAlign='right';ctx.font='14px Trebuchet MS';ctx.fillStyle='#ffb3a7';
+  ctx.fillText('drag or arrows',W-12,30);
+  if(state==='title'){
+    ctx.fillStyle='rgba(25,8,12,.93)';rr(20,140,W-40,H-320,18);ctx.fill();
+    ctx.strokeStyle='#ff6b35';ctx.lineWidth=3;rr(20,140,W-40,H-320,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 25px Trebuchet MS';
+    ctx.fillText('LAVA LAMP LABYRINTH',W/2,190);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('Drag anywhere (or arrow keys)',W/2,230);
+    ctx.fillText('to roll your Fire Baby.',W/2,256);
+    ctx.fillText('Find the green GOAL in all 3 mazes!',W/2,282);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,312,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-235);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(25,8,12,.93)';rr(20,140,W-40,H-320,18);ctx.fill();
+    ctx.strokeStyle='#ffd43b';ctx.lineWidth=3;rr(20,140,W-40,H-320,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText('MAZE MASTER! 🏆',W/2,190);
+    ctx.font='18px Trebuchet MS';
+    ctx.fillText('All 3 mazes in '+time.toFixed(1)+' seconds!',W/2,232);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,265,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO ROLL AGAIN 👆',W/2,H-235);
+  }
+}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){startGame();return;}
+  drag=P(e);
+});
+addEventListener('pointermove',function(e){if(drag&&state==='play')drag=P(e);});
+addEventListener('pointerup',function(){drag=null;});
+addEventListener('keydown',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':e.key==='ArrowUp'||e.key==='w'?'up':e.key==='ArrowDown'||e.key==='s'?'down':'x']=true;
+  if((e.key===' '||e.key==='Enter')&&state!=='play')startGame();});
+addEventListener('keyup',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':e.key==='ArrowUp'||e.key==='w'?'up':e.key==='ArrowDown'||e.key==='s'?'down':'x']=false;});
+loadLevel();
+(function loop(t){var dt=Math.min(.05,((t-last)/1000)||0);last=t;update(dt);draw();requestAnimationFrame(loop);})(0);
+</script>
+</body>
+</html>

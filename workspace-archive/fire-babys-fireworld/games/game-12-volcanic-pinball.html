@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Volcanic Pinball — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+.ov{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(13,10,20,.94);color:#fff;text-align:center;padding:20px}
+.ov h1{font-size:32px;font-weight:900;margin-bottom:10px;color:#ff9f1a}
+.ov p{font-size:16px;max-width:430px;margin-bottom:8px}
+.ov .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:440px}
+.ov button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:6px}
+.ov button:active{transform:translateY(3px)}
+#gate .math{font-size:44px;font-weight:900;margin:14px 0;color:#ffd23f}
+#gate .opts{display:flex;gap:12px}
+#gate .opts button{font-size:26px;padding:10px 22px}
+.hidden{display:none!important}
+#back{position:fixed;top:10px;left:10px;z-index:15;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<canvas id="c"></canvas>
+<div class="ov" id="gate">
+<h1>🔥 Grown-Up Check</h1>
+<p>Ask a grown-up to help you answer:</p>
+<div class="math" id="mathq"></div>
+<div class="opts" id="mathopts"></div>
+</div>
+<div class="ov hidden" id="title">
+<h1>🎰 VOLCANIC PINBALL</h1>
+<p><b>Starring Boulder &amp; Cinder</b></p>
+<p>Hold to charge the plunger, release to LAUNCH! Tap LEFT / RIGHT sides to flip the fire-baby flippers. Smash bumpers for COMBO points — you get 3 balls!</p>
+<div class="lesson">🔥 Fire Safety: Pinball is all fun — but real machines run on electricity. Never poke inside them!</div>
+<button onclick="startGame()">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1 id="ot">🎰 GAME OVER!</h1>
+<p id="od"></p>
+<div class="lesson">🔥 Fire Safety: Pinball is all fun — but real machines run on electricity. Never poke inside them!</div>
+<button onclick="startGame()">↻ PLAY AGAIN</button>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H,TW,TH,OX,OY;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+ TH=Math.min(H-120,760);TW=Math.min(W-20,TH*0.62);OX=(W-TW)/2;OY=70;}addEventListener('resize',rs);rs();
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,type,vol,slide){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.value=f;if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);g.gain.value=vol||.12;g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sFlip=()=>beep(500,.06,'square',.09,200),sBump=()=>beep(880,.08,'square',.11),sLaunch=()=>beep(200,.3,'sawtooth',.12,600),sDrain=()=>beep(180,.4,'sawtooth',.14,-120),sWin=()=>{[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,'square',.12),i*130));};
+let ma,mb,mans;
+(function gate(){ma=1+Math.floor(Math.random()*8);mb=1+Math.floor(Math.random()*8);mans=ma+mb;
+document.getElementById('mathq').textContent=ma+' + '+mb+' = ?';
+const opts=new Set([mans]);while(opts.size<3)opts.add(Math.max(1,mans-4+Math.floor(Math.random()*9)));
+const box=document.getElementById('mathopts');
+[...opts].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.textContent=v;
+b.onclick=()=>{if(v===mans){beep(600,.07,'square',.1);document.getElementById('gate').classList.add('hidden');document.getElementById('title').classList.remove('hidden');}else{beep(160,.25,'sawtooth',.12);b.style.opacity=.4;}};box.appendChild(b);});})();
+let ball,bumpers,parts,shake,score,combo,comboT,balls,state,charging,charge,flipL,flipT,flipR,flipRT;
+function startGame(){
+ document.getElementById('title').classList.add('hidden');document.getElementById('over').classList.add('hidden');
+ balls=3;score=0;combo=0;comboT=0;state='plunge';charging=false;charge=0;
+ bumpers=[];
+ const bx=[.3,.5,.7];
+ bx.forEach((fx,i)=>bumpers.push({x:OX+TW*fx,y:OY+TH*.28,r:26,flash:0}));
+ bumpers.push({x:OX+TW*.3,y:OY+TH*.44,r:22,flash:0});
+ bumpers.push({x:OX+TW*.7,y:OY+TH*.44,r:22,flash:0});
+ ball=null;parts=[];shake=0;flipL=flipR=0;
+ beep(600,.07,'square',.1);
+}
+function launchBall(power){
+ const lx=OX+TW-24;
+ ball={x:lx,y:OY+TH-70,vx:0,vy:-900-power*900,r:13};
+ sLaunch();state='play';
+}
+function flipSide(side){
+ if(side<0){flipL=1;sFlip();}else{flipR=1;sFlip();}
+ if(!ball||state!=='play')return;
+ const fy=OY+TH-110,fx=side<0?OX+TW*.32:OX+TW*.68;
+ if(Math.hypot(ball.x-fx,ball.y-fy)<70&&ball.vy>0){
+  ball.vy=-Math.abs(ball.vy)*1.05-260;
+  ball.vx+=(side<0?-1:1)*(140+Math.random()*120);
+  score+=25;burst(fx,fy,'#ffd23f',8);
+ }
+}
+function update(dt){
+ if(state!=='play'&&state!=='plunge')return;
+ comboT-=dt;if(comboT<=0)combo=0;
+ flipL=Math.max(0,flipL-dt*6);flipR=Math.max(0,flipR-dt*6);
+ if(state==='plunge'){
+  if(charging)charge=Math.min(1,charge+dt*1.4);
+  return;
+ }
+ if(!ball)return;
+ ball.vy+=1500*dt;ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+ ball.vx*=Math.pow(.999,dt*60);
+ const L=OX+8,R=OX+TW-8,T=OY+8;
+ if(ball.x-ball.r<L){ball.x=L+ball.r;ball.vx=Math.abs(ball.vx)*.9;}
+ if(ball.x+ball.r>R){ball.x=R-ball.r;ball.vx=-Math.abs(ball.vx)*.9;}
+ if(ball.y-ball.r<T){ball.y=T+ball.r;ball.vy=Math.abs(ball.vy)*.9;}
+ // plunger lane guard
+ const laneX=OX+TW-24;
+ // bumpers
+ bumpers.forEach(b=>{
+  const d=Math.hypot(ball.x-b.x,ball.y-b.y);
+  if(d<b.r+ball.r){const nx=(ball.x-b.x)/d,ny=(ball.y-b.y)/d;
+   ball.x=b.x+nx*(b.r+ball.r);ball.y=b.y+ny*(b.r+ball.r);
+   const sp=Math.hypot(ball.vx,ball.vy);
+   ball.vx=nx*Math.max(sp*1.1,420);ball.vy=ny*Math.max(sp*1.1,420);
+   b.flash=1;combo++;comboT=1.4;score+=100*(1+combo*.25);sBump();shake=Math.max(shake,5);
+   burst(b.x,b.y,'#ff9f1a',10);}
+  b.flash=Math.max(0,b.flash-dt*4);});
+ // slingshots (side walls kick)
+ // drain
+ const drainY=OY+TH-40,gapL=OX+TW*.42,gapR=OX+TW*.58;
+ if(ball.y>drainY&&ball.x>gapL&&ball.x<gapR){
+  balls--;sDrain();burst(ball.x,ball.y,'#888',16);
+  if(balls<=0){state='over';sWin();
+   document.getElementById('od').textContent='Final score: '+Math.round(score);
+   document.getElementById('over').classList.remove('hidden');}
+  else{state='plunge';ball=null;charging=false;charge=0;}
+  return;
+ }
+ // outlane walls funnel to flippers
+ if(ball.y>drainY-60){
+  if(ball.x<gapL){ball.vx+=1400*dt;}else if(ball.x>gapR){ball.vx-=1400*dt;}
+ }
+ parts.forEach(p=>{p.x+=p.vx*60*dt;p.y+=p.vy*60*dt;p.life-=dt*1.5;});
+ parts=parts.filter(p=>p.life>0);shake*=Math.pow(.02,dt);
+}
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=2+Math.random()*6;
+ parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col,sz:3+Math.random()*5});}}
+function draw(){
+ ctx.fillStyle='#0d0a14';ctx.fillRect(0,0,W,H);
+ ctx.save();ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+ // table
+ ctx.fillStyle='#1c1430';ctx.beginPath();ctx.roundRect(OX,OY,TW,TH,18);ctx.fill();
+ ctx.strokeStyle='#ff6a00';ctx.lineWidth=5;ctx.stroke();
+ // plunger lane
+ ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(OX+TW-48,OY+10);ctx.lineTo(OX+TW-48,OY+TH-10);ctx.stroke();
+ // bumpers
+ bumpers.forEach(b=>{ctx.save();ctx.translate(b.x,b.y);
+  ctx.shadowColor='#ff9f1a';ctx.shadowBlur=b.flash>0?24:8;
+  ctx.fillStyle=b.flash>0?'#ffd23f':'#ff9f1a';
+  ctx.beginPath();ctx.arc(0,0,b.r,0,7);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='#5a2a00';ctx.beginPath();ctx.arc(0,0,b.r*.45,0,7);ctx.fill();
+  ctx.restore();});
+ // flippers (fire babies!)
+ const fy=OY+TH-110;
+ [[-1,flipL],[1,flipR]].forEach(([s,f])=>{
+  const fx=OX+TW*(s<0?.32:.68),ang=(s<0?-1:1)*(.5-f*.9);
+  ctx.save();ctx.translate(fx,fy);ctx.rotate(s<0?Math.PI-ang:ang);
+  const g=ctx.createLinearGradient(0,-10,0,10);g.addColorStop(0,'#ffcf5a');g.addColorStop(1,'#ff6a00');
+  ctx.fillStyle=g;ctx.beginPath();ctx.roundRect(0,-9,s*64,18,9);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(s*16,-2,3,0,7);ctx.arc(s*30,-2,3,0,7);ctx.fill();
+  ctx.restore();});
+ // plunger
+ if(state==='plunge'){
+  ctx.fillStyle='#333';ctx.fillRect(OX+TW-40,OY+TH-120,32,100);
+  ctx.fillStyle='#ff6a00';ctx.fillRect(OX+TW-40,OY+TH-120+ (1-charge)*80,32,20);
+  ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';
+  ctx.fillText('HOLD',OX+TW-24,OY+TH+24);
+  if(ball){}
+  else{ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(OX+TW-24,OY+TH-70,13,0,7);ctx.fill();}
+ }
+ if(ball){ctx.save();ctx.shadowColor='#ffb300';ctx.shadowBlur=14;
+  const g=ctx.createRadialGradient(ball.x-4,ball.y-5,3,ball.x,ball.y,ball.r);
+  g.addColorStop(0,'#ffcf5a');g.addColorStop(1,'#ff6a00');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,7);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(ball.x-4,ball.y-2,2.6,0,7);ctx.arc(ball.x+4,ball.y-2,2.6,0,7);ctx.fill();
+  ctx.restore();}
+ parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,7);ctx.fill();});
+ ctx.globalAlpha=1;ctx.restore();
+ ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,54);
+ ctx.fillStyle='#ffd23f';ctx.font='bold 22px sans-serif';ctx.textAlign='left';
+ ctx.fillText('SCORE '+Math.round(score),14,34);
+ ctx.fillText('● '.repeat(Math.max(balls,0)),W-100,34);
+ if(combo>1){ctx.fillStyle='#ff9f1a';ctx.textAlign='center';ctx.font='bold 20px sans-serif';ctx.fillText('COMBO x'+(1+combo*.25).toFixed(2),W/2,34);}
+ ctx.textAlign='left';
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);draw();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',e=>{if(state==='plunge'){charging=true;charge=0;return;}
+ if(state!=='play')return;
+ const r=cv.getBoundingClientRect(),x=e.clientX-r.left;
+ flipSide(x<W/2?-1:1);});
+cv.addEventListener('pointerup',()=>{if(state==='plunge'&&charging){launchBall(charge);charging=false;}});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')flipSide(-1);if(e.key==='ArrowRight')flipSide(1);
+ if(e.key===' '&&state==='plunge'){charging=true;}
+ if(e.key==='Enter'&&state==='plunge'&&charging){launchBall(charge);charging=false;}});
+addEventListener('keyup',e=>{if(e.key===' '&&state==='plunge'&&charging){launchBall(charge);charging=false;}});
+</script>
+</body>
+</html>

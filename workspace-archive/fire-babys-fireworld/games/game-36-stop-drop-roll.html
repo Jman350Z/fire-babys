@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stop Drop Roll - Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{background:#140a24;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',Verdana,sans-serif;touch-action:manipulation;overflow:hidden;}
+canvas{display:block;border-radius:14px;box-shadow:0 0 44px rgba(255,120,0,.4);}
+</style>
+</head>
+<body>
+<canvas id="c" width="480" height="720"></canvas>
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=480,H=720;
+function fit(){
+  var s=Math.min(window.innerWidth/W,window.innerHeight/H);
+  cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';
+}
+window.addEventListener('resize',fit);fit();
+
+var LESSON="If your clothes catch fire: STOP where you are, DROP to the ground, and ROLL to put the flames out!";
+
+var AC=null;
+function beep(freq,dur){
+  try{
+    if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+    var o=AC.createOscillator(),g=AC.createGain();
+    o.type='sine';o.frequency.value=freq;
+    g.gain.setValueAtTime(0.25,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+dur/1000);
+    o.connect(g);g.connect(AC.destination);
+    o.start();o.stop(AC.currentTime+dur/1000);
+  }catch(e){}
+}
+var TONES=[523,392,330];
+
+function wrapText(text,x,y,maxW,lh,size,color,align){
+  ctx.fillStyle=color;ctx.font='bold '+size+'px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign=align||'center';ctx.textBaseline='top';
+  var words=text.split(' '),line='',yy=y;
+  for(var i=0;i<words.length;i++){
+    var t=line?line+' '+words[i]:words[i];
+    if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line,x,yy);line=words[i];yy+=lh;}
+    else line=t;
+  }
+  ctx.fillText(line,x,yy);
+  return yy+lh;
+}
+
+function drawFireBaby(x,y,s,pose){
+  ctx.save();ctx.translate(x,y);
+  if(pose==='drop')ctx.scale(1.25,0.7);
+  if(pose==='roll')ctx.rotate(Math.sin(performance.now()/120)*0.6);
+  var g=ctx.createLinearGradient(0,-s/2,0,s/2);
+  g.addColorStop(0,'#ffe066');g.addColorStop(.55,'#ff9d2e');g.addColorStop(1,'#ff6b1a');
+  ctx.fillStyle=g;ctx.strokeStyle='#7a2d00';ctx.lineWidth=Math.max(3,s*0.055);
+  var w=s*0.42;
+  ctx.beginPath();
+  ctx.moveTo(0,-s/2);
+  ctx.bezierCurveTo(w*0.9,-s*0.28,w,-s*0.02,w,s*0.22);
+  ctx.bezierCurveTo(w*0.75,s*0.46,w*0.35,s*0.5,0,s*0.5);
+  ctx.bezierCurveTo(-w*0.35,s*0.5,-w*0.75,s*0.46,-w,s*0.22);
+  ctx.bezierCurveTo(-w,-s*0.02,-w*0.9,-s*0.28,0,-s/2);
+  ctx.closePath();ctx.fill();ctx.stroke();
+  var ig=ctx.createRadialGradient(0,s*0.18,s*0.02,0,s*0.18,s*0.3);
+  ig.addColorStop(0,'rgba(255,255,200,0.85)');ig.addColorStop(1,'rgba(255,255,200,0)');
+  ctx.fillStyle=ig;ctx.beginPath();ctx.arc(0,s*0.18,s*0.3,0,7);ctx.fill();
+  var e=s*0.11;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(-e,s*0.02,e,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(e,s*0.02,e,0,7);ctx.fill();
+  ctx.fillStyle='#3a1c00';
+  ctx.beginPath();ctx.arc(-e+e*0.15,s*0.08,e*0.55,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(e+e*0.15,s*0.08,e*0.55,0,7);ctx.fill();
+  ctx.strokeStyle='#3a1c00';ctx.lineWidth=Math.max(2,s*0.035);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(0,s*0.1,e*1.5,0.35,Math.PI-0.35);ctx.stroke();
+  ctx.restore();
+}
+
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function button(x,y,w,h,label,fill){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.35)';rr(x+4,y+6,w,h,22);ctx.fill();
+  var g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,fill);g.addColorStop(1,'#c1440e');
+  ctx.fillStyle=g;rr(x,y,w,h,22);ctx.fill();
+  ctx.lineWidth=4;ctx.strokeStyle='#fff';rr(x,y,w,h,22);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 30px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x+w/2,y+h/2+2);
+  ctx.restore();
+  return {x:x,y:y,w:w,h:h};
+}
+
+var PADS=[
+  {name:'STOP',color:'#e53935',dark:'#7f1d1d',tone:0,y:0},
+  {name:'DROP',color:'#43a047',dark:'#1b5e20',tone:1,y:0},
+  {name:'ROLL',color:'#1e88e5',dark:'#0d47a1',tone:2,y:0}
+];
+var padTop=330,padH=112,padGap=14,padX=36,padW=W-72;
+PADS.forEach(function(p,i){p.y=padTop+i*(padH+padGap);});
+
+var G={state:'title',seq:[],phase:'idle',showIdx:0,showTimer:0,showLit:-1,inputIdx:0,score:0,flash:-1,flashT:0,msg:'',best:0};
+var startBtn=null,restartBtn=null;
+
+function newGame(){
+  G.state='play';G.score=0;G.seq=[randPad()];
+  startShow();
+}
+function randPad(){return Math.floor(Math.random()*3);}
+function startShow(){
+  G.phase='show';G.showIdx=0;G.showTimer=300;G.showLit=-1;G.msg='Watch the fire baby...';
+}
+function showStep(){
+  var p=G.seq[G.showIdx];
+  G.showLit=p;G.flash=p;G.flashT=performance.now();
+  beep(TONES[p],350);
+  G.showIdx++;
+}
+function tapPad(p){
+  if(G.state!=='play'||G.phase!=='input')return;
+  G.flash=p;G.flashT=performance.now();
+  beep(TONES[p],250);
+  if(p===G.seq[G.inputIdx]){
+    G.inputIdx++;
+    if(G.inputIdx>=G.seq.length){
+      G.score++;G.best=Math.max(G.best,G.score);
+      G.phase='pause';G.msg='Round '+G.score+' complete! Get ready...';
+      setTimeout(function(){
+        if(G.state!=='play')return;
+        G.seq.push(randPad());startShow();
+      },1100);
+    }
+  }else{
+    G.state='over';beep(140,700);
+  }
+}
+
+function update(){
+  if(G.state!=='play')return;
+  var now=performance.now();
+  if(G.phase==='show'){
+    G.showTimer-=16;
+    if(G.showTimer<=0){
+      if(G.showIdx<G.seq.length){
+        showStep();
+        G.showTimer=560;
+      }else{
+        G.phase='input';G.inputIdx=0;G.showLit=-1;G.msg='Your turn! Repeat the moves.';
+      }
+    }
+  }
+  if(G.flash>=0&&now-G.flashT>380){G.flash=-1;G.showLit=-1;}
+  if(G.phase==='show'&&G.flash>=0&&now-G.flashT>380){G.showLit=-1;}
+}
+
+function draw(){
+  var bg=ctx.createLinearGradient(0,0,0,H);
+  if(G.state==='over'){bg.addColorStop(0,'#2b0f1e');bg.addColorStop(1,'#12060f');}
+  else{bg.addColorStop(0,'#12325c');bg.addColorStop(1,'#0c1a33');}
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  if(G.state==='title'){
+    drawFireBaby(W/2,130,104,'stop');
+    ctx.fillStyle='#ffb300';ctx.font='bold 50px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('STOP DROP',W/2,222);ctx.fillText('ROLL',W/2,282);
+    wrapText('The fire baby shows you moves: STOP, DROP, ROLL. Watch the pads light up, then tap them back in the SAME order. Each round adds one more move. One wrong tap and the game is over!',W/2,362,400,30,21,'#ffe9c4');
+    ctx.fillStyle='#ffd54f';ctx.font='bold 22px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('FIRE SAFETY LESSON',W/2,505);
+    wrapText(LESSON,W/2,532,410,28,20,'#fff3d6');
+    startBtn=button(W/2-130,630,260,66,'START','#ff8f00');
+    return;
+  }
+
+  // fire baby demonstrator
+  var pose='stop';
+  if(G.phase==='show'&&G.showLit>=0)pose=['stop','drop','roll'][G.showLit];
+  drawFireBaby(W/2,150,110,pose);
+
+  ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('Round: '+G.score,14,12);
+  ctx.textAlign='right';
+  ctx.fillText('Moves: '+G.seq.length,W-14,12);
+  ctx.textAlign='center';
+  ctx.fillStyle='#ffe9c4';ctx.font='bold 22px Trebuchet MS,Verdana,sans-serif';
+  ctx.fillText(G.msg,W/2,270);
+
+  for(var i=0;i<PADS.length;i++){
+    var p=PADS[i],lit=(G.flash===i);
+    ctx.save();
+    if(lit){ctx.shadowColor='#fff';ctx.shadowBlur=30;}
+    var g=ctx.createLinearGradient(0,p.y,0,p.y+padH);
+    if(lit){g.addColorStop(0,'#ffffff');g.addColorStop(1,p.color);}
+    else{g.addColorStop(0,p.color);g.addColorStop(1,p.dark);}
+    ctx.fillStyle='rgba(0,0,0,0.35)';rr(padX+5,p.y+7,padW,padH,20);ctx.fill();
+    ctx.fillStyle=g;rr(padX,p.y,padW,padH,20);ctx.fill();
+    ctx.lineWidth=lit?7:4;ctx.strokeStyle='#fff';rr(padX,p.y,padW,padH,20);ctx.stroke();
+    ctx.fillStyle=lit?'#4a2000':'#fff';
+    ctx.font='bold 40px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.name,padX+padW/2,p.y+padH/2+2);
+    ctx.restore();
+  }
+
+  if(G.state==='over'){
+    ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,0,W,H);
+    drawFireBaby(W/2,130,96,'stop');
+    ctx.fillStyle='#ff5252';ctx.font='bold 52px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('GAME OVER',W/2,210);
+    ctx.fillStyle='#fff';ctx.font='bold 30px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('Rounds completed: '+G.score,W/2,292);
+    ctx.fillText('Longest chain: '+G.seq.length+' moves',W/2,332);
+    ctx.fillStyle='#ffd54f';ctx.font='bold 22px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('FIRE SAFETY LESSON',W/2,395);
+    wrapText(LESSON,W/2,422,410,28,20,'#fff3d6');
+    restartBtn=button(W/2-130,620,260,66,'RESTART','#ff8f00');
+  }
+}
+
+function inBtn(b,x,y){return b&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h;}
+
+cv.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  var r=cv.getBoundingClientRect();
+  var x=(e.clientX-r.left)*(W/r.width),y=(e.clientY-r.top)*(H/r.height);
+  if(G.state==='title'){if(inBtn(startBtn,x,y)){beep(660,200);newGame();}return;}
+  if(G.state==='over'){if(inBtn(restartBtn,x,y)){newGame();}return;}
+  for(var i=0;i<PADS.length;i++){
+    var p=PADS[i];
+    if(x>=padX&&x<=padX+padW&&y>=p.y&&y<=p.y+padH){tapPad(i);return;}
+  }
+},{passive:false});
+
+var last=0;
+function loop(ts){
+  update();draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

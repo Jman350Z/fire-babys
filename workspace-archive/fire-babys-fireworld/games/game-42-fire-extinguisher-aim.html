@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fire Extinguisher Aim — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#101a33; touch-action:none;
+    font-family:"Trebuchet MS","Comic Sans MS","Chalkboard SE",Verdana,sans-serif; user-select:none; -webkit-user-select:none; }
+  #game { display:block; width:100vw; height:100vh; touch-action:none; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+"use strict";
+/* FIRE EXTINGUISHER AIM — Fire Babys game 42.
+   Fire-safety lesson: Aim at the BASE of the flames. Remember P.A.S.S.: Pull, Aim, Squeeze, Sweep! */
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0); }
+window.addEventListener('resize',resize);
+
+let state='title'; // title | play | over
+let score=0, timeLeft=60, flames=[], drops=[], popups=[], spawnT=0, sprayOn=false;
+let aim={x:0,y:0}, nozzle={x:0,y:0}, babyX=0, babyY=0, endT=0;
+
+function resetGame(){
+  score=0; timeLeft=60; flames=[]; drops=[]; popups=[]; spawnT=0.4; sprayOn=false; endT=0;
+  babyX=W/2; babyY=H-70;
+  aim={x:W/2,y:H*0.35};
+}
+function spawnFlame(){
+  const margin=50;
+  const x=margin+Math.random()*(W-margin*2);
+  const y=110+Math.random()*(H*0.55);
+  flames.push({x:x,y:y,size:14+Math.random()*10,age:0,ph:Math.random()*6.28});
+}
+/* ---------- input ---------- */
+function updAim(x,y){ aim.x=x; aim.y=Math.min(y,babyY-60); }
+cv.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  const x=e.clientX,y=e.clientY;
+  if(state==='title'){ if(inBtn(x,y,btnStart)){ resetGame(); state='play'; } return; }
+  if(state==='over'){ if(inBtn(x,y,btnRestart)){ resetGame(); state='play'; } return; }
+  sprayOn=true; updAim(x,y);
+},{passive:false});
+cv.addEventListener('pointermove',e=>{ if(state==='play') updAim(e.clientX,e.clientY); });
+window.addEventListener('pointerup',()=>{ sprayOn=false; });
+window.addEventListener('pointercancel',()=>{ sprayOn=false; });
+window.addEventListener('keydown',e=>{
+  if((e.key===' '||e.key==='Enter')){
+    if(state==='title'){ resetGame(); state='play'; }
+    else if(state==='over'){ resetGame(); state='play'; }
+  }
+});
+let btnStart={x:0,y:0,w:0,h:0}, btnRestart={x:0,y:0,w:0,h:0};
+function inBtn(x,y,b){ return x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h; }
+
+/* ---------- update ---------- */
+const CONE_LEN=520, CONE_HALF=0.30, MAX_FLAMES=9;
+function inCone(f){
+  const dx=f.x-nozzle.x, dy=f.y-nozzle.y;
+  const dist=Math.hypot(dx,dy);
+  if(dist>CONE_LEN||dist<10) return false;
+  const ax=aim.x-nozzle.x, ay=aim.y-nozzle.y;
+  const aa=Math.atan2(ay,ax), fa=Math.atan2(dy,dx);
+  let d=Math.abs(aa-fa); if(d>Math.PI) d=2*Math.PI-d;
+  // wider effective cone near the nozzle tip so close flames are easy to hit
+  const tol=CONE_HALF+ (1-dist/CONE_LEN)*0.35;
+  return d<tol;
+}
+function update(dt){
+  if(state!=='play') return;
+  timeLeft-=dt;
+  nozzle.x=babyX+26; nozzle.y=babyY-58;
+  // spawn flames
+  spawnT-=dt;
+  if(spawnT<=0 && flames.length<MAX_FLAMES){ spawnFlame(); spawnT=Math.max(0.35,0.95-timeLeft*0.004); }
+  // spray droplets (visual)
+  if(sprayOn){
+    const a=Math.atan2(aim.y-nozzle.y,aim.x-nozzle.x);
+    for(let i=0;i<4;i++){
+      const sp=420+Math.random()*160, off=(Math.random()-0.5)*0.5;
+      drops.push({x:nozzle.x,y:nozzle.y,vx:Math.cos(a+off)*sp,vy:Math.sin(a+off)*sp,life:0.5+Math.random()*0.25});
+    }
+  }
+  for(const d of drops){ d.x+=d.vx*dt; d.y+=d.vy*dt; d.vy+=500*dt; d.life-=dt; }
+  drops=drops.filter(d=>d.life>0);
+  // flames grow / shrink
+  for(let i=flames.length-1;i>=0;i--){
+    const f=flames[i];
+    f.age+=dt; f.ph+=dt*6;
+    f.size=Math.min(46, f.size + dt*2.6); // unattended flames grow!
+    if(sprayOn && inCone(f)){
+      f.size-=dt*55;
+      // foam sparkle on hit
+      if(Math.random()<0.5) drops.push({x:f.x+(Math.random()-0.5)*20,y:f.y,vx:(Math.random()-0.5)*60,vy:-60,life:0.4});
+    }
+    if(f.size<=9){
+      flames.splice(i,1); score++;
+      popups.push({x:f.x,y:f.y,t:1,txt:'POOF! +1'});
+    }
+  }
+  for(const p of popups) p.t-=dt;
+  popups=popups.filter(p=>p.t>0);
+  if(timeLeft<=0){ timeLeft=0; state='over'; endT=0; }
+}
+
+/* ---------- drawing ---------- */
+function drawWildFlame(x,y,s,ph){
+  ctx.save(); ctx.translate(x,y);
+  const flick=Math.sin(ph)*s*0.08;
+  // wild flame: jagged, NOT a baby — no face!
+  const g=ctx.createLinearGradient(0,-s*1.6,0,s*0.6);
+  g.addColorStop(0,'#ffeb3b'); g.addColorStop(0.5,'#ff9800'); g.addColorStop(1,'#e53935');
+  ctx.fillStyle=g; ctx.strokeStyle='#7a1500'; ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.moveTo(0,-s*1.5+flick);
+  ctx.bezierCurveTo(s*0.5,-s*0.9, s*0.75,-s*0.35, s*0.55,0);
+  ctx.bezierCurveTo(s*0.8,s*0.25, s*0.4,s*0.5, s*0.15,s*0.35);
+  ctx.bezierCurveTo(0,s*0.55, -s*0.3,s*0.5, -s*0.45,s*0.3);
+  ctx.bezierCurveTo(-s*0.75,s*0.1, -s*0.6,-s*0.5, -s*0.35,-s*0.7);
+  ctx.bezierCurveTo(-s*0.5,-s*1.0, -s*0.2,-s*1.15, 0,-s*1.5+flick);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // inner glow
+  ctx.fillStyle='rgba(255,255,180,0.85)';
+  ctx.beginPath(); ctx.ellipse(0,s*0.05,s*0.22,s*0.3,0,0,7); ctx.fill();
+  // "heat" warning ring when big
+  if(s>34){ ctx.strokeStyle='rgba(255,60,40,'+(0.4+0.3*Math.sin(ph*2))+')'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(0,-s*0.4,s*1.15,0,7); ctx.stroke(); }
+  ctx.restore();
+}
+function drawFirefighterBaby(){
+  const r=34;
+  ctx.save(); ctx.translate(babyX,babyY);
+  // body
+  const g=ctx.createRadialGradient(0,8,3,0,0,48);
+  g.addColorStop(0,'#fff59d'); g.addColorStop(0.45,'#ffd54f');
+  g.addColorStop(0.75,'#ff9800'); g.addColorStop(1,'#f4511e');
+  ctx.fillStyle=g; ctx.strokeStyle='#5d2c00'; ctx.lineWidth=3.5;
+  ctx.beginPath();
+  ctx.moveTo(0,-46);
+  ctx.bezierCurveTo(32,-17, 30,20, 0,34);
+  ctx.bezierCurveTo(-30,20, -32,-17, 0,-46);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // happy face
+  ctx.strokeStyle='#4a2400'; ctx.lineWidth=2.6; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(-11,-2,5.5,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(11,-2,5.5,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,7,11,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
+  ctx.fillStyle='rgba(255,120,90,0.55)';
+  ctx.beginPath(); ctx.arc(-17,8,4.5,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(17,8,4.5,0,7); ctx.fill();
+  // firefighter helmet
+  ctx.fillStyle='#e53935'; ctx.strokeStyle='#7a1010'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.ellipse(0,-27,30,9,0,0,7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0,-32,15,10,0,Math.PI,0); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#ffeb3b'; ctx.beginPath(); ctx.arc(0,-34,4,0,7); ctx.fill();
+  ctx.restore();
+  // extinguisher held toward aim
+  const nx=babyX+26, ny=babyY-58;
+  const a=Math.atan2(aim.y-ny,aim.x-nx);
+  ctx.save(); ctx.translate(nx,ny); ctx.rotate(a);
+  // red tank
+  ctx.fillStyle='#d32f2f'; ctx.strokeStyle='#7a1010'; ctx.lineWidth=2.5;
+  roundRectPath(-8,-14,26,28,8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 11px "Trebuchet MS"'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('SOS',5,0);
+  // hose to nozzle
+  ctx.strokeStyle='#37474f'; ctx.lineWidth=6; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(18,0); ctx.lineTo(44,0); ctx.stroke();
+  ctx.fillStyle='#90a4ae'; ctx.strokeStyle='#37474f'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(44,-7); ctx.lineTo(58,0); ctx.lineTo(44,7); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  // spray cone
+  if(sprayOn&&state==='play'){
+    ctx.save();
+    const grad=ctx.createLinearGradient(nx,ny,aim.x,aim.y);
+    grad.addColorStop(0,'rgba(160,220,255,0.75)'); grad.addColorStop(1,'rgba(160,220,255,0.08)');
+    ctx.fillStyle=grad;
+    const aa=Math.atan2(aim.y-ny,aim.x-nx);
+    const L=Math.min(CONE_LEN,Math.hypot(aim.x-nx,aim.y-ny)+120);
+    ctx.beginPath(); ctx.moveTo(nx,ny);
+    ctx.arc(nx,ny,L,aa-CONE_HALF,aa+CONE_HALF); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // droplets
+  ctx.fillStyle='rgba(170,225,255,0.9)';
+  for(const d of drops){ ctx.globalAlpha=Math.min(1,d.life*2.5); ctx.beginPath(); ctx.arc(d.x,d.y,4,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+}
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function roundRect(x,y,w,h,r){ roundRectPath(x,y,w,h,r); }
+function bigButton(b,label){
+  const g=ctx.createLinearGradient(0,b.y,0,b.y+b.h);
+  g.addColorStop(0,'#4fc3f7'); g.addColorStop(1,'#0288d1');
+  ctx.fillStyle=g; roundRect(b.x,b.y,b.w,b.h,18); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 30px "Trebuchet MS"';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+2);
+}
+function wrapText(text,x,y,maxW,lh,font,color){
+  ctx.font=font; ctx.fillStyle=color; ctx.textAlign='center'; ctx.textBaseline='top';
+  const words=text.split(' '); let line='', yy=y;
+  for(const w of words){
+    const t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){ ctx.fillText(line,x,yy); line=w; yy+=lh; } else line=t;
+  }
+  ctx.fillText(line,x,yy); return yy+lh;
+}
+function lessonBox(y){
+  const txt='🔥 FIRE SAFETY: Aim a fire extinguisher at the BASE of the flames, not the top! Remember P.A.S.S.: Pull the pin, Aim low, Squeeze the handle, Sweep side to side!';
+  const ly=wrapText(txt,W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#cfeeff');
+  roundRect(W*0.06,y,W*0.88,(ly-y)+14,16);
+  ctx.fillStyle='rgba(2,136,209,0.22)'; ctx.fill();
+  ctx.strokeStyle='#4fc3f7'; ctx.lineWidth=3; ctx.stroke();
+  wrapText(txt,W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#cfeeff');
+  return ly;
+}
+
+function draw(){
+  // bg: night sky with stars + ground
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1430'); bg.addColorStop(0.7,'#16224d'); bg.addColorStop(1,'#0a1f16');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  for(let i=0;i<50;i++){ const sx=(i*89)%W, sy=(i*53)%(H*0.6); ctx.fillRect(sx,sy,2,2); }
+  // moon
+  ctx.fillStyle='#fff9c4'; ctx.beginPath(); ctx.arc(W-70,70,30,0,7); ctx.fill();
+  // ground
+  ctx.fillStyle='#1b5e20'; ctx.fillRect(0,H-40,W,40);
+
+  if(state==='title'){ drawTitle(); return; }
+  // flames
+  for(const f of flames) drawWildFlame(f.x,f.y,f.size,f.ph);
+  drawFirefighterBaby();
+  // popups
+  ctx.textAlign='center';
+  for(const p of popups){
+    ctx.globalAlpha=Math.min(1,p.t*2);
+    ctx.fillStyle='#b3e5fc'; ctx.font='bold 26px "Trebuchet MS"';
+    ctx.fillText(p.txt,p.x,p.y-(1-p.t)*40);
+    ctx.globalAlpha=1;
+  }
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,0.5)'; roundRect(8,8,W-16,60,14); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.font='bold 24px "Trebuchet MS"';
+  ctx.fillText('🔥 Out: '+score, 22, 38);
+  ctx.textAlign='right';
+  ctx.fillStyle=timeLeft<=10?'#ff8a80':'#fff176';
+  ctx.fillText('⏱ '+Math.ceil(timeLeft)+'s', W-22, 38);
+  ctx.textAlign='center'; ctx.fillStyle='#b3e5fc'; ctx.font='18px "Trebuchet MS"';
+  ctx.fillText('Aim at the BASE!', W/2, 38);
+
+  if(state==='play'){
+    ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='16px "Trebuchet MS"'; ctx.textAlign='center';
+    ctx.fillText('Touch & HOLD to spray toward your finger • flames grow if you ignore them!', W/2, H-14);
+  }
+  if(state==='over') drawOver();
+}
+
+function drawTitle(){
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
+  drawWildFlame(W/2-120,190,30,1);
+  drawWildFlame(W/2+120,190,30,2.5);
+  ctx.textAlign='center';
+  const fs=Math.min(40,W*0.085);
+  ctx.fillStyle='#ffab40'; ctx.font='bold '+fs+'px "Trebuchet MS"';
+  ctx.fillText('🧯 FIRE EXTINGUISHER', W/2, 120);
+  ctx.fillText('AIM 🔥', W/2, 120+fs+8);
+  let y=120+fs*2+34;
+  y=wrapText('Wild flames are popping up everywhere! TOUCH AND HOLD anywhere to aim your extinguisher and spray them out. Catch flames in your water spray to shrink them — POOF! Watch out: flames you ignore GROW bigger!',
+    W/2,y,W*0.86,30,'20px "Trebuchet MS"','#ffffff');
+  y+=16;
+  y=lessonBox(y);
+  y+=30;
+  const bw=Math.min(280,W*0.7);
+  btnStart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnStart,'▶ START');
+}
+function drawOver(){
+  ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';
+  ctx.fillStyle='#ffab40'; ctx.font='bold 40px "Trebuchet MS"';
+  ctx.fillText("TIME'S UP!",W/2,170);
+  ctx.fillStyle='#fff'; ctx.font='bold 30px "Trebuchet MS"';
+  ctx.fillText('🔥 Flames put out: '+score,W/2,225);
+  const msgs=['Amazing firefighting!','Great spraying!','You did it, hero!','Blazing work!'];
+  ctx.fillStyle='#fff176'; ctx.font='22px "Trebuchet MS"';
+  ctx.fillText(msgs[Math.min(msgs.length-1,Math.floor(score/5))],W/2,262);
+  let y=lessonBox(300);
+  y+=30;
+  const bw=Math.min(280,W*0.7);
+  btnRestart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnRestart,'↻ PLAY AGAIN');
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function loop(t){
+  const dt=Math.min(0.05,(t-last)/1000); last=t;
+  update(dt); draw();
+  requestAnimationFrame(loop);
+}
+resize(); resetGame(); state='title';
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

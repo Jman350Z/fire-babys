@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Water Drop Dash — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#0a1420;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(60,180,255,.3)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 18: WATER DROP DASH — catch water drops, dodge fire sparks! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Water puts out most fires — but NEVER pour water on a grease fire! Smother it with a lid instead.";
+var state='title',score=0,lives=3,time=60,bx=W/2,items=[],spawnT=0,keys={},pops=[];
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;g.gain.setValueAtTime(.09,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.12);o.start();o.stop(AC.currentTime+.13);}catch(e){}}
+function startGame(){state='play';score=0;lives=3;time=60;items=[];pops=[];bx=W/2;spawnT=0;}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function drawDrop(x,y,r){
+  var g=ctx.createLinearGradient(x,y-r,x,y+r);
+  g.addColorStop(0,'#a5e8ff');g.addColorStop(1,'#1c7ed6');
+  ctx.fillStyle=g;ctx.beginPath();
+  ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r,y+r*.35,x,y+r);ctx.quadraticCurveTo(x-r,y+r*.35,x,y-r);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.beginPath();ctx.arc(x-r*.3,y+r*.15,r*.2,0,7);ctx.fill();
+}
+function drawSpark(x,y,r,t){
+  ctx.fillStyle='#ff922b';ctx.beginPath();
+  for(var i=0;i<8;i++){var a=i/8*Math.PI*2+t;var rad=i%2?r*.45:r;
+    ctx.lineTo(x+Math.cos(a)*rad,y+Math.sin(a)*rad);}
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ffd43b';ctx.beginPath();ctx.arc(x,y,r*.4,0,7);ctx.fill();
+}
+function drawBucket(x,y){
+  ctx.fillStyle='#1971c2';rr(x-42,y-24,84,44,8);ctx.fill();
+  ctx.strokeStyle='#0b4d8f';ctx.lineWidth=3;rr(x-42,y-24,84,44,8);ctx.stroke();
+  ctx.fillStyle='#4dabf7';ctx.fillRect(x-38,y-22,76,8);
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-14,y-2,5,0,7);ctx.arc(x+14,y-2,5,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+8,12,.35,Math.PI-.35);ctx.stroke();
+}
+var tick=0,last=0;
+function update(dt){
+  tick++;
+  if(state!=='play')return;
+  if(keys.left)bx-=6;if(keys.right)bx+=6;
+  bx=Math.max(46,Math.min(W-46,bx));
+  time-=dt;if(time<=0){time=0;state='over';}
+  spawnT-=dt;
+  if(spawnT<=0){spawnT=Math.max(.3,.8-score*.004);
+    var bad=Math.random()<.32;
+    items.push({x:20+Math.random()*(W-40),y:-20,v:2.2+Math.random()*2+score*.01,bad:bad,r:bad?13:15});
+  }
+  for(var i=items.length-1;i>=0;i--){var it=items[i];it.y+=it.v;
+    if(it.y>H+30){items.splice(i,1);continue;}
+    if(it.y>H-90&&it.y<H-40&&Math.abs(it.x-bx)<48){
+      items.splice(i,1);
+      if(it.bad){lives--;beep(150);pops.push({x:it.x,y:H-90,t:'OUCH!',c:'#ff6b6b'});
+        if(lives<=0)state='over';
+      }else{score+=10;beep(660);pops.push({x:it.x,y:H-90,t:'+10',c:'#7CFC00'});}
+    }
+  }
+  for(var k=pops.length-1;k>=0;k--){pops[k].y-=1;pops[k].t2=(pops[k].t2||25)-1;if(pops[k].t2<=0)pops.splice(k,1);}
+}
+function draw(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a1420');g.addColorStop(1,'#12324f');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(160,210,255,.35)';
+  for(var c=0;c<18;c++){ctx.fillRect((c*89)%W,(c*137+tick*.4)%H,2,7);}
+  items.forEach(function(it){it.bad?drawSpark(it.x,it.y,it.r,tick*.1):drawDrop(it.x,it.y,it.r);});
+  pops.forEach(function(p){ctx.fillStyle=p.c;ctx.font='bold 18px Trebuchet MS';ctx.textAlign='center';ctx.fillText(p.t,p.x,p.y);});
+  drawBucket(bx,H-70);
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 19px Trebuchet MS';
+  ctx.fillText('💧 '+score,12,30);
+  ctx.textAlign='center';ctx.fillStyle=time<10?'#ff6b6b':'#fff';
+  ctx.fillText('⏱ '+Math.ceil(time),W/2,30);
+  ctx.textAlign='right';ctx.fillStyle='#fff';ctx.fillText('❤'.repeat(Math.max(0,lives)),W-12,30);
+  if(state==='title'){
+    ctx.fillStyle='rgba(6,14,24,.92)';rr(20,120,W-40,H-280,18);ctx.fill();
+    ctx.strokeStyle='#4dabf7';ctx.lineWidth=3;rr(20,120,W-40,H-280,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText('WATER DROP DASH',W/2,170);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('Move the bucket (drag or ← →).',W/2,210);
+    ctx.fillText('Catch the 💧 water drops (+10).',W/2,236);
+    ctx.fillText('DODGE the 🔥 fire sparks!',W/2,262);
+    ctx.fillText('60 seconds — 3 hearts.',W/2,288);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,318,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-210);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(6,14,24,.92)';rr(20,120,W-40,H-280,18);ctx.fill();
+    ctx.strokeStyle='#4dabf7';ctx.lineWidth=3;rr(20,120,W-40,H-280,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS';
+    ctx.fillText('SPLASH DOWN!',W/2,170);
+    ctx.font='18px Trebuchet MS';
+    ctx.fillText('You caught '+score+' points of water!',W/2,212);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,245,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO PLAY AGAIN 👆',W/2,H-210);
+  }
+}
+var dragging=false;
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){startGame();return;}
+  dragging=true;bx=P(e).x;
+});
+addEventListener('pointermove',function(e){if(dragging&&state==='play')bx=P(e).x;});
+addEventListener('pointerup',function(){dragging=false;});
+addEventListener('keydown',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':'x']=true;
+  if((e.key===' '||e.key==='Enter')&&state!=='play')startGame();});
+addEventListener('keyup',function(e){
+  keys[e.key==='ArrowLeft'||e.key==='a'?'left':e.key==='ArrowRight'||e.key==='d'?'right':'x']=false;});
+(function loop(t){var dt=Math.min(.05,((t-last)/1000)||0);last=t;update(dt);draw();requestAnimationFrame(loop);})(0);
+</script>
+</body>
+</html>

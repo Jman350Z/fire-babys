@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fire Alarm Frenzy - Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{background:#140a24;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',Verdana,sans-serif;touch-action:manipulation;overflow:hidden;}
+canvas{display:block;border-radius:14px;box-shadow:0 0 44px rgba(255,120,0,.4);}
+</style>
+</head>
+<body>
+<canvas id="c" width="480" height="720"></canvas>
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=480,H=720;
+function fit(){
+  var s=Math.min(window.innerWidth/W,window.innerHeight/H);
+  cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';
+}
+window.addEventListener('resize',fit);fit();
+
+var LESSON="When you see smoke, tell a grown-up and get out fast. Working smoke alarms save lives - test yours every month!";
+
+function wrapText(text,x,y,maxW,lh,size,color,align){
+  ctx.fillStyle=color;ctx.font='bold '+size+'px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign=align||'center';ctx.textBaseline='top';
+  var words=text.split(' '),line='',yy=y;
+  for(var i=0;i<words.length;i++){
+    var t=line?line+' '+words[i]:words[i];
+    if(ctx.measureText(t).width>maxW&&line){ctx.fillText(line,x,yy);line=words[i];yy+=lh;}
+    else line=t;
+  }
+  ctx.fillText(line,x,yy);
+  return yy+lh;
+}
+
+function drawFireBaby(x,y,s){
+  ctx.save();ctx.translate(x,y);
+  var g=ctx.createLinearGradient(0,-s/2,0,s/2);
+  g.addColorStop(0,'#ffe066');g.addColorStop(.55,'#ff9d2e');g.addColorStop(1,'#ff6b1a');
+  ctx.fillStyle=g;ctx.strokeStyle='#7a2d00';ctx.lineWidth=Math.max(3,s*0.055);
+  var w=s*0.42;
+  ctx.beginPath();
+  ctx.moveTo(0,-s/2);
+  ctx.bezierCurveTo(w*0.9,-s*0.28,w,-s*0.02,w,s*0.22);
+  ctx.bezierCurveTo(w*0.75,s*0.46,w*0.35,s*0.5,0,s*0.5);
+  ctx.bezierCurveTo(-w*0.35,s*0.5,-w*0.75,s*0.46,-w,s*0.22);
+  ctx.bezierCurveTo(-w,-s*0.02,-w*0.9,-s*0.28,0,-s/2);
+  ctx.closePath();ctx.fill();ctx.stroke();
+  var ig=ctx.createRadialGradient(0,s*0.18,s*0.02,0,s*0.18,s*0.3);
+  ig.addColorStop(0,'rgba(255,255,200,0.85)');ig.addColorStop(1,'rgba(255,255,200,0)');
+  ctx.fillStyle=ig;ctx.beginPath();ctx.arc(0,s*0.18,s*0.3,0,7);ctx.fill();
+  var e=s*0.11;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(-e,s*0.02,e,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(e,s*0.02,e,0,7);ctx.fill();
+  ctx.fillStyle='#3a1c00';
+  ctx.beginPath();ctx.arc(-e+e*0.15,s*0.08,e*0.55,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(e+e*0.15,s*0.08,e*0.55,0,7);ctx.fill();
+  ctx.strokeStyle='#3a1c00';ctx.lineWidth=Math.max(2,s*0.035);ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(0,s*0.1,e*1.5,0.35,Math.PI-0.35);ctx.stroke();
+  ctx.restore();
+}
+
+function drawSmoke(x,y,r,alpha){
+  ctx.save();ctx.globalAlpha=alpha;
+  var puffs=[[-0.35,0.1,0.62],[0.3,-0.12,0.7],[0.05,0.35,0.55],[-0.05,-0.42,0.5],[0.45,0.3,0.45]];
+  for(var i=0;i<puffs.length;i++){
+    var px=x+puffs[i][0]*r,py=y+puffs[i][1]*r,pr=puffs[i][2]*r;
+    var g=ctx.createRadialGradient(px,py,pr*0.2,px,py,pr);
+    g.addColorStop(0,'#cfcfcf');g.addColorStop(1,'#6e6e6e');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function button(x,y,w,h,label,fill){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  rr(x+4,y+6,w,h,22);ctx.fill();
+  var g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,fill);g.addColorStop(1,'#c1440e');
+  ctx.fillStyle=g;rr(x,y,w,h,22);ctx.fill();
+  ctx.lineWidth=4;ctx.strokeStyle='#fff';rr(x,y,w,h,22);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 30px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x+w/2,y+h/2+2);
+  ctx.restore();
+  return {x:x,y:y,w:w,h:h};
+}
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+
+var startBtn=null,restartBtn=null;
+var G={state:'title',score:0,danger:0,round:1,puffs:[],lastSpawn:0,flashes:[],t:0,overAt:0};
+
+function spawnMs(){return Math.max(520,1500-(G.round-1)*130);}
+function puffLife(){return Math.max(1700,3300-(G.round-1)*200);}
+function puffSize(){return 44+Math.random()*22;}
+
+function spawnPuff(){
+  var r=puffSize();
+  var x=r+10+Math.random()*(W-2*(r+10));
+  var y=110+r+Math.random()*(H-110-2*r-30);
+  G.puffs.push({x:x,y:y,r:r,born:G.t,life:puffLife()});
+}
+
+function update(dt){
+  if(G.state!=='play')return;
+  G.t+=dt;
+  G.round=1+Math.floor(G.score/5);
+  if(G.t-G.lastSpawn>spawnMs()){G.lastSpawn=G.t;spawnPuff();}
+  for(var i=G.puffs.length-1;i>=0;i--){
+    var p=G.puffs[i];
+    if(G.t-p.born>p.life){
+      G.puffs.splice(i,1);
+      G.danger=Math.min(100,G.danger+13);
+      G.flashes.push({x:p.x,y:p.y,txt:'MISSED!',c:'#ff5252',born:G.t});
+      if(G.danger>=100){G.state='over';G.overAt=G.t;}
+    }
+  }
+  for(var j=G.flashes.length-1;j>=0;j--){
+    if(G.t-G.flashes[j].born>1100)G.flashes.splice(j,1);
+  }
+}
+
+function draw(){
+  var bg=ctx.createLinearGradient(0,0,0,H);
+  if(G.state==='over'){bg.addColorStop(0,'#2b0f1e');bg.addColorStop(1,'#12060f');}
+  else{bg.addColorStop(0,'#3d1d0d');bg.addColorStop(1,'#1c0d18');}
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  if(G.state==='title'){
+    drawFireBaby(W/2,150,110);
+    ctx.fillStyle='#ffb300';ctx.font='bold 52px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('FIRE ALARM',W/2,240);ctx.fillText('FRENZY',W/2,300);
+    wrapText('Smoke puffs pop up everywhere! TAP each puff fast to sound the alarm and clear it. Miss one and the DANGER meter rises. Fill the meter and it is game over!',W/2,378,400,30,21,'#ffe9c4');
+    ctx.fillStyle='#ffd54f';ctx.font='bold 22px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('FIRE SAFETY LESSON',W/2,505);
+    wrapText(LESSON,W/2,532,410,28,20,'#fff3d6');
+    startBtn=button(W/2-130,630,260,66,'START','#ff8f00');
+    return;
+  }
+
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(0,0,W,92);
+  ctx.fillStyle='#fff';ctx.font='bold 26px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText('Score: '+G.score,14,10);
+  ctx.fillText('Round '+G.round,14,44);
+  // danger meter
+  var mx=230,mw=W-230-14,my=22,mh=34;
+  ctx.fillStyle='#fff';ctx.font='bold 20px Trebuchet MS,Verdana,sans-serif';
+  ctx.textAlign='right';ctx.fillText('DANGER',mx-8,26);
+  ctx.fillStyle='#222';rr(mx,my,mw,mh,10);ctx.fill();
+  var dg=ctx.createLinearGradient(mx,0,mx+mw,0);
+  dg.addColorStop(0,'#ffeb3b');dg.addColorStop(.5,'#ff9800');dg.addColorStop(1,'#f44336');
+  ctx.fillStyle=dg;
+  if(G.danger>0){rr(mx,my,mw*(G.danger/100),mh,10);ctx.fill();}
+  ctx.lineWidth=3;ctx.strokeStyle='#fff';rr(mx,my,mw,mh,10);ctx.stroke();
+
+  for(var i=0;i<G.puffs.length;i++){
+    var p=G.puffs[i],frac=(G.t-p.born)/p.life;
+    drawSmoke(p.x,p.y,p.r,0.95);
+    ctx.strokeStyle=frac>0.75?'#ff5252':'#ffffff';
+    ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r+10,-Math.PI/2,-Math.PI/2+Math.PI*2*(1-frac));ctx.stroke();
+  }
+  for(var j=0;j<G.flashes.length;j++){
+    var f=G.flashes[j],a=1-(G.t-f.born)/1100;
+    ctx.save();ctx.globalAlpha=Math.max(0,a);
+    ctx.fillStyle=f.c;ctx.font='bold 28px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.fillText(f.txt,f.x,f.y-46);
+    ctx.restore();
+  }
+
+  if(G.state==='over'){
+    ctx.fillStyle='rgba(0,0,0,0.72)';ctx.fillRect(0,0,W,H);
+    drawFireBaby(W/2,140,96);
+    ctx.fillStyle='#ff5252';ctx.font='bold 52px Trebuchet MS,Verdana,sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('GAME OVER',W/2,220);
+    ctx.fillStyle='#fff';ctx.font='bold 32px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('Smoke puffs cleared: '+G.score,W/2,300);
+    ctx.fillText('Rounds survived: '+G.round,W/2,342);
+    ctx.fillStyle='#ffd54f';ctx.font='bold 22px Trebuchet MS,Verdana,sans-serif';
+    ctx.fillText('FIRE SAFETY LESSON',W/2,405);
+    wrapText(LESSON,W/2,432,410,28,20,'#fff3d6');
+    restartBtn=button(W/2-130,620,260,66,'RESTART','#ff8f00');
+  }
+}
+
+function inBtn(b,x,y){return b&&x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h;}
+
+cv.addEventListener('pointerdown',function(e){
+  e.preventDefault();
+  var r=cv.getBoundingClientRect();
+  var x=(e.clientX-r.left)*(W/r.width),y=(e.clientY-r.top)*(H/r.height);
+  if(G.state==='title'){if(inBtn(startBtn,x,y)){G.state='play';G.t=0;G.lastSpawn=0;}return;}
+  if(G.state==='over'){if(inBtn(restartBtn,x,y)){G={state:'play',score:0,danger:0,round:1,puffs:[],lastSpawn:0,flashes:[],t:0,overAt:0};}return;}
+  for(var i=G.puffs.length-1;i>=0;i--){
+    var p=G.puffs[i],dx=x-p.x,dy=y-p.y;
+    if(dx*dx+dy*dy<=(p.r+18)*(p.r+18)){
+      G.puffs.splice(i,1);G.score++;
+      G.danger=Math.max(0,G.danger-2);
+      G.flashes.push({x:p.x,y:p.y,txt:'ALARM!',c:'#7CFC00',born:G.t});
+      return;
+    }
+  }
+},{passive:false});
+
+var last=0;
+function loop(ts){
+  var dt=last?ts-last:16;last=ts;
+  update(Math.min(dt,60));draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

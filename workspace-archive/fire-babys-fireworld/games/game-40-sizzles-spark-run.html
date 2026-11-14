@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Sizzle's Spark Run — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#1a0a06;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,5,0,.92);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ffb300;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate{margin:12px 0}#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ffb300;padding:6px;background:#2a1208;color:#fff}
+#gate button,#startBtn{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#combo{position:fixed;top:44px;left:0;right:0;text-align:center;color:#7dff9a;font-weight:800;font-size:18px;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud">SCORE 0</div><div id="combo"></div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>⚡ SIZZLE'S SPARK RUN</h1>
+<p>Drag Blaze back on the slingshot and SMASH the crystal towers! Chain destructions for COMBO multipliers!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q">3 + 4</b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Never throw things at others — aim only at safe targets, and never play with real fire!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),comboEl=document.getElementById('combo'),ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+// AUDIO
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function beep(f,d,t){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=t||'square';o.frequency.value=f;g.gain.setValueAtTime(.15,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const sfx={launch:()=>beep(300,.2,'sawtooth'),hit:()=>beep(150,.15,'square'),boom:()=>{beep(90,.4,'sawtooth');beep(60,.5,'triangle');},combo:n=>beep(400+n*80,.15,'sine'),win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.2,'sine'),i*120));}};
+// GATE
+const n1=2+Math.floor(Math.random()*5),n2=2+Math.floor(Math.random()*5);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else{alert('Try again!');}}
+// GAME
+const G=0.5;let blocks=[],proj=null,sling=null,score=0,combo=0,comboT=0,shake=0,parts=[],state='menu',shots=5,trail=[];
+const SLX=()=>W*0.18, SLY=()=>H*0.62;
+function build(){
+  blocks=[];const cols=3+Math.floor(Math.random()*2);
+  for(let c=0;c<cols;c++)for(let r=0;r<2+Math.floor(Math.random()*2);r++){
+    const bw=40+Math.random()*30,bh=40+Math.random()*30;
+    blocks.push({x:W*0.55+c*90,y:H*0.8-(r+1)*bh,w:bw,h:bh,hp:2,dead:false,vx:0,vy:0});
+  }
+  shots=5;
+}
+function start(){state='play';build();ov.classList.add('hidden');}
+function explode(x,y,n,col){for(let i=0;i<n;i++){const a=Math.random()*7,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,life:1,col});}}
+function update(dt){
+  if(state!=='play')return;
+  comboT-=dt;if(comboT<=0&&combo>0){combo=0;comboEl.textContent='';}
+  shake*=0.88;
+  if(proj){
+    proj.vy+=G;proj.x+=proj.vx;proj.y+=proj.vy;
+    trail.push({x:proj.x,y:proj.y,life:.4});trail.forEach(t=>t.life-=dt);trail=trail.filter(t=>t.life>0);
+    // collide blocks
+    blocks.forEach(b=>{
+      if(b.dead)return;
+      if(proj.x>b.x-b.w/2-14&&proj.x<b.x+b.w/2+14&&proj.y>b.y-b.h/2-14&&proj.y<b.y+b.h/2+14){
+        b.hp--;sfx.hit();shake=Math.max(shake,6);explode(proj.x,proj.y,8,'#ffb300');
+        if(b.hp<=0){b.dead=true;combo++;comboT=2;const pts=100*combo;score+=pts;sfx.boom();shake=Math.max(shake,12);explode(b.x,b.y,20,b.hp?'#888':'#4de');
+          if(combo>1){comboEl.textContent='COMBO x'+combo+'!';sfx.combo(combo);}}
+        hud.textContent='SCORE '+score;
+        proj=null;
+      }
+    });
+    if(proj&&(proj.x>W+50||proj.y>H+50||proj.x<-50)){proj=null;shots--;
+      if(shots<=0&&blocks.some(b=>!b.dead)){end(false);} }
+  }
+  if(!blocks.some(b=>!b.dead)){sfx.win();end(true);}
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.life-=dt*1.6;});parts=parts.filter(p=>p.life>0);
+}
+function end(win){
+  state='over';
+  ov.innerHTML=`<h1>${win?'🏆 YOU WIN!':'💥 OUT OF SHOTS'}</h1><p>Final score: <b>${score}</b></p><div class="lesson">🔥 Fire Safety: Never throw things at others — aim only at safe targets, and never play with real fire!</div><button onclick="location.reload()">↻ PLAY AGAIN</button>`;
+  ov.classList.remove('hidden');
+}
+function drawBaby(x,y,r,angry){
+  ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(-r*.3,-r*.3,r*.2,0,0,r);
+  g.addColorStop(0,'#ffd23f');g.addColorStop(.6,'#ff8a00');g.addColorStop(1,'#e63900');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#ff6a00';ctx.beginPath();ctx.moveTo(-r*.4,-r*.75);ctx.quadraticCurveTo(0,-r*1.5,r*.4,-r*.75);ctx.quadraticCurveTo(0,-r*1.05,-r*.4,-r*.75);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-r*.3,-r*.1,r*.22,0,7);ctx.arc(r*.3,-r*.1,r*.22,0,7);ctx.fill();
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-r*.3,-r*.08,r*.1,0,7);ctx.arc(r*.3,-r*.08,r*.1,0,7);ctx.fill();
+  ctx.strokeStyle='#5a2000';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,r*.25,r*.3,.3,Math.PI-.3);ctx.stroke();
+  ctx.restore();
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const sx=(Math.random()-.5)*shake,sy=(Math.random()-.5)*shake;
+  ctx.translate(sx,sy);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2a0f04');g.addColorStop(1,'#5a2008');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  // ground
+  ctx.fillStyle='#3a1a0a';ctx.fillRect(-20,H*0.82,W+40,H*0.2);
+  // slingshot
+  ctx.strokeStyle='#5a3010';ctx.lineWidth=14;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(SLX(),H*0.82);ctx.lineTo(SLX(),SLY()+30);ctx.stroke();
+  // blocks
+  blocks.forEach(b=>{if(b.dead)return;
+    ctx.fillStyle=b.hp>1?'#7a6a8a':'#4de3e3';
+    ctx.fillRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h);
+    ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.strokeRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h);});
+  // sling band + baby
+  if(state==='play'&&!proj){
+    const px=sling?sling.x:SLX(),py=sling?sling.y:SLY();
+    ctx.strokeStyle='#ff3d2e';ctx.lineWidth=6;
+    ctx.beginPath();ctx.moveTo(SLX()-14,SLY());ctx.lineTo(px,py);ctx.moveTo(SLX()+14,SLY());ctx.lineTo(px,py);ctx.stroke();
+    drawBaby(px,py,26);
+    if(sling){ // trajectory
+      ctx.fillStyle='rgba(255,255,255,.7)';
+      let tx=px,ty=py,vx=(SLX()-px)*.14,vy=(SLY()-py)*.14;
+      for(let i=0;i<20;i++){vx*=.995;vy=vy*.995+G;tx+=vx*3;ty+=vy*3;if(i%2===0){ctx.globalAlpha=.8-i*.04;ctx.beginPath();ctx.arc(tx,ty,4,0,7);ctx.fill();}}
+      ctx.globalAlpha=1;
+    }
+  }
+  if(proj){trail.forEach(t=>{ctx.globalAlpha=t.life;ctx.fillStyle='#ffb300';ctx.beginPath();ctx.arc(t.x,t.y,8,0,7);ctx.fill();});ctx.globalAlpha=1;drawBaby(proj.x,proj.y,22);}
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+  // shots
+  ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.fillText('🎯 Shots: '+shots,20,H-24);
+}
+let last=0;function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+// input
+let pid=null;
+cv.addEventListener('pointerdown',e=>{if(state!=='play'||proj)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(Math.hypot(x-SLX(),y-SLY())<80){sling={x,y};pid=e.pointerId;cv.setPointerCapture(pid);}});
+cv.addEventListener('pointermove',e=>{if(!sling||e.pointerId!==pid)return;const r=cv.getBoundingClientRect();let x=e.clientX-r.left,y=e.clientY-r.top;const dx=x-SLX(),dy=y-SLY(),d=Math.hypot(dx,dy),m=110;if(d>m){x=SLX()+dx/d*m;y=SLY()+dy/d*m;}sling={x,y};});
+cv.addEventListener('pointerup',e=>{if(!sling||e.pointerId!==pid)return;const dx=SLX()-sling.x,dy=SLY()-sling.y;if(Math.hypot(dx,dy)>25){proj={x:sling.x,y:sling.y,vx:dx*.14,vy:dy*.14};sfx.launch();}sling=null;pid=null;});
+</script>
+</body>
+</html>

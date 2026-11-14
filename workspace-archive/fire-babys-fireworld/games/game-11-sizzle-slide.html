@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Sizzle Slide — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:manipulation;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative;display:flex;flex-direction:column;align-items:center}
+#hud{display:flex;justify-content:space-between;width:100%;padding:10px 16px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000}
+#board{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(88vw,340px);height:min(88vw,340px);margin-top:8px}
+.tile{background:linear-gradient(#5a2c10,#3d1e08);border:3px solid #ffb347;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+.tile canvas{width:92%;height:92%}
+.tile.empty{background:rgba(255,180,80,.08);border-style:dashed;cursor:default}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.9);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.hidden{display:none!important}
+#hint{margin-top:10px;font-size:14px;color:#ffcf9a;text-align:center;padding:0 20px}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>👆 Moves: <span id="moves">0</span></span><span>🏆 Best: <span id="best">—</span></span></div>
+<div id="board"></div>
+<div id="hint">Tap a tile next to the empty space to slide it.<br>Put the Fire Baby back together! 🔥</div>
+<div class="ov" id="title">
+<h1>🔥 Sizzle Slide 🔥</h1>
+<p>Slide the tiles to rebuild the <b>Fire Baby picture</b>!<br>Tap a tile next to the empty space.</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Piece it together! Everyone in your family should know the fire escape plan by heart.</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>🎉 Puzzle solved!</h1>
+<p>You did it in <b id="final">0</b> moves!</p>
+<div class="safety">🧯 <b>Remember:</b> Know your family's fire escape plan by heart!</div>
+<button class="btn" id="againBtn">↻ SHUFFLE AGAIN</button>
+</div>
+</div>
+<script>
+const board=document.getElementById('board');
+let tiles,moves,best=localStorage.getItem('ss_best');
+if(best)document.getElementById('best').textContent=best;
+function drawPiece(cvEl,n){
+ const c=cvEl.getContext('2d'),S=cvEl.width=cvEl.height=140;
+ // full fire baby picture, show only piece n of 3x3
+ const g=c.createRadialGradient(70,55,8,70,70,85);g.addColorStop(0,'#ffe27a');g.addColorStop(0.5,'#ffb347');g.addColorStop(1,'#ff7b1c');
+ c.fillStyle=g;c.beginPath();c.moveTo(70,10);c.quadraticCurveTo(125,45,115,95);c.quadraticCurveTo(108,128,70,128);c.quadraticCurveTo(32,128,25,95);c.quadraticCurveTo(15,45,70,10);c.fill();
+ c.fillStyle='#fff';c.beginPath();c.arc(52,72,13,0,7);c.arc(88,72,13,0,7);c.fill();
+ c.fillStyle='#222';c.beginPath();c.arc(52,73,6,0,7);c.arc(88,73,6,0,7);c.fill();
+ c.strokeStyle='#5a2400';c.lineWidth=4;c.beginPath();c.arc(70,88,15,0.15*Math.PI,0.85*Math.PI);c.stroke();
+ c.fillStyle='rgba(255,120,120,.5)';c.beginPath();c.arc(38,92,8,0,7);c.arc(102,92,8,0,7);c.fill();
+ // flame tip
+ const g2=c.createRadialGradient(70,14,2,70,18,26);g2.addColorStop(0,'#fff6c8');g2.addColorStop(1,'#ff9d1c');
+ c.fillStyle=g2;c.beginPath();c.moveTo(70,2);c.quadraticCurveTo(84,16,78,30);c.quadraticCurveTo(70,36,62,30);c.quadraticCurveTo(56,16,70,2);c.fill();
+ // crop: clear everything except piece n
+ const px=n%3,py=Math.floor(n/3),ps=S/3;
+ const tmp=document.createElement('canvas');tmp.width=tmp.height=S;
+ tmp.getContext('2d').drawImage(cvEl,0,0);
+ c.clearRect(0,0,S,S);c.drawImage(tmp,px*ps,py*ps,ps,ps,0,0,S,S);
+ // number hint
+ c.fillStyle='rgba(0,0,0,.45)';c.font='900 22px sans-serif';c.textAlign='left';c.fillText(n+1,8,28);
+}
+function reset(){
+ do{tiles=[0,1,2,3,4,5,6,7,8].sort(()=>Math.random()-0.5);}while(!solvable()||solved());
+ moves=0;document.getElementById('moves').textContent=0;render();
+}
+function solvable(){let inv=0,a=tiles.filter(t=>t!==8);
+ for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i]>a[j])inv++;return inv%2===0;}
+function solved(){return tiles.every((t,i)=>t===i);}
+function render(){
+ board.innerHTML='';
+ tiles.forEach((t,i)=>{
+  const d=document.createElement('div');
+  if(t===8){d.className='tile empty';}
+  else{d.className='tile';const c=document.createElement('canvas');d.appendChild(c);drawPiece(c,t);
+   d.addEventListener('click',()=>tryMove(i));}
+  board.appendChild(d);
+ });
+}
+function tryMove(i){
+ let e=tiles.indexOf(8),er=Math.floor(e/3),ec=e%3,ir=Math.floor(i/3),ic=i%3;
+ if(Math.abs(er-ir)+Math.abs(ec-ic)===1){
+  [tiles[e],tiles[i]]=[tiles[i],tiles[e]];moves++;
+  document.getElementById('moves').textContent=moves;render();
+  if(solved())setTimeout(win,400);
+ }
+}
+function win(){document.getElementById('final').textContent=moves;
+ if(!best||moves<+best){best=moves;localStorage.setItem('ss_best',moves);document.getElementById('best').textContent=moves;}
+ document.getElementById('over').classList.remove('hidden');}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();};
+reset();
+</script>
+</body>
+</html>

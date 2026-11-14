@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lava Floor Is Lava - Fire Babys</title>
+<style>
+  html,body{margin:0;padding:0;overflow:hidden;background:#1a0f2e;height:100%;
+    touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  canvas{display:block;width:100vw;height:100vh;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* LAVA FLOOR IS LAVA — hop across the furniture, don't touch the lava floor!
+   The fire baby is never hurt: a splash in the lava just means a giggle and a
+   hop back to the last couch, minus one heart. 3 hearts.
+   Fire-safety lesson: If your clothes catch fire: STOP, DROP, and ROLL! */
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W=0,H=0,lavaY=0;
+function resize(){
+  const DPR=Math.min(2,window.devicePixelRatio||1);
+  W=window.innerWidth;H=window.innerHeight;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  lavaY=H-64;
+}
+window.addEventListener('resize',resize);
+
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const FURN=['#e85d75','#6ec6ff','#ffd93b','#9b5de5','#7ddb6a','#ff9f1c'];
+
+let state='title';
+let platforms=[],player,hearts,score,dist,speed,landBonus,popups,buttons,t,invuln;
+
+function reset(){
+  platforms=[];hearts=3;score=0;dist=0;speed=4.2;landBonus=0;popups=[];buttons=[];
+  t=0;invuln=0;
+  const w=170,y=H*0.62;
+  platforms.push({x:0,y,w,col:FURN[0]});
+  let nx=w+rnd(80,150);
+  while(nx<W+600){
+    const pw=rnd(95,165);
+    const py=Math.max(H*0.32,Math.min(lavaY-90,platforms[platforms.length-1].y+rnd(-95,95)));
+    platforms.push({x:nx,y:py,w:pw,col:FURN[(Math.random()*FURN.length)|0]});
+    nx+=pw+rnd(80,160)+speed*4;
+  }
+  player={px:W*0.28,py:y,vy:0,onGround:true,holding:false,squash:0};
+  player.lastSafe=platforms[0];
+}
+function startGame(){reset();state='play';}
+
+/* ---------- drawing helpers ---------- */
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+}
+function drawBaby(x,y,s,squash,blink){
+  ctx.save();ctx.translate(x,y);ctx.scale(1+squash*0.25,1-squash*0.25);
+  const grad=ctx.createRadialGradient(0,s*0.28,s*0.08,0,0,s*0.72);
+  grad.addColorStop(0,'#ffe97a');grad.addColorStop(0.55,'#ff9f1c');grad.addColorStop(1,'#f25c05');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.moveTo(0,-s*0.78);
+  ctx.bezierCurveTo(s*0.58,-s*0.28,s*0.52,s*0.34,0,s*0.46);
+  ctx.bezierCurveTo(-s*0.52,s*0.34,-s*0.58,-s*0.28,0,-s*0.78);
+  ctx.fill();
+  ctx.fillStyle='#5b2d0e';
+  if(blink){
+    ctx.lineWidth=s*0.05;ctx.strokeStyle='#5b2d0e';ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(-s*0.22,s*0.02);ctx.lineTo(-s*0.10,s*0.02);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(s*0.10,s*0.02);ctx.lineTo(s*0.22,s*0.02);ctx.stroke();
+  }else{
+    ctx.beginPath();ctx.arc(-s*0.16,s*0.02,s*0.075,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(s*0.16,s*0.02,s*0.075,0,7);ctx.fill();
+  }
+  ctx.strokeStyle='#5b2d0e';ctx.lineWidth=s*0.05;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(0,s*0.06,s*0.19,0.4,Math.PI-0.4);ctx.stroke();
+  ctx.fillStyle='rgba(255,130,130,0.55)';
+  ctx.beginPath();ctx.arc(-s*0.30,s*0.12,s*0.075,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(s*0.30,s*0.12,s*0.075,0,7);ctx.fill();
+  ctx.restore();
+}
+function drawHeart(x,y,s,full){
+  ctx.save();ctx.translate(x,y);ctx.scale(s/20,s/20);
+  ctx.fillStyle=full?'#ff4d6d':'rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.moveTo(0,6);
+  ctx.bezierCurveTo(-12,-4,-6,-12,0,-6);
+  ctx.bezierCurveTo(6,-12,12,-4,0,6);
+  ctx.fill();ctx.restore();
+}
+function drawFurniture(p){
+  const x=p.x,y=p.y,w=p.w,h=26;
+  ctx.fillStyle='rgba(0,0,0,0.3)';roundRect(x+3,y+4,w,h,10);ctx.fill();
+  ctx.fillStyle=p.col;roundRect(x,y,w,h,10);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.25)';roundRect(x+6,y+4,w-12,8,4);ctx.fill();
+  // backrest + arms make it a couch
+  ctx.fillStyle=p.col;roundRect(x+4,y-22,w-8,26,10);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.15)';roundRect(x+4,y-22,w-8,26,10);ctx.fill();
+  ctx.fillStyle=p.col;
+  roundRect(x-4,y-14,12,h+10,6);ctx.fill();
+  roundRect(x+w-8,y-14,12,h+10,6);ctx.fill();
+  // little legs
+  ctx.fillStyle='#5b2d0e';
+  ctx.fillRect(x+10,y+h,w>0?8:0,8);ctx.fillRect(x+w-18,y+h,8,8);
+}
+function drawLava(){
+  const g=ctx.createLinearGradient(0,lavaY,0,H);
+  g.addColorStop(0,'#ff7b00');g.addColorStop(0.4,'#ff4400');g.addColorStop(1,'#a31200');
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,lavaY);
+  for(let x=0;x<=W;x+=16)ctx.lineTo(x,lavaY+Math.sin(x*0.05+t*0.12)*6+Math.sin(x*0.013+t*0.07)*5);
+  ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+  // bubbles
+  ctx.fillStyle='rgba(255,220,120,0.8)';
+  for(let i=0;i<8;i++){
+    const bx=((i*173+t*40)%(W+40))-20;
+    const by=lavaY+18+((i*97+t*25)%(H-lavaY-24));
+    ctx.beginPath();ctx.arc(bx,by,3+(i%3),0,7);ctx.fill();
+  }
+  ctx.fillStyle='#fff2c9';ctx.font='bold 15px system-ui,sans-serif';
+  ctx.textAlign='center';ctx.fillText('~ sizzling lava ~',W/2,lavaY+30);
+}
+function wrap(text,x,y,maxW,lh,size,color){
+  ctx.fillStyle=color;ctx.font='bold '+size+'px system-ui,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  const words=text.split(' ');let line='',yy=y;
+  for(const w of words){
+    const tt=line?line+' '+w:w;
+    if(ctx.measureText(tt).width>maxW&&line){ctx.fillText(line,x,yy);line=w;yy+=lh;}
+    else line=tt;
+  }
+  ctx.fillText(line,x,yy);return yy+lh;
+}
+function drawButton(b){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.25)';roundRect(b.x,b.y+5,b.w,b.h,18);ctx.fill();
+  const g=ctx.createLinearGradient(0,b.y,0,b.y+b.h);
+  g.addColorStop(0,'#ffb703');g.addColorStop(1,'#fb8500');
+  ctx.fillStyle=g;roundRect(b.x,b.y,b.w,b.h,18);ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=3;roundRect(b.x,b.y,b.w,b.h,18);ctx.stroke();
+  ctx.fillStyle='#4a2400';ctx.font='bold 24px system-ui,sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(b.label,b.x+b.w/2,b.y+b.h/2+1);ctx.restore();
+}
+
+/* ---------- screens ---------- */
+function drawTitle(){
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2b1a5e');g.addColorStop(1,'#1a0f2e');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  wrap('🔥 LAVA FLOOR IS LAVA 🔥',W/2,54,W-60,48,38,'#ffd93b');
+  drawBaby(W/2,210,62,0,false);
+  drawLavaPreview();
+  wrap('The floor is LAVA! Hop couch to couch and don\'t splash down!',W/2,300,W-60,30,20,'#fff');
+  wrap('HOW TO PLAY: TAP to jump — HOLD for a higher jump. Land on the furniture. A lava splash = a giggle + hop back (you lose 1 of 3 hearts).',W/2,362,W-60,28,17,'#cfe8ff');
+  wrap('🔥 Fire-safety lesson: If your clothes catch fire: STOP, DROP, and ROLL!',W/2,H-268,W-70,28,17,'#ffd93b');
+  const bw=Math.min(300,W-80);
+  buttons=[{x:W/2-bw/2,y:H-150,w:bw,h:64,label:'▶ START',action:startGame}];
+  drawButton(buttons[0]);
+}
+function drawLavaPreview(){
+  ctx.fillStyle='#ff5a00';
+  ctx.beginPath();ctx.moveTo(0,292);ctx.lineTo(0,284);
+  for(let x=0;x<=W;x+=20)ctx.lineTo(x,284+Math.sin(x*0.06)*4);
+  ctx.lineTo(W,292);ctx.closePath();ctx.fill();
+}
+function drawPlay(){
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#3a2a6e');g.addColorStop(0.7,'#241a4d');g.addColorStop(1,'#1a0f2e');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // wallpaper dots
+  ctx.fillStyle='rgba(255,255,255,0.05)';
+  for(let x=20;x<W;x+=60)for(let y=20;y<lavaY;y+=60){ctx.beginPath();ctx.arc(x,y,3,0,7);ctx.fill();}
+  for(const p of platforms)drawFurniture(p);
+  drawLava();
+  // player (flicker while invulnerable)
+  if(!(invuln>0&&((t/6)|0)%2===0)){
+    const blink=(t%140)<8;
+    drawBaby(player.px,player.py-34,34,player.squash,blink);
+  }
+  for(const p of popups){
+    ctx.globalAlpha=p.a;ctx.fillStyle='#fff';
+    ctx.font='bold 26px system-ui,sans-serif';ctx.textAlign='center';
+    ctx.fillText(p.txt,p.x,p.y);ctx.globalAlpha=1;
+  }
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(0,0,W,58);
+  for(let i=0;i<3;i++)drawHeart(30+i*34,30,22,i<hearts);
+  ctx.fillStyle='#ffd93b';ctx.font='bold 22px system-ui,sans-serif';
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  ctx.fillText('Score: '+score,W-14,30);
+}
+function drawOver(){
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2b1a5e');g.addColorStop(1,'#1a0f2e');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  drawBaby(W/2,170,60,0,false);
+  wrap('GAME OVER',W/2,250,W-60,48,40,'#ffd93b');
+  wrap('You hopped '+score+' points across the room! The lava only got giggles out of you. 😄',W/2,318,W-60,30,19,'#fff');
+  ctx.fillStyle='#9be7ff';ctx.font='bold 22px system-ui,sans-serif';
+  ctx.textAlign='center';ctx.fillText('Final score: '+score,W/2,398);
+  wrap('🔥 Fire-safety lesson: If your clothes catch fire: STOP, DROP, and ROLL! Never run — rolling smothers the flames.',W/2,H-280,W-70,28,18,'#ffd93b');
+  const bw=Math.min(300,W-80);
+  buttons=[{x:W/2-bw/2,y:H-150,w:bw,h:64,label:'↻ PLAY AGAIN',action:startGame}];
+  drawButton(buttons[0]);
+}
+
+/* ---------- update ---------- */
+function splash(){
+  hearts--;
+  popups.push({txt:'Hee hee!',x:player.px,y:player.py-90,a:1});
+  const s=player.lastSafe;
+  player.py=s.y;player.vy=0;player.onGround=true;player.squash=0.6;
+  invuln=100;
+  if(hearts<=0)state='over';
+}
+function update(){
+  t++;
+  if(state!=='play')return;
+  if(invuln>0)invuln--;
+  speed=Math.min(8.5,4.2+dist/9000);
+  dist+=speed;
+  score=Math.floor(dist/20)+landBonus;
+  // move world
+  for(const p of platforms)p.x-=speed;
+  platforms=platforms.filter(p=>p.x+p.w>-40);
+  // extend
+  let last=platforms[platforms.length-1];
+  while(last.x+last.w<W+500){
+    const pw=rnd(95,165);
+    const py=Math.max(H*0.30,Math.min(lavaY-100,last.y+rnd(-100,100)));
+    const np={x:last.x+last.w+rnd(85,165)+speed*4,y:py,w:pw,col:FURN[(Math.random()*FURN.length)|0]};
+    platforms.push(np);last=np;
+  }
+  // physics
+  const G=0.65,BOOST=0.42;
+  player.vy+=G-(player.holding&&player.vy<0?BOOST:0);
+  if(player.vy>16)player.vy=16;
+  const prevFeet=player.py;
+  player.py+=player.vy;
+  player.squash*=0.88;
+  if(player.vy>=0){
+    player.onGround=false;
+    for(const p of platforms){
+      if(player.px>=p.x-8&&player.px<=p.x+p.w+8&&prevFeet<=p.y+6&&player.py>=p.y){
+        player.py=p.y;player.vy=0;player.onGround=true;player.squash=0.7;
+        if(p!==player.lastSafe){player.lastSafe=p;landBonus+=25;
+          popups.push({txt:'+25',x:player.px,y:player.py-80,a:1});}
+        break;
+      }
+    }
+  }
+  if(player.py>lavaY+14&&invuln<=0)splash();
+  // popups
+  for(const p of popups){p.y-=1.2;p.a-=0.02;}
+  popups=popups.filter(p=>p.a>0);
+}
+
+/* ---------- loop & input ---------- */
+function frame(){
+  update();
+  if(state==='title')drawTitle();
+  else if(state==='play')drawPlay();
+  else drawOver();
+  requestAnimationFrame(frame);
+}
+function press(x,y){
+  for(const b of buttons){
+    if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h){b.action();return;}
+  }
+  if(state==='play'&&player.onGround){
+    player.vy=-12.5;player.onGround=false;player.holding=true;player.squash=-0.4;
+  }
+}
+function release(){if(state==='play')player.holding=false;}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();press(e.clientX,e.clientY);});
+cv.addEventListener('pointerup',e=>{e.preventDefault();release();});
+cv.addEventListener('pointercancel',release);
+cv.addEventListener('pointerleave',release);
+resize();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

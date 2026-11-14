@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Crystal Cave Explorer — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#0b1026; touch-action:none;
+    font-family:"Trebuchet MS","Comic Sans MS","Chalkboard SE",Verdana,sans-serif; user-select:none; -webkit-user-select:none; }
+  #game { display:block; width:100vw; height:100vh; touch-action:none; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<script>
+"use strict";
+/* CRYSTAL CAVE EXPLORER — Fire Babys game 41.
+   Fire-safety lesson: In smoke, STAY LOW — clean air is near the floor. Crawl under the smoke! */
+const cv = document.getElementById('game');
+const ctx = cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight;
+  cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0); layout(); }
+window.addEventListener('resize',resize);
+
+/* ---------- maze ---------- */
+const MAP=[
+"#############",
+"#.....#.....#",
+"#.###.#.###.#",
+"#.#.....#...#",
+"#.#.###.#.#.#",
+"#...#.#...#.#",
+"###.#.#####.#",
+"#...#.....#.#",
+"#.#######.#.#",
+"#.........#.#",
+"#.#########.#",
+"#...........#",
+"#############"];
+const COLS=13, ROWS=13;
+let TS=32, OX=0, OY=0; // tile size, origin
+function layout(){
+  const topHud = 84;
+  const botHud = 150;
+  TS = Math.floor(Math.min((W-8)/COLS,(H-topHud-botHud)/ROWS));
+  OX = (W - TS*COLS)/2; OY = topHud + ((H-topHud-botHud) - TS*ROWS)/2;
+}
+function openCell(c,r){ return c>=0&&r>=0&&c<COLS&&r<ROWS&&MAP[r][c]==='.'; }
+
+/* ---------- state ---------- */
+let state='title'; // title | play | over
+let level=1, score=0, lives=3;
+let baby, dir, crystals, smokes, invT, coughT, popups, lvlClearT, shakeT;
+
+function resetGame(){ level=1; score=0; lives=3; startLevel(); }
+function startLevel(){
+  baby={c:1.5,r:1.5,x:0,y:0,radius:0};
+  dir={x:0,y:0};
+  crystals=[]; smokes=[]; popups=[]; invT=0; coughT=0; lvlClearT=0; shakeT=0;
+  placeBaby();
+  // crystals on random open cells (not baby start)
+  let cells=[];
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    if(openCell(c,r)&&!(c===1&&r===1)&&!(c===2&&r===1)) cells.push([c,r]);
+  shuffle(cells);
+  const n=Math.min(6+level*2, cells.length);
+  for(let i=0;i<n;i++) crystals.push({c:cells[i][0],r:cells[i][1],ph:Math.random()*6.28});
+  // smoke clouds
+  const nSmoke=Math.min(1+level,4);
+  for(let i=0;i<nSmoke;i++){
+    let c,r,tries=0;
+    do{ c=1+Math.floor(Math.random()*11); r=1+Math.floor(Math.random()*11); tries++; }
+    while((!openCell(c,r)||(Math.abs(c-1)+Math.abs(r-1)<4))&&tries<200);
+    smokes.push({c:c+.5,r:r+.5,tc:c,tr:r,ph:Math.random()*6.28,speed:2.2+level*0.25});
+  }
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }
+function placeBaby(){ baby.c=1.5; baby.r=1.5; baby.x=OX+baby.c*TS; baby.y=OY+baby.r*TS; baby.radius=TS*0.34; }
+
+/* ---------- input ---------- */
+const keys={};
+window.addEventListener('keydown',e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()]=true;
+  if(state==='title'&&(e.key===' '||e.key==='Enter')){ resetGame(); state='play'; }
+  else if(state==='over'&&(e.key===' '||e.key==='Enter')){ resetGame(); state='play'; }
+});
+window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+
+function padButtons(){
+  const s=Math.min(64,W*0.16), gap=8, cx=W/2, cy=H-86;
+  return {
+    up:   {x:cx-s/2, y:cy-s-gap-s/2, w:s, h:s, dx:0, dy:-1},
+    down: {x:cx-s/2, y:cy+s/2+gap,   w:s, h:s, dx:0, dy:1},
+    left: {x:cx-s-gap-s*1.5, y:cy-s/2, w:s, h:s, dx:-1, dy:0},
+    right:{x:cx+s/2+gap, y:cy-s/2,   w:s, h:s, dx:1, dy:0},
+    cy:cy
+  };
+}
+let activePadDir=null;
+function pointInPad(px,py){
+  const p=padButtons();
+  for(const k of ['up','down','left','right']){ const b=p[k];
+    if(px>=b.x&&px<=b.x+b.w&&py>=b.y&&py<=b.y+b.h) return b; }
+  return null;
+}
+function onDown(x,y){
+  if(state==='title'){ if(inBtn(x,y,btnStart)) { resetGame(); state='play'; } return; }
+  if(state==='over'){ if(inBtn(x,y,btnRestart)) { resetGame(); state='play'; } return; }
+  const b=pointInPad(x,y);
+  if(b){ activePadDir={x:b.dx,y:b.dy}; dir={x:b.dx,y:b.dy}; }
+}
+function onMove(x,y){ if(state==='play'&&activePadDir){ const b=pointInPad(x,y); if(b){ dir={x:b.dx,y:b.dy}; } } }
+function onUp(){ activePadDir=null; }
+cv.addEventListener('pointerdown',e=>{ e.preventDefault(); onDown(e.clientX,e.clientY); },{passive:false});
+cv.addEventListener('pointermove',e=>{ onMove(e.clientX,e.clientY); });
+window.addEventListener('pointerup',onUp);
+window.addEventListener('pointercancel',onUp);
+// swipe support: swipe anywhere (not on pad) to steer
+let swipeStart=null;
+cv.addEventListener('touchstart',e=>{ const t=e.touches[0]; swipeStart={x:t.clientX,y:t.clientY}; },{passive:true});
+cv.addEventListener('touchmove',e=>{
+  if(!swipeStart||state!=='play') return;
+  const t=e.touches[0], dx=t.clientX-swipeStart.x, dy=t.clientY-swipeStart.y;
+  if(Math.hypot(dx,dy)>24){
+    if(Math.abs(dx)>Math.abs(dy)) dir={x:Math.sign(dx),y:0}; else dir={x:0,y:Math.sign(dy)};
+    swipeStart={x:t.clientX,y:t.clientY};
+  }
+},{passive:true});
+cv.addEventListener('touchend',()=>{ swipeStart=null; },{passive:true});
+
+/* ---------- buttons ---------- */
+let btnStart={x:0,y:0,w:0,h:0}, btnRestart={x:0,y:0,w:0,h:0};
+function inBtn(x,y,b){ return x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h; }
+
+/* ---------- update ---------- */
+function canStand(px,py,rad){
+  const pts=[[px-rad,py-rad],[px+rad,py-rad],[px-rad,py+rad],[px+rad,py+rad]];
+  for(const [x,y] of pts){
+    const c=Math.floor((x-OX)/TS), r=Math.floor((y-OY)/TS);
+    if(!openCell(c,r)) return false;
+  }
+  return true;
+}
+function update(dt){
+  if(state!=='play') return;
+  if(keys['arrowup']||keys['w']) dir={x:0,y:-1};
+  else if(keys['arrowdown']||keys['s']) dir={x:0,y:1};
+  else if(keys['arrowleft']||keys['a']) dir={x:-1,y:0};
+  else if(keys['arrowright']||keys['d']) dir={x:1,y:0};
+
+  if(invT>0) invT-=dt;
+  if(coughT>0) coughT-=dt;
+  if(shakeT>0) shakeT-=dt;
+
+  const sp=TS*4.6;
+  let nx=baby.x+dir.x*sp*dt, ny=baby.y+dir.y*sp*dt;
+  if(canStand(nx,baby.y,baby.radius*0.8)) baby.x=nx;
+  if(canStand(baby.x,ny,baby.radius*0.8)) baby.y=ny;
+
+  // crystals
+  for(let i=crystals.length-1;i>=0;i--){
+    const k=crystals[i]; k.ph+=dt*3;
+    const kx=OX+k.c*TS, ky=OY+k.r*TS;
+    if(Math.hypot(baby.x-kx,baby.y-ky)<TS*0.55){
+      crystals.splice(i,1); score+=10;
+      popups.push({x:kx,y:ky,t:1,txt:'+10'});
+    }
+  }
+  if(crystals.length===0){ lvlClearT+=dt; if(lvlClearT>1.2){ level++; startLevel(); } }
+
+  // smoke drift
+  for(const s of smokes){
+    s.ph+=dt*2;
+    const tx=OX+s.tc*TS, ty=OY+s.tr*TS;
+    const dx=tx-(OX+(s.c-0.5)*TS), dy=ty-(OY+(s.r-0.5)*TS);
+    const d=Math.hypot(dx,dy);
+    if(d<3){
+      s.c=s.tc+0.5; s.r=s.tr+0.5;
+      const opts=[];
+      const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+      for(const [dc,dr] of dirs){ const nc=s.tc+dc, nr=s.tr+dr; if(openCell(nc,nr)) opts.push([nc,nr]); }
+      if(opts.length){ const o=opts[Math.floor(Math.random()*opts.length)]; s.tc=o[0]; s.tr=o[1]; }
+    } else {
+      const cxp=OX+(s.c-0.5)*TS, cyp=OY+(s.r-0.5)*TS;
+      const vx=tx-cxp, vy=ty-cyp, vd=Math.hypot(vx,vy)||1;
+      const mv=Math.min(vd, s.speed*TS*dt);
+      s.c+= (vx/vd)*mv/TS; s.r+= (vy/vd)*mv/TS;
+    }
+    // collision with baby
+    const sx=OX+(s.c-0.5)*TS, sy=OY+(s.r-0.5)*TS;
+    if(invT<=0 && Math.hypot(baby.x-sx,baby.y-sy)<TS*0.6){
+      lives--; invT=2; coughT=1.2; shakeT=0.35;
+      popups.push({x:baby.x,y:baby.y-30,t:1.4,txt:'COUGH! Stay low!'});
+      if(lives<=0){ state='over'; }
+    }
+  }
+  for(const p of popups) p.t-=dt;
+  popups=popups.filter(p=>p.t>0);
+}
+
+/* ---------- drawing ---------- */
+function drawFireBaby(x,y,r,hat){
+  ctx.save(); ctx.translate(x,y);
+  // body: flame teardrop gradient
+  const g=ctx.createRadialGradient(0,r*0.25,r*0.1, 0,0,r*1.25);
+  g.addColorStop(0,'#fff59d'); g.addColorStop(0.45,'#ffd54f');
+  g.addColorStop(0.75,'#ff9800'); g.addColorStop(1,'#f4511e');
+  ctx.fillStyle=g; ctx.strokeStyle='#5d2c00'; ctx.lineWidth=Math.max(2,r*0.12);
+  ctx.beginPath();
+  ctx.moveTo(0,-r*1.35);
+  ctx.bezierCurveTo(r*0.95,-r*0.5, r*0.9,r*0.55, 0,r);
+  ctx.bezierCurveTo(-r*0.9,r*0.55, -r*0.95,-r*0.5, 0,-r*1.35);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // happy face (always smiling, even when coughing)
+  ctx.strokeStyle='#4a2400'; ctx.lineWidth=Math.max(1.5,r*0.09); ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(-r*0.32,-r*0.08,r*0.16,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(r*0.32,-r*0.08,r*0.16,Math.PI*1.1,Math.PI*1.9); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,r*0.18,r*0.34,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
+  // cheeks
+  ctx.fillStyle='rgba(255,120,90,0.55)';
+  ctx.beginPath(); ctx.arc(-r*0.52,r*0.22,r*0.13,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.52,r*0.22,r*0.13,0,7); ctx.fill();
+  if(hat==='explorer'){
+    // cute khaki explorer hat
+    ctx.fillStyle='#d9b96a'; ctx.strokeStyle='#5d2c00'; ctx.lineWidth=Math.max(2,r*0.1);
+    ctx.beginPath(); ctx.ellipse(0,-r*0.78,r*0.85,r*0.26,0,0,7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#e8cd85';
+    ctx.beginPath(); ctx.ellipse(0,-r*0.95,r*0.42,r*0.3,0,Math.PI,0); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#8d6e3f';
+    ctx.fillRect(-r*0.42,-r*0.98,r*0.84,r*0.1);
+  }
+  ctx.restore();
+}
+function drawSmoke(x,y,r,ph){
+  ctx.save(); ctx.globalAlpha=0.85;
+  ctx.fillStyle='#9aa0ad';
+  const puffs=[[-r*0.5,0,r*0.55],[0,-r*0.25,r*0.7],[r*0.5,r*0.05,r*0.55],[r*0.1,r*0.4,r*0.5]];
+  for(const [ox,oy,pr] of puffs){
+    const w=Math.sin(ph+ox)*3;
+    ctx.beginPath(); ctx.arc(x+ox+w,y+oy,pr,0,7);
+    ctx.fillStyle='rgba(150,156,170,0.9)'; ctx.fill();
+    ctx.strokeStyle='#5f6470'; ctx.lineWidth=2; ctx.stroke();
+  }
+  // skull-ish warning? no — keep kid friendly: angry-ish swirls
+  ctx.restore();
+}
+function drawCrystal(x,y,r,ph){
+  ctx.save(); ctx.translate(x,y+Math.sin(ph)*3);
+  ctx.shadowColor='#4df3ff'; ctx.shadowBlur=14;
+  const g=ctx.createLinearGradient(0,-r,0,r);
+  g.addColorStop(0,'#d8fbff'); g.addColorStop(0.5,'#4df3ff'); g.addColorStop(1,'#1b9fc4');
+  ctx.fillStyle=g; ctx.strokeStyle='#0b5a75'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(0,-r); ctx.lineTo(r*0.7,0); ctx.lineTo(0,r); ctx.lineTo(-r*0.7,0);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(-r*0.2,-r*0.45); ctx.lineTo(r*0.05,-r*0.1); ctx.stroke();
+  // sparkle
+  const s=(ph*2)%1;
+  ctx.fillStyle='rgba(255,255,255,'+(1-s)+')';
+  ctx.fillRect(r*0.8,-r*1.1,3,3);
+  ctx.restore();
+}
+function drawHeart(x,y,s,full){
+  ctx.save(); ctx.translate(x,y); ctx.scale(s/20,s/20);
+  ctx.beginPath();
+  ctx.moveTo(0,6);
+  ctx.bezierCurveTo(-12,-4,-6,-12,0,-5);
+  ctx.bezierCurveTo(6,-12,12,-4,0,6);
+  ctx.fillStyle=full?'#ff5252':'rgba(255,255,255,0.18)';
+  ctx.fill(); ctx.strokeStyle='#7a1010'; ctx.lineWidth=2; ctx.stroke();
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function bigButton(b,label){
+  const g=ctx.createLinearGradient(0,b.y,0,b.y+b.h);
+  g.addColorStop(0,'#ffb300'); g.addColorStop(1,'#f4511e');
+  ctx.fillStyle=g; roundRect(b.x,b.y,b.w,b.h,18); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 30px "Trebuchet MS",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,b.x+b.w/2,b.y+b.h/2+2);
+}
+function wrapText(text,x,y,maxW,lh,font,color,align){
+  ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align||'center'; ctx.textBaseline='top';
+  const words=text.split(' '); let line='', yy=y;
+  for(const w of words){
+    const t=line?line+' '+w:w;
+    if(ctx.measureText(t).width>maxW&&line){ ctx.fillText(line,x,yy); line=w; yy+=lh; }
+    else line=t;
+  }
+  ctx.fillText(line,x,yy); return yy+lh;
+}
+
+function draw(){
+  ctx.save();
+  if(shakeT>0) ctx.translate((Math.random()-0.5)*8,(Math.random()-0.5)*8);
+  // bg: cave
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#141b3d'); bg.addColorStop(1,'#0b1026');
+  ctx.fillStyle=bg; ctx.fillRect(-10,-10,W+20,H+20);
+  // cave sparkles
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  for(let i=0;i<40;i++){
+    const sx=(i*97)%W, sy=(i*61)%H;
+    ctx.fillRect(sx,sy,2,2);
+  }
+
+  if(state==='title'){ drawTitle(); ctx.restore(); return; }
+  if(state==='over'){ drawGame(); drawOver(); ctx.restore(); return; }
+  drawGame();
+  ctx.restore();
+}
+
+function drawGame(){
+  // maze walls
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if(MAP[r][c]==='#'){
+      const x=OX+c*TS, y=OY+r*TS;
+      const g=ctx.createLinearGradient(x,y,x,y+TS);
+      g.addColorStop(0,'#4a3b6b'); g.addColorStop(1,'#2c2350');
+      ctx.fillStyle=g; ctx.fillRect(x,y,TS,TS);
+      ctx.strokeStyle='#1a1430'; ctx.lineWidth=1; ctx.strokeRect(x+0.5,y+0.5,TS-1,TS-1);
+      ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fillRect(x+2,y+2,TS-4,4);
+    }
+  }
+  // crystals
+  for(const k of crystals) drawCrystal(OX+k.c*TS,OY+k.r*TS,TS*0.32,k.ph);
+  // smokes
+  for(const s of smokes) drawSmoke(OX+(s.c-0.5)*TS,OY+(s.r-0.5)*TS,TS*0.42,s.ph);
+  // baby (blink when invincible)
+  if(invT<=0||Math.floor(invT*10)%2===0){
+    drawFireBaby(baby.x,baby.y,baby.radius,'explorer');
+    if(coughT>0){ // cough puffs — baby still smiling!
+      ctx.fillStyle='rgba(200,200,200,0.7)';
+      for(let i=0;i<3;i++){
+        const t=1-coughT/1.2;
+        ctx.beginPath(); ctx.arc(baby.x+20+t*30, baby.y-10-i*8, 5+t*6,0,7); ctx.fill();
+      }
+      ctx.fillStyle='#fff'; ctx.font='bold 18px "Trebuchet MS"'; ctx.textAlign='center';
+      ctx.fillText('cough cough!',baby.x,baby.y-42);
+    }
+  }
+  // popups
+  ctx.textAlign='center';
+  for(const p of popups){
+    ctx.globalAlpha=Math.min(1,p.t*2);
+    ctx.fillStyle='#fff176'; ctx.font='bold 22px "Trebuchet MS"';
+    ctx.fillText(p.txt,p.x,p.y-(1-p.t)*30);
+    ctx.globalAlpha=1;
+  }
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,0.45)'; roundRect(8,8,W-16,64,14); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.font='bold 22px "Trebuchet MS"';
+  ctx.fillText('💎 '+score, 22, 40);
+  ctx.fillStyle='#ffd54f'; ctx.font='bold 20px "Trebuchet MS"'; ctx.textAlign='center';
+  ctx.fillText('CAVE LEVEL '+level, W/2, 40);
+  for(let i=0;i<3;i++) drawHeart(W-34-i*34, 40, 26, i<lives);
+  ctx.fillStyle='#b3e5fc'; ctx.font='16px "Trebuchet MS"'; ctx.textAlign='left';
+  ctx.fillText('💎 left: '+crystals.length, 22, 66);
+
+  // d-pad
+  if(state==='play'){
+    const p=padButtons();
+    ctx.globalAlpha=0.55;
+    for(const k of ['up','down','left','right']){
+      const b=p[k];
+      ctx.fillStyle='#ffffff'; roundRect(b.x,b.y,b.w,b.h,14); ctx.fill();
+      ctx.strokeStyle='#f4511e'; ctx.lineWidth=3; ctx.stroke();
+      ctx.fillStyle='#f4511e'; ctx.font='bold 28px "Trebuchet MS"';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const arrow={up:'▲',down:'▼',left:'◀',right:'▶'}[k];
+      ctx.fillText(arrow,b.x+b.w/2,b.y+b.h/2+1);
+    }
+    ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.font='15px "Trebuchet MS"'; ctx.textAlign='center';
+    ctx.fillText('Tap arrows, swipe, or use keyboard', W/2, H-16);
+  }
+  if(lvlClearT>0&&state==='play'){
+    ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(0,H/2-50,W,100);
+    ctx.fillStyle='#fff176'; ctx.font='bold 34px "Trebuchet MS"'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('✨ LEVEL CLEAR! ✨',W/2,H/2);
+  }
+}
+
+function drawTitle(){
+  ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
+  drawFireBaby(W/2,150,52,'explorer');
+  ctx.textAlign='center';
+  ctx.fillStyle='#ffd54f'; ctx.font='bold '+Math.min(44,W*0.09)+'px "Trebuchet MS"';
+  ctx.fillText('🔥 CRYSTAL CAVE', W/2, 250);
+  ctx.fillText('EXPLORER 💎', W/2, 250+Math.min(44,W*0.09)+8);
+  let y=250+Math.min(44,W*0.09)*2+30;
+  y=wrapText('Guide your fire baby explorer through the cave! Grab every glowing crystal. Dodge the drifting smoke clouds — bump one and you cough and lose a heart (but you keep smiling!).',
+    W/2,y,W*0.86,30,'20px "Trebuchet MS"','#ffffff');
+  y+=14;
+  y=wrapText('🕹️ Tap the arrow pad, swipe, or use arrow keys / WASD.',
+    W/2,y,W*0.86,28,'19px "Trebuchet MS"','#b3e5fc');
+  y+=18;
+  // fire-safety lesson box
+  ctx.fillStyle='rgba(244,81,30,0.25)'; roundRect(W*0.06,y,W*0.88,0,16);
+  const ly=wrapText('🔥 FIRE SAFETY: If you are ever in a smoky room, STAY LOW — clean air is near the floor. Crawl under the smoke to get out!',
+    W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#ffcc80');
+  roundRect(W*0.06,y,W*0.88,(ly-y)+14,16);
+  ctx.fillStyle='rgba(244,81,30,0.25)'; ctx.fill();
+  ctx.strokeStyle='#ffb300'; ctx.lineWidth=3; ctx.stroke();
+  y=ly+34;
+  const bw=Math.min(280,W*0.7);
+  btnStart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnStart,'▶ START');
+}
+function drawOver(){
+  ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(0,0,W,H);
+  drawFireBaby(W/2,140,48,'explorer');
+  ctx.textAlign='center';
+  ctx.fillStyle='#ffd54f'; ctx.font='bold 40px "Trebuchet MS"';
+  ctx.fillText('GAME OVER',W/2,240);
+  ctx.fillStyle='#fff'; ctx.font='bold 30px "Trebuchet MS"';
+  ctx.fillText('💎 Crystals: '+score+'   •   Cave level: '+level,W/2,290);
+  let y=320;
+  ctx.fillStyle='rgba(244,81,30,0.25)';
+  const ly=wrapText('🔥 FIRE SAFETY: If you are ever in a smoky room, STAY LOW — clean air is near the floor. Crawl under the smoke to get out!',
+    W/2,y+14,W*0.8,28,'20px "Trebuchet MS"','#ffcc80');
+  roundRect(W*0.06,y,W*0.88,(ly-y)+14,16);
+  ctx.fillStyle='rgba(244,81,30,0.25)'; ctx.fill();
+  ctx.strokeStyle='#ffb300'; ctx.lineWidth=3; ctx.stroke();
+  y=ly+40;
+  const bw=Math.min(280,W*0.7);
+  btnRestart={x:W/2-bw/2,y:y,w:bw,h:64};
+  bigButton(btnRestart,'↻ PLAY AGAIN');
+}
+
+/* ---------- loop ---------- */
+let last=performance.now();
+function loop(t){
+  const dt=Math.min(0.05,(t-last)/1000); last=t;
+  update(dt); draw();
+  requestAnimationFrame(loop);
+}
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

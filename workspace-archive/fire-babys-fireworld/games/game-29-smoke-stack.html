@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Smoke Stack — Fire Babys Fire World</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:#140800;display:flex;align-items:center;justify-content:center;font-family:'Trebuchet MS',system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#wrap{width:min(100vw,480px)}
+canvas{display:block;width:100%;height:auto;border-radius:10px;touch-action:none;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" width="480" height="720"></canvas></div>
+<script>
+"use strict";
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const W=480,H=720,BASE_Y=660,BW=150,BH=34;
+const LESSON="Make a family fire escape plan! Know TWO ways out of every room and pick a safe meeting spot outside.";
+let state='title',score=0,best=0,lives=3,last=0,t=0;
+let stack=[],cur=null,falling=[];
+try{best=parseInt(localStorage.getItem('fb_g29_best')||'0');}catch(e){}
+
+function T(txt,x,y,size,color,align){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign=align||'center';ctx.textBaseline='middle';ctx.fillText(txt,x,y);}
+function wrap(txt,x,y,maxW,lh,size,color){ctx.fillStyle=color;ctx.font='bold '+size+'px "Trebuchet MS",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';let words=txt.split(' '),line='',yy=y;for(const w of words){const t2=line?line+' '+w:w;if(ctx.measureText(t2).width>maxW&&line){ctx.fillText(line,x,yy);line=w;yy+=lh;}else line=t2;}ctx.fillText(line,x,yy);return yy;}
+function baby(x,y,r,mood){ctx.save();ctx.translate(x,y);
+  const g=ctx.createRadialGradient(0,0,r*0.3,0,0,r*1.9);
+  g.addColorStop(0,'rgba(255,180,60,.55)');g.addColorStop(1,'rgba(255,120,20,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,r*1.9,0,7);ctx.fill();
+  ctx.fillStyle='#ff8c1a';ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fill();
+  ctx.fillStyle='#ffc63f';ctx.beginPath();
+  ctx.moveTo(-r*0.62,-r*0.35);ctx.quadraticCurveTo(0,-r*2.1,r*0.62,-r*0.35);
+  ctx.quadraticCurveTo(0,-r*0.75,-r*0.62,-r*0.35);ctx.fill();
+  ctx.fillStyle='#ffe08a';ctx.beginPath();ctx.arc(-r*0.25,r*0.15,r*0.45,0,7);ctx.fill();
+  ctx.fillStyle='#40200a';
+  ctx.beginPath();ctx.arc(-r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(r*0.32,-r*0.05,r*0.11,0,7);ctx.fill();
+  if(mood==='sad'){ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.6,r*0.3,1.15*Math.PI,1.85*Math.PI);ctx.stroke();}
+  else{ctx.fillStyle='rgba(255,120,120,.55)';ctx.beginPath();ctx.arc(-r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.beginPath();ctx.arc(r*0.52,r*0.18,r*0.13,0,7);ctx.fill();ctx.strokeStyle='#40200a';ctx.lineWidth=Math.max(2,r*0.09);ctx.beginPath();ctx.arc(0,r*0.1,r*0.32,0.15*Math.PI,0.85*Math.PI);ctx.stroke();}
+  ctx.restore();}
+function blockColor(i){const cols=['#b0bec5','#90a4ae','#bcaaa4','#a1887f','#b39ddb','#90caf9'];return cols[i%cols.length];}
+
+function reset(){score=0;lives=3;stack=[];falling=[];newCurrent();}
+function newCurrent(){
+  const speed=170+score*16;
+  cur={x:W/2,dir:Math.random()<0.5?-1:1,speed:speed,y:120,w:BW,vy:0,dropping:false,landed:false};
+}
+function topY(){return stack.length?stack[stack.length-1].y-BH:BASE_Y;}
+function drop(){
+  if(state!=='play'||!cur||cur.dropping)return;
+  cur.dropping=true;cur.vy=0;
+}
+function update(dt){
+  t+=dt;
+  if(cur&&!cur.dropping){cur.x+=cur.dir*cur.speed*dt;
+    if(cur.x-cur.w/2<10){cur.x=10+cur.w/2;cur.dir=1;}
+    if(cur.x+cur.w/2>W-10){cur.x=W-10-cur.w/2;cur.dir=-1;}}
+  if(cur&&cur.dropping){
+    cur.vy+=2600*dt;cur.y+=cur.vy*dt;
+    const ty=topY();
+    if(cur.y>=ty){ // land
+      const prev=stack.length?stack[stack.length-1]:{x:W/2,w:BW+40};
+      const overlap=Math.min(cur.x+cur.w/2,prev.x+prev.w/2)-Math.max(cur.x-cur.w/2,prev.x-prev.w/2);
+      if(overlap<cur.w*0.25){ // tumbles off!
+        lives--;cur.fall=true;falling.push(cur);
+        if(lives<=0){state='over';if(score>best){best=score;try{localStorage.setItem('fb_g29_best',best);}catch(e){}}}
+        else newCurrent();
+      }else{
+        cur.y=ty;stack.push(cur);score++;
+        // trim overhang visually: keep as-is, kid-simple
+        if(score>best){best=score;try{localStorage.setItem('fb_g29_best',best);}catch(e){}}
+        // camera: if stack tall, shift everything down
+        if(ty<220){const sh=BH;for(const b of stack)b.y+=sh;for(const f of falling)f.y+=sh;}
+        newCurrent();
+      }
+      cur=null;
+    }
+  }
+  for(const f of falling){if(f.fall){f.vy=(f.vy||0)+2000*dt;f.y+=f.vy*dt;f.x+=(f.dir||1)*120*dt;}}
+  falling=falling.filter(f=>f.y<H+60);
+}
+function drawBlock(b,i){
+  ctx.fillStyle=blockColor(i);
+  ctx.fillRect(b.x-b.w/2,b.y-b.w*0,b.w,BH);
+  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(b.x-b.w/2,b.y,b.w,8);
+  ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=3;ctx.strokeRect(b.x-b.w/2,b.y,b.w,BH);
+  // brick lines
+  ctx.strokeStyle='rgba(0,0,0,.18)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(b.x-b.w/6,b.y);ctx.lineTo(b.x-b.w/6,b.y+BH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(b.x+b.w/6,b.y);ctx.lineTo(b.x+b.w/6,b.y+BH);ctx.stroke();
+}
+function draw(){
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#1b2a4a');sky.addColorStop(1,'#3a4a6a');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,.5)';
+  for(let i=0;i<24;i++){const sx=(i*89)%W,sy=(i*53)%300;ctx.fillRect(sx,sy,2,2);}
+  // moon
+  ctx.fillStyle='#fdf6d8';ctx.beginPath();ctx.arc(70,90,34,0,7);ctx.fill();
+  // ground
+  ctx.fillStyle='#4a5a3a';ctx.fillRect(0,BASE_Y+BH,W,H-BASE_Y-BH);
+  ctx.fillStyle='#5a6a4a';ctx.fillRect(0,BASE_Y+BH,W,10);
+  // stack
+  stack.forEach((b,i)=>drawBlock(b,i));
+  for(const f of falling){ctx.save();ctx.translate(f.x,f.y+BH/2);ctx.rotate(t*4);ctx.translate(-f.x,-f.y-BH/2);drawBlock(f,score);ctx.restore();}
+  // crane for current
+  if(cur&&!cur.dropping){
+    ctx.strokeStyle='#78909c';ctx.lineWidth=8;
+    ctx.beginPath();ctx.moveTo(cur.x,0);ctx.lineTo(cur.x,cur.y-6);ctx.stroke();
+    ctx.fillStyle='#546e7a';ctx.fillRect(cur.x-40,0,80,16);
+    drawBlock(cur,score);
+    // guide
+    ctx.strokeStyle='rgba(125,255,154,.5)';ctx.lineWidth=3;ctx.setLineDash([12,10]);
+    ctx.beginPath();ctx.moveTo(cur.x,cur.y+BH);ctx.lineTo(cur.x,topY());ctx.stroke();ctx.setLineDash([]);
+  }
+  if(cur&&cur.dropping)drawBlock(cur,score);
+  // baby cheerleader
+  const cheer=stack.length>0&&stack.length%5===0;
+  baby(60,BASE_Y-40,30,cheer?'happy':'happy');
+  if(cheer)T('WOW!',60,BASE_Y-110,26,'#ffd76a');
+  // HUD
+  ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,46);
+  T('🧱 '+score,W/2,25,26,'#fff');
+  let hearts='';for(let i=0;i<3;i++)hearts+=i<lives?'❤️':'🤍';
+  T(hearts,80,25,22,'#fff','left');
+  T('BEST '+best,W-70,25,20,'#ffd76a','left');
+  T('Tap to DROP the block!',W/2,H-24,20,'#7dff9a');
+}
+function drawTitle(){
+  draw();ctx.fillStyle='rgba(8,8,16,.8)';ctx.fillRect(0,0,W,H);
+  baby(W/2,130,50);
+  T('SMOKE STACK',W/2,225,44,'#b0bec5');
+  T('🧱 Fire Babys Fire World 🧱',W/2,265,20,'#ffd76a');
+  wrap('Tap to DROP each swinging block onto the stack. Line it up! If it misses by too much, it tumbles off — 3 tumbles and the tower\'s done. How high can you build?',W/2,330,400,30,21,'#fff');
+  ctx.fillStyle='#22303e';ctx.fillRect(40,470,W-80,120);
+  T('🔥 FIRE SAFETY 🔥',W/2,495,22,'#ffb300');
+  wrap(LESSON,W/2,532,380,26,19,'#cfe0ff');
+  T('Tap to start building!',W/2,645,26,'#7dff9a');
+  T('Made by Jman350Z & the Fire Team',W/2,692,15,'#7a8aa0');
+}
+function drawOver(){
+  draw();ctx.fillStyle='rgba(8,8,16,.82)';ctx.fillRect(0,0,W,H);
+  baby(W/2,150,50,'sad');
+  T('TUMBLE!',W/2,250,44,'#b0bec5');
+  T('Blocks stacked: '+score,W/2,315,32,'#fff');
+  T('Best: '+best,W/2,353,24,'#ffd76a');
+  ctx.fillStyle='#22303e';ctx.fillRect(40,395,W-80,140);
+  T('🔥 FIRE SAFETY 🔥',W/2,422,22,'#ffb300');
+  wrap(LESSON,W/2,458,380,26,19,'#cfe0ff');
+  T('Tap to build again!',W/2,595,26,'#7dff9a');
+}
+function loop(ts){const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;
+  if(state==='play')update(dt);else t+=dt;
+  if(state==='title')drawTitle();else if(state==='over')drawOver();else draw();
+  requestAnimationFrame(loop);}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();
+  if(state==='title'||state==='over'){reset();state='play';}else drop();});
+window.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();
+  if(state==='title'||state==='over'){reset();state='play';}else drop();}});
+reset();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Volcano Volleyball — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#1a0b06; font-family:'Trebuchet MS','Comic Sans MS',sans-serif; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #c { position:fixed; inset:0; display:block; }
+  .overlay { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+             text-align:center; padding:24px; z-index:10; }
+  #titleScreen { background:radial-gradient(ellipse at 50% 120%, #ff5a00 0%, #7a1e00 45%, #1a0b06 100%); color:#fff; }
+  #overScreen { background:rgba(10,4,2,0.88); color:#fff; display:none; }
+  h1 { font-size:clamp(28px,8vw,56px); color:#ffd23f; text-shadow:0 0 18px #ff7b00, 0 4px 0 #7a1e00; margin-bottom:8px; }
+  h2 { font-size:clamp(24px,7vw,44px); color:#ffd23f; text-shadow:0 0 14px #ff7b00; margin-bottom:10px; }
+  .howto { background:rgba(0,0,0,0.45); border:2px solid #ff7b00; border-radius:14px; padding:14px 18px;
+           max-width:440px; font-size:clamp(14px,4vw,18px); line-height:1.55; color:#ffe9c9; margin:12px 0; }
+  .lesson { background:#2b1206; border:2px dashed #ffd23f; border-radius:14px; padding:12px 16px; max-width:440px;
+            font-size:clamp(13px,3.8vw,17px); color:#ffe9c9; margin:12px 0; }
+  .lesson b { color:#ffd23f; }
+  .btn { font-family:inherit; font-size:clamp(20px,6vw,30px); font-weight:bold; color:#3a1500;
+         background:linear-gradient(#ffe066,#ff9f1c); border:none; border-radius:999px;
+         padding:14px 54px; margin-top:14px; cursor:pointer; box-shadow:0 6px 0 #a34d00, 0 0 24px #ff7b00; }
+  .btn:active { transform:translateY(4px); box-shadow:0 2px 0 #a34d00, 0 0 24px #ff7b00; }
+  #finalScore { font-size:clamp(18px,5vw,26px); margin:6px 0; color:#ffe9c9; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="overlay" id="titleScreen">
+  <h1>🌋 VOLCANO VOLLEYBALL 🔥</h1>
+  <div class="howto">
+    🏐 You are the fire baby on the <b>LEFT</b>!<br>
+    👆 <b>TAP</b> or <b>DRAG</b> anywhere on your half to move your fire baby.<br>
+    ✨ Your baby <b>auto-bumps</b> the ball when it touches it — knock it over the net!<br>
+    🏆 Ball lands on the other side = you score. <b>First to 5 wins!</b>
+  </div>
+  <div class="lesson">🔥 <b>Fire-Safety Lesson:</b> Stay away from real volcanoes and lava — fire is not a toy!</div>
+  <button class="btn" id="startBtn">START ▶</button>
+</div>
+
+<div class="overlay" id="overScreen">
+  <h2 id="overTitle">YOU WIN! 🏆</h2>
+  <div id="finalScore"></div>
+  <div class="lesson">🔥 <b>Fire-Safety Lesson:</b> Stay away from real volcanoes and lava — fire is not a toy!</div>
+  <button class="btn" id="againBtn">PLAY AGAIN 🔁</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var cv = document.getElementById('c'), ctx = cv.getContext('2d');
+var W=0,H=0;
+var mode='title'; // title | play | over
+var pScore=0, aScore=0, WIN=5;
+var netX=0, netTop=0, groundY=0, babyR=40, ballR=14;
+var ball, player, ai, parts=[], floaters=[];
+var raf=0, lastT=0;
+
+function resize(){
+  var dpr = Math.min(2, window.devicePixelRatio||1);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = W*dpr; cv.height = H*dpr;
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  layout();
+}
+function layout(){
+  groundY = H - Math.max(56, H*0.10);
+  netX = W/2;
+  netTop = H*0.40;
+  babyR = Math.max(30, Math.min(W,H)*0.065);
+  ballR = Math.max(11, babyR*0.34);
+  if(player){ player.x = Math.min(Math.max(player.x, babyR+6), netX-babyR-6); player.tx = player.x; }
+  if(ai){ ai.x = Math.min(Math.max(ai.x, netX+babyR+6), W-babyR-6); }
+}
+
+function newBall(dir){
+  // dir: +1 serve toward right, -1 toward left
+  return { x: netX + dir*babyR*2, y: netTop - 120, vx: dir*(240+Math.random()*120), vy: -80, cool:0 };
+}
+function reset(){
+  pScore=0; aScore=0;
+  player = { x: netX - W*0.22, tx: netX - W*0.22, hop:0 };
+  ai = { x: netX + W*0.22, wob:0, err: (Math.random()-0.5)*40 };
+  ball = newBall(Math.random()<0.5?-1:1);
+  parts=[]; floaters=[];
+}
+function burst(x,y,n,col){
+  for(var i=0;i<n;i++){
+    var a=Math.random()*Math.PI*2, s=60+Math.random()*160;
+    parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-60,life:0.6+Math.random()*0.4,t:0,col:col,r:2+Math.random()*4});
+  }
+}
+function pointTo(who){
+  if(who==='p'){ pScore++; burst(ball.x,groundY-10,26,'#ffd23f'); floaters.push({x:netX- W*0.25,y:H*0.3,txt:'+1 YOU!',t:0,col:'#7CFF6B'}); }
+  else { aScore++; burst(ball.x,groundY-10,26,'#ff5a3c'); floaters.push({x:netX + W*0.25,y:H*0.3,txt:'+1 CPU',t:0,col:'#ff8a6b'}); }
+  if(pScore>=WIN || aScore>=WIN){ gameOver(); return; }
+  ball = newBall(who==='p' ? 1 : -1); // serve toward the scorer's... no: serve toward the side that LOST? rally serve to conceder: send toward winner's opponent
+}
+function gameOver(){
+  mode='over';
+  cancelAnimationFrame(raf);
+  var win = pScore>=WIN;
+  document.getElementById('overTitle').textContent = win ? '🏆 YOU WIN! 🏆' : '😅 CPU WINS — REMATCH?';
+  document.getElementById('finalScore').textContent = 'Final score: YOU '+pScore+' — CPU '+aScore;
+  document.getElementById('overScreen').style.display='flex';
+}
+
+/* ---------- fire baby drawing ---------- */
+function drawBaby(x,y,r,faceT){
+  // flame-teardrop body
+  var g = ctx.createRadialGradient(x-r*0.2,y+r*0.2,r*0.1, x,y,r*1.6);
+  g.addColorStop(0,'#fff3b0'); g.addColorStop(0.45,'#ffd23f'); g.addColorStop(1,'#ff7b00');
+  ctx.beginPath();
+  ctx.moveTo(x, y-r*1.45);
+  ctx.bezierCurveTo(x+r*0.95, y-r*0.55, x+r*1.02, y+r*0.55, x, y+r);
+  ctx.bezierCurveTo(x-r*1.02, y+r*0.55, x-r*0.95, y-r*0.55, x, y-r*1.45);
+  ctx.closePath();
+  ctx.fillStyle=g; ctx.fill();
+  ctx.lineWidth=Math.max(2,r*0.09); ctx.strokeStyle='#7a2d00'; ctx.stroke();
+  // inner glow flicker
+  ctx.globalAlpha=0.35+0.15*Math.sin(faceT*9);
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.ellipse(x,y+r*0.25,r*0.42,r*0.55,0,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=1;
+  // happy face
+  var er=r*0.16;
+  ctx.fillStyle='#3a1500';
+  ctx.beginPath(); ctx.arc(x-r*0.34,y-r*0.05,er,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+r*0.34,y-r*0.05,er,0,Math.PI*2); ctx.fill();
+  ctx.lineWidth=Math.max(2,r*0.08); ctx.strokeStyle='#3a1500'; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(x,y+r*0.12,r*0.34,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
+  // blush
+  ctx.fillStyle='rgba(255,120,60,0.55)';
+  ctx.beginPath(); ctx.arc(x-r*0.55,y+r*0.25,er*0.8,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+r*0.55,y+r*0.25,er*0.8,0,Math.PI*2); ctx.fill();
+}
+function drawBall(b){
+  var g=ctx.createRadialGradient(b.x-4,b.y-5,2,b.x,b.y,ballR*1.6);
+  g.addColorStop(0,'#ffffff'); g.addColorStop(0.5,'#ffe066'); g.addColorStop(1,'#ff7b00');
+  ctx.save();
+  ctx.shadowColor='#ffb300'; ctx.shadowBlur=22;
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(b.x,b.y,ballR,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle='#7a2d00'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(b.x,b.y,ballR,0,Math.PI*2); ctx.stroke();
+}
+function drawBackground(t){
+  // sky
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#200a04'); g.addColorStop(0.55,'#6b1c05'); g.addColorStop(1,'#a83c00');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // volcanoes
+  ctx.fillStyle='#33100a';
+  volcano(W*0.12, H*0.55, W*0.22, H*0.34, t);
+  volcano(W*0.88, H*0.58, W*0.26, H*0.40, t+2);
+  // rising embers
+  ctx.fillStyle='#ffb300';
+  for(var i=0;i<24;i++){
+    var ex=(i*97.3)%W, ey=(t*60+i*53.7)%(H*0.7);
+    ctx.globalAlpha=0.5*(1-ey/(H*0.7));
+    ctx.fillRect(ex, H*0.1+ey, 3,3);
+  }
+  ctx.globalAlpha=1;
+  // ground: rock + lava river
+  ctx.fillStyle='#2b130b'; ctx.fillRect(0,groundY,W,H-groundY);
+  var lg=ctx.createLinearGradient(0,groundY,0,H);
+  lg.addColorStop(0,'#ff7b00'); lg.addColorStop(1,'#c22e00');
+  ctx.fillStyle=lg; ctx.fillRect(0,groundY+14,W,H-groundY-14);
+  // lava waves
+  ctx.strokeStyle='#ffd23f'; ctx.lineWidth=3; ctx.globalAlpha=0.8;
+  ctx.beginPath();
+  for(var x=0;x<=W;x+=20){ ctx.lineTo(x, groundY+22+Math.sin(x*0.03+t*4)*5); }
+  ctx.stroke(); ctx.globalAlpha=1;
+}
+function volcano(x,baseY,w,h,t){
+  ctx.beginPath();
+  ctx.moveTo(x-w/2, baseY); ctx.lineTo(x-w*0.16, baseY-h); ctx.lineTo(x+w*0.16, baseY-h); ctx.lineTo(x+w/2, baseY);
+  ctx.closePath(); ctx.fill();
+  // lava glow at crater
+  ctx.fillStyle='rgba(255,120,0,'+(0.5+0.2*Math.sin(t*3))+')';
+  ctx.fillRect(x-w*0.16, baseY-h, w*0.32, 8);
+}
+function drawNet(){
+  ctx.fillStyle='rgba(20,8,4,0.85)'; ctx.fillRect(netX-5, netTop, 10, groundY-netTop);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+  for(var y=netTop+8;y<groundY;y+=14){ ctx.beginPath(); ctx.moveTo(netX-5,y); ctx.lineTo(netX+5,y); ctx.stroke(); }
+  ctx.fillStyle='#ffd23f'; ctx.fillRect(netX-8, netTop-6, 16, 8);
+}
+
+/* ---------- update ---------- */
+function hitBall(baby, dir){
+  // dir: +1 hits toward right, -1 toward left
+  var off = (ball.x - baby.x)/babyR; // -1..1
+  ball.vx = dir*(300 + Math.random()*140) + off*160;
+  ball.vy = -(560 + Math.random()*180);
+  ball.cool = 0.3;
+  burst(ball.x, ball.y, 10, '#fff3b0');
+}
+function update(dt, t){
+  var G = 1500*dt;
+  // player movement
+  var spd = Math.max(360, W*0.9);
+  var dx = player.tx - player.x;
+  if(Math.abs(dx) > 2){ player.x += Math.sign(dx)*Math.min(Math.abs(dx), spd*dt); }
+  player.x = Math.min(Math.max(player.x, babyR+6), netX-babyR-8);
+  player.hop += dt*6;
+  // AI movement
+  var aiSpd = Math.max(300, W*0.72);
+  var tgt;
+  if(ball.x > netX || ball.vx > 60){ tgt = ball.x + ball.vx*0.22 + ai.err; }
+  else { tgt = netX + W*0.25; ai.err *= 0.98; if(Math.random()<0.01) ai.err=(Math.random()-0.5)*60; }
+  tgt = Math.min(Math.max(tgt, netX+babyR+8), W-babyR-6);
+  var adx = tgt - ai.x;
+  if(Math.abs(adx) > 2){ ai.x += Math.sign(adx)*Math.min(Math.abs(adx), aiSpd*dt); }
+  ai.wob += dt*6;
+  // ball physics
+  if(ball.cool>0) ball.cool-=dt;
+  ball.vy += G; ball.vx *= (1-0.02*dt*60*0.016); // tiny air drag
+  ball.x += ball.vx*dt; ball.y += ball.vy*dt;
+  // walls
+  if(ball.x-ballR < 0){ ball.x=ballR; ball.vx=Math.abs(ball.vx)*0.8; }
+  if(ball.x+ballR > W){ ball.x=W-ballR; ball.vx=-Math.abs(ball.vx)*0.8; }
+  if(ball.y-ballR < 0){ ball.y=ballR; ball.vy=Math.abs(ball.vy)*0.8; }
+  // net collision
+  if(ball.y > netTop && ball.y < groundY){
+    if(ball.x+ballR > netX-5 && ball.x-ballR < netX+5){
+      if(ball.vx > 0 && ball.x < netX){ ball.x = netX-5-ballR; ball.vx = -ball.vx*0.72; }
+      else if(ball.vx < 0 && ball.x > netX){ ball.x = netX+5+ballR; ball.vx = -ball.vx*0.72; }
+    }
+  }
+  // baby hits
+  var py = groundY - babyR*0.9;
+  if(ball.cool<=0){
+    var ddx = ball.x-player.x, ddy = ball.y-py;
+    if(ddx*ddx+ddy*ddy < Math.pow(babyR+ballR,2) && ball.y < py + babyR*0.4){ hitBall(player, +1); }
+    var adx2 = ball.x-ai.x, ady2 = ball.y-py;
+    if(adx2*adx2+ady2*ady2 < Math.pow(babyR+ballR,2) && ball.y < py + babyR*0.4){ hitBall(ai, -1); }
+  }
+  // ground = point
+  if(ball.y+ballR >= groundY){
+    pointTo(ball.x < netX ? 'a' : 'p');
+  }
+  // particles
+  for(var i=parts.length-1;i>=0;i--){
+    var p=parts[i]; p.t+=dt;
+    if(p.t>=p.life){ parts.splice(i,1); continue; }
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=600*dt;
+  }
+  for(var j=floaters.length-1;j>=0;j--){
+    var f=floaters[j]; f.t+=dt; f.y-=40*dt;
+    if(f.t>1.2) floaters.splice(j,1);
+  }
+}
+
+/* ---------- render ---------- */
+function render(t){
+  drawBackground(t);
+  drawNet();
+  var py = groundY - babyR*0.9 + Math.abs(Math.sin(player.hop))*4;
+  var ay = groundY - babyR*0.9 + Math.abs(Math.sin(ai.wob))*4;
+  drawBaby(player.x, py, babyR, t);
+  drawBaby(ai.x, ay, babyR, t+3);
+  drawBall(ball);
+  // particles
+  for(var i=0;i<parts.length;i++){
+    var p=parts[i]; ctx.globalAlpha=1-p.t/p.life;
+    ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  // score
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.font='bold '+Math.max(20,H*0.035)+'px Trebuchet MS';
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,W,Math.max(44,H*0.07));
+  ctx.fillStyle='#ffd23f';
+  ctx.fillText('YOU '+pScore+'  :  '+aScore+' CPU', W/2, 8);
+  ctx.font=Math.max(12,H*0.02)+'px Trebuchet MS'; ctx.fillStyle='#ffcf9e';
+  ctx.fillText('First to '+WIN+' wins!', W/2, 8+Math.max(20,H*0.035)+2);
+  // floaters
+  ctx.font='bold '+Math.max(22,H*0.04)+'px Trebuchet MS';
+  for(var j=0;j<floaters.length;j++){
+    var f=floaters[j]; ctx.globalAlpha=1-f.t/1.2;
+    ctx.fillStyle=f.col; ctx.fillText(f.txt, f.x, f.y);
+  }
+  ctx.globalAlpha=1;
+}
+
+/* ---------- loop ---------- */
+function loop(ts){
+  if(mode!=='play') return;
+  if(!lastT) lastT=ts;
+  var dt=Math.min(0.033,(ts-lastT)/1000); lastT=ts;
+  update(dt, ts/1000);
+  render(ts/1000);
+  raf=requestAnimationFrame(loop);
+}
+function startGame(){
+  reset();
+  document.getElementById('titleScreen').style.display='none';
+  document.getElementById('overScreen').style.display='none';
+  mode='play'; lastT=0;
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(loop);
+}
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('againBtn').addEventListener('click', startGame);
+
+/* ---------- touch: tap/drag to move ---------- */
+function onTouch(e){
+  if(mode!=='play') return;
+  e.preventDefault();
+  var t = e.touches[0] || e.changedTouches[0];
+  if(t){ player.tx = Math.min(Math.max(t.clientX, babyR+6), netX-babyR-8); }
+}
+cv.addEventListener('touchstart', onTouch, {passive:false});
+cv.addEventListener('touchmove', onTouch, {passive:false});
+cv.addEventListener('mousedown', function(e){ if(mode==='play'){ player.tx = Math.min(Math.max(e.clientX, babyR+6), netX-babyR-8); } });
+
+window.addEventListener('resize', resize);
+resize();
+reset(); // set up scene so the title backdrop paints with the babies + ball
+render(0); // paint a backdrop behind the title screen
+})();
+</script>
+</body>
+</html>

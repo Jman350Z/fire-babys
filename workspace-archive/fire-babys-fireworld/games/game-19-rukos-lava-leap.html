@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruko's Lava Leap — Fire Babys</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0803;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+canvas{display:block}
+#back{position:fixed;top:10px;left:10px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:16px;font-weight:700}
+#hud{position:fixed;top:0;left:0;right:0;text-align:center;padding-top:10px;pointer-events:none;z-index:5}
+#score{font-size:26px;font-weight:900;color:#ffd23f;text-shadow:0 2px 0 #000}
+#combo{font-size:16px;font-weight:800;color:#ff8a3d;min-height:20px}
+#beat{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);width:90px;height:90px;border-radius:50%;border:5px solid #fff;z-index:6;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:40px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,5,0,.88);color:#fff;text-align:center;padding:20px}
+#overlay h1{font-size:34px;font-weight:900;color:#ff6a00;margin-bottom:10px}
+#overlay p{font-size:16px;max-width:400px;margin-bottom:6px}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:10px 14px;margin:12px 0;font-size:14px;max-width:420px}
+#overlay button{background:#ff6a00;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;margin-top:6px}
+#mathgate input{font-size:28px;width:100px;text-align:center;border-radius:10px;border:3px solid #ff6a00;padding:6px;margin:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="hud"><div id="score">LEAPS 0</div><div id="combo"></div></div>
+<div id="beat">🥁</div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1>🥁 RUKO'S LAVA LEAP</h1>
+<p>Tap IN RHYTHM with the drum beat to leap each lava gap! Tap too early or late and Ruko stumbles. Chain perfect leaps for COMBO!</p>
+<div class="lesson">🔥 Fire Safety: Lava is pretend-hot, but real stoves are REALLY hot — never touch without a grown-up!</div>
+<div id="mathgate"><p>Parents: what's <b id="mq"></b>?</p><input id="ma" type="number" inputmode="numeric"><br><button onclick="checkMath()">START</button></div>
+<button id="startbtn" class="hidden" onclick="startGame()">▶ PLAY</button>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const scoreEl=document.getElementById('score'),comboEl=document.getElementById('combo'),overlay=document.getElementById('overlay'),beatEl=document.getElementById('beat');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+const a=5+Math.floor(Math.random()*4),b=2+Math.floor(Math.random()*5);
+document.getElementById('mq').textContent=a+' + '+b+' = ?';
+function checkMath(){if(parseInt(document.getElementById('ma').value)===a+b){document.getElementById('mathgate').classList.add('hidden');document.getElementById('startbtn').classList.remove('hidden');}else alert('Try again!');}
+let AC;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();return AC;}
+function drum(){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(120,c.currentTime);o.frequency.exponentialRampToValueAtTime(40,c.currentTime+0.15);g.gain.setValueAtTime(0.4,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.25);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.3);}catch(e){}}
+function chime(f){try{const c=ac(),o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(0.2,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+0.35);}catch(e){}}
+let running=false,beatT=0,beatInt=1.0,leaps=0,combo=0,best=0,lives=3,gaps=[],parts=[],shake=0,jumpA=0,beatPulse=0,lastRes='';
+const GY=()=>H*0.68;
+function startGame(){running=true;leaps=0;combo=0;lives=3;gaps=[];parts=[];shake=0;beatT=0;beatInt=1.0;beatPulse=0;overlay.classList.add('hidden');upd();}
+function upd(){scoreEl.textContent='LEAPS '+leaps+' · ❤️'.repeat(0)+'' ;scoreEl.textContent='LEAPS '+leaps;}
+function burst(x,y,c,n){for(let i=0;i<n;i++){const an=Math.random()*6.28,s=2+Math.random()*6;parts.push({x,y,vx:Math.cos(an)*s,vy:Math.sin(an)*s-3,life:1,c,sz:3+Math.random()*6});}}
+function gameOver(){
+  running=false;
+  overlay.querySelector('h1').textContent='🌋 SPLASHDOWN!';
+  overlay.querySelector('p').textContent='Ruko leaped '+leaps+' gaps! Best combo: x'+best;
+  document.getElementById('mathgate').classList.add('hidden');
+  const sb=document.getElementById('startbtn');sb.classList.remove('hidden');sb.textContent='↻ LEAP AGAIN';
+  overlay.classList.remove('hidden');chime(150);
+}
+function tap(){
+  if(!running)return;
+  // timing window: beatT counts down from beatInt; perfect if within 0.15s of beat
+  const off=Math.abs(beatT);
+  if(off<0.16){ // PERFECT
+    combo++;best=Math.max(best,combo);leaps++;
+    comboEl.textContent=combo>1?'🎯 PERFECT x'+combo:'🎯 PERFECT!';
+    burst(W/2,GY()-60,'#ffd23f',16);chime(600+combo*70);jumpA=1;
+  }else if(off<0.34){ // GOOD
+    combo=0;leaps++;comboEl.textContent='👍 GOOD';
+    burst(W/2,GY()-60,'#7dff9a',8);chime(400);jumpA=1;
+  }else{ // MISS
+    lives--;combo=0;comboEl.textContent='💦 MISS!';
+    shake=14;burst(W/2,GY()-20,'#ff3b2e',18);chime(180);
+    if(lives<=0){gameOver();return;}
+  }
+  upd();
+}
+function update(dt){
+  if(!running)return;
+  beatT-=dt;
+  if(beatT<=0){beatT=beatInt;beatPulse=1;drum();beatInt=Math.max(0.55,1.0-leaps*0.015);}
+  beatPulse=Math.max(0,beatPulse-dt*3);
+  jumpA=Math.max(0,jumpA-dt*2);
+  gaps.push({x:W+40});gaps.forEach(g=>g.x-=dt*W*0.35);
+  gaps=gaps.filter(g=>g.x>-80);
+  if(gaps.length<4&&Math.random()<0.06)gaps.push({x:W+40});
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.4;p.life-=dt*1.4;});
+  parts=parts.filter(p=>p.life>0);
+  shake*=0.88;
+  beatEl.style.transform=`translateX(-50%) scale(${1+beatPulse*0.4})`;
+  beatEl.style.borderColor=beatPulse>0.5?'#ffd23f':'#fff';
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0d0505');g.addColorStop(1,'#3a1005');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake);
+  // ground + lava gaps
+  ctx.fillStyle='#3a1a0c';ctx.fillRect(0,GY(),W,H-GY());
+  ctx.fillStyle='#ff6a00';
+  gaps.forEach(gp=>{ctx.beginPath();ctx.ellipse(gp.x,GY()+14,40,16,0,0,6.29);ctx.fill();
+    ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.ellipse(gp.x,GY()+10,20,8,0,0,6.29);ctx.fill();ctx.fillStyle='#ff6a00';});
+  // Ruko jumping
+  const ry=GY()-40-jumpA*140;
+  ctx.save();ctx.translate(W/2,ry);
+  const rg=ctx.createRadialGradient(-6,-8,4,0,0,32);
+  rg.addColorStop(0,'#ff8a7a');rg.addColorStop(0.5,'#ff3b2e');rg.addColorStop(1,'#a01508');
+  ctx.fillStyle=rg;ctx.beginPath();ctx.arc(0,0,30,0,6.29);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.fillRect(-30,-13,60,11);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-9,4,5,0,6.29);ctx.arc(9,4,5,0,6.29);ctx.fill();
+  ctx.fillStyle='#1a1a1a';ctx.beginPath();ctx.arc(-9,5,2.5,0,6.29);ctx.arc(9,5,2.5,0,6.29);ctx.fill();
+  ctx.strokeStyle='#1a1a1a';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,12,8,0.2,2.9);ctx.stroke();
+  ctx.restore();
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.sz*p.life,0,6.29);ctx.fill();});
+  ctx.globalAlpha=1;
+  // lives
+  ctx.font='24px sans-serif';ctx.fillText('❤️'.repeat(lives),20,50);
+  ctx.restore();
+}
+let lt=0;function loop(t){const dt=Math.min((t-lt)/1000||0,0.05);lt=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+cv.addEventListener('pointerdown',tap);
+addEventListener('keydown',e=>{if(e.key===' ')tap();});
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Spark Dodge — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>⏱️ <span id="score">0</span>s</span><span>🏆 <span id="best">0</span>s</span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>🔥 Spark Dodge 🔥</h1>
+<p><b>Drag / ← → keys</b> to move Spark.<br>Dodge the falling rocks! 🪨<br>Survive as LONG as you can!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> In an emergency, stay alert and move to safety — never freeze, keep moving!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>💥 Bonk!</h1>
+<p>You survived <b id="final">0</b> seconds!</p>
+<div class="safety">🧯 <b>Remember:</b> Stay alert in emergencies — keep moving to safety!</div>
+<button class="btn" id="againBtn">↻ DODGE AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+let px,rocks,t0,run=false,frame=0,best=+(localStorage.getItem('sd_best')||0);
+document.getElementById('best').textContent=best;
+function reset(){px=W/2;rocks=[];t0=Date.now();frame=0;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')px=Math.max(24,px-32);if(e.key==='ArrowRight')px=Math.min(W-24,px+32);});
+let drag=false;cv.addEventListener('pointerdown',e=>{drag=true;px=Math.max(24,Math.min(W-24,e.clientX));});
+cv.addEventListener('pointermove',e=>{if(drag)px=Math.max(24,Math.min(W-24,e.clientX));});
+cv.addEventListener('pointerup',()=>drag=false);
+function fireBaby(x,y,r){
+ const g=ctx.createRadialGradient(x,y-r*0.3,x,y,r*1.6);g.addColorStop(0,'#ffe27a');g.addColorStop(0.5,'#ffb347');g.addColorStop(1,'#ff7b1c');
+ ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*1.1,y-r*0.2,x+r*0.75,y+r*0.7);ctx.quadraticCurveTo(x+r*0.4,y+r*1.15,x,y+r*1.05);ctx.quadraticCurveTo(x-r*0.4,y+r*1.15,x-r*0.75,y+r*0.7);ctx.quadraticCurveTo(x-r*1.1,y-r*0.2,x,y-r);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x-r*0.3,y,r*0.2);ctx.arc(x+r*0.3,y,r*0.2);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(x-r*0.3,y+r*0.03,r*0.1);ctx.arc(x+r*0.3,y+r*0.03,r*0.1);ctx.fill();
+ ctx.strokeStyle='#5a2400';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y+r*0.35,r*0.2,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+}
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#120b05');bg.addColorStop(1,'#2e1a0c');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ if(run){
+  frame++;let el=(Date.now()-t0)/1000;document.getElementById('score').textContent=Math.floor(el);
+  let rate=Math.max(10,30-Math.floor(el/4));
+  if(frame%rate===0)rocks.push({x:20+Math.random()*(W-40),y:-24,r:14+Math.random()*14,v:3+Math.random()*2.5+el/12});
+  let py=H-110;
+  for(let r of rocks){r.y+=r.v;
+   let dx=r.x-px,dy=r.y-py;
+   if(dx*dx+dy*dy<(r.r+18)*(r.r+18)){gameOver();return;}
+  }
+  rocks=rocks.filter(r=>r.y<H+40);
+ }
+ for(let r of rocks){ctx.fillStyle='#5c5c5c';ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,7);ctx.fill();ctx.fillStyle='#7d7d7d';ctx.beginPath();ctx.arc(r.x-r.r*0.3,r.y-r.r*0.3,r.r*0.35,0,7);ctx.fill();}
+ fireBaby(px,H-110,24);
+ // warning line
+ ctx.fillStyle='rgba(255,80,40,.12)';ctx.fillRect(0,H-160,W,6);
+ requestAnimationFrame(loop);
+}
+function gameOver(){run=false;let s=Math.floor((Date.now()-t0)/1000);document.getElementById('final').textContent=s;
+ if(s>best){best=s;localStorage.setItem('sd_best',best);document.getElementById('best').textContent=best;}
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>

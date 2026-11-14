@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Crystal Crusher — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#160b29;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(180,120,255,.3)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 14: CRYSTAL CRUSHER — tap the crystals before they fade! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Fire needs 3 things to burn — heat, fuel, and oxygen. Take one away and the fire goes out!";
+var state='title',score=0,time=45,crystals=[],spawnT=0,parts=[],pops=[];
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f||440;g.gain.setValueAtTime(.1,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.12);o.start();o.stop(AC.currentTime+.13);}catch(e){}}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function spawn(){
+  var cols=[['#a5f3fc','#22d3ee'],['#ddd6fe','#8b5cf6'],['#fbcfe8','#ec4899'],['#fef08a','#f59e0b']];
+  var c=cols[(Math.random()*cols.length)|0];
+  crystals.push({x:40+Math.random()*(W-80),y:120+Math.random()*(H-220),r:22+Math.random()*14,life:170,c:c});
+}
+function drawCrystal(k){
+  var a=Math.min(1,k.life/60);
+  ctx.save();ctx.globalAlpha=a;ctx.translate(k.x,k.y);
+  var g=ctx.createLinearGradient(0,-k.r,0,k.r);
+  g.addColorStop(0,k.c[0]);g.addColorStop(1,k.c[1]);
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(0,-k.r);ctx.lineTo(k.r*.8,0);ctx.lineTo(0,k.r);ctx.lineTo(-k.r*.8,0);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2;ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.55)';
+  ctx.beginPath();ctx.moveTo(0,-k.r);ctx.lineTo(0,k.r);ctx.moveTo(-k.r*.8,0);ctx.lineTo(k.r*.8,0);ctx.stroke();
+  if(k.life<70){ctx.strokeStyle='#5b21b6';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-k.r*.4,-k.r*.5);ctx.lineTo(k.r*.2,0);ctx.lineTo(-k.r*.3,k.r*.5);ctx.stroke();}
+  ctx.restore();
+}
+function drawPanel(title,lines,foot){
+  ctx.fillStyle='rgba(12,6,26,.9)';rr(20,80,W-40,H-220,18);ctx.fill();
+  ctx.strokeStyle='#b197fc';ctx.lineWidth=3;rr(20,80,W-40,H-220,18);ctx.stroke();
+  ctx.textAlign='center';ctx.fillStyle='#fff';
+  ctx.font='bold 28px Trebuchet MS';ctx.fillText(title,W/2,130);
+  ctx.font='16px Trebuchet MS';var y=165;
+  lines.forEach(function(l){ctx.fillText(l,W/2,y);y+=26;});
+  ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+  wrap(LESSON,W/2,y+12,W-90,20);
+  ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+  ctx.fillText(foot,W/2,H-170);
+}
+var last=0;
+function update(dt){
+  if(state!=='play')return;
+  time-=dt;
+  if(time<=0){time=0;state='over';}
+  spawnT-=dt;
+  if(spawnT<=0){spawn();spawnT=Math.max(.35,.85-score*.008);}
+  for(var i=crystals.length-1;i>=0;i--){crystals[i].life--;if(crystals[i].life<=0)crystals.splice(i,1);}
+  for(var j=parts.length-1;j>=0;j--){var p=parts[j];p.x+=p.vx;p.y+=p.vy;p.t--;if(p.t<=0)parts.splice(j,1);}
+  for(var k=pops.length-1;k>=0;k--){pops[k].t--;if(pops[k].t<=0)pops.splice(k,1);}
+}
+function draw(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#2e1065');g.addColorStop(1,'#160b29');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(255,255,255,.5)';
+  for(var s=0;s<24;s++){ctx.fillRect((s*67)%W,(s*131)%H,2,2);}
+  crystals.forEach(drawCrystal);
+  parts.forEach(function(p){ctx.fillStyle=p.c;ctx.globalAlpha=p.t/30;ctx.fillRect(p.x,p.y,5,5);ctx.globalAlpha=1;});
+  pops.forEach(function(p){ctx.fillStyle='#fff';ctx.font='bold 22px Trebuchet MS';ctx.textAlign='center';ctx.globalAlpha=p.t/25;ctx.fillText('+10',p.x,p.y-p.t);ctx.globalAlpha=1;});
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 20px Trebuchet MS';
+  ctx.fillText('⭐ '+score,12,32);
+  ctx.textAlign='right';ctx.fillStyle=time<10?'#ff6b6b':'#fff';
+  ctx.fillText('⏱ '+Math.ceil(time),W-12,32);
+  if(state==='title')drawPanel('CRYSTAL CRUSHER',
+    ['Tap the crystals to smash them!','They fade away — be quick!','45 seconds. How many can you crush?'],
+    '👆 TAP TO START 👆');
+  else if(state==='over')drawPanel('TIME UP! 🎉',
+    ['You crushed '+score+' points of crystals!','Crystals cracked: '+(score/10|0)],
+    '👆 TAP TO PLAY AGAIN 👆');
+}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){state='play';score=0;time=45;crystals=[];parts=[];pops=[];spawnT=0;beep(520);return;}
+  var p=P(e);
+  for(var i=crystals.length-1;i>=0;i--){var k=crystals[i];
+    var dx=p.x-k.x,dy=p.y-k.y;
+    if(dx*dx+dy*dy<Math.pow(k.r+10,2)){
+      crystals.splice(i,1);score+=10;beep(700+Math.random()*300);
+      pops.push({x:k.x,y:k.y,t:25});
+      for(var s=0;s<10;s++)parts.push({x:k.x,y:k.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,t:30,c:k.c[1]});
+      return;
+    }
+  }
+});
+addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&state!=='play'){state='play';score=0;time=45;crystals=[];parts=[];pops=[];spawnT=0;}});
+(function loop(t){var dt=Math.min(.05,((t-last)/1000)||0);last=t;update(dt);draw();requestAnimationFrame(loop);})(0);
+</script>
+</body>
+</html>

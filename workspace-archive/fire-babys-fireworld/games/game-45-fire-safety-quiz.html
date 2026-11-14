@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fire Safety Quiz — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; min-height:100%; font-family:'Trebuchet MS','Comic Sans MS',Verdana,sans-serif;
+    background:linear-gradient(180deg,#1b2a6b 0%,#5c2a8f 45%,#c23a1d 100%);
+    color:#fff; user-select:none; -webkit-user-select:none; }
+  #wrap { width:100%; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
+  .screen { display:none; width:100%; flex-direction:column; align-items:center; }
+  .screen.show { display:flex; }
+  .card { background:rgba(20,5,30,.88); border:4px solid #ffb300; border-radius:22px; padding:26px 20px;
+    width:min(94vw,520px); text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.5); }
+  h1 { font-size:clamp(28px,8vw,44px); color:#ffb300; text-shadow:0 3px 0 #7a1e00; margin-bottom:8px; }
+  h2 { font-size:clamp(22px,6vw,32px); color:#ffb300; margin-bottom:8px; }
+  p { font-size:clamp(15px,4.2vw,19px); line-height:1.45; margin:10px 0; color:#ffe9c9; }
+  .lesson { background:rgba(255,179,0,.15); border:2px dashed #ffb300; border-radius:14px; padding:12px; margin:14px 0; }
+  .lesson b { color:#ffb300; }
+  .bigbtn { background:linear-gradient(180deg,#ffb300,#ff6f00); border:4px solid #fff; border-radius:18px;
+    color:#4a1000; font-size:clamp(20px,6vw,28px); font-weight:bold; padding:14px 44px; margin-top:14px; cursor:pointer;
+    box-shadow:0 5px 0 #a34a00; font-family:inherit; }
+  .bigbtn:active { transform:translateY(3px); box-shadow:0 2px 0 #a34a00; }
+  #qnum { font-size:clamp(14px,4vw,18px); color:#ffd54f; font-weight:bold; }
+  #qtext { font-size:clamp(19px,5.5vw,26px); color:#fff; font-weight:bold; margin:14px 0 6px; line-height:1.4; }
+  #prog { width:100%; height:14px; background:rgba(255,255,255,.15); border-radius:8px; margin:10px 0 4px; overflow:hidden; }
+  #progFill { height:100%; width:0%; background:linear-gradient(90deg,#ffb300,#ff5722); border-radius:8px; transition:width .3s; }
+  #answers { display:flex; flex-direction:column; gap:12px; margin-top:14px; }
+  .ans { background:#fff8e1; border:3px solid #ffb300; border-radius:16px; color:#4a1000;
+    font-size:clamp(17px,5vw,23px); font-weight:bold; padding:16px 12px; cursor:pointer; font-family:inherit;
+    box-shadow:0 4px 0 #b26a00; }
+  .ans:active { transform:translateY(2px); box-shadow:0 2px 0 #b26a00; }
+  .ans.correct { background:#c8e6c9; border-color:#2e7d32; box-shadow:0 4px 0 #2e7d32; }
+  .ans.wrong { background:#ffcdd2; border-color:#c62828; box-shadow:0 4px 0 #c62828; }
+  .ans.dim { opacity:.5; }
+  .ans:disabled { cursor:default; }
+  #feedback { min-height:64px; font-size:clamp(16px,4.6vw,21px); margin-top:14px; font-weight:bold; line-height:1.4; }
+  #feedback.good { color:#a5d6a7; }
+  #feedback.bad { color:#ffccbc; }
+  #nextBtn { display:none; }
+  #stars { font-size:clamp(40px,12vw,64px); margin:8px 0; }
+  #baby { font-size:clamp(60px,18vw,100px); margin-bottom:4px; }
+  .flameBob { display:inline-block; animation:bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(1.05)} }
+  #cheer { font-size:clamp(18px,5.5vw,26px); color:#ffd54f; font-weight:bold; min-height:32px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <div class="screen show" id="titleScreen">
+    <div class="card">
+      <div id="baby"><span class="flameBob">🔥</span></div>
+      <h1>Fire Safety Quiz</h1>
+      <p>A fire baby wants to test YOUR fire-safety smarts! Answer <b>10 questions</b> — tap the right answer. Get them right and the fire baby cheers for you! 🎉</p>
+      <p><b>How to play:</b> Read each question, then tap one of the 3 big answer buttons. +1 point per correct answer. Can you earn 3 stars?</p>
+      <div class="lesson"><b>🔥 Fire Safety Lesson:</b> Knowing what to do in a fire keeps you and your family safe — share what you learned today with a grown-up!</div>
+      <button class="bigbtn" id="startBtn">START ▶</button>
+    </div>
+  </div>
+
+  <div class="screen" id="quizScreen">
+    <div class="card">
+      <div id="qnum"></div>
+      <div id="prog"><div id="progFill"></div></div>
+      <div id="qtext"></div>
+      <div id="answers"></div>
+      <div id="feedback"></div>
+      <button class="bigbtn" id="nextBtn">NEXT ▶</button>
+    </div>
+  </div>
+
+  <div class="screen" id="overScreen">
+    <div class="card">
+      <div id="baby"><span class="flameBob">🔥</span></div>
+      <h2>Quiz Complete!</h2>
+      <div id="stars"></div>
+      <p id="finalScore" style="font-size:clamp(24px,7vw,36px);color:#ffd54f;font-weight:bold;"></p>
+      <p id="cheer"></p>
+      <div class="lesson"><b>🔥 Fire Safety Lesson:</b> Knowing what to do in a fire keeps you and your family safe — share what you learned today with a grown-up!</div>
+      <button class="bigbtn" id="restartBtn">PLAY AGAIN ↻</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var QUESTIONS=[
+  {q:"What number do you call in an emergency?",a:["911","411","311"],c:0},
+  {q:"If your clothes catch fire, you should…",a:["Run fast","Stop, Drop, and Roll","Hide under a bed"],c:1},
+  {q:"Where should smoke alarms go in your home?",a:["Only in the kitchen","Every bedroom and hallway","Only in the garage"],c:1},
+  {q:"What do you do if there's smoke in your room?",a:["Stand up and walk","Stay low and crawl","Open every window"],c:1},
+  {q:"Should you ever hide during a fire?",a:["Yes, hiding is safest","Only hide in a closet","No — get out fast!"],c:2},
+  {q:"What should you do BEFORE opening a door in a fire?",a:["Kick it open","Feel it with the back of your hand","Open it quickly"],c:1},
+  {q:"If a door is hot during a fire, you should…",a:["Open it anyway","Use a different way out","Pour water on it first"],c:1},
+  {q:"Where should your family meet after escaping a fire?",a:["A safe meeting spot outside","Back inside the house","A neighbor's swimming pool"],c:0},
+  {q:"Should kids ever play with matches or lighters?",a:["Yes, if they're careful","Never — tell a grown-up","Only outside"],c:1},
+  {q:"What sound does a smoke alarm make?",a:["A soft lullaby","A loud beeping alarm","A doorbell ring"],c:1}
+];
+var order, idx, score, answered;
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=(Math.random()*(i+1))|0;var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('show');});
+  document.getElementById(id).classList.add('show');
+}
+
+function startGame(){
+  order=shuffle(QUESTIONS.slice());
+  idx=0;score=0;
+  show('quizScreen');
+  renderQ();
+}
+
+function renderQ(){
+  answered=false;
+  var Q=order[idx];
+  document.getElementById('qnum').textContent='Question '+(idx+1)+' of '+order.length+'  •  Score: '+score;
+  document.getElementById('progFill').style.width=(idx/order.length*100)+'%';
+  document.getElementById('qtext').textContent=Q.q;
+  var fb=document.getElementById('feedback');fb.textContent='';fb.className='';
+  document.getElementById('nextBtn').style.display='none';
+  var box=document.getElementById('answers');box.innerHTML='';
+  // shuffle answer order but track correct index
+  var ia=shuffle(Q.a.map(function(t,i){return {t:t,ok:i===Q.c};}));
+  ia.forEach(function(item){
+    var b=document.createElement('button');
+    b.className='ans';b.textContent=item.t;
+    b.addEventListener('click',function(){answer(b,item.ok,box);});
+    box.appendChild(b);
+  });
+}
+
+function answer(btn,ok,box){
+  if(answered)return;answered=true;
+  var fb=document.getElementById('feedback');
+  var btns=box.querySelectorAll('.ans');
+  btns.forEach(function(b){b.disabled=true;});
+  if(ok){
+    score++;
+    btn.classList.add('correct');
+    btns.forEach(function(b){if(b!==btn)b.classList.add('dim');});
+    fb.textContent='🎉 Correct! The fire baby cheers for you! Great job!';
+    fb.className='good';
+  }else{
+    btn.classList.add('wrong');
+    btns.forEach(function(b){
+      if(b.textContent===order[idx].a[order[idx].c])b.classList.add('correct');
+      else if(b!==btn)b.classList.add('dim');
+    });
+    fb.textContent='Good try! The right answer is: “'+order[idx].a[order[idx].c]+'”. You\'ll get the next one!';
+    fb.className='bad';
+  }
+  document.getElementById('qnum').textContent='Question '+(idx+1)+' of '+order.length+'  •  Score: '+score;
+  document.getElementById('progFill').style.width=((idx+1)/order.length*100)+'%';
+  var nb=document.getElementById('nextBtn');
+  nb.textContent=(idx===order.length-1)?'SEE RESULTS ★':'NEXT ▶';
+  nb.style.display='inline-block';
+}
+
+function next(){
+  idx++;
+  if(idx>=order.length)endGame();else renderQ();
+}
+
+function endGame(){
+  var stars=score>=9?3:(score>=7?2:(score>=5?1:0));
+  var starStr='★★★'.slice(0,stars)+'☆☆☆'.slice(0,3-stars);
+  document.getElementById('stars').textContent=starStr;
+  document.getElementById('finalScore').textContent='You scored '+score+' out of 10!';
+  var cheer=document.getElementById('cheer');
+  if(stars===3)cheer.textContent='🔥 WOW! Fire Safety Superstar! The fire baby is doing a happy dance!';
+  else if(stars===2)cheer.textContent='🔥 Great job, Safety Hero! Almost perfect — try for 3 stars!';
+  else if(stars===1)cheer.textContent='🔥 Good effort, Buddy! Play again and learn even more!';
+  else cheer.textContent='🔥 Nice try! Play again — every hero learns with practice!';
+  show('overScreen');
+}
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('restartBtn').addEventListener('click',startGame);
+document.getElementById('nextBtn').addEventListener('click',next);
+})();
+</script>
+</body>
+</html>

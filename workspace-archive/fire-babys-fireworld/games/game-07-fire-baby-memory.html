@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fire Baby Memory — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:manipulation;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative;display:flex;flex-direction:column}
+#hud{display:flex;justify-content:space-between;padding:10px 16px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000}
+#board{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:8px;padding:10px 14px 20px}
+.card{background:linear-gradient(#5a2c10,#3d1e08);border:3px solid #ffb347;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden}
+.card canvas{width:85%;height:85%}
+.card.back::after{content:'🔥';font-size:34px}
+.card.matched{border-color:#7dff9a;background:linear-gradient(#1d4a24,#123015)}
+.card.matched::after{content:''}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.9);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>🃏 Pairs: <span id="pairs">0</span>/8</span><span>👆 Moves: <span id="moves">0</span></span></div>
+<div id="board"></div>
+<div class="ov" id="title">
+<h1>🔥 Fire Baby Memory 🔥</h1>
+<p>Tap two cards to flip them.<br>Match all <b>8 pairs</b> of Fire Baby faces!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Matches and lighters are TOOLS, not toys — only grown-ups should use them!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>🎉 Amazing memory!</h1>
+<p>All pairs found in <b id="final">0</b> moves!</p>
+<div class="safety">🧯 <b>Remember:</b> Matches and lighters are tools, not toys — grown-ups only!</div>
+<button class="btn" id="againBtn">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+const board=document.getElementById('board');
+// 8 face variants: [bodyColor1, bodyColor2, eyeStyle, mouth]
+const FACES=[
+ ['#ffe27a','#ff7b1c','happy','smile'],['#ffd0e8','#ff6b9d','happy','smile'],
+ ['#c8f0ff','#2e9fd8','cool','smile'],['#d8ffd0','#3ec14e','happy','grin'],
+ ['#ffe27a','#ff9d1c','wink','smile'],['#e8d0ff','#9d4edd','happy','smile'],
+ ['#ffd9a0','#ff6b35','happy','grin'],['#fff3b0','#ffb703','cool','smile']];
+let deck,first=null,lock=false,moves,pairs;
+function drawFace(cvEl,f){
+ const c=cvEl.getContext('2d'),S=cvEl.width=120;c.height=120;
+ const g=c.createRadialGradient(60,45,10,60,60,75);g.addColorStop(0,f[0]);g.addColorStop(1,f[1]);
+ c.fillStyle=g;c.beginPath();c.moveTo(60,12);c.quadraticCurveTo(108,40,100,84);c.quadraticCurveTo(94,110,60,110);c.quadraticCurveTo(26,110,20,84);c.quadraticCurveTo(12,40,60,12);c.fill();
+ c.fillStyle='#fff';c.beginPath();
+ if(f[2]==='wink'){c.arc(42,58,11,0,7);c.fill();c.fillStyle='#222';c.arc(42,59,5,0,7);c.fill();
+  c.strokeStyle='#222';c.lineWidth=3;c.beginPath();c.moveTo(70,58);c.lineTo(88,58);c.stroke();}
+ else{c.arc(42,58,11,0,7);c.arc(78,58,11,0,7);c.fill();
+  c.fillStyle='#222';c.beginPath();c.arc(42,59,5,0,7);c.arc(78,59,5,0,7);c.fill();
+  if(f[2]==='cool'){c.fillStyle='#222';c.fillRect(30,50,24,6);c.fillRect(66,50,24,6);}}
+ c.strokeStyle='#5a2400';c.lineWidth=3;c.beginPath();
+ if(f[3]==='grin'){c.arc(60,74,14,0.1*Math.PI,0.9*Math.PI);c.stroke();c.fillStyle='#7a2d00';c.fillRect(50,78,20,6);}
+ else c.arc(60,72,12,0.15*Math.PI,0.85*Math.PI);c.stroke();
+ // blush
+ c.fillStyle='rgba(255,120,120,.5)';c.beginPath();c.arc(30,78,7,0,7);c.arc(90,78,7,0,7);c.fill();
+}
+function reset(){
+ deck=[...Array(8).keys(),...Array(8).keys()].sort(()=>Math.random()-0.5);
+ moves=0;pairs=0;first=null;lock=false;
+ document.getElementById('moves').textContent=0;document.getElementById('pairs').textContent='0';
+ board.innerHTML='';
+ deck.forEach((fi,i)=>{
+  const d=document.createElement('div');d.className='card back';d.dataset.i=i;d.dataset.f=fi;
+  d.addEventListener('click',()=>flip(d));board.appendChild(d);
+ });
+}
+function flip(d){
+ if(lock||d.classList.contains('open')||d.classList.contains('matched'))return;
+ d.classList.remove('back');d.classList.add('open');
+ const c=document.createElement('canvas');d.appendChild(c);drawFace(c,FACES[+d.dataset.f]);
+ if(!first){first=d;return;}
+ moves++;document.getElementById('moves').textContent=moves;
+ if(first.dataset.f===d.dataset.f){
+  setTimeout(()=>{first.classList.add('matched');d.classList.add('matched');first=null;
+   pairs++;document.getElementById('pairs').textContent=pairs;
+   if(pairs===8)setTimeout(win,600);},350);
+ }else{lock=true;let a=first,b=d;first=null;
+  setTimeout(()=>{a.className='card back';b.className='card back';a.innerHTML='';b.innerHTML='';lock=false;},800);}
+}
+function win(){document.getElementById('final').textContent=moves;
+ document.getElementById('over').classList.remove('hidden');}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();};
+reset();
+</script>
+</body>
+</html>

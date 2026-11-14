@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Blaze Bowling — Fire Babys Fire World</title>
+<style>
+html,body{margin:0;padding:0;height:100%;background:#101b33;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;font-family:'Trebuchet MS',Verdana,system-ui,sans-serif}
+body{display:flex;align-items:center;justify-content:center}
+canvas{border-radius:14px;box-shadow:0 0 50px rgba(120,160,255,.25)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+"use strict";
+/* GAME 17: BLAZE BOWLING — swipe to roll your Fire Baby at the pins! */
+var cv=document.getElementById('c'),ctx=cv.getContext('2d');
+var W=400,H=600;cv.width=W;cv.height=H;
+function fit(){var s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=(W*s)+'px';cv.style.height=(H*s)+'px';}
+addEventListener('resize',fit);fit();
+function P(e){var r=cv.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:(t.clientX-r.left)/r.width*W,y:(t.clientY-r.top)/r.height*H};}
+var LESSON="FIRE SAFETY: Matches and lighters are tools, NOT toys. Only grown-ups should ever use them.";
+var state='title',score=0,balls=3,pins=[],ball,aim=null;
+var AC=null;function beep(f){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);o.frequency.value=f;g.gain.setValueAtTime(.1,AC.currentTime);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.15);o.start();o.stop(AC.currentTime+.16);}catch(e){}}
+function setupPins(){
+  pins=[];var rows=[1,2,3,4],y0=150;
+  rows.forEach(function(n,r){
+    for(var i=0;i<n;i++){
+      pins.push({x:W/2+(i-(n-1)/2)*44,y:y0+r*46,down:false,vx:0,vy:0,a:1});
+    }
+  });
+}
+function resetBall(){ball={x:W/2,y:H-90,vx:0,vy:0,rolling:false};}
+function startGame(){state='play';score=0;balls=3;setupPins();resetBall();}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function wrap(t,x,y,mw,lh){var ws=t.split(' '),ln='',yy=y;for(var i=0;i<ws.length;i++){var s=ln+ws[i]+' ';if(ctx.measureText(s).width>mw&&i>0){ctx.fillText(ln,x,yy);ln=ws[i]+' ';yy+=lh;}else ln=s;}ctx.fillText(ln,x,yy);}
+function babyBall(x,y,r){
+  var g=ctx.createRadialGradient(x-r*.2,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'#ffe680');g.addColorStop(.55,'#ff9f1c');g.addColorStop(1,'#e8590c');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x-r*.75,y-r*.35);
+  ctx.quadraticCurveTo(x-r*.25,y-r*1.7,x+r*.05,y-r*1.05);
+  ctx.quadraticCurveTo(x+r*.35,y-r*1.7,x+r*.75,y-r*.35);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#a33b00';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#40260f';
+  ctx.beginPath();ctx.arc(x-r*.3,y-r*.1,r*.13,0,7);ctx.arc(x+r*.3,y-r*.1,r*.13,0,7);ctx.fill();
+  ctx.strokeStyle='#40260f';ctx.lineWidth=2.5;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(x,y+r*.25,r*.35,.35,Math.PI-.35);ctx.stroke();
+}
+function drawPin(p){
+  ctx.save();ctx.translate(p.x,p.y);ctx.globalAlpha=p.a;
+  ctx.fillStyle='#f8f9fa';rr(-11,-26,22,52,9);ctx.fill();
+  ctx.strokeStyle='#adb5bd';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#e03131';ctx.fillRect(-11,-8,22,7);
+  ctx.restore();
+}
+function update(){
+  if(state!=='play')return;
+  if(ball.rolling){
+    ball.x+=ball.vx;ball.y+=ball.vy;
+    ball.vx*=.988;ball.vy*=.988;
+    if(ball.x<22){ball.x=22;ball.vx*=-.7;}
+    if(ball.x>W-22){ball.x=W-22;ball.vx*=-.7;}
+    pins.forEach(function(p){
+      if(p.down)return;
+      var dx=ball.x-p.x,dy=ball.y-p.y;
+      if(dx*dx+dy*dy<Math.pow(20+12,2)){
+        p.down=true;score++;beep(300+Math.random()*400);
+        p.vx=ball.vx*.9+(Math.random()-.5)*4;p.vy=ball.vy*.9+(Math.random()-.5)*4;
+        ball.vx*=.82;ball.vy*=.82;
+      }
+    });
+    if(Math.hypot(ball.vx,ball.vy)<.4||ball.y<40){
+      balls--;ball.rolling=false;
+      if(balls<=0)state='over';else resetBall();
+    }
+  }
+  pins.forEach(function(p){
+    if(!p.down)return;
+    p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;p.a-=.02;
+  });
+}
+function draw(){
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#1b2a4a');g.addColorStop(1,'#101b33');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#8b5e34';
+  ctx.fillRect(30,60,W-60,H-60);
+  ctx.fillStyle='#a06a3b';
+  for(var l=0;l<7;l++)ctx.fillRect(30,60+l*80,W-60,3);
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(60,60);ctx.lineTo(60,H);ctx.moveTo(W-60,60);ctx.lineTo(W-60,H);ctx.stroke();
+  pins.forEach(function(p){if(p.a>0)drawPin(p);});
+  if(state==='play'&&balls>0){
+    if(!ball.rolling){
+      babyBall(ball.x,ball.y,20);
+      ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='14px Trebuchet MS';ctx.textAlign='center';
+      ctx.fillText('👆 drag up to throw!',W/2,H-30);
+    }else babyBall(ball.x,ball.y,20);
+    if(aim){ctx.strokeStyle='rgba(255,230,130,.8)';ctx.lineWidth=4;ctx.setLineDash([8,8]);
+      ctx.beginPath();ctx.moveTo(ball.x,ball.y);ctx.lineTo(ball.x+(ball.x-aim.x)*2,ball.y+(ball.y-aim.y)*2);ctx.stroke();ctx.setLineDash([]);}
+  }
+  ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='bold 19px Trebuchet MS';
+  ctx.fillText('🎳 '+score+'/10',12,32);
+  ctx.textAlign='right';ctx.fillText('●'.repeat(balls)+'○'.repeat(Math.max(0,3-balls)),W-12,32);
+  if(state==='title'){
+    ctx.fillStyle='rgba(8,14,30,.92)';rr(20,130,W-40,H-300,18);ctx.fill();
+    ctx.strokeStyle='#748ffc';ctx.lineWidth=3;rr(20,130,W-40,H-300,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 28px Trebuchet MS';
+    ctx.fillText('BLAZE BOWLING',W/2,180);
+    ctx.font='16px Trebuchet MS';
+    ctx.fillText('Drag UP from your Fire Baby',W/2,220);
+    ctx.fillText('to roll at the pins!',W/2,246);
+    ctx.fillText('3 rolls. Knock down all 10!',W/2,272);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,305,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO START 👆',W/2,H-220);
+  }else if(state==='over'){
+    ctx.fillStyle='rgba(8,14,30,.92)';rr(20,130,W-40,H-300,18);ctx.fill();
+    ctx.strokeStyle='#ffd43b';ctx.lineWidth=3;rr(20,130,W-40,H-300,18);ctx.stroke();
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 28px Trebuchet MS';
+    ctx.fillText(score===10?'STRIKE-TASTIC! 🏆':'NICE ROLLIN!',W/2,180);
+    ctx.font='18px Trebuchet MS';
+    ctx.fillText('You knocked down '+score+' of 10 pins!',W/2,225);
+    ctx.fillStyle='#ffd166';ctx.font='bold 14px Trebuchet MS';
+    wrap(LESSON,W/2,260,W-90,20);
+    ctx.fillStyle='#7CFC00';ctx.font='bold 20px Trebuchet MS';
+    ctx.fillText('👆 TAP TO BOWL AGAIN 👆',W/2,H-220);
+  }
+}
+cv.addEventListener('pointerdown',function(e){e.preventDefault();
+  if(state!=='play'){startGame();return;}
+  if(!ball.rolling)aim=P(e);
+});
+addEventListener('pointermove',function(e){if(aim&&state==='play')aim=P(e);});
+addEventListener('pointerup',function(){
+  if(aim&&state==='play'&&!ball.rolling){
+    var dx=ball.x-aim.x,dy=ball.y-aim.y;
+    if(dy>20){ball.vx=dx*.12;ball.vy=-Math.min(16,dy*.14);ball.rolling=true;beep(200);}
+  }
+  aim=null;
+});
+addEventListener('keydown',function(e){if((e.key===' '||e.key==='Enter')&&state!=='play')startGame();});
+startGame();state='title';
+(function loop(){update();draw();requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>

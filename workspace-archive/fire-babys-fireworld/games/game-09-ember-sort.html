@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Ember Sort — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>✨ <span id="score">0</span></span><span>❤️ <span id="lives">3</span></span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>🔥 Ember Sort 🔥</h1>
+<p>Embers fall from the sky!<br><b>Tap a falling ember</b>, then <b>tap its matching color bin</b>.<br>Wrong bin = lose a ❤️!</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Keep flammable things AWAY from heat — paper, curtains and clothes need space from anything hot!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>💥 Game Over!</h1>
+<p>Sorted: <b id="final">0</b> embers!</p>
+<div class="safety">🧯 <b>Remember:</b> Keep flammable things away from heat!</div>
+<button class="btn" id="againBtn">↻ SORT AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+const COLORS=[['#ffb347','#ff7b1c','ORANGE'],['#7dd8ff','#2e9fd8','BLUE'],['#a8ff9d','#3ec14e','GREEN']];
+let items,sel,score,lives,run=false,frame=0;
+function binX(i){return W*(i+0.5)/3;}
+function reset(){items=[];sel=null;score=0;lives=3;frame=0;
+ document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+cv.addEventListener('pointerdown',e=>{
+ if(!run)return;let x=e.clientX,y=e.clientY,by=H-90;
+ // check bins first
+ for(let i=0;i<3;i++){if(Math.abs(x-binX(i))<W/6-8&&y>by-50&&y<by+50){
+  if(sel){if(sel.c===i){score++;document.getElementById('score').textContent=score;sel.dead=true;}
+   else{lives--;document.getElementById('lives').textContent=lives;sel.dead=true;flash();if(lives<=0){gameOver();return;}}}
+  sel=null;return;}}
+ // check falling embers
+ for(let it of items){let dx=x-it.x,dy=y-it.y;if(dx*dx+dy*dy<28*28){sel=it;return;}}
+});
+function ember(x,y,r,ci,sel2){
+ const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(0.4,COLORS[ci][0]);g.addColorStop(1,COLORS[ci][1]);
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+ if(sel2){ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(x,y,r+6,0,7);ctx.stroke();}
+}
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#160d05');bg.addColorStop(1,'#33200e');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ if(run){
+  frame++;
+  if(frame%Math.max(30,70-Math.floor(score/3))===0)
+   items.push({x:30+Math.random()*(W-60),y:-20,v:1.6+Math.random()*1.4+score/80,c:Math.floor(Math.random()*3),r:17});
+  for(let it of items){it.y+=it.v;if(it.y>H-140){it.dead=true;lives--;document.getElementById('lives').textContent=lives;flash();if(it===sel)sel=null;if(lives<=0){gameOver();}}}
+  items=items.filter(i=>!i.dead);
+ }
+ for(let it of items)ember(it.x,it.y,it.r,it.c,it===sel);
+ // bins
+ let by=H-90;
+ for(let i=0;i<3;i++){let bx=binX(i),bw=W/3-16;
+  ctx.fillStyle=COLORS[i][1];ctx.fillRect(bx-bw/2,by-40,bw,80);
+  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(bx-bw/2,by-40,bw,12);
+  ctx.fillStyle='#fff';ctx.font='900 15px sans-serif';ctx.textAlign='center';ctx.fillText(COLORS[i][2],bx,by+6);}
+ requestAnimationFrame(loop);
+}
+let fl=0;function flash(){fl=12;}
+(function fl2(){if(fl>0){fl--;ctx.fillStyle='rgba(255,0,0,.25)';ctx.fillRect(0,0,W,H);}requestAnimationFrame(fl2);})();
+function gameOver(){run=false;document.getElementById('final').textContent=score;
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>

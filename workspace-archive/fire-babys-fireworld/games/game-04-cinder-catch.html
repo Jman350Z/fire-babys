@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Cinder Catch — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#ffb347;text-shadow:0 3px 0 #7a2d00;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#ffe0b3;max-width:340px;margin:6px 0}
+.safety{background:#3d1e08;border:2px dashed #ffb347;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#ffd98a}
+.btn{background:linear-gradient(#ffb347,#ff7b1c);border:none;border-radius:999px;color:#5a2400;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #a34a00}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#ffd98a;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>✨ <span id="score">0</span></span><span>❤️ <span id="lives">3</span></span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>🔥 Cinder Catch 🔥</h1>
+<p><b>Drag / ← → keys</b> to move the basket.<br>Catch falling embers ✨ (+1)<br>AVOID the rocks! 🪨 (−1 ❤️)</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Firefighters save what they can and steer clear of danger — catch the good, dodge the bad!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>💥 Game Over!</h1>
+<p>Embers caught: <b id="final">0</b></p>
+<div class="safety">🧯 <b>Remember:</b> Catch the good, dodge the bad — stay clear of danger!</div>
+<button class="btn" id="againBtn">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+let bx,items,score,lives,run=false,frame=0,speedMul=1;
+function reset(){bx=W/2;items=[];score=0;lives=3;frame=0;speedMul=1;
+ document.getElementById('score').textContent=0;document.getElementById('lives').textContent=3;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')bx-=30;if(e.key==='ArrowRight')bx+=30;bx=Math.max(40,Math.min(W-40,bx));});
+let drag=false;cv.addEventListener('pointerdown',e=>{drag=true;bx=e.clientX;});
+cv.addEventListener('pointermove',e=>{if(drag)bx=Math.max(40,Math.min(W-40,e.clientX));});
+cv.addEventListener('pointerup',()=>drag=false);
+function ember(x,y,r){const g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1,x,y,r);g.addColorStop(0,'#fff6c8');g.addColorStop(0.5,'#ffcf4d');g.addColorStop(1,'#ff8a1c');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.fillStyle='rgba(255,200,80,.35)';ctx.beginPath();ctx.arc(x,y,r*1.7,0,7);ctx.fill();}
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#160d05');bg.addColorStop(1,'#33200e');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ if(run){
+  frame++;speedMul=1+score/60;
+  if(frame%Math.max(18,42-Math.floor(score/8))===0){
+   let rock=Math.random()<0.28;
+   items.push({x:30+Math.random()*(W-60),y:-20,v:2.2+Math.random()*2*speedMul,rock,r:rock?16:13});
+  }
+  let by=H-70;
+  for(let it of items){it.y+=it.v;
+   if(it.y>by-10&&it.y<by+24&&Math.abs(it.x-bx)<46){
+    it.dead=true;
+    if(it.rock){lives--;document.getElementById('lives').textContent=lives;flash();}
+    else{score++;document.getElementById('score').textContent=score;}
+   } else if(it.y>H+30){it.dead=true;}
+  }
+  items=items.filter(i=>!i.dead);
+  if(lives<=0)gameOver();
+ }
+ for(let it of items){if(it.rock){ctx.fillStyle='#6b6b6b';ctx.beginPath();ctx.arc(it.x,it.y,it.r,0,7);ctx.fill();ctx.fillStyle='#8f8f8f';ctx.beginPath();ctx.arc(it.x-5,it.y-5,it.r*0.4,0,7);ctx.fill();}else ember(it.x,it.y,it.r);}
+ // basket
+ let by=H-70;ctx.fillStyle='#a06a2c';ctx.fillRect(bx-46,by,92,16);ctx.fillStyle='#c88a3c';ctx.fillRect(bx-52,by-10,104,12);
+ // cute baby face peeking from basket
+ ctx.fillStyle='#ffb347';ctx.beginPath();ctx.arc(bx,by-24,15,0,7);ctx.fill();
+ ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(bx-5,by-26,4,0,7);ctx.arc(bx+5,by-26,4,0,7);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(bx-5,by-25,2,0,7);ctx.arc(bx+5,by-25,2,0,7);ctx.fill();
+ ctx.strokeStyle='#5a2400';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by-20,5,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+ requestAnimationFrame(loop);
+}
+let fl=0;function flash(){fl=12;}
+(function fl2(){if(fl>0){fl--;ctx.fillStyle='rgba(255,0,0,.25)';ctx.fillRect(0,0,W,H);}requestAnimationFrame(fl2);})();
+function gameOver(){run=false;document.getElementById('final').textContent=score;
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>

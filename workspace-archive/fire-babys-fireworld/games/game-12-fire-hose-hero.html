@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fire Hose Hero — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#140b04;font-family:'Comic Sans MS','Chalkboard SE',system-ui,sans-serif;color:#fff;overflow:hidden;touch-action:none;user-select:none}
+#wrap{max-width:480px;margin:0 auto;height:100vh;position:relative}
+canvas{display:block;width:100%;height:100vh}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(20,8,2,.88);z-index:5;text-align:center;padding:20px}
+.ov h1{font-size:34px;color:#7dd8ff;text-shadow:0 3px 0 #0a3d5a;margin-bottom:8px}
+.ov p{font-size:15px;line-height:1.5;color:#d8f0ff;max-width:340px;margin:6px 0}
+.safety{background:#0e2a3d;border:2px dashed #7dd8ff;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:14px;color:#bfeaff}
+.btn{background:linear-gradient(#7dd8ff,#2e9fd8);border:none;border-radius:999px;color:#0a2a3d;font-weight:900;font-size:20px;padding:14px 44px;margin-top:12px;cursor:pointer;box-shadow:0 4px 0 #166a99}
+.btn:active{transform:translateY(3px);box-shadow:none}
+#hud{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;font-size:18px;font-weight:900;color:#bfeaff;text-shadow:0 2px 0 #000;z-index:4;pointer-events:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="hud"><span>🔥→💧 <span id="score">0</span></span><span>⏱️ <span id="time">60</span>s</span></div>
+<canvas id="c"></canvas>
+<div class="ov" id="title">
+<h1>💧 Fire Hose Hero 💧</h1>
+<p>Fires are popping up! <b>Tap a fire</b> to spray it with water.<br>Put out as many as you can in <b>60 seconds</b>!<br>(These are campfire targets — our Fire Baby friends are safe! 🔥😊)</p>
+<div class="safety">🧯 <b>Fire Safety:</b> Water beats fire! But leave BIG fires to firefighters — get OUT and call 911!</div>
+<button class="btn" id="startBtn">▶ PLAY</button>
+</div>
+<div class="ov hidden" id="over">
+<h1>🎉 Great job, hero!</h1>
+<p>Fires put out: <b id="final">0</b></p>
+<div class="safety">🧯 <b>Remember:</b> Small fires: water works. Big fires: get out, call 911!</div>
+<button class="btn" id="againBtn">↻ PLAY AGAIN</button>
+</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W,H;function rs(){W=cv.width=cv.clientWidth;H=cv.height=cv.clientHeight;}window.addEventListener('resize',rs);rs();
+let fires,score,run=false,t0,frame=0,parts=[],best=+(localStorage.getItem('fh_best')||0);
+function reset(){fires=[];score=0;parts=[];frame=0;t0=Date.now();
+ document.getElementById('score').textContent=0;}
+document.getElementById('startBtn').onclick=()=>{document.getElementById('title').classList.add('hidden');reset();run=true;};
+document.getElementById('againBtn').onclick=()=>{document.getElementById('over').classList.add('hidden');reset();run=true;};
+cv.addEventListener('pointerdown',e=>{
+ if(!run)return;let x=e.clientX,y=e.clientY;
+ for(let f of fires){if(!f.dead){let dx=x-f.x,dy=y-f.y;
+  if(dx*dx+dy*dy<44*44){f.dead=true;score++;document.getElementById('score').textContent=score;
+   for(let i=0;i<16;i++)parts.push({x:f.x,y:f.y,vx:(Math.random()-0.5)*7,vy:-2-Math.random()*4,l:40,c:'#7dd8ff'});
+   for(let i=0;i<8;i++)parts.push({x:f.x,y:f.y,vx:(Math.random()-0.5)*5,vy:-1-Math.random()*3,l:30,c:'#ffffff'});
+   break;}}}});
+function drawFire(x,y,s,t){ // campfire target (NOT a character)
+ ctx.fillStyle='#5a3a1c';ctx.fillRect(x-s*0.7,y,s*1.4,s*0.35); // logs
+ ctx.fillStyle='#7a4a22';ctx.fillRect(x-s*0.55,y+s*0.08,s*1.1,s*0.12);
+ let fl=1+Math.sin(t*0.3+x)*0.12;
+ let g=ctx.createRadialGradient(x,y-s*0.5,4,x,y-s*0.5,s*fl);
+ g.addColorStop(0,'#fff6c8');g.addColorStop(0.4,'#ffcf4d');g.addColorStop(0.75,'#ff7b1c');g.addColorStop(1,'rgba(200,40,0,.15)');
+ ctx.fillStyle=g;ctx.beginPath();
+ ctx.moveTo(x,y+s*0.1);
+ ctx.quadraticCurveTo(x-s*0.75,y-s*0.3,x-s*0.25,y-s*0.75*fl);
+ ctx.quadraticCurveTo(x-s*0.1,y-s*0.45,x,y-s*1.05*fl);
+ ctx.quadraticCurveTo(x+s*0.1,y-s*0.45,x+s*0.25,y-s*0.75*fl);
+ ctx.quadraticCurveTo(x+s*0.75,y-s*0.3,x,y+s*0.1);ctx.fill();
+}
+function loop(){
+ let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0e1a24');bg.addColorStop(1,'#1d3242');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ // ground
+ ctx.fillStyle='#24402a';ctx.fillRect(0,H*0.82,W,H*0.18);
+ // hose nozzle at bottom center
+ let hx=W/2,hy=H-30;
+ ctx.fillStyle='#c0c0c0';ctx.beginPath();ctx.roundRect(hx-14,hy-10,28,44,6);ctx.fill();
+ ctx.fillStyle='#e33';ctx.fillRect(hx-14,hy+8,28,10);
+ if(run){
+  frame++;let el=Math.floor((Date.now()-t0)/1000),left=60-el;
+  document.getElementById('time').textContent=Math.max(0,left);
+  if(left<=0){gameOver();return;}
+  let rate=Math.max(25,60-Math.floor(el*0.7));
+  if(frame%rate===0&&fires.filter(f=>!f.dead).length<6)
+   fires.push({x:40+Math.random()*(W-80),y:H*0.35+Math.random()*H*0.38,s:26+Math.random()*14,dead:false,born:frame});
+  fires=fires.filter(f=>!f.dead);
+ }
+ for(let f of fires)drawFire(f.x,f.y,f.s,frame);
+ for(let p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.l--;
+  ctx.fillStyle=p.c;ctx.globalAlpha=Math.max(0,p.l/40);ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill();ctx.globalAlpha=1;}
+ parts=parts.filter(p=>p.l>0);
+ requestAnimationFrame(loop);
+}
+function gameOver(){run=false;document.getElementById('final').textContent=score;
+ if(score>best){best=score;localStorage.setItem('fh_best',best);}
+ document.getElementById('over').classList.remove('hidden');}
+reset();loop();
+</script>
+</body>
+</html>
