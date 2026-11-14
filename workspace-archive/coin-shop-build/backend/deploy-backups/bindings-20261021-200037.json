@@ -1,0 +1,16 @@
+[
+  {
+    "name": "AUTH_KV",
+    "namespace_id": "64361da69ecb417bb1cc8ab64ab71311",
+    "type": "kv_namespace"
+  },
+  {
+    "name": "GOOGLE_CLIENT_ID",
+    "type": "secret_text"
+  },
+  {
+    "name": "RESEND_API_KEY",
+    "text": "",
+    "type": "plain_text"
+  }
+]

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://firebabys.io/auth-gate.js"></script>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Flame Drop Physics — by Jman350Z & fire team</title>
+<meta name="description" content="Guide the falling flame! Physics puzzler. A Fire Babys game.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,4,16,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#141024;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
+.hidden{display:none!important}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+#lvlSel{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
+.lvlBtn{width:48px;height:48px;border-radius:12px;border:3px solid #ff6a1a;background:#141024;color:#ffd23f;font-size:16px;font-weight:900;cursor:pointer}
+#toolBar{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:10px}
+.tool{background:rgba(0,0,0,.6);color:#fff;border:2px solid #ff6a1a;border-radius:12px;padding:10px 18px;font-size:14px;font-weight:800}
+.tool.sel{background:#ff6a1a;color:#2a1206}
+</style>
+<style data-fbvis-cycle1>
+/* fbvis-cycle1: premium chrome pass — accent #ff8c2e / glow #ffd76a, presentation only */
+:root{--fbacc:#ff8c2e;--fbglow:#ffd76a}
+body{background:radial-gradient(120% 90% at 50% 0%,rgba(255,140,46,0.13),transparent 55%),radial-gradient(110% 100% at 50% 115%,rgba(255,140,46,0.09),transparent 60%),#140a06}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid #ffd76a;outline-offset:2px;border-radius:6px}
+.pill{background:linear-gradient(180deg,rgba(34,18,9,.85),rgba(14,7,3,.85));border:1px solid rgba(255,255,255,.22);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);text-shadow:0 1px 2px rgba(0,0,0,.65)}
+#overlay{background:radial-gradient(90% 62% at 50% 28%,rgba(255,140,46,0.2),transparent 65%),radial-gradient(120% 100% at 50% 118%,rgba(0,0,0,.5),transparent 60%),linear-gradient(180deg,rgba(26,12,5,.96),rgba(13,6,3,.97))}
+#overlay h1{filter:drop-shadow(0 3px 16px rgba(255,140,46,0.45))}
+#overlay button{transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+#overlay button:hover:not(:active){filter:brightness(1.08);transform:translateY(-1px)}
+#overlay .lesson{border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#mathgate{border:1px solid rgba(255,140,46,0.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+#mathgate input{transition:border-color .12s ease,box-shadow .12s ease}
+#mathgate input:focus{border-color:#ff8c2e;box-shadow:0 0 0 3px rgba(255,140,46,0.35);outline:none}
+.lvlBtn{transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
+.lvlBtn:hover:not(:active){filter:brightness(1.35);transform:translateY(-1px)}
+#back{background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);transition:filter .12s ease,transform .12s ease}
+#back:hover{filter:brightness(1.35)}
+@media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
+</style>
+<style data-fblandscape="1">@media (max-height:500px){#level{position:fixed;left:12px;top:60px;z-index:16}}</style>
+</head>
+<body>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="level">LV 1/11</div>
+<div class="pill" id="items">🛠️ 3</div>
+</div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="toolBar" class="hidden">
+<button class="tool sel" id="toolRamp">📐 Ramp</button>
+<button class="tool" id="toolFan">💨 Fan</button>
+<button class="tool" id="toolErase">🧽 Erase</button>
+<button class="tool" id="toolDrop" style="background:#2e7d32;border-color:#4caf50">⬇️ DROP</button>
+<button class="tool" id="toolWater">💧 Water</button>
+<button class="tool" id="toolSmother">🛎️ Smother</button>
+</div>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1 id="otitle">💧 FLAME DROP PHYSICS</h1>
+<div id="obody"><p>Guide the falling flame!</p><p><b>TAP DROP</b> to release, then <b>DRAW ramps</b> (📐) to steer, place <b>fans</b> (💨) to push! Get the flame to the 🏁 goal — avoid the 💧 water drops!</p><p>🟣 Meet the <b>SLIMER</b> — he's made of OIL! Tap <b>💧 Water</b> then tap above him to spray… and watch him <b>GROW</b> and giggle — water is the trap! Tap <b>🛎️ Smother</b> then tap above him to drop the lid — <b>cover him twice</b> to smother him flat!</p><div id="lvlSel"></div></div>
+<div id="mathgate" class="hidden"><p>🔒 Math Check</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Guide flames safely — never play with fire! Oil fire? Never spray it — smother it, and get a grown-up.</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+const toolBar=document.getElementById('toolBar');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  drop(){tone(500,300,0.2,'sine',0.1);},
+  win(){[523,659,784,1047].forEach((f,i)=>tone(f,f,0.2,'triangle',0.14,i*0.09));},
+  splash(){tone(400,80,0.35,'sawtooth',0.14);},
+  draw(){tone(700,700,0.04,'sine',0.05);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+// levels: walls (static), waters, goal, spawn
+const LEVELS=[
+  {walls:[{x:0.3,y:0.45,w:0.4,h:0.04}],waters:[],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3,slimers:[{x:0.63,y:0.40}]},
+  {walls:[{x:0.1,y:0.4,w:0.35,h:0.04},{x:0.55,y:0.6,w:0.35,h:0.04}],waters:[],goal:{x:0.5,y:0.88},spawn:{x:0.2,y:0.12},items:3},
+  {walls:[{x:0.3,y:0.5,w:0.4,h:0.04}],waters:[{x:0.5,y:0.72,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.5,y:0.12},items:3,slimers:[{x:0.62,y:0.45}]},
+  {walls:[{x:0.05,y:0.35,w:0.3,h:0.04},{x:0.65,y:0.35,w:0.3,h:0.04},{x:0.3,y:0.62,w:0.4,h:0.04}],waters:[{x:0.5,y:0.78,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:4},
+  {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.5,y:0.9},spawn:{x:0.3,y:0.1},items:4},
+  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.5,y:0.6,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5,slimers:[{x:0.57,y:0.45}]},
+  {walls:[{x:0.25,y:0.42,w:0.38,h:0.04}],waters:[{x:0.62,y:0.7,r:0.05}],goal:{x:0.35,y:0.88},spawn:{x:0.55,y:0.12},items:4},
+  {walls:[{x:0.1,y:0.38,w:0.35,h:0.04},{x:0.55,y:0.58,w:0.35,h:0.04}],waters:[{x:0.5,y:0.74,r:0.05}],goal:{x:0.5,y:0.88},spawn:{x:0.2,y:0.12},items:4},
+  {walls:[{x:0.2,y:0.3,w:0.25,h:0.04},{x:0.55,y:0.45,w:0.25,h:0.04},{x:0.2,y:0.6,w:0.25,h:0.04}],waters:[{x:0.35,y:0.75,r:0.05},{x:0.65,y:0.75,r:0.05}],goal:{x:0.85,y:0.88},spawn:{x:0.5,y:0.1},items:5,slimers:[{x:0.30,y:0.55}]},
+  {walls:[{x:0.05,y:0.3,w:0.28,h:0.04},{x:0.67,y:0.3,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.2,y:0.68,w:0.3,h:0.04}],waters:[{x:0.65,y:0.6,r:0.045},{x:0.72,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5},
+  {walls:[{x:0.05,y:0.28,w:0.28,h:0.04},{x:0.67,y:0.28,w:0.28,h:0.04},{x:0.36,y:0.5,w:0.28,h:0.04},{x:0.05,y:0.68,w:0.28,h:0.04},{x:0.67,y:0.68,w:0.28,h:0.04}],waters:[{x:0.3,y:0.6,r:0.045},{x:0.7,y:0.78,r:0.045}],goal:{x:0.5,y:0.9},spawn:{x:0.5,y:0.08},items:5,slimers:[{x:0.84,y:0.63}]},
+];
+const G={state:'title',level:1,score:0,
+  fx:0,fy:0,vx:0,vy:0,dropped:false,done:false,
+  ramps:[],fans:[],itemsLeft:0,tool:'ramp',drawing:null,
+  drops:[],slimers:[],
+  time:0,shake:0};
+function initLevel(n){
+  const L=LEVELS[n-1];
+  G.level=n;G.time=0;G.shake=0;
+  G.fx=L.spawn.x*W;G.fy=L.spawn.y*H;G.vx=0;G.vy=0;
+  G.dropped=false;G.done=false;G._stillT=0;G._ax=undefined;
+  G.ramps=[];G.fans=[];G.itemsLeft=L.items;G.drawing=null;
+  G.drops=[];G.slimers=(L.slimers||[]).map(s=>({x:s.x*W,y:s.y*H,baseR:26,scale:1,cover:0,state:'live',growT:0,panicT:0,wobT:0,defeatedT:0,slideDir:1}));
+  document.getElementById('level').textContent=`LV ${n}/11`;
+  document.getElementById('items').textContent='🛠️ '+G.itemsLeft;
+  updateHUD();
+}
+function updateHUD(){document.getElementById('score').textContent='⭐ '+G.score;}
+function setTool(t){
+  G.tool=t;
+  document.querySelectorAll('.tool').forEach(b=>b.classList.remove('sel'));
+  const map={ramp:'toolRamp',fan:'toolFan',erase:'toolErase',water:'toolWater',smother:'toolSmother'};
+  const id=map[t];if(id)document.getElementById(id).classList.add('sel');
+}
+document.getElementById('toolRamp').addEventListener('click',()=>setTool('ramp'));
+document.getElementById('toolFan').addEventListener('click',()=>setTool('fan'));
+document.getElementById('toolErase').addEventListener('click',()=>setTool('erase'));
+document.getElementById('toolWater').addEventListener('click',()=>setTool('water'));
+document.getElementById('toolSmother').addEventListener('click',()=>setTool('smother'));
+document.getElementById('toolDrop').addEventListener('click',()=>{if(G.state==='play')dropFlame();});
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.done)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  // Slimer payload drops: 💧 water / 🛎️ smother fall from the top at the tap's x.
+  // They work before AND after the flame drop — smothering the Slimer is its own mini-puzzle.
+  if(G.tool==='water'||G.tool==='smother'){spawnDrop(x,G.tool);return;}
+  if(G.dropped)return;
+  if(G.tool==='erase'){
+    for(let i=G.ramps.length-1;i>=0;i--){
+      const r=G.ramps[i];
+      const d=Math.hypot(x-(r.x1+r.x2)/2,y-(r.y1+r.y2)/2);
+      if(d<50){G.ramps.splice(i,1);G.itemsLeft++;updItems();sfx.click();return;}
+    }
+    for(let i=G.fans.length-1;i>=0;i--){
+      const f=G.fans[i];
+      if(Math.hypot(x-f.x,y-f.y)<50){G.fans.splice(i,1);G.itemsLeft++;updItems();sfx.click();return;}
+    }
+    return;
+  }
+  if(G.tool==='fan'){
+    if(G.itemsLeft<=0){sfx.click();return;}
+    G.fans.push({x,y,t:Math.random()*6});
+    G.itemsLeft--;updItems();sfx.draw();
+    canvas.setPointerCapture(e.pointerId);
+    G._fanDrag=G.fans[G.fans.length-1];
+    return;
+  }
+  // ramp drawing
+  if(G.itemsLeft<=0){sfx.click();return;}
+  G.drawing={x1:x,y1:y,x2:x,y2:y};
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  if(G.drawing){G.drawing.x2=x;G.drawing.y2=y;if(Math.hypot(x-(G._dsx||0),y-(G._dsy||0))>26){G._dsx=x;G._dsy=y;sfx.draw();}} // draw sfx was firing every pointermove (tone spam)
+  if(G._fanDrag){G._fanDrag.x=x;G._fanDrag.y=y;}
+});
+canvas.addEventListener('pointerup',()=>{
+  if(G.drawing){
+    const d=G.drawing;
+    if(Math.hypot(d.x2-d.x1,d.y2-d.y1)>30){
+      G.ramps.push(d);G.itemsLeft--;updItems();
+    }
+    G.drawing=null;
+  }
+  G._fanDrag=null;
+});
+function updItems(){document.getElementById('items').textContent='🛠️ '+G.itemsLeft;}
+/* ===== SLIMER (Jeff 2026-10-17 spec: SLIMERS-SPEC.md) — oil-blob villain.
+   WATER IS THE TRAP: a 💧 drop makes him splash, spread and GROW (cap 1.6x),
+   target NOT cleared. SMOTHER WINS: a 🛎️ lid drop builds cover per hit,
+   he shrinks and panics; 2 hits = defeated (flattened under the lid, dizzy
+   eyes peeking, slides off on his own slick, +50 = a standard target's
+   minimum goal value). He never harms the flame/Babys; the joke is on him. */
+function spawnDrop(x,kind){
+  if(G.state!=='play'||G.done)return;
+  if(G.drops.length>24)return;
+  G.drops.push({x:Math.max(20,Math.min(W-20,x)),y:34,vy:0,kind,r:kind==='water'?13:16,spin:Math.random()*6});
+  sfx.drop();
+}
+function updateDrops(dt){
+  for(let i=G.drops.length-1;i>=0;i--){
+    const d=G.drops[i];
+    d.vy+=900*dt;d.y+=d.vy*dt;d.spin+=dt*3;
+    let used=false;
+    for(const s of G.slimers){
+      if(s.state!=='live')continue;
+      const rr=s.baseR*s.scale+d.r;
+      if(Math.hypot(d.x-s.x,d.y-s.y)<rr){slimerHit(s,d.kind);used=true;break;}
+    }
+    if(used){G.drops.splice(i,1);continue;}
+    if(d.y>H+30)G.drops.splice(i,1);
+  }
+}
+function updateSlimers(dt){
+  for(let i=G.slimers.length-1;i>=0;i--){
+    const s=G.slimers[i];
+    if(s.growT>0)s.growT-=dt;
+    if(s.panicT>0)s.panicT-=dt;
+    if(s.wobT>0)s.wobT-=dt;
+    if(s.state==='defeated'){
+      s.defeatedT+=dt;
+      s.x+=s.slideDir*240*dt; // slides away on his own slick
+      if(s.defeatedT>1.5||s.x<-90||s.x>W+90)G.slimers.splice(i,1);
+    }
+  }
+}
+function slimerHit(s,kind){
+  if(s.state!=='live')return;
+  if(kind==='water'){
+    // THE TRAP: splashes, spreads, comes back BIGGER and smugger — not cleared
+    s.scale=Math.min(1.6,s.scale+0.3);
+    s.growT=1.4;s.wobT=1.2;
+    sfx.splash();G.shake=Math.max(G.shake,0.3);
+    const cols=['#4aa3d8','#b45fe0','#3fe0c8','#e08a3f','#e0529e'];
+    for(let i=0;i<12;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=s.x+(Math.random()-0.5)*s.baseR*s.scale*2;p.y=s.y-s.baseR*s.scale;
+      const a=Math.random()*Math.PI*2;
+      p.vx=Math.cos(a)*170;p.vy=Math.sin(a)*170-70;
+      p.life=0.6;p.max=0.6;p.color=cols[i%cols.length];p.size=4;}
+  }else{
+    // SMOTHER: cover builds per hit, he shrinks and panics
+    s.cover++;
+    s.scale=Math.max(0.65,s.scale-0.2);
+    s.panicT=1.4;s.wobT=0.8;
+    tone(300,110,0.22,'square',0.10);
+    for(let i=0;i<10;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=s.x+(Math.random()-0.5)*s.baseR*2;p.y=s.y-s.baseR*s.scale;
+      p.vx=(Math.random()-0.5)*160;p.vy=-60-Math.random()*60;
+      p.life=0.55;p.max=0.55;p.color=i%2?'#c9b458':'#9aa3a8';p.size=4;}
+    if(s.cover>=2){
+      s.state='defeated';s.defeatedT=0;s.slideDir=(s.x<W/2?1:-1);
+      G.score+=50;updateHUD();
+      sfx.win();G.shake=Math.max(G.shake,0.25);
+    }
+  }
+}
+function spiralEye(cx,cy,rr){
+  ctx.strokeStyle='#0d0716';ctx.lineWidth=1.6;
+  ctx.beginPath();
+  for(let a=0;a<Math.PI*4.5;a+=0.25){
+    const q=rr*a/(Math.PI*4.5);
+    const xx=cx+Math.cos(a)*q,yy=cy+Math.sin(a)*q;
+    if(a===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+  }
+  ctx.stroke();
+}
+function drawSlimerFace(px,py,r,s){
+  if(s.panicT>0){
+    // wide round panic eyes + small wobbly 'o' mouth
+    for(const ex of [-r*0.42,r*0.42]){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ex,py,r*0.42,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px+ex,py+r*0.06,r*0.14,0,Math.PI*2);ctx.fill();
+    }
+    ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px,py+r*0.85,r*0.22,0,Math.PI*2);ctx.fill();
+  }else{
+    // smug: half-lidded eyes glancing sideways + wide drippy grin
+    const grown=s.growT>0;
+    for(const ex of [-r*0.42,r*0.42]){
+      ctx.fillStyle='#fff';
+      ctx.beginPath();ctx.ellipse(px+ex,py,r*0.42,r*0.36,0,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(px+ex-r*0.42,py-r*0.10);ctx.quadraticCurveTo(px+ex,py-r*0.36,px+ex+r*0.42,py-r*0.10);ctx.stroke();
+      ctx.fillStyle='#0d0716';ctx.beginPath();ctx.arc(px+ex+(ex<0?5:-5)*(grown?1.3:1),py+r*0.05,r*0.12,0,Math.PI*2);ctx.fill();
+    }
+    ctx.strokeStyle='#0d0716';ctx.lineWidth=4;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(px,py+r*0.55,r*(grown?0.62:0.5),0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+    const dx=px+r*0.25;
+    ctx.fillStyle='#0d0716';
+    ctx.fillRect(dx-3,py+r*0.55+r*0.42,6,9);
+    ctx.beginPath();ctx.arc(dx,py+r*0.55+r*0.42+9,3,0,Math.PI*2);ctx.fill();
+  }
+}
+function drawSlimer(s){
+  const r=s.baseR*s.scale;
+  const defeated=s.state==='defeated';
+  const wob=s.wobT>0?Math.sin(s.wobT*18)*0.07:0;
+  const bw=r*(1+wob),bh=r*(1-wob)*(defeated?0.45:1);
+  const px=s.x,py=s.y;
+  ctx.save();
+  // rainbow oil slick puddle beneath him
+  const pw=r*1.6;
+  ctx.fillStyle='rgba(90,40,140,0.30)';
+  ctx.beginPath();ctx.ellipse(px,py+bh*0.95,pw,pw*0.30,0,0,Math.PI*2);ctx.fill();
+  const slick=['rgba(180,95,224,0.55)','rgba(63,224,200,0.45)','rgba(224,82,158,0.50)','rgba(224,193,63,0.40)'];
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=slick[i];
+    ctx.beginPath();
+    ctx.ellipse(px+(i-1.5)*pw*0.28,py+bh*0.95,pw*(0.72-i*0.13),pw*0.22,0,0,Math.PI*2);
+    ctx.fill();
+  }
+  if(!defeated){
+    // two drippy stub arms
+    for(const sd of [-1,1]){
+      const ax=px+sd*bw*1.02,ay=py+bh*0.1;
+      ctx.fillStyle='#241440';
+      ctx.beginPath();ctx.ellipse(ax,ay,r*0.30,r*0.40,sd*0.35,0,Math.PI*2);ctx.fill();
+      ctx.lineWidth=2.5;ctx.strokeStyle='#0d0716';ctx.stroke();
+      ctx.fillStyle='#241440';
+      ctx.fillRect(ax-3.5,ay+r*0.28,7,r*0.34);
+      ctx.beginPath();ctx.arc(ax,ay+r*0.28+r*0.34,3.5,0,Math.PI*2);ctx.fill();
+    }
+    // glossy black-purple round blob body
+    const g=ctx.createRadialGradient(px-bw*0.3,py-bh*0.4,bw*0.2,px,py,bw*1.35);
+    g.addColorStop(0,'#553180');g.addColorStop(0.55,'#2b1749');g.addColorStop(1,'#150c28');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.ellipse(px,py,bw,bh,0,0,Math.PI*2);ctx.fill();
+    ctx.lineWidth=3;ctx.strokeStyle='#0d0716';ctx.stroke();
+    // rainbow oil swirls moving across the surface
+    ctx.save();
+    ctx.beginPath();ctx.ellipse(px,py,bw,bh,0,0,Math.PI*2);ctx.clip();
+    const sw=['#b45fe0','#3fe0c8','#e0529e','#e0c13f'];
+    for(let i=0;i<4;i++){
+      ctx.strokeStyle=sw[i];ctx.globalAlpha=0.55;ctx.lineWidth=4;
+      const yy=py-bh*0.55+i*bh*0.34;
+      ctx.beginPath();ctx.moveTo(px-bw,yy);
+      ctx.bezierCurveTo(px-bw*0.4,yy-8+Math.sin(G.time*3+i)*6,px+bw*0.4,yy+8-Math.sin(G.time*3+i)*6,px+bw,yy);
+      ctx.stroke();
+    }
+    ctx.restore();ctx.globalAlpha=1;
+    // glossy highlight
+    ctx.fillStyle='rgba(255,255,255,0.32)';
+    ctx.beginPath();ctx.ellipse(px-bw*0.36,py-bh*0.48,bw*0.26,bh*0.16,-0.5,0,Math.PI*2);ctx.fill();
+    // cover building: a lid tipping onto him after the first smother hit
+    if(s.cover===1){
+      ctx.save();ctx.translate(px,py-bh-4);ctx.rotate(-0.5);
+      ctx.fillStyle='rgba(201,210,216,0.92)';
+      ctx.beginPath();ctx.arc(0,0,r*0.7,Math.PI,0);ctx.fill();
+      ctx.strokeStyle='#6b7378';ctx.lineWidth=2.5;ctx.stroke();
+      ctx.restore();
+    }
+    drawSlimerFace(px,py-bh*0.28,r,s);
+  }else{
+    // defeated: flattened puddle under the lid, dizzy spiral eyes peeking
+    ctx.fillStyle='#241440';
+    ctx.beginPath();ctx.ellipse(px,py+4,bw*1.1,10,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#0d0716';ctx.lineWidth=2.5;ctx.stroke();
+    const lr=r*1.25;
+    ctx.fillStyle='#c9d2d8';
+    ctx.beginPath();ctx.arc(px,py-6,lr,Math.PI,0);ctx.fill();
+    ctx.strokeStyle='#6b7378';ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle='#8a939a';ctx.fillRect(px-lr-4,py-9,lr*2+8,6);
+    ctx.fillStyle='#6b7378';ctx.beginPath();ctx.arc(px,py-6-lr,8,0,Math.PI*2);ctx.fill();
+    for(const ex of [-12,12]){
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ex,py-2,8,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#0d0716';ctx.lineWidth=2;ctx.stroke();
+      spiralEye(px+ex,py-2,6);
+    }
+  }
+  ctx.restore();
+}
+const particles=[];
+for(let i=0;i<80;i++)particles.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
+function dropFlame(){
+  if(G.dropped||G.done)return;
+  G.dropped=true;sfx.drop();
+  toolBar.classList.add('hidden');
+}
+function update(dt){
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);
+  const L=LEVELS[G.level-1];
+  updateSlimers(dt);updateDrops(dt); // Slimer mini-puzzle runs before AND after the flame drop
+  if(!G.dropped||G.done){updateParts(dt);return;}
+  // physics
+  G.vy+=900*dt;
+  // fans push
+  for(const f of G.fans){
+    const d=Math.hypot(G.fx-f.x,G.fy-f.y);
+    if(d<130){
+      const push=(1-d/130)*1600;
+      const a=Math.atan2(G.fy-f.y,G.fx-f.x);
+      G.vx+=Math.cos(a)*push*dt;G.vy+=Math.sin(a)*push*dt-300*dt;
+    }
+  }
+  const prevFy=G.fy; // [gamer-check b10] pre-step centre: wall-top landing test below uses this so a fast flame can't tunnel past the top face in one step
+  G.fx+=G.vx*dt;G.fy+=G.vy*dt;
+  // [gamer-check b10] stuck detection: a flame resting on a flat wall/ramp never reached any terminal state = soft-lock.
+  // Position-anchor based (not speed): a resting flame micro-bounces, which kept resetting a speed timer.
+  if(G._ax===undefined||Math.hypot(G.fx-G._ax,G.fy-G._ay)>8){G._ax=G.fx;G._ay=G.fy;G._stillT=0;}
+  else{G._stillT=(G._stillT||0)+dt;
+    if(G._stillT>1.6&&!G.done){G.done=true;setTimeout(()=>{
+      showOverlay('🔥 FLAME STUCK!',`<p>The flame came to rest! Score: ${G.score}</p>`,'🔥 Fire Safety: Try a different ramp!','↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+    },300);}}
+  const R=14;
+  // user ramps (line collision)
+  for(const r of G.ramps){
+    // closest point on segment
+    const dx=r.x2-r.x1,dy=r.y2-r.y1;
+    const len2=dx*dx+dy*dy;
+    let t=len2>0?((G.fx-r.x1)*dx+(G.fy-r.y1)*dy)/len2:0;
+    t=Math.max(0,Math.min(1,t));
+    const cx=r.x1+dx*t,cy=r.y1+dy*t;
+    const d=Math.hypot(G.fx-cx,G.fy-cy);
+    if(d<R+6){
+      // bounce off line: reflect velocity
+      const nx=d>0.001?(G.fx-cx)/d:0,ny=d>0.001?(G.fy-cy)/d:-1; // guard d=0 (centre exactly on line) — was NaN soft-lock
+      G.fx=cx+nx*(R+6);G.fy=cy+ny*(R+6);
+      const dot=G.vx*nx+G.vy*ny;
+      if(dot<0){G.vx-=1.7*dot*nx;G.vy-=1.7*dot*ny;if(dot<-140)sfx.draw();} // impact sound only on real hits (was: every contact frame)
+    }
+  }
+  // static walls
+  for(const w of L.walls){
+    const wx=w.x*W,wy=w.y*H,ww=w.w*W,wh=Math.max(8,w.h*H);
+    if(G.fx+R>wx&&G.fx-R<wx+ww&&G.fy+R>wy&&G.fy-R<wy+wh){
+      // bounce
+      if(G.vy>0&&prevFy<=wy+2){G.fy=wy-R;G.vy*=-0.55;G.vx*=0.96;} // was G.fy<wy: a fast flame could cross the whole top face in one step and get side-ejected instead of landing
+      else{G.vx*=-0.7;G.fx=G.fx<wx+ww/2?wx-R-1:wx+ww+R+1;} // positional push-out (was 4px/frame: frame-rate dependent)
+      if(Math.abs(G.vy)>160)sfx.draw();
+    }
+  }
+  // side walls
+  if(G.fx<R){G.fx=R;G.vx=Math.abs(G.vx)*0.7;}
+  if(G.fx>W-R){G.fx=W-R;G.vx=-Math.abs(G.vx)*0.7;}
+  // water = death
+  for(const wt of L.waters){
+    if(Math.hypot(G.fx-wt.x*W,G.fy-wt.y*H)<wt.r*W+R){
+      G.done=true;sfx.splash();G.shake=0.4;
+      setTimeout(()=>{
+        showOverlay('💧 SPLASHED OUT!',
+          `<p>The flame hit water! Score: ${G.score}</p>`,
+          '🔥 Fire Safety: Water beats fire!',
+          '↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+      },600);
+      return;
+    }
+  }
+  // goal
+  const gx=L.goal.x*W,gy=L.goal.y*H;
+  if(Math.hypot(G.fx-gx,G.fy-gy)<44){
+    G.done=true;sfx.win();
+    const pts=200-G.ramps.length*20-G.fans.length*20;
+    G.score+=Math.max(50,pts);updateHUD();
+    for(let i=0;i<14;i++){const p=particles.find(p=>!p.a);if(!p)break;
+      p.a=true;p.x=gx;p.y=gy;const a=Math.random()*Math.PI*2;
+      p.vx=Math.cos(a)*200;p.vy=Math.sin(a)*200;
+      p.life=0.5;p.max=0.5;p.color='#ffd23f';p.size=4;}
+    setTimeout(()=>levelDone(),700);
+    return;
+  }
+  // fell off
+  if(G.fy>H+60){
+    G.done=true;
+    setTimeout(()=>{
+      showOverlay('💥 MISSED!',
+        `<p>The flame fell! Score: ${G.score}</p>`,
+        '🔥 Fire Safety: Keep practicing!',
+        '↻ TRY AGAIN',()=>{initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+    },400);
+  }
+  updateParts(dt);
+}
+function updateParts(dt){
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  // flame trail
+  if(G.dropped&&!G.done&&Math.random()<0.6){
+    const p=particles.find(p=>!p.a);
+    if(p){p.a=true;p.x=G.fx;p.y=G.fy;p.vx=(Math.random()-0.5)*60;p.vy=-60;
+      p.life=0.4;p.max=0.4;p.color='#ff8a3a';p.size=4;}
+  }
+}
+function levelDone(){
+  if(G.level>=11){
+    showOverlay('🏆 PHYSICS MASTER!',
+      `<p style="font-size:24px;font-weight:900">Final Score: ${G.score}</p><p>All 11 puzzles solved!</p>`,
+      '🔥 Fire Safety: You\'re a champion!',
+      '↻ PLAY AGAIN',()=>{G.score=0;initLevel(1);G.state='play';toolBar.classList.remove('hidden');});
+  }else{
+    showOverlay(`⭐ LEVEL ${G.level} SOLVED!`,
+      `<p>Score: ${G.score}</p>`,
+      '🔥 Fire Safety: Guide flames safely!',
+      '▶ NEXT LEVEL',()=>{initLevel(G.level+1);G.state='play';toolBar.classList.remove('hidden');});
+  }
+}
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');showLevels();
+  }else document.getElementById('ma').value='';
+}
+function showLevels(){
+  otitle.innerHTML='💧 PICK LEVEL';
+  let h='';
+  for(let i=1;i<=11;i++)h+=`<button class="lvlBtn" onclick="event.stopPropagation();pickLevel(${i})">${i}</button>`;
+  obody.innerHTML=`<p>Draw ramps, place fans, guide the flame!</p><div id="lvlSel">${h}</div>`;
+  obtn.style.display='none';
+  overlay.classList.remove('hidden');
+}
+function pickLevel(n){sfx.click();audio();G.score=0;initLevel(n);G.state='play';overlay.classList.add('hidden');toolBar.classList.remove('hidden');}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;
+  obtn.textContent=btn;obtn.style.display='';
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+obtn.onclick=()=>{showMathGate();};
+// drop button (double-tap spawner area to drop)
+let dropT=0;
+canvas.addEventListener('dblclick',e=>{
+  if(G.state==='play'&&!G.dropped)dropFlame();
+});
+// tap spawn to drop
+canvas.addEventListener('pointerup',e=>{
+  if(G.state!=='play'||G.dropped||G.drawing||G._fanDrag||G.tool==='water'||G.tool==='smother')return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  if(Math.hypot(x-G.fx,y-G.fy)<60)dropFlame(); // single tap drops (was: hidden double-tap; the overlay said 'TAP DROP')
+});
+function render(){
+  const bg53=ctx.createLinearGradient(0,0,0,H);bg53.addColorStop(0,'#1b1030');bg53.addColorStop(0.6,'#120a20');bg53.addColorStop(1,'#0d0a14');ctx.fillStyle=bg53;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){const ey=H-((e.y+G.time*e.v)%(H+30));const ex=(e.x+Math.sin(G.time*0.7+e.ph)*14)%W;ctx.globalAlpha=0.3+0.2*Math.sin(G.time*2+e.ph);ctx.fillStyle='#ff9a2a';ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;
+  const L=LEVELS[G.level-1];
+  if(!L)return;
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*12,(Math.random()-0.5)*G.shake*12);
+  // static walls
+  for(const w of L.walls){
+    ctx.fillStyle='#4a3a5a';
+    ctx.beginPath();ctx.roundRect(w.x*W,w.y*H,w.w*W,Math.max(8,w.h*H),6);ctx.fill();
+  }
+  // waters
+  for(const wt of L.waters){
+    const wr=wt.r*W;
+    ctx.fillStyle='rgba(74,144,217,0.85)';
+    ctx.beginPath();ctx.arc(wt.x*W,wt.y*H,wr+Math.sin(G.time*4)*3,0,Math.PI*2);ctx.fill();
+    ctx.font='28px system-ui';ctx.textAlign='center';
+    ctx.fillText('💧',wt.x*W,wt.y*H+10);ctx.textAlign='left';
+  }
+  // slimers
+  for(const s of G.slimers)drawSlimer(s);
+  // goal
+  const gx=L.goal.x*W,gy=L.goal.y*H;
+  const pulse=1+Math.sin(G.time*4)*0.08;
+  ctx.save();ctx.translate(gx,gy);ctx.scale(pulse,pulse);
+  ctx.fillStyle='rgba(76,175,80,0.25)';
+  ctx.beginPath();ctx.arc(0,0,44,0,Math.PI*2);ctx.fill();
+  ctx.font='44px system-ui';ctx.textAlign='center';
+  ctx.fillText('🏁',0,16);ctx.textAlign='left';
+  ctx.restore();
+  // spawn
+  if(!G.dropped){
+    ctx.fillStyle='rgba(255,138,58,0.2)';
+    ctx.beginPath();ctx.arc(G.fx,G.fy,40+Math.sin(G.time*4)*4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='900 15px system-ui';ctx.textAlign='center';
+    ctx.fillText('TAP FLAME',G.fx,G.fy+48);ctx.fillText('OR ⬇️ DROP',G.fx,G.fy+66);
+    ctx.textAlign='left';
+  }
+  // ramps
+  for(const r of G.ramps){
+    ctx.strokeStyle='#aee2ff';ctx.lineWidth=10;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(r.x1,r.y1);ctx.lineTo(r.x2,r.y2);ctx.stroke();
+    ctx.strokeStyle='#fff';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(r.x1,r.y1);ctx.lineTo(r.x2,r.y2);ctx.stroke();
+  }
+  if(G.drawing){
+    const d=G.drawing;
+    ctx.strokeStyle='rgba(174,226,255,0.6)';ctx.lineWidth=10;ctx.lineCap='round';
+    ctx.setLineDash([12,8]);
+    ctx.beginPath();ctx.moveTo(d.x1,d.y1);ctx.lineTo(d.x2,d.y2);ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // fans
+  for(const f of G.fans){
+    ctx.font='34px system-ui';ctx.textAlign='center';
+    ctx.fillText('💨',f.x,f.y+12);ctx.textAlign='left';
+    ctx.strokeStyle='rgba(174,226,255,0.3)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(f.x,f.y,60+Math.sin(G.time*5)*5,0,Math.PI*2);ctx.stroke();
+  }
+  // falling Slimer payloads (💧 water / 🛎️ smother lid)
+  for(const d of G.drops){
+    ctx.font=(d.kind==='water'?'24px':'26px')+' system-ui';ctx.textAlign='center';
+    ctx.fillText(d.kind==='water'?'💧':'🛎️',d.x,d.y+9);ctx.textAlign='left';
+  }
+  // flame
+  if(!G.done||G.time<1){
+    const g=ctx.createRadialGradient(G.fx-5,G.fy-5,2,G.fx,G.fy,15);
+    g.addColorStop(0,'#fff2c8');g.addColorStop(0.5,'#ff8a3a');g.addColorStop(1,'#d42a1a');
+    ctx.fillStyle=g;ctx.shadowColor='#ff8a3a';ctx.shadowBlur=20;ctx.beginPath();ctx.arc(G.fx,G.fy,14,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(G.state==='play')update(dt);else G.time+=dt;
+  render();
+  requestAnimationFrame(loop);
+}
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;initLevel(G.level);G.state='play';toolBar.classList.remove('hidden');});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
+requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Gravity Ember' — Flame Drop Physics's own
+   track. Synthesized Web Audio only. 109 BPM, Eb major pentatonic: falling
+   sine-bell patterns (with the octave shimmer) over a soft triangle bass —
+   gravity, but gentle.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__FB_MUTED mutes, pause sets G.state='pause', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-53-flame-drop-physics.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__FB_MUTED / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__FB_MUTED||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:109,
+ BASS:[39,0,0,0,46,0,0,0, 41,0,0,0,48,0,0,0, 36,0,0,0,43,0,0,0, 46,0,0,0,39,0,0,0],
+ LEAD:[87,0,84,0,82,0,79,0, 84,0,82,0,79,0,75,0, 82,0,79,0,77,0,75,0, 79,0,75,0,72,0,70,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.26,'triangle',0.05,d);
+  const l=this.LEAD[s];if(l){tone(_mf(l),_mf(l),0.2,'sine',0.045,d);
+   tone(_mf(l)*2,_mf(l)*2,0.12,'sine',0.012,d);} // bell shimmer
+  if(s%8===0)tone(108,45,0.12,'sine',0.09,d); // soft kick
+  if(s%8===4)tone(140,85,0.1,'sine',0.03,d); // soft plonk
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
+</script>
+<script>
+/* ============================================================
+   Fire Babys Math Check — 24-HOUR UNLOCK (Jeff, 2026-10-21)
+   The math check itself is unchanged. NEW: solve 5 problems in
+   a row right here and ALL games unlock for 24 hours. The unlock
+   is a device-side localStorage timestamp (fb_gate_unlock_until),
+   checked by this snippet on every gated page, so it works the
+   same on firebabys.io and in the offline downloadable build.
+   When the 24 hours run out, the normal math check simply
+   returns — no lockout, no progress lost.
+   ============================================================ */
+(function(){
+'use strict';
+var KEY='fb_gate_unlock_until';
+function until(){try{var v=parseInt(localStorage.getItem(KEY),10);return isNaN(v)?0:v;}catch(e){return 0;}}
+function unlocked(){return until()>Date.now();}
+function leftStr(){var ms=until()-Date.now();if(ms<=0)return '';var h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return h+'h '+(m<10?'0':'')+m+'m';}
+function gateEl(){return document.getElementById('mathgate');}
+function isVis(g){if(!g||g.classList.contains('hidden'))return false;var s=getComputedStyle(g);if(s.display==='none'||s.visibility==='hidden')return false;return g.offsetParent!==null||s.position==='fixed';}
+var passed=false;
+function tryPass(){
+  var g=gateEl();if(!g)return;
+  if(!isVis(g)){passed=false;return;}
+  buildUI(g);
+  if(!unlocked()||passed)return;
+  var mq=document.getElementById('mq'),ma=document.getElementById('ma');
+  if(!mq||!ma)return;
+  var m=/(\d+)\s*([+\-x×*])\s*(\d+)/.exec(mq.textContent||'');
+  if(!m)return;
+  var a=+m[1],b=+m[3],ans=(m[2]==='+')?a+b:((m[2]==='-')?a-b:a*b);
+  ma.value=ans;passed=true;
+  var btn=g.querySelector('button');
+  setTimeout(function(){if(btn)btn.click();},150);
+  setTimeout(function(){if(isVis(gateEl()))passed=false;},1000);
+}
+function buildUI(g){
+  if(g.querySelector('.fbg-chal'))return;
+  var box=document.createElement('div');box.className='fbg-chal';
+  box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.35);font-size:15px';
+  if(unlocked()){
+    box.innerHTML='<p style="margin:0">✅ <b>All games unlocked!</b> ⏰ '+leftStr()+' left</p>';
+    g.appendChild(box);return;
+  }
+  box.innerHTML='<p style="margin:0 0 6px">🏆 <b>Math Challenge:</b> solve <b>5 problems in a row</b> to unlock <b>ALL games for 24 hours</b>!</p>'
+    +'<button type="button" class="fbg-start" style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:10px;cursor:pointer">START CHALLENGE</button>'
+    +'<div class="fbg-play" style="display:none;margin-top:8px">'
+    +'<p style="margin:0 0 6px">Problem <span class="fbg-n">1</span> of 5: <b class="fbg-q"></b> = '
+    +'<input type="number" class="fbg-a" inputmode="numeric" style="width:84px;font-size:18px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;color:#000"> '
+    +'<button type="button" class="fbg-check" style="font-size:16px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer">CHECK</button></p>'
+    +'<p class="fbg-msg" style="margin:0;min-height:20px"></p></div>';
+  g.appendChild(box);
+  var n=0,ans=0;
+  var qEl=box.querySelector('.fbg-q'),nEl=box.querySelector('.fbg-n'),
+      aEl=box.querySelector('.fbg-a'),msgEl=box.querySelector('.fbg-msg');
+  function next(){
+    var kind=Math.floor(Math.random()*3),a,b;
+    if(kind===0){a=2+Math.floor(Math.random()*19);b=2+Math.floor(Math.random()*19);ans=a+b;qEl.textContent=a+' + '+b;}
+    else if(kind===1){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;qEl.textContent=a+' − '+b;}
+    else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;qEl.textContent=a+' × '+b;}
+    nEl.textContent=(n+1);aEl.value='';
+  }
+  box.querySelector('.fbg-start').addEventListener('click',function(){
+    this.style.display='none';box.querySelector('.fbg-play').style.display='';next();aEl.focus();
+  });
+  function check(){
+    if(parseInt(aEl.value,10)===ans){
+      n++;
+      if(n>=5){
+        try{localStorage.setItem(KEY,String(Date.now()+24*3600000));}catch(e){}
+        box.innerHTML='<p style="margin:0">🎉 <b>You did it!</b> ALL games are unlocked for 24 hours! ⏰</p>';
+        passed=false;setTimeout(tryPass,400);
+      }else{msgEl.textContent='✅ Correct! '+(5-n)+' to go.';next();aEl.focus();}
+    }else{
+      n=0;msgEl.textContent='❌ Not quite — streak reset. Back to problem 1!';next();aEl.focus();
+    }
+  }
+  box.querySelector('.fbg-check').addEventListener('click',check);
+  aEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
+}
+setInterval(tryPass,300);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tryPass);else tryPass();
+})();
+</script>
+
+</body>
+</html>
