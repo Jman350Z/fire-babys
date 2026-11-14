@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Blaze's Big Adventure — Fire Babys</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#1a0d2e; font-family:'Comic Sans MS','Chalkboard SE',sans-serif; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #wrap { position:relative; width:100%; height:100%; }
+  canvas { display:block; width:100%; height:100%; }
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:rgba(20,8,40,.92); color:#fff; padding:20px; z-index:10; }
+  .overlay h1 { font-size:clamp(26px,7vw,48px); color:#ffb347; text-shadow:0 3px 0 #a33d00, 0 6px 12px rgba(0,0,0,.5); margin-bottom:10px; }
+  .overlay p { font-size:clamp(14px,4vw,20px); max-width:520px; margin:8px 0; line-height:1.5; color:#ffe9c9; }
+  .lesson { background:rgba(255,179,71,.15); border:2px solid #ffb347; border-radius:12px; padding:10px 14px; margin:12px 0; font-size:clamp(13px,3.6vw,18px); color:#ffd76a; max-width:520px; }
+  .btn { margin-top:14px; font-size:clamp(18px,5vw,26px); font-weight:bold; color:#5a2500; background:linear-gradient(#ffd76a,#ff9a3c); border:4px solid #a33d00; border-radius:16px; padding:12px 44px; cursor:pointer; box-shadow:0 5px 0 #a33d00; }
+  .btn:active { transform:translateY(3px); box-shadow:0 2px 0 #a33d00; }
+  .hidden { display:none !important; }
+  #hud { position:absolute; top:8px; left:10px; right:10px; display:flex; justify-content:space-between; color:#fff; font-size:clamp(15px,4.2vw,22px); font-weight:bold; text-shadow:0 2px 4px #000; z-index:5; pointer-events:none; }
+  #ctrls { position:absolute; bottom:12px; left:0; right:0; display:flex; justify-content:space-between; padding:0 16px; z-index:5; }
+  .cbtn { width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,.18); border:3px solid rgba(255,255,255,.5); color:#fff; font-size:30px; display:flex; align-items:center; justify-content:center; }
+  .cbtn:active { background:rgba(255,179,71,.5); }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="hud" class="hidden"><span id="score">🔥 0</span><span id="lives">❤️❤️❤️</span><span id="level">LVL 1</span></div>
+  <div id="ctrls" class="hidden">
+    <div style="display:flex;gap:12px;">
+      <div class="cbtn" id="btnL">◀</div>
+      <div class="cbtn" id="btnR">▶</div>
+    </div>
+    <div class="cbtn" id="btnJ">⬆</div>
+  </div>
+  <div id="title" class="overlay">
+    <h1>🔥 Blaze's Big Adventure 🔥</h1>
+    <p>Help Blaze the fire baby run, jump, and collect ember stars across the volcano valley!</p>
+    <p>◀ ▶ buttons to move &nbsp;•&nbsp; ⬆ to jump<br>Grab ⭐ ember stars • Avoid 💧 water puddles!<br>Reach the 🚪 exit door to finish each level!</p>
+    <div class="lesson">🧯 Fire Safety: Know TWO ways out of every room — just like Blaze finds two paths through the valley!</div>
+    <button class="btn" id="startBtn">START ADVENTURE</button>
+  </div>
+  <div id="over" class="overlay hidden">
+    <h1 id="overTitle">Adventure Complete!</h1>
+    <p id="overScore"></p>
+    <div class="lesson">🧯 Fire Safety: Know TWO ways out of every room — just like Blaze finds two paths through the valley!</div>
+    <button class="btn" id="againBtn">PLAY AGAIN</button>
+  </div>
+</div>
+<script>
+(function(){
+"use strict";
+var cv = document.getElementById('game'), ctx = cv.getContext('2d');
+var W=0,H=0;
+function resize(){ W=cv.width=cv.clientWidth; H=cv.height=cv.clientHeight; }
+window.addEventListener('resize',resize); resize();
+
+var GRAV=0.55, state='title', score=0, lives=3, level=1, maxLevel=3;
+var camX=0, keys={left:false,right:false,jump:false};
+
+// ---- level data: platforms [x,y,w], stars [x,y], puddles [x,y,w], exit [x,y] ----
+function makeLevel(n){
+  var plats=[], stars=[], puddles=[];
+  var x=0, y=H-120;
+  plats.push([x,y,220]);
+  var steps = 6+n*2;
+  for(var i=0;i<steps;i++){
+    x += 170+Math.random()*90;
+    y = H-120 - Math.random()*(H*0.55);
+    if(y<80) y=80+Math.random()*60;
+    var w = 120+Math.random()*80;
+    plats.push([x,y,w]);
+    if(Math.random()<0.75) stars.push([x+w/2, y-40]);
+    if(i>1 && Math.random()<0.4) puddles.push([x+10, y, w-20]);
+  }
+  x += 200;
+  plats.push([x, H-120, 260]);
+  return {plats:plats, stars:stars, puddles:puddles, exitX:x+200, len:x+460, taken:{}};
+}
+
+var L=null, player=null;
+function resetPlayer(){ player={x:60,y:H-200,vx:0,vy:0,w:44,h:52,onGround:false,face:1,bounce:0}; camX=0; }
+
+function drawFireBaby(x,y,s,happy){
+  // body: flame teardrop
+  var g=ctx.createLinearGradient(x,y-s,x,y+s);
+  g.addColorStop(0,'#ffe066'); g.addColorStop(0.55,'#ff9a3c'); g.addColorStop(1,'#f06414');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(x, y-s*1.35);
+  ctx.quadraticCurveTo(x+s*0.85, y-s*0.5, x+s*0.72, y+s*0.35);
+  ctx.quadraticCurveTo(x+s*0.6, y+s*0.95, x, y+s*0.95);
+  ctx.quadraticCurveTo(x-s*0.6, y+s*0.95, x-s*0.72, y+s*0.35);
+  ctx.quadraticCurveTo(x-s*0.85, y-s*0.5, x, y-s*1.35);
+  ctx.fill();
+  // face
+  ctx.fillStyle='#3a1c00';
+  ctx.beginPath(); ctx.arc(x-s*0.26,y-s*0.05,s*0.13,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+s*0.26,y-s*0.05,s*0.13,0,7); ctx.fill();
+  ctx.strokeStyle='#3a1c00'; ctx.lineWidth=Math.max(2,s*0.09); ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(x, y+s*0.18, s*0.28, happy?0.15*Math.PI:0.6, happy?0.85*Math.PI:1.4*Math.PI); ctx.stroke();
+  // cheeks
+  ctx.fillStyle='rgba(255,120,120,.55)';
+  ctx.beginPath(); ctx.arc(x-s*0.42,y+s*0.18,s*0.12,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x+s*0.42,y+s*0.18,s*0.12,0,7); ctx.fill();
+}
+
+function loop(){
+  requestAnimationFrame(loop);
+  draw();
+  if(state!=='play') return;
+  update();
+}
+
+function update(){
+  var p=player;
+  var sp=4.2;
+  if(keys.left){ p.vx=-sp; p.face=-1; }
+  else if(keys.right){ p.vx=sp; p.face=1; }
+  else p.vx*=0.8;
+  if(keys.jump && p.onGround){ p.vy=-13.5; p.onGround=false; }
+  p.vy+=GRAV; if(p.vy>16)p.vy=16;
+  p.x+=p.vx; p.y+=p.vy;
+  p.onGround=false;
+  // platform collision
+  for(var i=0;i<L.plats.length;i++){
+    var pl=L.plats[i], px=pl[0],py=pl[1],pw=pl[2],ph=24;
+    if(p.x+p.w>px && p.x<px+pw){
+      if(p.vy>=0 && p.y+p.h>=py && p.y+p.h<=py+ph+14){ p.y=py-p.h; p.vy=0; p.onGround=true; }
+      else if(p.vy<0 && p.y<=py+ph && p.y>py){ p.y=py+ph; p.vy=0; }
+    }
+  }
+  if(p.x<0)p.x=0;
+  if(p.x+p.w>L.len)p.x=L.len-p.w;
+  // fell?
+  if(p.y>H+80){ hurt(); return; }
+  // stars
+  for(var s=0;s<L.stars.length;s++){
+    if(L.taken[s])continue;
+    var st=L.stars[s];
+    var dx=(p.x+p.w/2)-st[0], dy=(p.y+p.h/2)-st[1];
+    if(dx*dx+dy*dy<48*48){ L.taken[s]=1; score+=50; updHud(); p.bounce=1; }
+  }
+  // puddles (water hurts fire baby feelings — loses a heart, baby giggles back to platform)
+  for(var q=0;q<L.puddles.length;q++){
+    var pd=L.puddles[q];
+    if(p.x+p.w>pd[0]&&p.x<pd[0]+pd[2]&&p.y+p.h>pd[1]&&p.y<pd[1]+24){ hurt(); return; }
+  }
+  // exit
+  if(p.x+p.w>L.exitX-20 && p.onGround!==undefined){
+    if(p.x>L.exitX-30){
+      level++;
+      if(level>maxLevel){ win(); } else { L=makeLevel(level); resetPlayer(); updHud(); }
+      return;
+    }
+  }
+  camX = p.x - W*0.35; if(camX<0)camX=0; if(camX>L.len-W+80)camX=Math.max(0,L.len-W+80);
+  if(p.bounce>0)p.bounce-=0.06;
+}
+
+function hurt(){
+  lives--; updHud();
+  if(lives<=0){ gameOver(false); return; }
+  resetPlayer();
+}
+
+function draw(){
+  // sky
+  var sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#2b1055'); sky.addColorStop(0.6,'#7a2e5e'); sky.addColorStop(1,'#c65d3b');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+  // sun
+  ctx.fillStyle='#ffd76a'; ctx.beginPath(); ctx.arc(W-70-camX*0.02,90,44,0,7); ctx.fill();
+  // volcanoes (parallax)
+  ctx.fillStyle='#4a2440';
+  for(var v=0;v<5;v++){
+    var vx=v*520 - (camX*0.3%520);
+    ctx.beginPath(); ctx.moveTo(vx-160,H); ctx.lineTo(vx,H-260); ctx.lineTo(vx+160,H); ctx.fill();
+    ctx.fillStyle='#ff7b3c'; ctx.fillRect(vx-14,H-262,28,10);
+  }
+  ctx.save(); ctx.translate(-camX,0);
+  // platforms
+  L&&L.plats.forEach(function(pl){
+    ctx.fillStyle='#5b3a29'; ctx.fillRect(pl[0],pl[1],pl[2],24);
+    ctx.fillStyle='#7a5238'; ctx.fillRect(pl[0],pl[1],pl[2],8);
+    ctx.fillStyle='#3d281c';
+    for(var gx=pl[0]+20;gx<pl[0]+pl[2];gx+=46) ctx.fillRect(gx,pl[1]+8,6,16);
+  });
+  // lava glow under platforms area
+  if(L){ var lg=ctx.createLinearGradient(0,H-60,0,H); lg.addColorStop(0,'rgba(255,90,20,0)'); lg.addColorStop(1,'rgba(255,90,20,.35)'); ctx.fillStyle=lg; ctx.fillRect(camX-20,H-60,W+40,60); }
+  // stars
+  if(L)L.stars.forEach(function(st,i){
+    if(L.taken[i])return;
+    var tw=Date.now()/300+i;
+    ctx.save(); ctx.translate(st[0],st[1]+Math.sin(tw)*4); ctx.rotate(Math.sin(tw*0.7)*0.2);
+    ctx.fillStyle='#ffe066'; ctx.strokeStyle='#e09a00'; ctx.lineWidth=2;
+    ctx.beginPath();
+    for(var k=0;k<5;k++){
+      var a=-Math.PI/2+k*2*Math.PI/5, a2=a+Math.PI/5;
+      ctx.lineTo(Math.cos(a)*14,Math.sin(a)*14); ctx.lineTo(Math.cos(a2)*6,Math.sin(a2)*6);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  });
+  // puddles
+  if(L)L.puddles.forEach(function(pd){
+    ctx.fillStyle='rgba(80,170,255,.85)';
+    ctx.beginPath(); ctx.ellipse(pd[0]+pd[2]/2,pd[1]+10,pd[2]/2,10,0,0,7); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)';
+    ctx.beginPath(); ctx.ellipse(pd[0]+pd[2]/2-8,pd[1]+7,pd[2]/6,4,0,0,7); ctx.fill();
+    ctx.font='20px sans-serif'; ctx.fillText('💧',pd[0]+pd[2]/2-10,pd[1]-6);
+  });
+  // exit door
+  if(L){
+    var ex=L.exitX;
+    ctx.fillStyle='#2e7d32'; ctx.fillRect(ex-14,H-210,64,90);
+    ctx.fillStyle='#1b5e20'; ctx.fillRect(ex-14,H-210,64,14);
+    ctx.fillStyle='#fff'; ctx.font='bold 15px sans-serif'; ctx.fillText('EXIT',ex-6,H-192);
+    ctx.fillStyle='#c9a227'; ctx.beginPath(); ctx.arc(ex+40,H-160,5,0,7); ctx.fill();
+  }
+  // player
+  if(player&&(state==='play')){
+    var bob=Math.sin(Date.now()/180)*3;
+    var sq=1+player.bounce*0.35;
+    ctx.save(); ctx.translate(player.x+player.w/2,player.y+player.h/2+bob); ctx.scale(sq,1/sq); ctx.translate(-(player.x+player.w/2),-(player.y+player.h/2));
+    drawFireBaby(player.x+player.w/2,player.y+player.h/2,20,true);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function updHud(){
+  document.getElementById('score').textContent='🔥 '+score;
+  document.getElementById('lives').textContent='❤️'.repeat(Math.max(0,lives))+'🤍'.repeat(Math.max(0,3-lives));
+  document.getElementById('level').textContent='LVL '+Math.min(level,maxLevel);
+}
+function show(el,on){ document.getElementById(el).classList.toggle('hidden',!on); }
+
+function startGame(){
+  score=0; lives=3; level=1;
+  L=makeLevel(level); resetPlayer(); updHud();
+  state='play';
+  show('title',false); show('over',false); show('hud',true); show('ctrls',true);
+}
+function gameOver(won){
+  state='over';
+  document.getElementById('overTitle').textContent = won?'🎉 Adventure Complete! 🎉':'😢 Out of Hearts!';
+  document.getElementById('overScore').textContent='Final score: '+score+' 🔥';
+  show('over',true); show('ctrls',false);
+}
+function win(){ gameOver(true); }
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('againBtn').addEventListener('click',startGame);
+
+// touch controls
+function bind(id,prop){
+  var el=document.getElementById(id);
+  var on=function(e){e.preventDefault();keys[prop]=true;};
+  var off=function(e){e.preventDefault();keys[prop]=false;};
+  el.addEventListener('touchstart',on,{passive:false});
+  el.addEventListener('touchend',off,{passive:false});
+  el.addEventListener('touchcancel',off,{passive:false});
+  el.addEventListener('mousedown',on); el.addEventListener('mouseup',off); el.addEventListener('mouseleave',off);
+}
+bind('btnL','left'); bind('btnR','right'); bind('btnJ','jump');
+// keyboard
+window.addEventListener('keydown',function(e){
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=true;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=true;
+  if(e.key==='ArrowUp'||e.key==='w'||e.key===' ')keys.jump=true;
+});
+window.addEventListener('keyup',function(e){
+  if(e.key==='ArrowLeft'||e.key==='a')keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d')keys.right=false;
+  if(e.key==='ArrowUp'||e.key==='w'||e.key===' ')keys.jump=false;
+});
+// tap anywhere on title to start is via button only
+L=makeLevel(1); resetPlayer();
+loop();
+})();
+</script>
+</body>
+</html>

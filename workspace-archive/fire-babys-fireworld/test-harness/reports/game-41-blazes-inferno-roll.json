@@ -1,0 +1,27 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-41-blazes-inferno-roll.html",
+  "slug": "game-41-blazes-inferno-roll",
+  "runs": 1,
+  "started_at": "2026-10-12T21:31:47.746092+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": false,
+      "failed": true,
+      "fail_reason": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/games/game-41-blazes-inferno-roll.html\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/games/game-41-blaze",
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {},
+      "gameplay": {}
+    }
+  ],
+  "errors": [],
+  "loadFailures": 1,
+  "gameplayIssues": [
+    {
+      "run": 1,
+      "issue": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/games/game-41-blazes-inferno-roll.html\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/games/game-41-blaze"
+    }
+  ],
+  "finished_at": "2026-10-12T21:31:48.355620+00:00"
+}

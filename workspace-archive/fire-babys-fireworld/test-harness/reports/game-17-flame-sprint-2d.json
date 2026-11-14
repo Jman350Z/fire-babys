@@ -1,0 +1,27 @@
+{
+  "url": "http://localhost:8901/fire-world/games/game-17-flame-sprint-2d.html",
+  "slug": "game-17-flame-sprint-2d",
+  "runs": 1,
+  "started_at": "2026-10-12T21:31:33.010884+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": false,
+      "failed": true,
+      "fail_reason": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/games/game-17-flame-sprint-2d.html\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/games/game-17-flame-spr",
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {},
+      "gameplay": {}
+    }
+  ],
+  "errors": [],
+  "loadFailures": 1,
+  "gameplayIssues": [
+    {
+      "run": 1,
+      "issue": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/games/game-17-flame-sprint-2d.html\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/games/game-17-flame-spr"
+    }
+  ],
+  "finished_at": "2026-10-12T21:31:33.547664+00:00"
+}

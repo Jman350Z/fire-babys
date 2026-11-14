@@ -1,0 +1,27 @@
+{
+  "url": "http://localhost:8901/fire-world/slingshot-cascade/",
+  "slug": "slingshot-cascade",
+  "runs": 1,
+  "started_at": "2026-10-12T21:31:56.328347+00:00",
+  "run_results": [
+    {
+      "run": 1,
+      "loaded": false,
+      "failed": true,
+      "fail_reason": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/slingshot-cascade/\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/slingshot-cascade/\", waiting until \"loa",
+      "console_error_count": 0,
+      "page_error_count": 0,
+      "title": {},
+      "gameplay": {}
+    }
+  ],
+  "errors": [],
+  "loadFailures": 1,
+  "gameplayIssues": [
+    {
+      "run": 1,
+      "issue": "goto failed: Page.goto: net::ERR_PROXY_CONNECTION_FAILED at http://localhost:8901/fire-world/slingshot-cascade/\nCall log:\n  - navigating to \"http://localhost:8901/fire-world/slingshot-cascade/\", waiting until \"loa"
+    }
+  ],
+  "finished_at": "2026-10-12T21:31:56.804388+00:00"
+}

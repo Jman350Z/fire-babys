@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Flame Drop Physics — Fire Babys</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden;background:#0e0a10;font-family:system-ui,sans-serif;user-select:none;-webkit-user-select:none;touch-action:none}
+#c{display:block;width:100vw;height:100vh}
+#ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,6,12,.93);color:#fff;text-align:center;padding:20px;z-index:10}
+#ov h1{font-size:clamp(26px,7vw,44px);color:#ff9a5a;margin-bottom:10px}
+#ov p{font-size:15px;max-width:420px;margin-bottom:8px;color:#ffe9c9}
+#ov .lesson{background:#1e6b26;border-radius:10px;padding:10px 14px;font-size:13px;max-width:420px;margin:10px 0}
+#gate input{font-size:22px;width:90px;text-align:center;border-radius:8px;border:2px solid #ff9a5a;padding:6px;background:#1e100c;color:#fff}
+#gate button,#startBtn{background:#b44a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer;margin-top:10px}
+#hud{position:fixed;top:8px;left:0;right:0;text-align:center;color:#ffd23f;font-weight:900;font-size:22px;text-shadow:0 2px 0 #000;z-index:5;pointer-events:none}
+#back{position:fixed;top:8px;left:8px;z-index:11;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<button id="back" onclick="location.href='/fire-world.html'">←</button>
+<div id="hud">0m</div>
+<canvas id="c"></canvas>
+<div id="ov">
+<h1>🔥 FLAME DROP PHYSICS</h1>
+<p>Vertical runner! Ruko free-falls down the volcano shaft — tilt or drag LEFT/RIGHT to dodge ledges and grab embers. Fall as far as you can!</p>
+<div id="gate"><div style="margin-bottom:6px">🔒 Grown-up check: what is <b id="q"></b>?</div><input id="a" type="number" inputmode="numeric"><button onclick="checkGate()">GO</button></div>
+<button id="startBtn" class="hidden" onclick="start()">▶ START</button>
+<div class="lesson">🔥 Fire Safety: Falling is scary — always use handrails on stairs and never play near cliffs!</div>
+</div>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),ov=document.getElementById('ov');
+let W,H;function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;}addEventListener('resize',rs);rs();
+let AC=null;function beep(f,d,t){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();const a=AC,o=a.createOscillator(),g=a.createGain();o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.12,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);}catch(e){}}
+const n1=2+Math.floor(Math.random()*6),n2=5+Math.floor(Math.random()*3);
+document.getElementById('q').textContent=n1+' + '+n2;
+function checkGate(){if(parseInt(document.getElementById('a').value)===n1+n2){document.getElementById('gate').classList.add('hidden');document.getElementById('startBtn').classList.remove('hidden');}else alert('Try again!');}
+let state='menu',px=0,py=0,vy=0,ledges=[],embers=[],parts=[],dist=0,speed=0,time=0,shake=0,camY=0;
+function mkLedge(y){const w=90+Math.random()*120,gx=Math.random()*(W-w);return{x:gx,y,w};}
+function start(){state='play';px=W/2;py=H*.25;vy=0;ledges=[];embers=[];parts=[];dist=0;speed=300;time=0;camY=0;for(let i=0;i<9;i++)ledges.push(mkLedge(H*.4+i*170));ov.classList.add('hidden');}
+function end(){state='over';ov.innerHTML=`<h1>💥 BONK!</h1><p>You fell <b>${Math.floor(dist)}m</b>!</p><div class="lesson">🔥 Fire Safety: Falling is scary — always use handrails on stairs and never play near cliffs!</div><button onclick="location.reload()" style="background:#b44a1a;color:#fff;border:3px solid #fff;font-size:20px;font-weight:800;padding:12px 36px;border-radius:999px;cursor:pointer">↻ FALL AGAIN</button>`;ov.classList.remove('hidden');}
+function boom(x,y,c){for(let i=0;i<12;i++){const a=Math.random()*7,s=2+Math.random()*5;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,c});}}
+function update(dt){
+  if(state!=='play')return;time+=dt;dist+=speed*dt/40;speed=Math.min(750,300+time*14);shake*=.9;
+  hud.textContent=Math.floor(dist)+'m';
+  vy=Math.min(vy+1400*dt,700);
+  // steer
+  px+=steer*380*dt;px=Math.max(24,Math.min(W-24,px));
+  py+=vy*dt;
+  const sy=py+camY;
+  ledges.forEach(l=>{
+    if(px+20>l.x&&px-20<l.x+l.w&&Math.abs(sy-(l.y+10))<24&&vy>0){
+      shake=14;boom(px,sy,'#ff3b2e',20);beep(110,.35,'sawtooth');end();return;
+    }
+  });
+  embers.forEach((e,i)=>{if(Math.hypot(e.x-px,e.y+camY-sy)<44){embers.splice(i,1);dist+=20;boom(e.x,e.y+camY,'#ffd23f',8);beep(720,.1,'sine');}});
+  // camera
+  camY-=(py-H*.3)*3*dt;
+  // recycle
+  ledges.forEach(l=>{if(l.y+camY>H+80){Object.assign(l,mkLedge(l.y-9*170));if(Math.random()<.5)embers.push({x:l.x+l.w/2,y:l.y-50});}});
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life-=dt*1.5;});parts=parts.filter(p=>p.life>0);
+}
+function render(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0e0a10');g.addColorStop(1,'#241016');
+  ctx.fillStyle=g;ctx.fillRect(-20,-20,W+40,H+40);
+  ctx.save();ctx.translate(0,camY);
+  // shaft walls
+  ctx.fillStyle='#ff6a00';ctx.fillRect(0,-2000,14,H+4000);ctx.fillRect(W-14,-2000,14,H+4000);
+  ctx.fillStyle='rgba(255,106,0,.25)';ctx.fillRect(14,-2000,10,H+4000);ctx.fillRect(W-24,-2000,10,H+4000);
+  ledges.forEach(l=>{ctx.fillStyle='#5a3a28';ctx.fillRect(l.x,l.y,l.w,20);ctx.fillStyle='#ff6a00';ctx.fillRect(l.x,l.y,l.w,5);});
+  embers.forEach(e=>{ctx.fillStyle='#ffd23f';ctx.shadowColor='#ffb300';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(e.x,e.y,12,0,7);ctx.fill();ctx.shadowBlur=0;});
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,5*p.life+2,0,7);ctx.fill();});ctx.globalAlpha=1;
+  if(state==='play'){
+    ctx.save();ctx.translate(px,py+camY);
+    const bg=ctx.createRadialGradient(-8,-8,4,0,0,28);bg.addColorStop(0,'#ff8a7a');bg.addColorStop(1,'#c41e12');
+    ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,24,0,7);ctx.fill();
+    ctx.fillStyle='#1a1a1a';ctx.fillRect(-24,-12,48,9); // headband
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-8,-2,5,0,7);ctx.arc(8,-2,5,0,7);ctx.fill();
+    ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-8,-1,2.5,0,7);ctx.arc(8,-1,2.5,0,7);ctx.fill();
+    // motion lines
+    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=3;
+    for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(-14+i*12,-44);ctx.lineTo(-14+i*12,-70);ctx.stroke();}
+    ctx.restore();
+  }
+  ctx.restore();
+}
+let steer=0,last=0;
+function loop(t){const dt=Math.min((t-last)/1000||0,.05);last=t;update(dt);render();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')steer=-1;if(e.key==='ArrowRight')steer=1;});
+addEventListener('keyup',()=>steer=0);
+let tdx=null;
+cv.addEventListener('pointerdown',e=>{tdx=e.clientX;cv.setPointerCapture(e.pointerId);});
+cv.addEventListener('pointermove',e=>{if(tdx===null)return;steer=Math.max(-1,Math.min(1,(e.clientX-tdx)/60));});
+cv.addEventListener('pointerup',()=>{tdx=null;steer=0;});
+</script>
+</body>
+</html>
