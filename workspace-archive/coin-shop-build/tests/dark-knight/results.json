@@ -1,0 +1,120 @@
+{
+ "checks": [
+  {
+   "ok": true,
+   "label": "no arrival -> no banner"
+  },
+  {
+   "ok": true,
+   "label": "watcher polled /presence on load"
+  },
+  {
+   "ok": true,
+   "label": "fresh arrival A -> banner shows"
+  },
+  {
+   "ok": true,
+   "label": "banner text exact (got '\u2694\ufe0f A Dark Knight is coming...')"
+  },
+  {
+   "ok": true,
+   "label": "banner is a fixed top overlay (got {'position': 'fixed', 'top': '0px', 'zIndex': '2147483647'})"
+  },
+  {
+   "ok": true,
+   "label": "banner auto-removes after ~6s"
+  },
+  {
+   "ok": true,
+   "label": "watcher polled again (~30s interval)"
+  },
+  {
+   "ok": true,
+   "label": "same arrival on next poll -> banner does NOT re-show"
+  },
+  {
+   "ok": true,
+   "label": "new arrival B -> banner shows again"
+  },
+  {
+   "ok": true,
+   "label": "reload with same arrival B -> banner does NOT re-show (seen-set)"
+  },
+  {
+   "ok": true,
+   "label": "localStorage seen-set holds A and B (got '[\"arrival-A-test\",\"arrival-B-test\"]')"
+  },
+  {
+   "ok": true,
+   "label": "stale arrival (5 min old) -> no banner"
+  },
+  {
+   "ok": true,
+   "label": "hub: 0 CSP violations (got 0)"
+  },
+  {
+   "ok": true,
+   "label": "hub: 0 console/page errors (got [])"
+  },
+  {
+   "ok": true,
+   "label": "/3d.html: fresh arrival -> banner shows"
+  },
+  {
+   "ok": true,
+   "label": "/3d.html: 0 NEW CSP violations vs baseline (got [])"
+  },
+  {
+   "ok": true,
+   "label": "/3d.html: 0 new errors vs baseline (got [])"
+  },
+  {
+   "ok": true,
+   "label": "/play.html: fresh arrival -> banner shows"
+  },
+  {
+   "ok": true,
+   "label": "/play.html: 0 NEW CSP violations vs baseline (got [])"
+  },
+  {
+   "ok": true,
+   "label": "/play.html: 0 new errors vs baseline (got [])"
+  }
+ ],
+ "pages": {
+  "/fire-world.html": {
+   "csp": [],
+   "errors": []
+  },
+  "/3d.html": {
+   "csp": [],
+   "csp_sigs": [],
+   "baseline_csp_sigs": [],
+   "errors": [],
+   "baseline_errors": [],
+   "flake_retried": false
+  },
+  "/play.html": {
+   "csp": [
+    "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element."
+   ],
+   "csp_sigs": [
+    "meta-notice:frame-ancestors"
+   ],
+   "baseline_csp_sigs": [
+    "meta-notice:frame-ancestors"
+   ],
+   "errors": [
+    "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element."
+   ],
+   "baseline_errors": [
+    "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element."
+   ],
+   "flake_retried": false
+  }
+ },
+ "summary": {
+  "passed": 20,
+  "failed": 0
+ }
+}
