@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Babys — Auth Gate Test</title>
+<!-- The gate script goes in <head>, synchronously. ?mock=1 uses a fake backend. -->
+<script src="../client/auth-gate.js" data-badge="1"></script>
+<style>
+  body{background:#1a0d06;color:#ffe9d6;font-family:system-ui,sans-serif;text-align:center;padding:60px 20px}
+  h1{color:#ffb347;letter-spacing:2px}
+  .card{max-width:520px;margin:30px auto;background:rgba(255,106,26,.08);border:1px solid rgba(255,140,46,.4);
+       border-radius:16px;padding:24px}
+  code{background:#0006;padding:2px 8px;border-radius:6px;color:#ffd76a}
+  button{margin:6px;padding:12px 24px;border-radius:12px;border:none;font-weight:800;cursor:pointer;
+         background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206}
+</style>
+</head>
+<body>
+  <h1>🔥 AUTH GATE TEST PAGE 🔥</h1>
+  <p>If you can read this, you are <b>signed in</b>. The gate blocked this page until sign-in completed.</p>
+  <div class="card">
+    <p>Signed in as: <code id="who">…</code></p>
+    <p>Token: <code id="tok">…</code></p>
+    <button id="out">Sign out (gate should reappear)</button>
+    <button id="reload">Reload (should skip gate)</button>
+  </div>
+  <div class="card">
+    <p style="font-size:13px;color:#a8815e">Modes: this page runs with <code>?mock=1</code> (fake backend, no network).<br>
+    Remove it and add <code>?auth=https://your-worker.workers.dev</code> to test against a real deployment.</p>
+  </div>
+<script>
+  function refresh(){
+    var u = window.FireBabysAuth.getUser();
+    document.getElementById('who').textContent = u ? (u.name ? u.name+' <'+u.email+'>' : u.email) : '(none)';
+    var t = window.FireBabysAuth.getToken();
+    document.getElementById('tok').textContent = t ? t.slice(0,10)+'…' : '(none)';
+  }
+  window.FireBabysAuth.onAuthed(refresh);
+  document.getElementById('out').onclick = function(){ window.FireBabysAuth.signOut(); refresh(); };
+  document.getElementById('reload').onclick = function(){ location.reload(); };
+  document.addEventListener('fb-authed', refresh);
+  refresh();
+</script>
+</body>
+</html>

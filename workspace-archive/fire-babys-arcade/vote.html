@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote — Fire Babys Creator Competition</title>
+<meta name="description" content="Verified creators vote for the game mode that ships in the official Fire Babys phone app.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--flame:#ff6a00;--ember:#e63900;--gold:#ffc93c;--cream:#fff7ec;--ink:#2b1a0e;--card:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+nav.top{background:var(--ink);color:#fff}
+nav.top .wrap{display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+.brand{color:#fff;text-decoration:none;font-weight:800;font-size:19px}
+nav.top a.navlink{color:#fff;text-decoration:none;font-weight:700;font-size:14px;margin-left:14px}
+.hero{background:radial-gradient(1200px 420px at 50% -60px,#ffd9a0 0%,#ffab5e 38%,#ff7a1a 70%,#f2540a 100%);text-align:center;padding:40px 16px}
+.hero h1{font-size:clamp(28px,6vw,46px);font-weight:900;margin:6px 0 10px}
+.hero p{max-width:600px;margin:0 auto;font-weight:600}
+section.block{padding:32px 0}
+.panel{background:var(--card);border:3px solid var(--ink);border-radius:22px;padding:28px;box-shadow:0 6px 0 rgba(43,26,14,.15)}
+.panel h2{font-size:24px;margin-bottom:8px}
+.panel p{margin-bottom:14px;color:#5b4632}
+.center{text-align:center}
+.btn{display:inline-block;background:var(--ink);color:#fff;font-weight:800;font-size:17px;padding:13px 32px;border-radius:999px;text-decoration:none;border:none;cursor:pointer}
+.btn.fire{background:var(--flame);border:2px solid var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.note{font-size:13px;color:#8a7454;margin-top:14px}
+.ballot{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.ballot li{border:2px solid #d9c6a8;border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ballot li .t{font-weight:800;font-size:17px}
+.ballot li .by{font-size:13px;color:#7a5f43}
+.ballot li.voted{border-color:var(--ember);background:#fff3e8}
+.err{display:none;background:#fde8e8;border:2px solid #c0392b;color:#7a1f1a;border-radius:14px;padding:14px;font-weight:700;margin-top:16px}
+.ok{display:none;background:#eefbe8;border:2px solid #3fae4a;color:#1e6b26;border-radius:14px;padding:16px;font-weight:700;margin-top:16px}
+.tally{list-style:none;margin:14px 0;padding:0;display:grid;gap:10px}
+.tally li{background:#fff;border:2px solid #d9c6a8;border-radius:12px;padding:10px 14px}
+.tally .bar{height:10px;background:#f0e3c8;border-radius:99px;margin-top:6px;overflow:hidden}
+.tally .fill{height:100%;background:var(--flame);border-radius:99px}
+.tally .c{float:right;font-weight:800}
+footer{background:var(--ink);color:#fff;text-align:center;padding:26px 16px;margin-top:36px}
+footer .line{font-weight:800;color:var(--gold);margin-top:10px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<nav class="top">
+  <div class="wrap">
+    <a class="brand" href="https://firebabys.io/">🔥 Fire Babys</a>
+    <div>
+      <a class="navlink" href="https://firebabys.io/arcade.html">Arcade</a>
+      <a class="navlink" href="https://github.com/Jman350Z/fire-babys-creator-kit">Competition</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>🗳️ Creators Vote</h1>
+    <p>Only creators with a game live in the Arcade can vote. One verified creator = one vote. The winner ships in the phone app for <b>$10,000</b>.</p>
+  </div>
+</header>
+
+<div class="wrap">
+<section class="block">
+
+  <div class="panel center" id="panelSignin">
+    <h2>Step 1: Prove you're a creator</h2>
+    <p>Sign in with the same Google account you used to submit your game. Google verifies your email — we check it against the list of creators whose games passed review and went live.</p>
+    <div id="gsiBtn" class="center"></div>
+    <p class="note">🛡️ Nobody else can vote. No public votes, no bots — the approved-creator list lives on our server and is never shown to anyone.</p>
+    <div class="err" id="err1"></div>
+  </div>
+
+  <div class="panel hidden" id="panelClosed">
+    <h2>Voting is closed</h2>
+    <p id="closedMsg">This voting round is over. See the results below.</p>
+    <ul class="tally" id="tallyClosed"></ul>
+  </div>
+
+  <div class="panel hidden" id="panelIneligible">
+    <h2>You're not on the voter list (yet)</h2>
+    <p id="ineligReason">Only creators whose games have passed review and are live in the Arcade can vote.</p>
+    <p><a class="btn fire" href="https://firebabys.io/arcade.html#submit">Submit your game →</a></p>
+  </div>
+
+  <div class="panel hidden" id="panelBallot">
+    <h2>Step 2: Cast your vote</h2>
+    <p id="ballotMsg">Pick the game you think belongs in the phone app. You can't vote for your own game. You can change your vote any time before voting closes.</p>
+    <ul class="ballot" id="ballotList"></ul>
+    <div class="ok" id="okVote"></div>
+    <div class="err" id="err2"></div>
+  </div>
+
+  <div class="panel hidden" id="panelTally">
+    <h2>📊 Current standings</h2>
+    <ul class="tally" id="tallyList"></ul>
+    <p class="note" id="tallyNote"></p>
+  </div>
+
+</section>
+</div>
+
+<footer>
+  <p>Fire Babys — the world's #1 fire-safety-awareness brand for kids.</p>
+  <p class="line">the future is BLAZING FOR FIRE BABYS 🔥</p>
+</footer>
+
+<script>
+(function(){
+  // NOTE: the real worker base. Same host as auth-gate.js uses today.
+  var BASE = "https://fire-babys-auth.jeffpruden288.workers.dev";
+  var CLIENT_ID = null, idToken = null, voterGames = [];
+
+  function show(id){ document.getElementById(id).classList.remove("hidden"); }
+  function hide(id){ document.getElementById(id).classList.add("hidden"); }
+  function err(id, msg){ var e = document.getElementById(id); e.textContent = msg; e.style.display = "block"; }
+  function clearErrs(){ ["err1","err2"].forEach(function(i){ var e = document.getElementById(i); e.style.display = "none"; }); }
+
+  function api(path, body){
+    return fetch(BASE + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {})
+    }).then(function(r){ return r.json(); });
+  }
+
+  // 1) Get the Google client ID from the worker (never hardcoded), load GSI.
+  fetch(BASE + "/auth/config").then(function(r){ return r.json(); }).then(function(cfg){
+    CLIENT_ID = cfg.googleClientId;
+    if (!CLIENT_ID) { err("err1", "Sign-in isn't configured yet — please check back soon."); return; }
+    var s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = renderButton;
+    document.head.appendChild(s);
+  }).catch(function(){ err("err1", "Couldn't reach the sign-in server. Check your connection and try again."); });
+
+  function renderButton(){
+    google.accounts.id.initialize({ client_id: CLIENT_ID, callback: onGoogleSignIn });
+    google.accounts.id.renderButton(document.getElementById("gsiBtn"),
+      { theme: "filled_black", size: "large", text: "signin_with", width: 260 });
+  }
+
+  // 2) Google credential IS the ID token — send it to /vote/eligibility.
+  function onGoogleSignIn(resp){
+    clearErrs();
+    idToken = resp.credential;
+    hide("panelSignin"); show("panelBallot"); // placeholder while checking
+    api("/vote/eligibility", { idToken: idToken }).then(function(res){
+      hide("panelBallot");
+      if (!res.ok) {
+        show("panelSignin");
+        err("err1", res.error === "not_eligible"
+          ? "That Google account isn't on the approved-creator list."
+          : "Sign-in failed (" + (res.error || "unknown") + "). Please try again.");
+        return;
+      }
+      if (!res.votingOpen) { showClosed(res); return; }
+      if (!res.eligible) {
+        if (res.reason) document.getElementById("ineligReason").textContent = res.reason;
+        show("panelIneligible"); return;
+      }
+      voterGames = res.games || [];
+      if (res.hasVoted) {
+        document.getElementById("ballotMsg").textContent =
+          "You've voted — pick a different game to change your vote before voting closes.";
+      }
+      renderBallot(res.hasVoted);
+      show("panelBallot");
+      loadTally(false);
+    }).catch(function(){ show("panelSignin"); err("err1", "Connection problem — please try again."); });
+  }
+
+  function renderBallot(hasVoted){
+    var ul = document.getElementById("ballotList");
+    ul.innerHTML = "";
+    voterGames.forEach(function(g){
+      var li = document.createElement("li");
+      if (hasVoted === g.id) li.className = "voted";
+      var left = document.createElement("div");
+      left.innerHTML = "<div class='t'></div><div class='by'></div>";
+      left.querySelector(".t").textContent = g.title;
+      left.querySelector(".by").textContent = "by " + g.by;
+      var btn = document.createElement("button");
+      btn.className = "btn" + (hasVoted === g.id ? "" : " fire");
+      btn.textContent = hasVoted === g.id ? "✓ Your vote" : "Vote";
+      btn.onclick = function(){ castVote(g.id, btn); };
+      li.appendChild(left); li.appendChild(btn);
+      ul.appendChild(li);
+    });
+  }
+
+  // 3) Cast (or change) the vote — server enforces everything.
+  function castVote(gameId, btn){
+    clearErrs();
+    btn.disabled = true;
+    api("/vote/cast", { idToken: idToken, gameId: gameId }).then(function(res){
+      btn.disabled = false;
+      if (!res.ok) { err("err2", "Couldn't count that vote (" + (res.error || "unknown") + "). Try again."); return; }
+      var ok = document.getElementById("okVote");
+      ok.textContent = "✅ " + (res.replaced ? "Vote changed!" : "Vote counted!") +
+        " One verified creator = one vote — nobody can vote twice.";
+      ok.style.display = "block";
+      renderBallot(gameId);
+      ok.scrollIntoView({ behavior: "smooth", block: "center" });
+      loadTally(false);
+    }).catch(function(){ btn.disabled = false; err("err2", "Connection problem — your vote may not have counted. Try again."); });
+  }
+
+  // 4) Standings — only visible publicly after close (server decides).
+  function loadTally(force){
+    fetch(BASE + "/vote/tally" + (force ? "" : "")).then(function(r){ return r.json(); }).then(function(res){
+      if (!res.ok || !res.visible) return;
+      var ul = document.getElementById(res.closed ? "tallyClosed" : "tallyList");
+      ul.innerHTML = "";
+      var max = Math.max.apply(null, Object.keys(res.counts).map(function(k){ return res.counts[k]; }).concat([1]));
+      Object.keys(res.counts).forEach(function(gameId){
+        var li = document.createElement("li");
+        var g = voterGames.filter(function(x){ return x.id === gameId; })[0] || { title: gameId };
+        li.innerHTML = "<span class='c'></span><div class='t'></div><div class='bar'><div class='fill'></div></div>";
+        li.querySelector(".c").textContent = res.counts[gameId] + " vote" + (res.counts[gameId] === 1 ? "" : "s");
+        li.querySelector(".t").textContent = g.title;
+        li.querySelector(".fill").style.width = Math.round(res.counts[gameId] / max * 100) + "%";
+        ul.appendChild(li);
+      });
+      show(res.closed ? "panelClosed" : "panelTally");
+      if (res.closed) document.getElementById("closedMsg").textContent =
+        "The voting round is over — " + res.total + " verified creator votes counted. Jeff gives the final yes before anything ships.";
+    }).catch(function(){ /* tally is optional */ });
+  }
+
+  function showClosed(res){
+    show("panelClosed");
+    loadTally(true);
+  }
+
+  // Poll the tally endpoint once on load — the server shows it only when public.
+  loadTally(false);
+})();
+</script>
+</body>
+</html>
