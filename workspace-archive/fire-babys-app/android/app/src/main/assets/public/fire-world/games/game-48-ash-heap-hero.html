@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://firebabys.io/auth-gate.js"></script>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ash Heap Hero — by Jman350Z & fire team</title>
+<meta name="description" content="Sort the ash heap! Be a cleanup hero. A Fire Babys sorting game.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d1420;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#timebar{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:min(300px,70vw);height:12px;background:rgba(0,0,0,.5);border-radius:6px;z-index:5;pointer-events:none;overflow:hidden}
+#timefill{height:100%;width:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);border-radius:6px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,10,20,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#aee2ff}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#d6e9ff}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:linear-gradient(180deg,#aee2ff,#4a90d9);color:#0d1420;border:3px solid #aee2ff;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #2a5a89}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #2a5a89}
+#mathgate{background:#0e1a2a;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #4a90d9}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
+.hidden{display:none!important}
+#ctl{position:fixed;right:12px;bottom:14px;z-index:15;display:flex;gap:8px}
+#ctl button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:20px;cursor:pointer}
+#pausedTxt{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,7vw,44px);font-weight:900;color:#fff;background:rgba(0,0,0,.45);pointer-events:none}
+
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+</style>
+<style data-fbvis-cycle1>
+/* fbvis-cycle1: premium chrome pass — accent #4a90d9 / glow #aee2ff, presentation only */
+:root{--fbacc:#4a90d9;--fbglow:#aee2ff}
+body{background:radial-gradient(120% 90% at 50% 0%,rgba(74,144,217,0.13),transparent 55%),radial-gradient(110% 100% at 50% 115%,rgba(74,144,217,0.09),transparent 60%),#140a06}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid #aee2ff;outline-offset:2px;border-radius:6px}
+.pill{background:linear-gradient(180deg,rgba(34,18,9,.85),rgba(14,7,3,.85));border:1px solid rgba(255,255,255,.22);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);text-shadow:0 1px 2px rgba(0,0,0,.65)}
+#overlay{background:radial-gradient(90% 62% at 50% 28%,rgba(74,144,217,0.2),transparent 65%),radial-gradient(120% 100% at 50% 118%,rgba(0,0,0,.5),transparent 60%),linear-gradient(180deg,rgba(26,12,5,.96),rgba(13,6,3,.97))}
+#overlay h1{filter:drop-shadow(0 3px 16px rgba(74,144,217,0.45))}
+#overlay button{transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+#overlay button:hover:not(:active){filter:brightness(1.08);transform:translateY(-1px)}
+#overlay .lesson{border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#mathgate{border:1px solid rgba(74,144,217,0.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+#mathgate input{transition:border-color .12s ease,box-shadow .12s ease}
+#mathgate input:focus{border-color:#4a90d9;box-shadow:0 0 0 3px rgba(74,144,217,0.35);outline:none}
+#back{background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);transition:filter .12s ease,transform .12s ease}
+#back:hover{filter:brightness(1.35)}
+@media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
+</style>
+</head>
+<body>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="streak">🔥 0 streak</div>
+<div class="pill" id="best">🏆 0</div>
+</div>
+<div id="timebar"><div id="timefill"></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+<div id="ctl"><button id="btnPause" title="Pause (P)">⏸</button><button id="btnMute" title="Sound on/off (M)">🔊</button><button id="btnRestart" title="Restart">↻</button></div>
+<div id="pausedTxt" class="hidden">⏸ PAUSED</div>
+
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1 id="otitle">🦸 ASH HEAP HERO</h1>
+<div id="obody"><p>Clean up the ash heap!</p><p><b>DRAG</b> each falling item into the correct bin! 🔥 Burnables, ♻️ Recyclables, 🗑️ Trash. Sort fast — wrong bin loses points! 90 seconds on the clock!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Parental Gate</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Be a hero — keep your home clean and safe!</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+addEventListener('resize',()=>{for(const it of G.items){it.x=Math.max(36,Math.min(W-36,it.x));it.y=Math.min(H-40,it.y);}});
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__mute)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  good(){tone(600,900,0.1,'triangle',0.11);},
+  bad(){tone(350,150,0.18,'sawtooth',0.12);},
+  tick(){tone(800,800,0.05,'square',0.07);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+const ITEMS=[
+  {e:'📰',bin:1,name:'Newspaper'},{e:'🍌',bin:2,name:'Banana peel'},
+  {e:'🪵',bin:0,name:'Wood'},{e:'🥤',bin:1,name:'Cup'},
+  {e:'📦',bin:1,name:'Box'},{e:'🧦',bin:2,name:'Sock'},
+  {e:'🕯️',bin:0,name:'Candle'},{e:'🔋',bin:2,name:'Battery'},
+  {e:'🍎',bin:2,name:'Apple core'},{e:'📄',bin:1,name:'Paper'},
+  {e:'🪨',bin:2,name:'Rock'},{e:'🧻',bin:0,name:'Tissue'},
+];
+const BINS=[
+  {e:'🔥',label:'BURN',color:'#ff6a1a'},
+  {e:'♻️',label:'RECYCLE',color:'#4caf50'},
+  {e:'🗑️',label:'TRASH',color:'#7a7a8a'},
+];
+const G={state:'title',score:0,best:0,streak:0,bestStreak:0,
+  items:[],spawnT:0.8,drag:null,time:0};
+try{G.best=parseInt(localStorage.getItem('sort_best')||'0',10)||0;}catch(e){}
+const DUR=90;
+const tfEl=document.getElementById('timefill');
+function binRect(i){
+  const bw=W*0.28,bh=110,gap=W*0.04;
+  const totalW=bw*3+gap*2;
+  const x=(W-totalW)/2+i*(bw+gap);
+  return{x,y:H-bh-70,w:bw,h:bh};
+}
+function reset(){
+  G.score=0;G.streak=0;G.bestStreak=0;G.time=DUR;
+  G.items=[];G.spawnT=0.5;G.drag=null;
+  updateHUD();
+  document.getElementById('best').textContent='🏆 '+G.best;
+}
+function updateHUD(){
+  document.getElementById('score').textContent='⭐ '+G.score;
+  document.getElementById('streak').textContent=`🔥 ${G.streak} streak`;
+  document.getElementById('timefill').style.width=(G.time/DUR*100)+'%';
+}
+function spawnItem(){
+  const it=ITEMS[Math.floor(Math.random()*ITEMS.length)];
+  G.items.push({...it,x:60+Math.random()*(W-120),y:-40,vy:90+Math.random()*60+(DUR-G.time)*0.5,t:Math.random()*6});
+}
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play')return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  for(let i=G.items.length-1;i>=0;i--){
+    const it=G.items[i];
+    if(Math.hypot(x-it.x,y-it.y)<40){
+      G.drag={it,ox:x-it.x,oy:y-it.y};
+      G.items.splice(i,1);G.items.push(it); // to front
+      canvas.setPointerCapture(e.pointerId);
+      return;
+    }
+  }
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!G.drag)return;
+  const rect=canvas.getBoundingClientRect();
+  G.drag.it.x=e.clientX-rect.left-G.drag.ox;
+  G.drag.it.y=e.clientY-rect.top-G.drag.oy;
+  G.drag.it.held=true;
+});
+canvas.addEventListener('pointercancel',()=>{if(G.drag){G.drag.it.held=false;G.drag=null;}});
+canvas.addEventListener('pointerup',e=>{
+  const d=G.drag;if(!d)return;
+  G.drag=null;
+  const it=d.it;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  let binned=-1;
+  for(let i=0;i<3;i++){
+    const b=binRect(i);
+    if(x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h)binned=i;
+  }
+  if(binned>=0){
+    if(binned===it.bin){
+      G.streak++;G.bestStreak=Math.max(G.bestStreak,G.streak);
+      const pts=10+G.streak*2;
+      G.score+=pts;sfx.good();
+      spawnText(it.x,it.y,'+'+pts,'#4caf50');
+      burst(it.x,it.y,BINS[binned].color,8);
+    }else{
+      G.streak=0;G.score=Math.max(0,G.score-15);sfx.bad();
+      spawnText(it.x,it.y,'WRONG! -15','#ff4a5a');
+    }
+    it.gone=true;
+    updateHUD();
+  }else{
+    it.held=false;
+  }
+});
+const particles=[],floaters=[];
+for(let i=0;i<80;i++)particles.push({a:false});
+for(let i=0;i<10;i++)floaters.push({a:false});
+// [overhaul] ambient living embers — cheap additive-glow particles behind gameplay
+const amb=[];
+for(let i=0;i<24;i++)amb.push({x:Math.random()*2000,y:Math.random()*2000,s:1+Math.random()*2.2,v:14+Math.random()*26,ph:Math.random()*6.28,on:false});
+/* [w5c perf] Pre-baked glow sprites — the W5b-proven pattern copied from game-04:
+   the ember loop's 24 per-frame shadowBlur=8 fills collapsed FPS under software
+   rendering (10.0 FPS); blit a one-time radial-glow sprite instead. Colours,
+   falloff and alpha unchanged; no gameplay/balance changes. */
+function makeGlowSprite(hex){const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const gr=x.createRadialGradient(48,48,0,48,48,48);
+  gr.addColorStop(0,`rgba(${r},${g},${b},0.9)`);gr.addColorStop(0.35,`rgba(${r},${g},${b},0.38)`);gr.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  x.fillStyle=gr;x.fillRect(0,0,96,96);return c;}
+const EMBER_SPRITE=makeGlowSprite('#ff9a3a');
+const ITEM_GLOW=makeGlowSprite('#aee2ff'); // [w5c perf] item glow sprite
+/* [gauntlet perf] Pre-baked item sprites: the disc + emoji were re-drawn (emoji
+   fillText) for every item every frame — rasterize once per emoji instead. */
+const ITEM_SPRITES={};
+function itemSprite(e){
+  if(ITEM_SPRITES[e])return ITEM_SPRITES[e];
+  const c=document.createElement('canvas');c.width=c.height=96;const x=c.getContext('2d');
+  x.fillStyle='rgba(255,255,255,0.1)';x.beginPath();x.arc(48,48,32,0,Math.PI*2);x.fill();
+  x.font='36px system-ui';x.textAlign='center';x.fillText(e,48,61);
+  return ITEM_SPRITES[e]=c;
+}
+function drawEmbers(){
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of amb){
+    if(!e.on){e.on=true;e.x=Math.random()*W;e.y=Math.random()*H;}
+    e.y-=e.v/60;e.x+=Math.sin(G.time*1.3+e.ph)*0.18;
+    if(e.y<-6){e.y=H+6;e.x=Math.random()*W;}
+    const tw=0.55+0.45*Math.sin(G.time*3+e.ph);
+    ctx.globalAlpha=0.10+0.14*tw;
+    const r=e.s*7;ctx.drawImage(EMBER_SPRITE,e.x-r,e.y-r,r*2,r*2); // [w5c perf] pre-baked glow (was shadowBlur=8 per ember per frame)
+  }
+  ctx.restore();ctx.globalAlpha=1;
+}
+
+function burst(x,y,color,n){
+  for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    const a=Math.random()*Math.PI*2;
+    p.a=true;p.x=x;p.y=y;p.vx=Math.cos(a)*180;p.vy=Math.sin(a)*180;
+    p.life=0.4;p.max=0.4;p.color=color;p.size=3;}
+}
+function spawnText(x,y,txt,color){
+  const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
+}
+function update(dt){
+  G.time-=dt;tfEl.style.width=Math.max(0,G.time/DUR*100)+'%';
+  if(G.time<=10&&Math.floor(G.time)!==Math.floor(G.time+dt))sfx.tick();
+  if(G.time<=0){gameOver();return;}
+  G.spawnT-=dt;
+  if(G.spawnT<=0&&G.items.length<6){
+    spawnItem();
+    const elapsed=DUR-G.time;
+    G.spawnT=Math.max(0.5,1.1-elapsed*0.006);
+  }
+  for(const it of G.items){
+    if(it===G.drag?.it)continue;
+    if(!it.held){
+      it.y+=it.vy*dt;it.t+=dt*3;
+      // fell to bottom = miss
+      if(it.y>binRect(0).y+20){
+        it.gone=true;G.streak=0;
+        spawnText(it.x,binRect(0).y-12,'MISSED!','#ff4a5a');
+        updateHUD();
+      }
+    }
+  }
+  G.items=G.items.filter(it=>!it.gone);
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+  if(Math.random()<0.1)updateHUD();
+}
+function gameOver(){
+  G.state='over';G.drag=null;
+  const isBest=G.score>G.best;
+  if(isBest){G.best=G.score;try{localStorage.setItem('sort_best',String(G.best));}catch(e){}}
+  setTimeout(()=>{
+    showOverlay('⏰ TIME UP!',
+      `${isBest?'<p style="color:#ffd23f;font-weight:900">🏆 NEW BEST!</p>':''}<p style="font-size:26px;font-weight:900">Score: ${G.score}</p><p>Best streak: ${G.bestStreak}</p><p>Best: ${G.best}</p>`,
+      '🔥 Fire Safety: Be a cleanup hero!',
+      '↻ PLAY AGAIN',()=>{reset();G.state='play';});
+  },500);
+}
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1420');bg.addColorStop(0.6,'#101c26');bg.addColorStop(1,'#141a24');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  drawEmbers();
+  // bins
+  for(let i=0;i<3;i++){
+    const b=binRect(i),B=BINS[i];
+    const isHover=G.drag&&(()=>{const it=G.drag.it;return it.x>b.x&&it.x<b.x+b.w&&it.y>b.y&&it.y<b.y+b.h;})();
+    ctx.fillStyle=isHover?B.color:'rgba(255,255,255,0.06)';
+    ctx.globalAlpha=isHover?0.35:1;
+    ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,14);ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=B.color;ctx.lineWidth=3;
+    ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,14);ctx.stroke();
+    ctx.font='34px system-ui';ctx.textAlign='center';
+    ctx.fillText(B.e,b.x+b.w/2,b.y+48);
+    ctx.fillStyle=B.color;ctx.font='900 14px system-ui';
+    ctx.fillText(B.label,b.x+b.w/2,b.y+74);
+    ctx.textAlign='left';
+  }
+  // items
+  for(const it of G.items){
+    const bob=it.held?0:Math.sin(it.t)*4;
+    const isDrag=it===G.drag?.it;
+    ctx.save();
+    ctx.translate(it.x,it.y+bob);
+    if(isDrag){ctx.scale(1.25,1.25);}
+    {ctx.save();ctx.globalAlpha=isDrag?0.75:0.5;const gr2=52;ctx.drawImage(ITEM_GLOW,-gr2,-gr2,gr2*2,gr2*2);ctx.restore();} // [w5c perf] pre-baked item glow (was shadowBlur=9/20 per item per frame)
+    ctx.drawImage(itemSprite(it.e),-48,-48); // [gauntlet perf] pre-baked sprite (was per-frame disc + emoji fillText)
+    ctx.restore();
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font='900 20px system-ui';ctx.fillStyle='#000';
+    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  if(G.state==='play'&&G.time>DUR-5){
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText('DRAG ITEMS INTO THE RIGHT BIN!',W/2,H*0.4);
+    ctx.textAlign='left';
+  }
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if(G.state==='play')update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+document.getElementById('best').textContent='🏆 '+G.best;
+
+// [gamer-check batch-09] pause / mute / restart controls (P = pause, M = mute)
+window.__mute=false;
+let __prePause=null;
+const __pTxt=document.getElementById('pausedTxt');
+function __togglePause(){
+  if(G.state==='play'){__prePause='play';G.state='paused';__pTxt.classList.remove('hidden');}
+  else if(G.state==='paused'){G.state=__prePause||'play';__prePause=null;__pTxt.classList.add('hidden');}
+}
+document.getElementById('btnPause').onclick=e=>{e.stopPropagation();__togglePause();};
+document.getElementById('btnMute').onclick=e=>{e.stopPropagation();window.__mute=!window.__mute;e.currentTarget.textContent=window.__mute?'\u{1F507}':'\u{1F50A}';};
+document.getElementById('btnRestart').onclick=e=>{e.stopPropagation();if(G.state==='play'||G.state==='paused'){__pTxt.classList.add('hidden');__prePause=null;reset();G.state='play';}};
+addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(k==='p')__togglePause();if(k==='m')document.getElementById('btnMute').click();});
+
+requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'Hero of the Heap' — Ash Heap Hero's own
+   track. Synthesized Web Audio only. 119 BPM, C major: a warm heroic
+   triangle lead with march-lite drums — the underdog anthem of the ash heap.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__mute mutes, pause sets G.state='paused', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-48-ash-heap-hero.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__mute / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__mute||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:119,
+ BASS:[36,0,48,0,36,0,48,0, 41,0,53,0,41,0,53,0, 45,0,57,0,45,0,57,0, 43,0,55,0,43,0,50,0],
+ LEAD:[72,0,76,0,79,0,0,0, 77,0,79,0,81,0,79,0, 81,0,79,0,76,0,72,0, 74,0,76,0,79,0,0,0],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.16,'triangle',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.2,'triangle',0.055,d);
+  if(s%8===0||s%8===4)tone(118,45,0.11,'sine',0.12,d); // march-lite kick
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.06,d); // tone-only snare
+  if(s%4===0)tone(6800,6800,0.015,'square',0.007,d); // hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
+</script>
+</body>
+</html>
