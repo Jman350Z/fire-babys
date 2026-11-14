@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://firebabys.io/auth-gate.js"></script>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruko's Final Dash — by Jman350Z & fire team</title>
+<meta name="description" content="The grand finale! Epic boss dash. A Fire Babys game.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+#game{position:fixed;inset:0}
+canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;pointer-events:none;display:flex;justify-content:space-between;padding:12px 16px}
+.pill{background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:8px 16px;font-weight:800;font-size:16px}
+.pill.gold{color:#ffd23f}
+#bossbar{position:fixed;top:60px;left:50%;transform:translateX(-50%);width:min(320px,72vw);z-index:5;pointer-events:none}
+#bossbar .lbl{color:#ff8a8a;font-weight:900;font-size:13px;text-align:center;margin-bottom:3px}
+#bosstrack{height:12px;background:rgba(0,0,0,.55);border-radius:6px;overflow:hidden}
+#bossfill{height:100%;width:100%;background:linear-gradient(90deg,#ff4a5a,#a3121f);border-radius:6px}
+#overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,4,16,.93);color:#fff;text-align:center;padding:24px}
+#overlay h1{font-size:clamp(24px,6vw,42px);font-weight:900;margin-bottom:12px;color:#ffd76a}
+#overlay p{font-size:16px;margin-bottom:10px;max-width:440px;line-height:1.6;color:#ffe9d6}
+#overlay .lesson{background:#1e6b26;border-radius:12px;padding:12px 16px;margin:14px 0;font-size:14px;max-width:440px}
+#overlay button{background:linear-gradient(180deg,#ffd76a,#ff8c2e);color:#2a1206;border:3px solid #ff6a1a;font-size:20px;font-weight:900;padding:14px 40px;border-radius:999px;cursor:pointer;margin-top:8px;box-shadow:0 4px 0 #a33c10}
+#overlay button:active{transform:translateY(3px);box-shadow:0 1px 0 #a33c10}
+#mathgate{background:#141024;border-radius:12px;padding:16px;margin:14px 0;border:2px solid #ff6a1a}
+#mathgate input{font-size:22px;width:90px;text-align:center;padding:8px;border-radius:8px;border:2px solid #666;margin:0 8px;background:#fff;color:#000}
+.hidden{display:none!important}
+#back{position:fixed;bottom:14px;left:12px;z-index:10;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700}
+</style>
+<style data-fbvis-cycle1>
+/* fbvis-cycle1: premium chrome pass — accent #ff8c2e / glow #ffd76a, presentation only */
+:root{--fbacc:#ff8c2e;--fbglow:#ffd76a}
+body{background:radial-gradient(120% 90% at 50% 0%,rgba(255,140,46,0.13),transparent 55%),radial-gradient(110% 100% at 50% 115%,rgba(255,140,46,0.09),transparent 60%),#140a06}
+button:focus-visible,a:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:3px solid #ffd76a;outline-offset:2px;border-radius:6px}
+.pill{background:linear-gradient(180deg,rgba(34,18,9,.85),rgba(14,7,3,.85));border:1px solid rgba(255,255,255,.22);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);text-shadow:0 1px 2px rgba(0,0,0,.65)}
+#overlay{background:radial-gradient(90% 62% at 50% 28%,rgba(255,140,46,0.2),transparent 65%),radial-gradient(120% 100% at 50% 118%,rgba(0,0,0,.5),transparent 60%),linear-gradient(180deg,rgba(26,12,5,.96),rgba(13,6,3,.97))}
+#overlay h1{filter:drop-shadow(0 3px 16px rgba(255,140,46,0.45))}
+#overlay button{transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+#overlay button:hover:not(:active){filter:brightness(1.08);transform:translateY(-1px)}
+#overlay .lesson{border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#mathgate{border:1px solid rgba(255,140,46,0.55);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+#mathgate input{transition:border-color .12s ease,box-shadow .12s ease}
+#mathgate input:focus{border-color:#ff8c2e;box-shadow:0 0 0 3px rgba(255,140,46,0.35);outline:none}
+#back{background:linear-gradient(180deg,rgba(34,18,9,.88),rgba(14,7,3,.88));border:1px solid rgba(255,255,255,.28);box-shadow:0 2px 10px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15);transition:filter .12s ease,transform .12s ease}
+#back:hover{filter:brightness(1.35)}
+@media (prefers-reduced-motion:reduce){#overlay button,.lvlBtn,#back,#sysbtns button,#ctlBtns button,.btn,.dbtn,.abtn{transition:none}}
+</style>
+<style data-fblandscape="1">@media (max-height:500px){#back{bottom:88px!important}}</style>
+</head>
+<body>
+<div id="game">
+<div id="hud">
+<div class="pill gold" id="score">⭐ 0</div>
+<div class="pill" id="boss">👹 BOSS 1/8</div>
+<div class="pill" id="lives">❤️❤️❤️</div>
+</div>
+<div id="bossbar"><div class="lbl" id="bossname">🔥 ASH TITAN</div><div id="bosstrack"><div id="bossfill"></div></div></div>
+<button id="back" onclick="location.href='/fire-world.html'">← Fire World</button>
+
+<div id="ctl" style="position:fixed;right:10px;top:110px;z-index:15;display:flex;flex-direction:column;gap:8px"><button id="btnPause" aria-label="Pause" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">⏸</button><button id="btnMute" aria-label="Mute" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">🔊</button><button id="btnRestart" aria-label="Restart" style="width:46px;height:46px;border-radius:12px;border:2px solid #ff6a1a;background:rgba(0,0,0,.62);color:#fff;font-size:20px;cursor:pointer">↻</button></div>
+<div id="pauseLbl" class="hidden" style="position:fixed;inset:0;z-index:14;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;font-size:34px;font-weight:900;background:rgba(0,0,0,.45)">⏸ PAUSED</div>
+<canvas id="c"></canvas>
+<div id="overlay">
+<h1 id="otitle">🔥 RUKO'S FINAL DASH</h1>
+<div id="obody"><p>The grand finale!</p><p><b>TAP</b> to dash-attack the bosses! <b>SWIPE / ◀ ▶</b> to dodge their fireballs! 8 bosses, 3 lives. Hit them when they're open — dodge when they glow!</p><p>🔥 <b>NEW — Ember Combo Charm:</b> every 4th hit deals DOUBLE damage!</p></div>
+<div id="mathgate" class="hidden"><p>🔒 Math Check</p><p><span id="mq">3 + 4</span> = <input type="number" id="ma" inputmode="numeric"></p><button onclick="checkMath()">UNLOCK</button></div>
+<div class="lesson" id="olesson">🔥 Fire Safety: Face danger smart — dodge, don't freeze!</div>
+<button id="obtn">▶ PLAY</button>
+</div>
+</div>
+<script>
+'use strict';
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),otitle=document.getElementById('otitle'),
+      obody=document.getElementById('obody'),obtn=document.getElementById('obtn'),olesson=document.getElementById('olesson');
+let W,H,DPR;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+let AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type,vol,delay=0){if(window.__FB_MUTED)return;const ac=audio();if(!ac)return;const t=ac.currentTime+delay;
+  const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
+  o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(f1,1),t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur+0.05);}
+const sfx={
+  dash(){tone(700,1200,0.12,'sawtooth',0.1);},
+  hit(){tone(300,600,0.1,'square',0.12);},
+  dodge(){tone(900,500,0.08,'sine',0.08);},
+  hurt(){tone(350,100,0.3,'sawtooth',0.14);},
+  roar(){tone(120,60,0.5,'sawtooth',0.16);},
+  win(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,f,0.22,'triangle',0.14,i*0.1));},
+  burst(){tone(200,900,0.18,'sawtooth',0.14);tone(1200,1800,0.12,'sine',0.1,0.03);},
+  click(){tone(600,600,0.06,'square',0.1);}
+};
+const BOSSES=[
+  {name:'🔥 ASH TITAN',hp:8,color:'#8a4a2a',atkT:2.2,fbSpeed:380},
+  {name:'🌋 MAGMA LORD',hp:12,color:'#a32a10',atkT:1.7,fbSpeed:460},
+  {name:'👹 INFERNO KING',hp:16,color:'#5a1a5a',atkT:1.3,fbSpeed:540},
+  {name:'🔥 CINDER GIANT',hp:18,color:'#8a2a4a',atkT:1.25,fbSpeed:580},
+  {name:'🌋 LAVA WARDEN',hp:20,color:'#a35a10',atkT:1.19,fbSpeed:620},
+  {name:'💨 SMOKE SPECTER',hp:22,color:'#4a4a6a',atkT:1.12,fbSpeed:660},
+  {name:'🪨 OBSIDIAN GOLEM',hp:25,color:'#2a3a5a',atkT:1.06,fbSpeed:700},
+  {name:'☄️ SOLAR INFERNO',hp:28,color:'#7a1a2a',atkT:1.0,fbSpeed:740},
+];
+const G={state:'title',score:0,lives:3,bossIdx:0,
+  bossHp:8,bossX:0,bossT:0,atkTimer:2,open:false,openT:0,
+  px:0,dashX:0,dashT:0,fireballs:[],time:0,shake:0,dead:false,hitT:0,combo:0,invT:0};
+function startBoss(n){
+  const B=BOSSES[n];
+  G.bossIdx=n;G.bossHp=B.hp;G.bossX=W/2;G.bossT=0;
+  G.atkTimer=1.5;G.open=false;G.fireballs=[];G.dead=false;G.hitT=0;
+  document.getElementById('boss').textContent=`👹 BOSS ${n+1}/${BOSSES.length}`;
+  document.getElementById('bossname').textContent=B.name;
+  updBoss();
+  sfx.roar();G.shake=0.4;
+}
+function updBoss(){
+  const B=BOSSES[G.bossIdx];
+  document.getElementById('bossfill').style.width=Math.max(0,G.bossHp/B.hp*100)+'%';
+}
+function reset(){
+  G.score=0;G.lives=3;G.px=W/2;G.dashX=0;G.dashT=0;G.combo=0;
+  G.time=0;G.shake=0;G.dead=false;G.invT=0;
+  startBoss(0);
+  updateHUD();
+}
+function updateHUD(){
+  document.getElementById('score').textContent='⭐ '+G.score;
+  document.getElementById('lives').textContent='❤️'.repeat(Math.max(0,G.lives))||'💔';
+}
+const PY=()=>H*0.72;
+canvas.addEventListener('pointerdown',e=>{
+  if(G.state!=='play'||G.dead)return;
+  e.preventDefault();
+  G._sx=e.clientX;G._moved=false;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(G._sx===undefined||G.state!=='play')return;
+  const dx=e.clientX-G._sx;
+  if(Math.abs(dx)>24)G._moved=true;
+  G.px=Math.max(30,Math.min(W-30,G.px+dx*1.5));
+  G._sx=e.clientX;
+});
+canvas.addEventListener('pointerup',e=>{
+  if(G._sx===undefined)return;
+  const wasSwipe=G._moved;
+  G._sx=undefined;
+  if(!wasSwipe&&G.state==='play'&&!G.dead)doDash();
+});
+addEventListener('keydown',e=>{
+  if(G.state!=='play')return;
+  if(e.key==='ArrowLeft'||e.key==='a'){G.px=Math.max(30,G.px-40);sfx.dodge();}
+  if(e.key==='ArrowRight'||e.key==='d'){G.px=Math.min(W-30,G.px+40);sfx.dodge();}
+  if(e.key===' '){doDash();e.preventDefault();}
+});
+function doDash(){
+  if(G.dashT>0)return;
+  G.dashT=0.28;G.dashX=G.px;
+  sfx.dash();
+  // dash toward boss x
+  G.dashDir=Math.sign(G.bossX-G.px)||1;
+  if(G.open&&Math.abs(G.px-G.bossX)<W*0.35){
+    // HIT! Ember Combo Charm: every 4th hit deals DOUBLE damage (avg +25% power, in line with existing hits)
+    G.combo++;
+    const dmg=G.combo%4===0?2:1;
+    G.bossHp-=dmg;G.hitT=0.2;G.shake=0.3;
+    const pts=100*(G.bossIdx+1)*dmg;
+    G.score+=pts;updateHUD();updBoss();
+    if(dmg===2){sfx.burst();burst(G.bossX,H*0.3,'#ffd23f',20);spawnText(G.bossX,H*0.22,'\u{1F4A5} EMBER BURST +'+pts,'#ffd23f');}
+    else{sfx.hit();burst(G.bossX,H*0.3,'#ffd23f',12);spawnText(G.bossX,H*0.22,'+'+pts,'#ffd23f');}
+    if(G.bossHp<=0){bossDown();return;}
+  }else{ // whiff feedback: say WHY there was no damage instead of a silent empty dash
+    sfx.dodge();
+    spawnText(G.px,PY()-56,G.open?'TOO FAR!':'WAIT FOR ⚡ RING!','#9ad1ff');
+  }
+}
+const particles=[],floaters=[];
+for(let i=0;i<100;i++)particles.push({a:false});
+for(let i=0;i<10;i++)floaters.push({a:false});
+const embers=[];for(let i=0;i<24;i++)embers.push({x:Math.random()*1600,y:Math.random()*1200,s:1+Math.random()*2.2,v:14+Math.random()*30,ph:Math.random()*6.28});
+function burst(x,y,color,n){
+  for(let i=0;i<n;i++){const p=particles.find(p=>!p.a);if(!p)break;
+    const a=Math.random()*Math.PI*2;
+    p.a=true;p.x=x;p.y=y;p.vx=Math.cos(a)*220;p.vy=Math.sin(a)*220;
+    p.life=0.45;p.max=0.45;p.color=color;p.size=4;}
+}
+function spawnText(x,y,txt,color){
+  const f=floaters.find(f=>!f.a);if(!f)return;
+  f.a=true;f.x=x;f.y=y;f.txt=txt;f.color=color;f.life=1;
+}
+function bossAttack(){
+  const B=BOSSES[G.bossIdx];
+  const n=1+Math.floor(Math.random()*(1+G.bossIdx));
+  for(let i=0;i<n;i++){
+    G.fireballs.push({
+      x:G.bossX+(Math.random()-0.5)*80,y:H*0.3,
+      tx:G.px+(Math.random()-0.5)*120,ty:PY(),
+      t:0,dur:0.9,glow:0.4
+    });
+  }
+  sfx.roar();
+}
+function bossDown(){
+  sfx.win();
+  const bonus=500*(G.bossIdx+1);
+  G.score+=bonus;updateHUD();
+  setTimeout(()=>{
+    if(G.bossIdx>=BOSSES.length-1){
+      showOverlay(`🏆 ${BOSSES[G.bossIdx].name} DEFEATED!`,
+        `<p style="font-size:24px;font-weight:900">FINAL SCORE: ${G.score}</p><p>Lives left: ${G.lives}</p><p>🎉 YOU BEAT THE FINALE! 🎉</p>`,
+        '🔥 Fire Safety: You\'re a true hero!',
+        '↻ PLAY AGAIN',()=>{reset();G.state='play';});
+    }else{
+      showOverlay(`💥 ${BOSSES[G.bossIdx].name} DOWN!`,
+        `<p>+${bonus} bonus!</p><p>Score: ${G.score}</p>`,
+        '🔥 Fire Safety: Keep going!',
+        '▶ NEXT BOSS',()=>{startBoss(G.bossIdx+1);G.state='play';});
+    }
+  },800);
+  G.state='bossdown';
+}
+function hurt(){
+  if(G.dead||G.invT>0)return; // i-frames: stacked fireball explosions could drain all 3 lives in one tick
+  G.lives--;G.invT=1;updateHUD();sfx.hurt();G.shake=0.45;
+  burst(G.px,PY(),'#ff4a5a',12);
+  if(G.lives<=0){
+    G.dead=true;
+    setTimeout(()=>{
+      showOverlay('💥 GAME OVER',
+        `<p>Boss: ${BOSSES[G.bossIdx].name}</p><p>Score: ${G.score}</p>`,
+        '🔥 Fire Safety: Never give up!',
+        '↻ TRY AGAIN',()=>{reset();G.state='play';});
+    },700);
+  }
+}
+function update(dt){
+  G.time+=dt;G.shake=Math.max(0,G.shake-dt*3);G.hitT=Math.max(0,G.hitT-dt);G.invT=Math.max(0,G.invT-dt);
+  if(G.state==='bossdown'){ // defeated boss must stop attacking while the victory overlay is pending
+    for(const p of particles){if(!p.a)continue;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+    for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+    return;
+  }
+  const B=BOSSES[G.bossIdx];
+  G.bossT+=dt;
+  // boss sways
+  G.bossX=W/2+Math.sin(G.bossT*1.2)*W*0.22;
+  // dash anim
+  if(G.dashT>0){
+    G.dashT-=dt;
+    G.px+=G.dashDir*900*dt;
+    G.px=Math.max(30,Math.min(W-30,G.px));
+  }
+  // boss cycle: open -> attack -> open...
+  if(G.open){
+    G.openT-=dt;
+    if(G.openT<=0){G.open=false;G.atkTimer=B.atkT;}
+  }else{
+    G.atkTimer-=dt;
+    if(G.atkTimer<=0){bossAttack();G.open=true;G.openT=1.6;}
+  }
+  // fireballs
+  for(let i=G.fireballs.length-1;i>=0;i--){
+    const f=G.fireballs[i];
+    f.glow-=dt;
+    if(f.glow>0)continue;
+    f.t+=dt;
+    const p=Math.min(1,f.t/f.dur);
+    f.x+=(f.tx-f.x)*Math.min(1,dt*4);
+    f.y+=(f.ty-f.y)*Math.min(1,dt*4);
+    if(p>=1||f.t>f.dur+0.4){
+      // explode
+      burst(f.x,f.y,'#ff6a00',10);
+      if(Math.hypot(f.x-G.px,f.y-PY())<60&&!G.dead)hurt();
+      G.fireballs.splice(i,1);
+    }
+  }
+  if(G.dead)return;
+  for(const p of particles){if(!p.a)continue;
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;if(p.life<=0)p.a=false;}
+  for(const f of floaters){if(!f.a)continue;f.y-=36*dt;f.life-=dt;if(f.life<=0)f.a=false;}
+}
+let mathAnswer=0;
+function showMathGate(){
+  const a=1+Math.floor(Math.random()*9),b=1+Math.floor(Math.random()*9);
+  mathAnswer=a+b;document.getElementById('mq').textContent=a+' + '+b;
+  document.getElementById('mathgate').classList.remove('hidden');
+}
+function checkMath(){
+  if(parseInt(document.getElementById('ma').value,10)===mathAnswer){
+    document.getElementById('mathgate').classList.add('hidden');startGame();
+  }else document.getElementById('ma').value='';
+}
+function showOverlay(title,body,lesson,btn,cb){
+  otitle.innerHTML=title;obody.innerHTML=body;olesson.innerHTML=lesson;obtn.textContent=btn;
+  obtn.onclick=()=>{sfx.click();overlay.classList.add('hidden');cb();};
+  overlay.classList.remove('hidden');
+}
+function startGame(){audio();reset();G.state='play';overlay.classList.add('hidden');}
+obtn.onclick=()=>{showMathGate();};
+function render(){
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d0a1a');bg.addColorStop(0.6,'#2a0f14');bg.addColorStop(1,'#0d0a14');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(const e of embers){const ey=H-((e.y+G.time*e.v)%(H+30));const ex=(e.x+Math.sin(G.time*0.7+e.ph)*14)%W;ctx.globalAlpha=0.3+0.2*Math.sin(G.time*2+e.ph);ctx.fillStyle='#ff9a2a';ctx.beginPath();ctx.arc(ex,ey,e.s,0,Math.PI*2);ctx.fill();}
+  ctx.restore();ctx.globalAlpha=1;
+  ctx.save();
+  if(G.shake>0)ctx.translate((Math.random()-0.5)*G.shake*14,(Math.random()-0.5)*G.shake*14);
+  const B=BOSSES[G.bossIdx];
+  const bx=G.bossX,by=H*0.28;
+  // boss arena glow
+  const ag=ctx.createRadialGradient(bx,by,20,bx,by,180);
+  ag.addColorStop(0,'rgba(255,74,90,0.15)');ag.addColorStop(1,'rgba(255,74,90,0)');
+  ctx.fillStyle=ag;ctx.beginPath();ctx.arc(bx,by,180,0,Math.PI*2);ctx.fill();
+  // boss
+  const br=52+G.bossIdx*8;
+  const hitFlash=G.hitT>0;
+  const bg2=ctx.createRadialGradient(bx-12,by-14,8,bx,by,br);
+  if(hitFlash){bg2.addColorStop(0,'#fff');bg2.addColorStop(1,'#fff');}
+  else{bg2.addColorStop(0,B.color);bg2.addColorStop(1,'#1a0a0a');}
+  ctx.fillStyle=bg2;
+  // spiky body
+  ctx.beginPath();
+  for(let i=0;i<12;i++){
+    const a=i/12*Math.PI*2+G.bossT*0.6;
+    const rr=br+(i%2?10:0)+Math.sin(G.bossT*4+i)*3;
+    const px2=bx+Math.cos(a)*rr,py2=by+Math.sin(a)*rr;
+    i===0?ctx.moveTo(px2,py2):ctx.lineTo(px2,py2);
+  }
+  ctx.closePath();ctx.fill();
+  // eyes (angry when attacking)
+  const attacking=!G.open;
+  ctx.fillStyle=attacking?'#ffdd00':'#fff';
+  ctx.beginPath();ctx.arc(bx-16,by-6,8,0,Math.PI*2);ctx.arc(bx+16,by-6,8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#a3121f';
+  ctx.beginPath();ctx.arc(bx-16,by-4,4,0,Math.PI*2);ctx.arc(bx+16,by-4,4,0,Math.PI*2);ctx.fill();
+  // open indicator (green ring = attack now!)
+  if(G.open){
+    ctx.strokeStyle=`rgba(76,175,80,${0.6+Math.sin(G.time*10)*0.4})`;
+    ctx.lineWidth=6;
+    ctx.beginPath();ctx.arc(bx,by,br+18,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#4caf50';ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText('⚡ ATTACK NOW!',bx,by+br+40);ctx.textAlign='left';
+  }
+  // fireballs
+  for(const f of G.fireballs){
+    if(f.glow>0){
+      ctx.fillStyle=`rgba(255,106,0,${f.glow*2})`;
+      ctx.font='30px system-ui';ctx.textAlign='center';
+      ctx.fillText('⚠️',f.x,f.y-30);ctx.textAlign='left';
+      continue;
+    }
+    const fg=ctx.createRadialGradient(f.x-4,f.y-4,2,f.x,f.y,16);
+    fg.addColorStop(0,'#fff2c8');fg.addColorStop(0.5,'#ff8a3a');fg.addColorStop(1,'#a32a10');
+    ctx.fillStyle=fg;ctx.shadowColor='#ff8a3a';ctx.shadowBlur=14;ctx.beginPath();ctx.arc(f.x,f.y,15,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  }
+  // player
+  if(!G.dead){
+    const py=PY();
+    ctx.save();ctx.translate(G.px,py);
+    if(G.invT>0)ctx.globalAlpha=0.45+0.35*Math.sin(G.time*30); // flicker while invincible
+    if(G.dashT>0){
+      // dash trail
+      ctx.fillStyle='rgba(255,210,63,0.5)';
+      ctx.beginPath();ctx.ellipse(-G.dashDir*36,0,30,12,0,0,Math.PI*2);ctx.fill();
+    }
+    const g=ctx.createRadialGradient(-7,-7,3,0,0,20);
+    g.addColorStop(0,'#ffe9a0');g.addColorStop(0.5,'#ff7a2a');g.addColorStop(1,'#d42a1a');
+    ctx.fillStyle=g;ctx.shadowColor='rgba(255,122,42,0.95)';ctx.shadowBlur=22;ctx.beginPath();ctx.arc(0,-20,18,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle='#2b1a0e';
+    ctx.beginPath();ctx.arc(-6,-24,3.2,0,Math.PI*2);ctx.arc(6,-24,3.2,0,Math.PI*2);ctx.fill();
+    ctx.restore();
+  }
+  // particles
+  for(const p of particles){
+    if(!p.a)continue;
+    ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center';
+  for(const f of floaters){
+    if(!f.a)continue;
+    ctx.globalAlpha=Math.min(1,f.life);
+    ctx.font='900 22px system-ui';ctx.fillStyle='#000';
+    ctx.fillText(f.txt,f.x+2,f.y+2);ctx.fillStyle=f.color;ctx.fillText(f.txt,f.x,f.y);
+  }
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  ctx.restore();
+  if(G.state==='play'&&G.time<4){
+    ctx.fillStyle='rgba(255,255,255,0.8)';ctx.font='900 16px system-ui';ctx.textAlign='center';
+    ctx.fillText('TAP = DASH ATTACK • SWIPE = DODGE',W/2,H*0.55);
+    ctx.fillText('HIT WHEN THE GREEN RING SHOWS!',W/2,H*0.55+26);
+    ctx.textAlign='left';
+  }
+}
+let lastT=0;
+function loop(t){
+  const dt=Math.min((t-lastT)/1000||0,1/30);lastT=t;
+  if((G.state==='play'||G.state==='bossdown')&&!G.dead)update(dt);else G.time+=dt;
+  render();
+  requestAnimationFrame(loop);
+}
+
+// [gamer-check b10] pause / mute / restart controls (were missing entirely)
+window.__FB_MUTED=false;
+let __prePause=null;
+const __bp=document.getElementById('btnPause'),__bm=document.getElementById('btnMute'),__br=document.getElementById('btnRestart');
+function __togglePause(){if(G.state==='play'){__prePause='play';G.state='pause';__bp.textContent='▶';document.getElementById('pauseLbl').classList.remove('hidden');}else if(G.state==='pause'){G.state=__prePause||'play';__prePause=null;__bp.textContent='⏸';document.getElementById('pauseLbl').classList.add('hidden');}}
+__bp.addEventListener('click',()=>{__togglePause();});
+__bm.addEventListener('click',()=>{window.__FB_MUTED=!window.__FB_MUTED;__bm.textContent=window.__FB_MUTED?'🔇':'🔊';});
+__br.addEventListener('click',()=>{if(G.state==='title')return;overlay.classList.add('hidden');document.getElementById('pauseLbl').classList.add('hidden');__bp.textContent='⏸';__prePause=null;reset();G.state='play';});
+addEventListener('keydown',e=>{if(e.key==='p'||e.key==='P'||e.key==='Escape')__togglePause();if(e.key==='m'||e.key==='M')__bm.click();});
+requestAnimationFrame(loop);
+/* ===== MUSIC (Jeff 2026-10-15): 'The Final Dash' — Ruko's Final Dash's own
+   track. Synthesized Web Audio only. 160 BPM, D minor: a brand-new melody
+   with sequel energy to 'Panic at 154' — arps and four-on-the-floor at the
+   fastest tempo on the site.
+   This shell has no noise() helper, so the drums are tone-only (the game-02
+   Blaze Runner precedent).
+   Freeze gate CONFIRMED at insertion (2026-10-15): window.__FB_MUTED mutes, pause sets G.state='pause', and music
+   only plays while G.state==='play' — all read from this shell's own code.
+   Starts on first interaction; 🔊 mute + pause freeze it. =====
+   INSERT: paste at the end of game-55-rukos-final-dash.html's main
+   <script> block (same scope as audio()/tone()/noise()). No extra tags. */
+const _mf=m=>440*Math.pow(2,(m-69)/12);
+// Freeze gate (insertion-confirmed 2026-10-15): hard-wired to this shell's
+// own confirmed globals — window.__FB_MUTED / G.state. try/catch kept so it can never throw.
+const _mGate=()=>{try{return !!(window.__FB_MUTED||G.state!=='play');}catch(e){return false;}};
+const MUS={on:false,step:0,nextT:0,BPM:160,
+ BASS:[38,38,38,38,38,38,38,38, 46,46,46,46,46,46,46,46, 43,43,43,43,43,43,43,43, 45,45,45,45,45,45,45,45],
+ LEAD:[74,77,81,86,81,77,74,77, 82,86,89,86,82,86,89,86, 79,82,86,81,86,82,79,82, 81,85,88,85,81,85,88,85],
+ start(){if(this.on)return;const ac=audio();if(!ac)return;this.on=true;this.nextT=ac.currentTime+0.08;
+  setInterval(()=>this.tick(),42);},
+ tick(){const ac=audio();if(!ac)return;
+  if(_mGate()){this.nextT=ac.currentTime+0.06;return;}
+  while(this.nextT<ac.currentTime+0.14){this.play(this.step,this.nextT);this.nextT+=60/this.BPM/2;this.step=(this.step+1)%32;}},
+ play(s,t){const d=Math.max(0,t-audio().currentTime);
+  const b=this.BASS[s];if(b)tone(_mf(b),_mf(b),0.09,'sawtooth',0.055,d);
+  const l=this.LEAD[s];if(l)tone(_mf(l),_mf(l),0.09,'square',0.04,d);
+  if(s%2===0)tone(124,45,0.1,'sine',0.14,d); // four-on-the-floor
+  if(s%8===2||s%8===6)tone(190,120,0.07,'triangle',0.07,d); // tone-only snare
+  tone(7000,7000,0.012,'square',0.006,d); // hat click
+ }};
+addEventListener('pointerdown',()=>MUS.start());
+addEventListener('keydown',()=>MUS.start());
+</script>
+
+<!-- FB-CTL on-screen controls (controls pass 2026-10-15) -->
+<style id='fbCtlStyle'>
+#fbCtl{position:fixed;inset:0;z-index:12;pointer-events:none}
+#fbCtl .fbL{position:absolute;left:12px;bottom:14px;display:flex;gap:10px;align-items:flex-end}
+#fbCtl .fbR{position:absolute;right:12px;display:flex;flex-direction:column-reverse;gap:10px;align-items:center}
+#fbCtl .fbtn{pointer-events:auto;width:60px;height:60px;border-radius:50%;border:2px solid rgba(255,210,63,.9);background:radial-gradient(circle at 35% 28%,rgba(96,52,18,.93),rgba(24,12,4,.93));color:#fff;font-family:inherit;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;box-shadow:0 3px 10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);padding:0;margin:0;user-select:none;-webkit-user-select:none}
+#fbCtl .fbtn .fa{font-size:20px;line-height:1}
+#fbCtl .fbtn .fw{font-size:9px;letter-spacing:.5px;margin-top:1px}
+#fbCtl .fbtn.small{width:52px;height:52px}
+#fbCtl .fbtn.on,#fbCtl .fbtn:active{transform:scale(.92);filter:brightness(1.4)}
+#fbCtl .fbDia{position:absolute;left:12px;bottom:14px;display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:3px}
+#fbCtl .fbDia .fbtn{width:46px;height:46px;font-size:18px}
+#fbCtl .fbDia .sp{width:46px;height:46px}
+</style>
+<div id='fbCtl'><div class='fbL'><button class='fbtn' data-k='ArrowLeft' data-c='ArrowLeft' aria-label='LEFT'><span class='fa'>◀</span><span class='fw'>LEFT</span></button><button class='fbtn' data-k='ArrowRight' data-c='ArrowRight' aria-label='RIGHT'><span class='fa'>▶</span><span class='fw'>RIGHT</span></button></div><div class='fbR' style='bottom:52px'><button class='fbtn' data-k=' ' data-c='Space' aria-label='DASH' style='font-size:14px'>DASH</button></div><!-- [audit 2026-10-18] DASH lowered 78px->52px: at 78px the button's top overlapped the restart button's bottom edge in the right-hand cluster --></div>
+<script id='fbCtlScript'>(function(){function kev(type,key,code){var ev=new KeyboardEvent(type,{key:key,code:code||'',bubbles:true,cancelable:true});(document.body||window).dispatchEvent(ev);}function bind(el){var key=el.getAttribute('data-k'),code=el.getAttribute('data-c');var dn=function(e){e.preventDefault();e.stopPropagation();el.classList.add('on');try{el.setPointerCapture(e.pointerId);}catch(_){} kev('keydown',key,code);};var up=function(e){if(!el.classList.contains('on'))return;el.classList.remove('on');kev('keyup',key,code);};el.addEventListener('pointerdown',dn);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});el.addEventListener('contextmenu',function(e){e.preventDefault();});}document.querySelectorAll('#fbCtl .fbtn').forEach(bind);})();</script>
+<script>
+/* ============================================================
+   Fire Babys Math Check — 24-HOUR UNLOCK (Jeff, 2026-10-21)
+   The math check itself is unchanged. NEW: solve 5 problems in
+   a row right here and ALL games unlock for 24 hours. The unlock
+   is a device-side localStorage timestamp (fb_gate_unlock_until),
+   checked by this snippet on every gated page, so it works the
+   same on firebabys.io and in the offline downloadable build.
+   When the 24 hours run out, the normal math check simply
+   returns — no lockout, no progress lost.
+   ============================================================ */
+(function(){
+'use strict';
+var KEY='fb_gate_unlock_until';
+function until(){try{var v=parseInt(localStorage.getItem(KEY),10);return isNaN(v)?0:v;}catch(e){return 0;}}
+function unlocked(){return until()>Date.now();}
+function leftStr(){var ms=until()-Date.now();if(ms<=0)return '';var h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000);return h+'h '+(m<10?'0':'')+m+'m';}
+function gateEl(){return document.getElementById('mathgate');}
+function isVis(g){if(!g||g.classList.contains('hidden'))return false;var s=getComputedStyle(g);if(s.display==='none'||s.visibility==='hidden')return false;return g.offsetParent!==null||s.position==='fixed';}
+var passed=false;
+function tryPass(){
+  var g=gateEl();if(!g)return;
+  if(!isVis(g)){passed=false;return;}
+  buildUI(g);
+  if(!unlocked()||passed)return;
+  var mq=document.getElementById('mq'),ma=document.getElementById('ma');
+  if(!mq||!ma)return;
+  var m=/(\d+)\s*([+\-x×*])\s*(\d+)/.exec(mq.textContent||'');
+  if(!m)return;
+  var a=+m[1],b=+m[3],ans=(m[2]==='+')?a+b:((m[2]==='-')?a-b:a*b);
+  ma.value=ans;passed=true;
+  var btn=g.querySelector('button');
+  setTimeout(function(){if(btn)btn.click();},150);
+  setTimeout(function(){if(isVis(gateEl()))passed=false;},1000);
+}
+function buildUI(g){
+  if(g.querySelector('.fbg-chal'))return;
+  var box=document.createElement('div');box.className='fbg-chal';
+  box.style.cssText='margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.35);font-size:15px';
+  if(unlocked()){
+    box.innerHTML='<p style="margin:0">✅ <b>All games unlocked!</b> ⏰ '+leftStr()+' left</p>';
+    g.appendChild(box);return;
+  }
+  box.innerHTML='<p style="margin:0 0 6px">🏆 <b>Math Challenge:</b> solve <b>5 problems in a row</b> to unlock <b>ALL games for 24 hours</b>!</p>'
+    +'<button type="button" class="fbg-start" style="font-size:16px;font-weight:800;padding:8px 16px;border-radius:10px;cursor:pointer">START CHALLENGE</button>'
+    +'<div class="fbg-play" style="display:none;margin-top:8px">'
+    +'<p style="margin:0 0 6px">Problem <span class="fbg-n">1</span> of 5: <b class="fbg-q"></b> = '
+    +'<input type="number" class="fbg-a" inputmode="numeric" style="width:84px;font-size:18px;text-align:center;padding:6px;border-radius:8px;border:2px solid #666;color:#000"> '
+    +'<button type="button" class="fbg-check" style="font-size:16px;font-weight:800;padding:8px 14px;border-radius:10px;cursor:pointer">CHECK</button></p>'
+    +'<p class="fbg-msg" style="margin:0;min-height:20px"></p></div>';
+  g.appendChild(box);
+  var n=0,ans=0;
+  var qEl=box.querySelector('.fbg-q'),nEl=box.querySelector('.fbg-n'),
+      aEl=box.querySelector('.fbg-a'),msgEl=box.querySelector('.fbg-msg');
+  function next(){
+    var kind=Math.floor(Math.random()*3),a,b;
+    if(kind===0){a=2+Math.floor(Math.random()*19);b=2+Math.floor(Math.random()*19);ans=a+b;qEl.textContent=a+' + '+b;}
+    else if(kind===1){a=5+Math.floor(Math.random()*20);b=1+Math.floor(Math.random()*a);ans=a-b;qEl.textContent=a+' − '+b;}
+    else{a=2+Math.floor(Math.random()*8);b=2+Math.floor(Math.random()*8);ans=a*b;qEl.textContent=a+' × '+b;}
+    nEl.textContent=(n+1);aEl.value='';
+  }
+  box.querySelector('.fbg-start').addEventListener('click',function(){
+    this.style.display='none';box.querySelector('.fbg-play').style.display='';next();aEl.focus();
+  });
+  function check(){
+    if(parseInt(aEl.value,10)===ans){
+      n++;
+      if(n>=5){
+        try{localStorage.setItem(KEY,String(Date.now()+24*3600000));}catch(e){}
+        box.innerHTML='<p style="margin:0">🎉 <b>You did it!</b> ALL games are unlocked for 24 hours! ⏰</p>';
+        passed=false;setTimeout(tryPass,400);
+      }else{msgEl.textContent='✅ Correct! '+(5-n)+' to go.';next();aEl.focus();}
+    }else{
+      n=0;msgEl.textContent='❌ Not quite — streak reset. Back to problem 1!';next();aEl.focus();
+    }
+  }
+  box.querySelector('.fbg-check').addEventListener('click',check);
+  aEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();check();}});
+}
+setInterval(tryPass,300);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',tryPass);else tryPass();
+})();
+</script>
+
+</body>
+</html>
