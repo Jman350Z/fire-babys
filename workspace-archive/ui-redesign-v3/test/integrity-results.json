@@ -1,0 +1,17 @@
+{
+  "hrefs_original": 84,
+  "hrefs_new": 84,
+  "hrefs_missing_in_new": [],
+  "hrefs_added_in_new": [],
+  "hrefs_multiset_equal": true,
+  "ids_original": 20,
+  "ids_new": 20,
+  "ids_missing_in_new": [],
+  "ids_added_in_new": [],
+  "ids_multiset_equal": true,
+  "script_blocks_original": 6,
+  "script_blocks_new": 6,
+  "scripts_byte_identical_list": true,
+  "body_byte_identical": true,
+  "ALL_PASS": true
+}

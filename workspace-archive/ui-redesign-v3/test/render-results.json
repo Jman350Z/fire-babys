@@ -1,0 +1,67 @@
+{
+  "first_load": {
+    "total": 58,
+    "visible": 58
+  },
+  "phone_first_viewport": {
+    "total": 58,
+    "in_viewport": 2,
+    "grid_top": 707,
+    "gcount_top": 590,
+    "gcount_in_viewport": true
+  },
+  "shop_open": {
+    "fb_on": true,
+    "visibility": "visible",
+    "rect": {
+      "x": 0,
+      "y": 118.171875,
+      "w": 390,
+      "h": 725.828125
+    },
+    "in_viewport": true,
+    "items_rendered": 16
+  },
+  "grid_while_shop_open": {
+    "total": 58,
+    "visible": 58
+  },
+  "chest_open": {
+    "fb_on": true,
+    "visibility": "visible",
+    "in_viewport": true,
+    "shop_closed": true
+  },
+  "grid_while_chest_open": {
+    "total": 58,
+    "visible": 58
+  },
+  "after_games_tab": {
+    "shop_vis": "hidden",
+    "locker_vis": "hidden"
+  },
+  "grid_after_close": {
+    "total": 58,
+    "visible": 58
+  },
+  "page_errors_phone": [],
+  "desktop_first_load": {
+    "total": 58,
+    "visible": 58
+  },
+  "desktop_first_viewport": {
+    "total": 58,
+    "in_viewport": 4,
+    "grid_top": 829,
+    "gcount_top": 668,
+    "gcount_in_viewport": true
+  },
+  "PASS_first_load_all_games_visible": true,
+  "PASS_shop_drawer": true,
+  "PASS_grid_intact_with_shop_open": true,
+  "PASS_chest_drawer": true,
+  "PASS_drawers_close": true,
+  "PASS_phone_first_viewport_row": true,
+  "PASS_desktop_first_viewport_row": true,
+  "ALL_PASS": true
+}
