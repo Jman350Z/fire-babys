@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#171313">
+  <meta name="description" content="Tiny flames. Massive battles. Deploy, merge, and lead your Fire Babys to burn the enemy castle.">
+  <meta property="og:title" content="Fire Babys">
+  <meta property="og:description" content="Tiny flames. Massive battles.">
+  <meta property="og:image" content="https://muse.ai/files/1320763264456757/1553003249915585/tu8r0wlnxof1f83y9x370toh/media-generation-fire-babys-title-art-0-1fbbb0dd-a4ac-42aa-b0cf-1241f64e79c7.jpg">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:,">
+  <title>Fire Babys — Tiny Flames. Massive Battles.</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4f0e9;
+      --bg-2: #ebe3d9;
+      --surface: #fffaf3;
+      --surface-2: #241b18;
+      --ink: #211815;
+      --muted: #665850;
+      --line: #d8c9bc;
+      --ember: #e84b13;
+      --ember-2: #ff7a18;
+      --gold: #f2b83b;
+      --night: #171313;
+      --night-soft: #2d201c;
+      --cream: #fff3d0;
+      --focus: #1477c9;
+      --shadow: 0 18px 50px rgba(64, 27, 10, .18);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #130f0f;
+        --bg-2: #1b1413;
+        --surface: #211817;
+        --surface-2: #0e0b0b;
+        --ink: #fff6e8;
+        --muted: #c9b9ad;
+        --line: #46332d;
+        --ember: #ff5a1f;
+        --ember-2: #ff8627;
+        --gold: #f8c94d;
+        --night: #0d0a0a;
+        --night-soft: #2a1c18;
+        --cream: #fff1c5;
+        --focus: #67b7ff;
+        --shadow: 0 20px 60px rgba(0, 0, 0, .42);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 18px; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 7%, rgba(255, 104, 24, .09), transparent 22rem),
+        var(--bg);
+      color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin-inline: auto; }
+    .section { padding: 76px 0; }
+    .section-head { margin-bottom: 28px; max-width: 690px; }
+    .section-head h2, .community h2 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+    .section-head p { margin: 0; color: var(--muted); font-size: 1.05rem; }
+    .eyebrow {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--ember);
+      font-weight: 850;
+      font-size: .76rem;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      padding: 0 24px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--ember);
+      color: #fff;
+      font: inherit;
+      font-weight: 900;
+      letter-spacing: .03em;
+      text-decoration: none;
+      box-shadow: 0 7px 0 #9f2708, 0 16px 32px rgba(208, 54, 7, .25);
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+    .button:hover { background: var(--ember-2); transform: translateY(-2px); box-shadow: 0 9px 0 #9f2708, 0 19px 35px rgba(208,54,7,.28); }
+    .button:active { transform: translateY(5px); box-shadow: 0 2px 0 #9f2708; }
+
+    /* Hero */
+    .hero {
+      min-height: min(900px, 93svh);
+      position: relative;
+      display: grid;
+      place-items: end center;
+      padding: 24px 0 max(42px, env(safe-area-inset-bottom));
+      isolation: isolate;
+      background: var(--night);
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(to bottom, transparent 50%, rgba(10,6,5,.22) 67%, rgba(10,6,5,.94) 100%);
+    }
+    .hero-art {
+      position: absolute;
+      z-index: -2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 48%;
+    }
+    .hero-content { color: white; text-align: center; max-width: 650px; }
+    .hero h1 {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .hero-tagline {
+      margin: 0 0 22px;
+      font-size: clamp(1.45rem, 5vw, 2.4rem);
+      font-weight: 950;
+      line-height: 1;
+      text-shadow: 0 3px 12px #000;
+    }
+    .hero .button { min-width: 190px; }
+    .hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    .hero .button--ghost {
+      background: rgba(18, 12, 10, .72);
+      box-shadow: 0 7px 0 #000, inset 0 0 0 2px rgba(255,255,255,.72);
+    }
+    .hero .button--ghost:hover { background: #30201d; box-shadow: 0 9px 0 #000, inset 0 0 0 2px #fff; }
+    .scroll-cue { display: block; margin-top: 22px; font-size: .75rem; color: #f7dcb7; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+
+    /* Trailer */
+    .trailer-section { background: var(--bg); }
+    .trailer-layout { display: grid; gap: 28px; align-items: center; }
+    .trailer-copy { max-width: 530px; }
+    .trailer-copy h2 { margin: 0 0 12px; font-size: clamp(2.25rem, 7vw, 4.7rem); line-height: .94; letter-spacing: -.05em; }
+    .trailer-copy p { margin: 0; color: var(--muted); font-size: 1.05rem; }
+    .trailer-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .trailer-meta span {
+      padding: 5px 9px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      color: #fff2db;
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .trailer-frame {
+      position: relative;
+      overflow: hidden;
+      padding: 7px;
+      border: 1px solid #51362d;
+      border-radius: 6px 24px 6px 24px;
+      background: #0b0808;
+      box-shadow: var(--shadow);
+    }
+    .trailer-frame video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 3px 18px 3px 18px;
+      background: #080606;
+      object-fit: cover;
+    }
+
+    /* Demo */
+    .demo-section { background: var(--night); color: white; }
+    .demo-section .section-head { text-align: center; margin-inline: auto; }
+    .demo-section .section-head p { color: #d3c2b7; }
+    .demo-shell {
+      width: min(100%, 480px);
+      margin-inline: auto;
+      padding: 9px;
+      border-radius: 28px;
+      background: #090707;
+      border: 1px solid #4b352d;
+      box-shadow: 0 34px 80px rgba(0,0,0,.58), 0 0 0 5px rgba(255, 101, 23, .08);
+    }
+    .demo-shell::before {
+      content: "";
+      display: block;
+      width: 58px;
+      height: 5px;
+      margin: 2px auto 8px;
+      border-radius: 99px;
+      background: #604b43;
+    }
+    .demo-shell iframe {
+      display: block;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      min-height: 0;
+      border: 0;
+      border-radius: 18px;
+      background: #080606;
+    }
+    .demo-links { margin-top: 24px; text-align: center; }
+    .download { color: var(--gold); font-weight: 900; text-underline-offset: 4px; }
+    .demo-note { margin: 8px auto 0; max-width: 560px; color: #d3c2b7; font-size: .92rem; }
+    .demo-safety { margin: 12px auto 0; max-width: 620px; color: #fff0bf; font-weight: 900; }
+    .demo-caption { margin: 18px auto 0; max-width: 620px; color: #9f8e84; font-size: .76rem; }
+
+    /* Cast */
+    .cast-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .baby-card {
+      display: grid;
+      grid-template-columns: 102px minmax(0, 1fr);
+      gap: 17px;
+      align-items: center;
+      min-height: 174px;
+      padding: 19px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px 18px 18px 5px;
+      box-shadow: 0 8px 26px rgba(43,25,16,.07);
+    }
+    .baby-card h3 { margin: 0; font-size: 1.32rem; line-height: 1; letter-spacing: -.02em; }
+    .title { margin: 4px 0 10px; color: var(--ember); font-size: .86rem; font-weight: 900; }
+    .stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .stat, .girl {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: var(--bg-2);
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 850;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .girl { background: #a80f57; color: #fff; box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+    .quote { margin: 0; color: var(--muted); font-size: .91rem; font-style: italic; }
+    .profile-body { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid var(--line); }
+    .profile-label { display: block; margin-bottom: 5px; color: var(--ember); font-size: .7rem; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
+    .attitude { margin: 0 0 15px; font-size: .92rem; font-weight: 800; line-height: 1.45; }
+    .meter-grid { display: grid; gap: 7px; margin-bottom: 16px; }
+    .meter { display: grid; grid-template-columns: 74px 1fr 22px; gap: 7px; align-items: center; font-size: .67rem; font-weight: 900; text-transform: uppercase; letter-spacing: .03em; }
+    .meter-track { height: 7px; overflow: hidden; border-radius: 99px; background: var(--bg-2); }
+    .meter-fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--ember), var(--gold)); }
+    .backstory { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }
+    .portrait {
+      width: 104px;
+      aspect-ratio: 1;
+      margin: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 7px rgba(113, 36, 7, .22));
+    }
+
+    /* Creator */
+    .creator { background: var(--surface-2); color: white; position: relative; overflow: hidden; }
+    .creator::before { content:""; position:absolute; width:420px; height:420px; border: 90px solid rgba(255,93,24,.06); border-radius:50%; right:-210px; top:-140px; }
+    .creator .wrap { position: relative; }
+    .creator .section-head p { color: #cfbeb4; }
+    .creator-layout { display:grid; gap:28px; }
+    .combo-number { color: var(--gold); font-size: clamp(2.5rem, 11vw, 6.2rem); line-height: .82; letter-spacing: -.055em; font-weight: 950; }
+    .combo-label { margin-top: 12px; color:#d7c6bb; font-weight:750; }
+    .creator-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0; padding:0; list-style:none; }
+    .creator-list li { padding:14px 12px; border-top:1px solid #51362d; color:#f3e6db; font-size:.88rem; }
+    .creator-list strong { display:block; color:#ffb13c; font-size:1.05rem; }
+    .equip-line { margin:24px 0 0; padding:18px 0; border-top:1px solid #51362d; border-bottom:1px solid #51362d; font-weight:900; font-size:1.08rem; }
+
+    /* Steps */
+    .steps { list-style:none; padding:0; margin:0; display:grid; gap:12px; counter-reset:play; }
+    .steps li {
+      counter-increment: play;
+      display:grid;
+      grid-template-columns:52px 1fr;
+      gap:15px;
+      align-items:start;
+      padding:20px 0;
+      border-bottom:1px solid var(--line);
+    }
+    .steps li::before { content:counter(play); display:grid; place-items:center; width:52px; height:52px; border-radius:50%; color:white; background:var(--ember); font-weight:950; font-size:1.25rem; box-shadow:inset 0 -5px 0 rgba(97,20,1,.28); }
+    .steps h3 { margin:2px 0 4px; font-size:1.15rem; }
+    .steps p { margin:0; color:var(--muted); }
+
+    /* Policies and safety */
+    .policy-section {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      overflow-y: auto;
+      padding: max(34px, env(safe-area-inset-top)) 0 max(46px, env(safe-area-inset-bottom));
+      background: var(--bg);
+    }
+    .policy-section:target { display: block; }
+    .policy-back {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      margin-bottom: 18px;
+      color: var(--ember);
+      font-weight: 900;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+    }
+    .policy-page {
+      max-width: 860px;
+      margin-inline: auto;
+      padding: clamp(28px, 6vw, 56px);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px 28px 6px 28px;
+      box-shadow: 0 10px 34px rgba(43,25,16,.08);
+    }
+    .policy-page h2 { margin: 0 0 10px; font-size: clamp(2rem, 6vw, 3.7rem); line-height: 1; letter-spacing: -.045em; }
+    .policy-date { margin: 0 0 26px; color: var(--muted); font-size: .86rem; font-weight: 800; }
+    .policy-page p { margin: 0 0 16px; }
+    .policy-page p:last-child { margin-bottom: 0; }
+    .policy-page ul { margin: 18px 0 22px; padding-left: 1.35rem; }
+    .policy-page li { margin: 0 0 10px; }
+    .privacy-page a { color: var(--ember); font-weight: 900; text-underline-offset: 3px; }
+    .safety-section { background: var(--night); color: #fff; }
+    .safety-page { background: #251512; border-color: #633324; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+    .safety-page .eyebrow { color: #ffb443; }
+    .safety-page h2 { color: #fff4df; font-size: clamp(2.6rem, 9vw, 5.8rem); }
+    .safety-lead { color: #ffd36e; font-size: clamp(1.2rem, 3vw, 1.55rem); font-weight: 950; line-height: 1.25; }
+    .safety-list { color: #fff4e8; font-size: 1.05rem; }
+    .danger-statement {
+      margin-top: 26px !important;
+      padding: 20px;
+      background: #b52b0c;
+      color: #fff;
+      border-radius: 4px 18px 4px 18px;
+      font-weight: 900;
+      font-size: 1.08rem;
+    }
+    .emergency { color: #ffd36e; font-weight: 950; font-size: 1.15rem; }
+
+    /* Community */
+    .community-section { padding: 78px 0; }
+    .community {
+      position:relative;
+      overflow:hidden;
+      padding:36px 24px;
+      background:var(--ember);
+      color:#fff;
+      border-radius:6px 28px 6px 28px;
+      box-shadow:var(--shadow);
+    }
+    .community::after { content:""; position:absolute; width:190px; height:190px; right:-45px; bottom:-105px; border-radius:50%; border:40px solid rgba(255,255,255,.1); pointer-events:none; }
+    .community p { max-width:590px; margin:0 0 22px; font-weight:650; }
+    .community-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .community .button { background:#171111; box-shadow:0 7px 0 #000; position:relative; z-index:1; }
+    .community .button:hover { background:#30201d; }
+    .community .trailer-link, .community .site-link { position: relative; z-index: 1; color: #fff; font-weight: 900; text-underline-offset: 4px; }
+
+    footer { padding:28px 0 calc(28px + env(safe-area-inset-bottom)); background:var(--night); color:#c9b9ae; }
+    .footer-grid { display:grid; gap:18px; }
+    footer h2 { margin:0 0 4px; color:#fff1da; font-size:.9rem; }
+    footer p { margin:0; font-size:.82rem; }
+    footer a { color:var(--gold); text-underline-offset:3px; }
+    .copyright { padding-top:18px; border-top:1px solid #3a2a25; }
+
+    @media (min-width: 680px) {
+      .wrap { width:min(1120px, calc(100% - 64px)); }
+      .trailer-layout { grid-template-columns: minmax(220px, .68fr) minmax(0, 1.32fr); gap: 44px; }
+      .cast-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      .creator-layout { grid-template-columns:.8fr 1.2fr; align-items:end; }
+      .steps { grid-template-columns:repeat(2,1fr); gap:0 32px; }
+      .footer-grid { grid-template-columns:1fr 1fr auto; align-items:end; }
+      .copyright { border:0; padding:0; text-align:right; }
+    }
+    @media (min-width: 960px) {
+      .hero { min-height:900px; }
+      .hero-art { object-position:center 52%; }
+      .cast-grid { grid-template-columns:repeat(3, minmax(0,1fr)); }
+      .baby-card { grid-template-columns:100px minmax(0,1fr); }
+      .steps { grid-template-columns:repeat(4,1fr); gap:0; }
+      .steps li { display:block; padding:0 26px; border:0; border-right:1px solid var(--line); }
+      .steps li:first-child { padding-left:0; }
+      .steps li:last-child { border:0; padding-right:0; }
+      .steps li::before { margin-bottom:20px; }
+      .community { padding:50px 52px; }
+    }
+    @media (max-width: 520px) {
+      .section { padding: 64px 0; }
+      .demo-shell iframe { min-height: 0; }
+      .baby-card { grid-template-columns:94px minmax(0,1fr); padding:16px 13px; gap:12px; }
+      .portrait { width:94px; }
+      .creator-list { grid-template-columns:1fr; }
+    }
+    @media (max-width: 380px) {
+      .wrap { width:min(100% - 22px, 1120px); }
+      .demo-shell { padding:6px; border-radius:22px; }
+      .demo-shell iframe { min-height:0; }
+      .baby-card { grid-template-columns:78px minmax(0,1fr); }
+      .portrait { width:84px; margin-left:-4px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior:auto; }
+      .button { transition:none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="hero-art" src="assets/fire-babys-title-art.jpg" alt="Fire Babys title blazing above a fierce round fire creature and a burning fantasy castle">
+      <div class="wrap hero-content">
+        <h1 id="hero-title">Fire Babys</h1>
+        <p class="hero-tagline">Tiny flames. Massive battles.</p>
+        <div class="hero-actions">
+          <a class="button" href="#demo">PLAY DEMO</a>
+        </div>
+        <span class="scroll-cue">Deploy • Merge • Burn</span>
+      </div>
+    </section>
+
+    <section class="section demo-section" id="demo" aria-labelledby="demo-heading">
+      <div class="wrap">
+        <header class="section-head">
+          <span class="eyebrow">Ready when you are</span>
+          <h2 id="demo-heading">Play the demo</h2>
+          <p>Take command. Move your hero, trigger Fire Nova, and torch the enemy castle.</p>
+        </header>
+        <div class="demo-shell">
+          <iframe
+            src="assets/fire-babys-demo-v009.html"
+            title="Playable Fire Babys mobile game demo"
+            loading="eager"
+            allow="fullscreen"
+          ></iframe>
+        </div>
+        <div class="demo-links">
+          <a class="download" href="assets/fire-babys-demo-v009.html" download="Fire Babys Demo.html">Download the demo</a>
+          <p class="demo-note">It plays offline in any mobile browser.</p>
+          <p class="demo-safety">Remember: real fire is never a toy — this game is pretend.</p>
+          <p class="demo-caption">The demo is bundled with this site, so it stays playable here.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="cast-heading">
+      <div class="wrap">
+        <header class="section-head">
+          <span class="eyebrow">The original six</span>
+          <h2 id="cast-heading">Meet the Babys</h2>
+          <p>Every flame has a role. Every flame has an attitude.</p>
+        </header>
+        <div class="cast-grid">
+          <article class="baby-card">
+            <img class="portrait" src="assets/ruko-portrait.png" alt="Ruko, an orange-red round flame brawler with a flame mohawk, sporty headband, and captain's grin">
+            <div><h3>RUKO</h3><p class="title">The Leader</p><div class="stats"><span class="stat">Brawler</span><span class="stat">Fist Flurry</span></div><p class="quote">“Heads up, flames up — we win together!”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">The locker-room spark plug. Ruko calls the plays, lifts the squad, and charges in first so nobody has to fight alone.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Ruko's attributes">
+                <div class="meter"><span>Power</span><span class="meter-track"><span class="meter-fill" style="width:90%"></span></span><span>9</span></div>
+                <div class="meter"><span>Speed</span><span class="meter-track"><span class="meter-fill" style="width:80%"></span></span><span>8</span></div>
+                <div class="meter"><span>Teamwork</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">Ruko sparked to life beside the old Ember Dash training track and raced every flame who rolled past. When a rookie squad got lost in the ash fields, he coached them home one brave step at a time—and earned the captain’s headband.</p>
+            </div>
+          </article>
+          <article class="baby-card">
+            <img class="portrait" src="assets/blaze-portrait.png" alt="Blaze, a golden round flame hero wearing a small star crown and heroic grin">
+            <div><h3>BLAZE</h3><p class="title">The Star-Crowned</p><div class="stats"><span class="stat">Hero · Your avatar</span><span class="stat">Fire Nova</span></div><p class="quote">“Follow me. Try to keep up.”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">Fearless, bright, and built for the big moment. Blaze trusts a bold plan, a loyal crew, and one perfectly timed Fire Nova.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Blaze's attributes">
+                <div class="meter"><span>Power</span><span class="meter-track"><span class="meter-fill" style="width:90%"></span></span><span>9</span></div>
+                <div class="meter"><span>Bravery</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Focus</span><span class="meter-track"><span class="meter-fill" style="width:80%"></span></span><span>8</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">A tiny fallen star landed in the castle furnace and woke up as Blaze. The star crown chose Blaze to carry its light, but being a hero still means earning the squad’s trust in every battle.</p>
+            </div>
+          </article>
+          <article class="baby-card">
+            <img class="portrait" src="assets/boulder-portrait.png" alt="Boulder, a deep magma-red round flame guardian with soft eyes and rocky shoulder plates">
+            <div><h3>BOULDER</h3><p class="title">The Gentle Wall</p><div class="stats"><span class="stat">Guardian</span><span class="stat">Magma Taunt</span></div><p class="quote">“Nobody touches my friends. NOBODY.”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">A mountain-sized softie with an unbreakable promise: everybody gets home. Boulder would rather share a warm snack—but threaten a friend and the wall goes up.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Boulder's attributes">
+                <div class="meter"><span>Toughness</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Kindness</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Speed</span><span class="meter-track"><span class="meter-fill" style="width:40%"></span></span><span>4</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">Boulder began as a quiet lump of cooling lava beneath the castle bridge. When a storm trapped three little sparks outside, the rock cracked open, stood tall, and sheltered them until morning.</p>
+            </div>
+          </article>
+          <article class="baby-card">
+            <img class="portrait" src="assets/sizzle-portrait.png" alt="Sizzle, a bright yellow-pink round flame archer with a flowing ponytail, playful wink, and bow">
+            <div><h3>SIZZLE</h3><p class="title">The Showoff</p><div class="stats"><span class="girl">Girl</span><span class="stat">Archer</span><span class="stat">Spark Volley</span></div><p class="quote">“Watch and learn, boys.”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">If there’s a spotlight, Sizzle already found it. She turns impossible shots into a performance, takes a bow, and somehow lands the next arrow without looking.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Sizzle's attributes">
+                <div class="meter"><span>Speed</span><span class="meter-track"><span class="meter-fill" style="width:90%"></span></span><span>9</span></div>
+                <div class="meter"><span>Aim</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Style</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">Sizzle learned archery by firing sparks through rings of steam at the Sunflare Fair. One perfect trick shot saved the grand finale, and she has treated every battlefield like center stage ever since.</p>
+            </div>
+          </article>
+          <article class="baby-card">
+            <img class="portrait" src="assets/cinder-portrait.png" alt="Cinder, a violet-red round flame pyro with twin ember buns and a mischievous grin">
+            <div><h3>CINDER</h3><p class="title">The Chaos Gremlin</p><div class="stats"><span class="girl">Girl</span><span class="stat">Pyro</span><span class="stat">Meteor Drop</span></div><p class="quote">“Hehehe... did that explode? GOOD.”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">Curious, giggly, and always one button away from trouble. Cinder means well—she just thinks every plan can be improved with a surprise from the sky.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Cinder's attributes">
+                <div class="meter"><span>Power</span><span class="meter-track"><span class="meter-fill" style="width:80%"></span></span><span>8</span></div>
+                <div class="meter"><span>Mischief</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Control</span><span class="meter-track"><span class="meter-fill" style="width:50%"></span></span><span>5</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">Cinder’s first sneeze dropped a pebble-sized meteor into the practice yard. Instead of hiding, she spent years learning to aim the chaos—mostly in the right direction.</p>
+            </div>
+          </article>
+          <article class="baby-card">
+            <img class="portrait" src="assets/lord-inferno-portrait.png" alt="Lord Inferno, a dark crimson-black round flame villain with a jagged black-fire crown and menacing grin">
+            <div><h3>LORD INFERNO</h3><p class="title">The Wildfire King</p><div class="stats"><span class="stat">Boss · Villain</span><span class="stat">Cataclysm Slam</span></div><p class="quote">“Little flames. BOW.”</p></div>
+            <div class="profile-body">
+              <span class="profile-label">Attitude</span>
+              <p class="attitude">Loud, ruthless, and certain the whole realm belongs to him. Lord Inferno never asks—he commands, crushes, and cackles from behind his black-fire crown.</p>
+              <span class="profile-label">Extra attributes</span>
+              <div class="meter-grid" aria-label="Lord Inferno's attributes">
+                <div class="meter"><span>Power</span><span class="meter-track"><span class="meter-fill" style="width:100%"></span></span><span>10</span></div>
+                <div class="meter"><span>Cunning</span><span class="meter-track"><span class="meter-fill" style="width:90%"></span></span><span>9</span></div>
+                <div class="meter"><span>Mercy</span><span class="meter-track"><span class="meter-fill" style="width:10%"></span></span><span>1</span></div>
+              </div>
+              <span class="profile-label">Backstory</span>
+              <p class="backstory">Lord Inferno rose from a forbidden furnace buried under the Scorched Crown. He decided every flame should serve him, seized a fortress, and now sends his army to darken every free spark in the realm.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section creator" aria-labelledby="creator-heading">
+      <div class="wrap">
+        <header class="section-head">
+          <span class="eyebrow">Make your flame</span>
+          <h2 id="creator-heading">Build-a-Baby</h2>
+          <p>Name it. Style it. Train it. Then put your creation in command.</p>
+        </header>
+        <div class="creator-layout">
+          <div>
+            <div class="combo-number">9,676,800</div>
+            <div class="combo-label">possible combinations</div>
+          </div>
+          <ul class="creator-list">
+            <li><strong>10 palettes</strong>Eyes, brows, mouths &amp; color</li>
+            <li><strong>Full loadout</strong>Headgear, torso gear &amp; weapons</li>
+            <li><strong>6 classes</strong>Archer, Knight, Heavy, Wizard, Strongman, Ogre</li>
+            <li><strong>8 specials</strong>Pick the move that fits your fight</li>
+            <li><strong>12 points</strong>Split across Power, Swift &amp; Tough</li>
+            <li><strong>6 save slots</strong>Build a whole custom roster</li>
+          </ul>
+        </div>
+        <p class="equip-line">Equip your custom Baby as your hero in battle.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="play-heading">
+      <div class="wrap">
+        <header class="section-head">
+          <span class="eyebrow">Fight smart. Burn bright.</span>
+          <h2 id="play-heading">How it plays</h2>
+        </header>
+        <ol class="steps">
+          <li><div><h3>Deploy &amp; merge</h3><p>Build your squad into stronger tiers.</p></div></li>
+          <li><div><h3>Watch armies clash</h3><p>Your formation fights on its own.</p></div></li>
+          <li><div><h3>Drive the hero</h3><p>Use the joystick. Pop Fire Nova.</p></div></li>
+          <li><div><h3>Burn the castle</h3><p>Climb stages. Face a boss every 5.</p></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="policy-section safety-section" id="fire-safety" aria-labelledby="safety-heading">
+      <div class="wrap">
+        <a class="policy-back" href="#site-footer" aria-label="Back to the Fire Babys home page">← Back to Fire Babys</a>
+        <article class="policy-page safety-page">
+          <span class="eyebrow">Fire Safety — Read This</span>
+          <h2 id="safety-heading">DON’T PLAY WITH FIRE.</h2>
+          <p class="safety-lead">Fire Babys is a pretend fantasy game. The Babys are fictional characters. Nothing you see in this game should ever be tried in real life.</p>
+          <ul class="safety-list">
+            <li><strong>Real fire is never safe. It is never a toy and never a game.</strong></li>
+            <li>Never play with matches, lighters, candles, stoves, grills, or fireworks.</li>
+            <li>Kids should never handle fire. Fire is for grown-ups only.</li>
+            <li>Playing with real fire can burn you, burn your house down, and kill.</li>
+          </ul>
+          <p class="danger-statement">If anyone is hurt or any property is damaged because of real fire, that is NOT the fault or responsibility of Jeff Pruden or Fire Babys.</p>
+          <p class="emergency">In a fire emergency, get to safety and call your local emergency number immediately.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="policy-section" id="privacy" aria-labelledby="privacy-title">
+      <div class="wrap">
+        <a class="policy-back" href="#site-footer" aria-label="Back to the Fire Babys home page">← Back to Fire Babys</a>
+        <article class="policy-page privacy-page">
+          <span class="eyebrow">Privacy Policy</span>
+          <h2 id="privacy-title">Your play stays yours.</h2>
+          <p class="policy-date">Effective September 2026</p>
+          <p>This site requires no account. We do not ask for or collect names, email addresses, or other personal information.</p>
+          <p>The playable demo runs entirely in your browser. It does not send gameplay data anywhere. This site does not use tracking cookies.</p>
+          <p>The demo is bundled with this site and runs in your browser. Links to the official Fire Babys website and <a href="https://www.facebook.com/groups/2333915794032995" target="_blank" rel="noopener noreferrer">Facebook group</a> take you to third-party services with their own privacy policies and practices.</p>
+          <p>Questions? Contact us through the official Facebook group.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="community-section">
+      <div class="wrap">
+        <div class="community">
+          <span class="eyebrow" style="color:#ffe1a1">The fire is spreading</span>
+          <h2>Join the community</h2>
+          <p>Meet the crew, follow the build, and help shape what burns next.</p>
+          <div class="community-actions">
+            <a class="button" href="https://www.facebook.com/groups/2333915794032995" target="_blank" rel="noopener noreferrer">JOIN ON FACEBOOK</a>
+            <a class="site-link" href="https://firebabys.io/play.html" target="_blank" rel="noopener noreferrer">Play classic 2D</a>
+            <a class="site-link" href="https://firebabys.io/parents.html" target="_blank" rel="noopener noreferrer">Parents</a>
+            <a class="site-link" href="https://firebabys.io/characters.html" target="_blank" rel="noopener noreferrer">Characters</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer">
+    <div class="wrap footer-grid">
+      <section aria-labelledby="privacy-link-heading"><h2 id="privacy-link-heading">Privacy</h2><p><a href="#privacy">Read the Privacy Policy</a></p></section>
+      <section aria-labelledby="safety-link-heading"><h2 id="safety-link-heading">Fire safety</h2><p><a href="#fire-safety">Read the fire safety warning</a></p></section>
+      <p class="copyright">© 2026 Fire Babys</p>
+    </div>
+  </footer>
+</body>
+</html>

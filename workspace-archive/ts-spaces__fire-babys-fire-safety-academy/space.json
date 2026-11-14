@@ -1,0 +1,8 @@
+{
+  "runtime": "static",
+  "platformVersion": 15,
+  "entry": "index.html",
+  "name": "Fire Babys Fire Safety Academy",
+  "slug": "fire-babys-fire-safety-academy",
+  "managedCronJobs": []
+}

@@ -1,0 +1,50 @@
+{
+  "probe_transport_ledger_active": true,
+  "external_requests": [
+    {
+      "url": "https://muse.ai/files/1320763264456757/2287622778691195/473l4jygtvquds5k6q94hwud/FireBabys-demo.html",
+      "method": "GET",
+      "resource_type": "document"
+    },
+    {
+      "url": "https://www.facebook.com/groups/2333915794032995",
+      "method": "GET",
+      "resource_type": "document"
+    },
+    {
+      "url": "chrome-error://chromewebdata/",
+      "method": "GET",
+      "resource_type": "popup"
+    }
+  ],
+  "external_requests_dropped": 0,
+  "external_requests_dropped_data_bearing": 0,
+  "transport_connections": [
+    {
+      "host": "artifact-capture.invalid",
+      "port": 443,
+      "connects": 1,
+      "bytes_up": 2002,
+      "bytes_down": 1242
+    },
+    {
+      "host": "muse.ai",
+      "port": 443,
+      "connects": 2,
+      "bytes_up": 0,
+      "bytes_down": 0,
+      "policy_denied": true
+    },
+    {
+      "host": "www.facebook.com",
+      "port": 443,
+      "connects": 2,
+      "bytes_up": 0,
+      "bytes_down": 0,
+      "policy_denied": true
+    }
+  ],
+  "transport_udp_attempts": 0,
+  "transport_overflow": 0,
+  "unexplained_transport_hosts": []
+}

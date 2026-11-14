@@ -1,0 +1,13 @@
+{
+  "schema_version": "hatch.probe_ui_summary.v1",
+  "slug": "fire-babys-game-site",
+  "session_id": "a9c39979-7431-4640-846d-0305a9df4c29",
+  "observes": 0,
+  "acts": 0,
+  "acts_ok": 0,
+  "interactive_nodes": 0,
+  "viewports_seen": [
+    "desktop"
+  ],
+  "findings": []
+}

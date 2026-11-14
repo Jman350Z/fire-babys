@@ -1,0 +1,1565 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Fire Babys Fire Safety Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #fdf6ec;
+        --bg-deep: #f7e8d2;
+        --panel: #ffffff;
+        --panel-2: #fff3e0;
+        --ink: #2a1608;
+        --ink-soft: #5c4433;
+        --line: #e8d3b8;
+        --red: #c9241b;
+        --red-deep: #9c1a12;
+        --ember: #e85d1f;
+        --amber: #f5a623;
+        --green: #1e7d46;
+        --green-bg: #e2f4e8;
+        --blue: #1d5fa8;
+        --shadow: 0 10px 30px rgba(90, 40, 5, 0.12);
+        --radius: 18px;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #180f0a;
+          --bg-deep: #120a06;
+          --panel: #261811;
+          --panel-2: #2f1d12;
+          --ink: #fdf1e2;
+          --ink-soft: #d8bfa5;
+          --line: #4a2f1d;
+          --red: #ff5a4d;
+          --red-deep: #ff7a6e;
+          --ember: #ff8a4d;
+          --amber: #ffb84d;
+          --green: #5fd598;
+          --green-bg: #14301f;
+          --blue: #7db4ee;
+          --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        font-family: "Public Sans", system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3, .display {
+        font-family: "Bricolage Grotesque", "Public Sans", sans-serif;
+        line-height: 1.08;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      p { margin: 0; }
+      button { font-family: inherit; cursor: pointer; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 18px; }
+
+      /* ---------- Top bar ---------- */
+      .topbar {
+        position: sticky; top: 0; z-index: 50;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+      .topbar-in {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 0; flex-wrap: wrap;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+      .brand-mark {
+        width: 42px; height: 42px; border-radius: 12px; flex: none;
+        background: var(--red); color: #fff;
+        display: grid; place-items: center;
+      }
+      .brand-mark svg { width: 26px; height: 26px; }
+      .brand-name { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.02rem; line-height: 1.1; }
+      .brand-sub { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); }
+      .nav { display: flex; gap: 6px; flex-wrap: wrap; }
+      .nav button {
+        border: 1px solid var(--line); background: var(--panel);
+        color: var(--ink); font-weight: 700; font-size: 0.9rem;
+        padding: 10px 14px; border-radius: 999px; min-height: 44px;
+      }
+      .nav button.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+      .lang-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--panel); }
+      .lang-toggle button {
+        border: 0; background: transparent; color: var(--ink-soft);
+        font-weight: 800; font-size: 0.88rem; padding: 10px 14px; min-height: 44px;
+      }
+      .lang-toggle button.active { background: var(--red); color: #fff; }
+
+      /* ---------- Hero ---------- */
+      .hero {
+        background:
+          radial-gradient(700px 320px at 85% -60px, rgba(232, 93, 31, 0.28), transparent 65%),
+          radial-gradient(500px 260px at 5% -40px, rgba(201, 36, 27, 0.20), transparent 60%),
+          linear-gradient(180deg, var(--bg-deep), var(--bg));
+        border-bottom: 1px solid var(--line);
+        padding: 44px 0 38px;
+      }
+      .hero-flag {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--panel); border: 1px solid var(--line);
+        border-radius: 999px; padding: 7px 14px;
+        font-size: 0.82rem; font-weight: 800; color: var(--red-deep);
+      }
+      .hero-flag .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex: none; }
+      .hero h1 { font-size: clamp(2.3rem, 6.5vw, 4rem); font-weight: 800; margin: 18px 0 14px; max-width: 16ch; }
+      .hero h1 .hot { color: var(--red); }
+      .hero-lede { font-size: 1.13rem; color: var(--ink-soft); max-width: 56ch; }
+      .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+        border-radius: 14px; border: 1px solid transparent;
+        font-weight: 800; font-size: 1rem; padding: 14px 22px; min-height: 52px;
+        text-decoration: none; transition: transform 0.12s ease;
+      }
+      .btn:active { transform: scale(0.98); }
+      .btn-red { background: var(--red); color: #fff; box-shadow: 0 8px 20px rgba(201, 36, 27, 0.3); }
+      .btn-ghost { background: var(--panel); color: var(--ink); border-color: var(--line); }
+      .btn-dark { background: var(--ink); color: var(--bg); }
+      .btn-green { background: var(--green); color: #fff; }
+      .hero-rules {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 34px;
+      }
+      .rule-card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 16px; box-shadow: var(--shadow);
+      }
+      .rule-card .num {
+        font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.7rem; color: var(--ember);
+      }
+      .rule-card p { font-weight: 700; font-size: 0.95rem; margin-top: 2px; }
+      .rule-card span { display: block; font-weight: 500; font-size: 0.85rem; color: var(--ink-soft); margin-top: 3px; }
+
+      /* ---------- Sections ---------- */
+      section.block { padding: 46px 0 8px; }
+      .sec-head { max-width: 640px; margin-bottom: 20px; }
+      .sec-head h2 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); font-weight: 800; }
+      .sec-head p { color: var(--ink-soft); margin-top: 8px; font-size: 1.02rem; }
+      .hosts {
+        display: flex; gap: 14px; align-items: flex-start;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 18px; margin-bottom: 22px;
+      }
+      .hosts .badge-flame {
+        width: 54px; height: 54px; flex: none; border-radius: 16px;
+        background: var(--red); color: #fff; display: grid; place-items: center;
+      }
+      .hosts .badge-flame svg { width: 32px; height: 32px; }
+      .hosts h3 { font-size: 1.15rem; font-weight: 800; }
+      .hosts p { color: var(--ink-soft); font-size: 0.96rem; margin-top: 4px; }
+
+      /* ---------- Lesson cards ---------- */
+      .lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+      .lesson-card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
+        text-align: left; width: 100%;
+      }
+      .lesson-card .ic {
+        width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: #fff;
+      }
+      .lesson-card .ic svg { width: 30px; height: 30px; }
+      .lesson-card h3 { font-size: 1.22rem; font-weight: 800; }
+      .lesson-card p { color: var(--ink-soft); font-size: 0.94rem; flex: 1; }
+      .lesson-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .lesson-card .mins { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+      .earned-chip {
+        display: none; align-items: center; gap: 6px;
+        background: var(--green-bg); color: var(--green);
+        font-weight: 800; font-size: 0.82rem; padding: 6px 11px; border-radius: 999px;
+      }
+      .earned-chip.show { display: inline-flex; }
+      .open-chip { font-weight: 800; font-size: 0.9rem; color: var(--red); }
+
+      /* ---------- Views ---------- */
+      .view { display: none; }
+      .view.active { display: block; }
+      .back-row { padding-top: 20px; }
+      .back-btn {
+        border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+        border-radius: 999px; padding: 10px 16px; font-weight: 800; min-height: 44px;
+      }
+
+      /* ---------- Builder ---------- */
+      .builder-shell {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 22px;
+        box-shadow: var(--shadow); padding: 18px;
+      }
+      .tool-label { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin: 14px 0 8px; }
+      .tool-label:first-child { margin-top: 0; }
+      .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+      .tool {
+        display: inline-flex; align-items: center; gap: 8px;
+        border: 2px solid var(--line); background: var(--panel);
+        border-radius: 12px; padding: 9px 13px; min-height: 48px;
+        font-weight: 700; font-size: 0.92rem; color: var(--ink);
+      }
+      .tool .swatch { width: 18px; height: 18px; border-radius: 5px; flex: none; border: 1px solid rgba(0,0,0,0.15); }
+      .tool .mk { width: 20px; height: 20px; flex: none; display: grid; place-items: center; }
+      .tool .mk svg { width: 20px; height: 20px; }
+      .tool.selected { border-color: var(--red); background: var(--panel-2); box-shadow: 0 0 0 2px color-mix(in srgb, var(--red) 30%, transparent); }
+      .grid-scroll { margin-top: 16px; }
+      .home-grid {
+        display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
+        max-width: 640px; margin: 0 auto;
+      }
+      .cell {
+        position: relative; aspect-ratio: 1 / 1; border-radius: 9px;
+        border: 1.5px dashed var(--line); background: var(--bg);
+        padding: 0; min-height: 40px; overflow: hidden;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .cell .room-name {
+        font-size: clamp(0.5rem, 1.7vw, 0.68rem); font-weight: 800; text-align: center;
+        line-height: 1.1; padding: 2px; pointer-events: none;
+      }
+      .cell .marker {
+        position: absolute; right: 3px; bottom: 3px; width: 20px; height: 20px;
+        border-radius: 6px; background: var(--ink); color: var(--bg);
+        display: grid; place-items: center; pointer-events: none;
+      }
+      .cell .marker svg { width: 14px; height: 14px; }
+      .cell .marker.meet { background: var(--green); color: #fff; }
+      .cell .marker.alarm { background: var(--red); color: #fff; }
+      .cell[data-room="bedroom"] { background: #dbeafe; border: 1.5px solid #93b8e8; color: #173d6e; }
+      .cell[data-room="kitchen"] { background: #ffe3c2; border: 1.5px solid #f0b269; color: #6e3c08; }
+      .cell[data-room="bath"] { background: #d3f0ee; border: 1.5px solid #7cc7c0; color: #0d4f4a; }
+      .cell[data-room="living"] { background: #fde68a; border: 1.5px solid #e3c04f; color: #5f4a06; }
+      .cell[data-room="hall"] { background: #ece5da; border: 1.5px solid #cfc2ae; color: #54452e; }
+      .cell[data-room="outside"] { background: #d9f2dc; border: 1.5px solid #8fce9b; color: #175c28; }
+      @media (prefers-color-scheme: dark) {
+        .cell[data-room="bedroom"] { background: #1d3355; border-color: #3f639b; color: #cfe4ff; }
+        .cell[data-room="kitchen"] { background: #55350f; border-color: #96682c; color: #ffe3bd; }
+        .cell[data-room="bath"] { background: #11403d; border-color: #2b7a74; color: #c9f5f0; }
+        .cell[data-room="living"] { background: #54450c; border-color: #8a741f; color: #ffedb3; }
+        .cell[data-room="hall"] { background: #3a3129; border-color: #5c4f41; color: #e8dcc9; }
+        .cell[data-room="outside"] { background: #17401f; border-color: #2f7a3e; color: #cdf3d4; }
+      }
+      .builder-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+      .builder-actions .btn { flex: 1 1 auto; }
+      .checklist { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+      .checklist li {
+        display: flex; gap: 10px; align-items: flex-start;
+        background: var(--panel-2); border: 1px solid var(--line);
+        border-radius: 12px; padding: 11px 13px; font-size: 0.94rem; font-weight: 600;
+      }
+      .checklist li .st { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 0.8rem; font-weight: 800; background: var(--panel); border: 1.5px solid var(--line); color: var(--ink-soft); }
+      .checklist li.ok .st { background: var(--green); border-color: var(--green); color: #fff; }
+      .checklist li small { display: block; font-weight: 500; color: var(--ink-soft); }
+      .members { margin-top: 18px; }
+      .member-row { display: flex; gap: 8px; }
+      .member-row input {
+        flex: 1; min-width: 0; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 12px 14px; font-size: 1rem; background: var(--panel); color: var(--ink); min-height: 48px;
+        font-family: inherit;
+      }
+      .member-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .member-chip {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--ink); color: var(--bg); border-radius: 999px;
+        padding: 8px 8px 8px 14px; font-weight: 700; font-size: 0.9rem;
+      }
+      .member-chip button {
+        border: 0; background: rgba(255,255,255,0.2); color: inherit;
+        width: 26px; height: 26px; border-radius: 50%; font-weight: 800; line-height: 1;
+      }
+
+      /* ---------- Practice mode ---------- */
+      .practice {
+        margin-top: 18px; border-radius: 22px; overflow: hidden;
+        background: var(--ink); color: var(--bg);
+        display: none;
+      }
+      .practice.show { display: block; }
+      .practice-in { padding: 26px 22px; }
+      .practice .step-kicker { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
+      .practice h3 { font-size: clamp(1.5rem, 5vw, 2.1rem); font-weight: 800; margin: 10px 0; }
+      .practice p { font-size: 1.05rem; color: color-mix(in srgb, var(--bg) 82%, transparent); max-width: 52ch; }
+      .practice .dots { display: flex; gap: 6px; margin: 20px 0; flex-wrap: wrap; }
+      .practice .dots i { width: 26px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--bg) 25%, transparent); }
+      .practice .dots i.on { background: var(--amber); }
+      .practice .p-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+      .practice .btn-ghost { background: transparent; color: var(--bg); border-color: color-mix(in srgb, var(--bg) 40%, transparent); }
+
+      /* ---------- Lesson view ---------- */
+      .lesson-hero { display: flex; gap: 16px; align-items: center; margin: 8px 0 18px; }
+      .lesson-hero .ic { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; color: #fff; flex: none; }
+      .lesson-hero .ic svg { width: 38px; height: 38px; }
+      .lesson-hero h2 { font-size: clamp(1.8rem, 5vw, 2.5rem); font-weight: 800; }
+      .lesson-hero p { color: var(--ink-soft); margin-top: 4px; }
+      .teach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+      .teach-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+      .teach-card .big { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--red); margin-bottom: 6px; }
+      .teach-card p { font-size: 0.97rem; color: var(--ink-soft); }
+      .teach-card p strong { color: var(--ink); }
+      .quiz-box { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 22px; margin-top: 22px; }
+      .quiz-box h3 { font-size: 1.35rem; font-weight: 800; }
+      .quiz-q { margin-top: 20px; }
+      .quiz-q .q-text { font-weight: 800; font-size: 1.05rem; margin-bottom: 10px; }
+      .quiz-opts { display: grid; gap: 8px; }
+      .quiz-opt {
+        text-align: left; border: 2px solid var(--line); background: var(--panel);
+        border-radius: 12px; padding: 13px 15px; font-size: 0.98rem; font-weight: 600;
+        color: var(--ink); min-height: 50px; width: 100%;
+      }
+      .quiz-opt.correct { border-color: var(--green); background: var(--green-bg); }
+      .quiz-opt.wrong { border-color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--panel)); }
+      .quiz-opt:disabled { cursor: default; opacity: 1; }
+      .quiz-why { display: none; margin-top: 9px; font-size: 0.92rem; color: var(--ink-soft); background: var(--panel-2); border-radius: 10px; padding: 10px 12px; }
+      .quiz-why.show { display: block; }
+      .badge-result { display: none; margin-top: 22px; text-align: center; }
+      .badge-result.show { display: block; }
+      .badge-medal {
+        width: 110px; height: 110px; margin: 0 auto 12px; border-radius: 50%;
+        display: grid; place-items: center; color: #fff;
+        border: 5px solid var(--amber);
+        box-shadow: var(--shadow);
+      }
+      .badge-medal svg { width: 58px; height: 58px; }
+      .badge-result h4 { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.4rem; font-weight: 800; margin: 0 0 6px; }
+      .badge-result p { color: var(--ink-soft); }
+
+      /* ---------- Certificate ---------- */
+      .cert-form { display: grid; gap: 10px; max-width: 520px; margin-bottom: 20px; }
+      .cert-form label { font-weight: 800; font-size: 0.9rem; }
+      .cert-form input {
+        border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px;
+        font-size: 1rem; background: var(--panel); color: var(--ink); min-height: 50px; width: 100%;
+        font-family: inherit;
+      }
+      .certificate {
+        background: #fffdf7; color: #2a1608; border-radius: 10px;
+        border: 3px solid #c9241b; outline: 10px solid #fdf6ec; outline-offset: -18px;
+        padding: 46px 30px 38px; text-align: center; box-shadow: var(--shadow);
+      }
+      .certificate .c-top { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: #c9241b; }
+      .certificate h3 { font-size: clamp(1.9rem, 6vw, 3rem); font-weight: 800; margin: 10px 0 4px; }
+      .certificate .c-sub { color: #5c4433; font-size: 1rem; }
+      .certificate .c-names {
+        font-family: "Bricolage Grotesque", sans-serif; font-weight: 800;
+        font-size: clamp(1.3rem, 4.5vw, 2rem); margin: 22px auto 4px; max-width: 90%;
+        border-bottom: 2px solid #e8d3b8; padding-bottom: 12px;
+      }
+      .certificate .c-badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 18px; }
+      .certificate .c-badges span { background: #fdf6ec; border: 1.5px solid #e8d3b8; border-radius: 999px; padding: 6px 13px; font-size: 0.85rem; font-weight: 800; color: #9c1a12; }
+      .certificate .c-meta { margin-top: 20px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 0.88rem; color: #5c4433; font-weight: 700; }
+      .progress-strip {
+        display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+        background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 20px;
+      }
+      .progress-strip .bar { flex: 1; min-width: 140px; height: 12px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line); overflow: hidden; }
+      .progress-strip .bar i { display: block; height: 100%; background: var(--green); width: 0%; transition: width 0.4s ease; }
+      .progress-strip strong { font-size: 1rem; }
+
+      footer {
+        margin-top: 56px; border-top: 1px solid var(--line);
+        background: var(--bg-deep); padding: 28px 0 40px;
+      }
+      footer .f-in { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+      footer p { color: var(--ink-soft); font-size: 0.9rem; }
+      footer strong { color: var(--ink); }
+      .summary-sheet {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+        padding: 20px; margin-top: 16px; display: none;
+      }
+      .summary-sheet.show { display: block; }
+      .summary-sheet h4 { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.2rem; margin: 0 0 8px; }
+      .summary-sheet ul { margin: 8px 0; padding-left: 20px; }
+      .summary-sheet li { margin: 4px 0; }
+      .toast {
+        position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
+        background: var(--ink); color: var(--bg); font-weight: 700; font-size: 0.94rem;
+        padding: 13px 20px; border-radius: 999px; opacity: 0; pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease; z-index: 90; max-width: 92vw; text-align: center;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      @media (max-width: 640px) {
+        .hero-rules { grid-template-columns: 1fr; }
+        .hero { padding: 30px 0 28px; }
+        .cell { min-height: 34px; border-radius: 7px; }
+        .cell .marker { width: 17px; height: 17px; right: 2px; bottom: 2px; }
+        .cell .marker svg { width: 11px; height: 11px; }
+        .builder-actions .btn { flex: 1 1 100%; }
+        .certificate { padding: 34px 18px 28px; outline-offset: -12px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        * { transition: none !important; }
+      }
+      @media print {
+        .topbar, .hero, .no-print, footer, .toast { display: none !important; }
+        body { background: #fff; }
+        .view { display: none !important; }
+        .view.active { display: block !important; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <header class="topbar">
+      <div class="wrap topbar-in">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5-1.8 5.2-3.4 7C7.2 10.6 6 12.4 6 14.8A6 6 0 0 0 18 14.8c0-1.9-.8-3.4-1.8-4.8-.4 1-1 1.8-2 2.4.3-2.7-.6-6.3-2.2-8.4C12.4 3.5 12.2 2.8 12 2zM12 21.5A3.9 3.9 0 0 1 8.2 17.6c0-1.7 1-2.7 1.9-3.9.6-.8 1.3-1.7 1.9-2.9.6 1.2 1.3 2.1 1.9 2.9.9 1.2 1.9 2.2 1.9 3.9A3.9 3.9 0 0 1 12 21.5z"/></svg>
+          </div>
+          <div>
+            <div class="brand-name">Fire Babys</div>
+            <div class="brand-sub" data-i18n="brandSub">Fire Safety Academy</div>
+          </div>
+        </div>
+        <nav class="nav" aria-label="Academy">
+          <button data-nav="home" class="active" data-i18n="navHome">Home</button>
+          <button data-nav="builder" data-i18n="navPlan">Escape Plan</button>
+          <button data-nav="lessons" data-i18n="navLessons">Lessons</button>
+          <button data-nav="certificate" data-i18n="navCert">Certificate</button>
+        </nav>
+        <div class="lang-toggle" role="group" aria-label="Language / Idioma">
+          <button id="langEn" class="active">EN</button>
+          <button id="langEs">ES</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= HOME VIEW ================= -->
+    <main id="view-home" class="view active">
+      <div class="hero">
+        <div class="wrap">
+          <span class="hero-flag"><span class="dot"></span><span data-i18n="heroFlag">Free forever · No account · For every family</span></span>
+          <h1><span data-i18n="heroTitleA">Every family deserves</span> <span class="hot" data-i18n="heroTitleB">two ways out.</span></h1>
+          <p class="hero-lede" data-i18n="heroLede">Welcome to the Fire Babys Fire Safety Academy. Build your home escape plan, learn the skills that save lives, and practice together — in about fifteen minutes, right from your phone.</p>
+          <div class="hero-cta">
+            <button class="btn btn-red" data-goto="builder"><span data-i18n="ctaPlan">Build our escape plan</span> →</button>
+            <button class="btn btn-ghost" data-goto="lessons" data-i18n="ctaLessons">Start the lessons</button>
+          </div>
+          <div class="hero-rules">
+            <div class="rule-card">
+              <div class="num">2</div>
+              <p data-i18n="rule1T">Ways out of every room</p>
+              <span data-i18n="rule1S">A door and a window. If one is blocked, the other saves you.</span>
+            </div>
+            <div class="rule-card">
+              <div class="num">1×<span style="font-size:1rem" data-i18n="rule2per">/mo</span></div>
+              <p data-i18n="rule2T">Test your smoke alarms</p>
+              <span data-i18n="rule2S">Press the test button every month. Alarms only help if they work.</span>
+            </div>
+            <div class="rule-card">
+              <div class="num">2×<span style="font-size:1rem" data-i18n="rule3per">/yr</span></div>
+              <p data-i18n="rule3T">Practice the plan</p>
+              <span data-i18n="rule3S">Run a home fire drill twice a year — once at night.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <section class="block" id="home-plan">
+          <div class="hosts">
+            <div class="badge-flame" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3.5-1.8 5.2-3.4 7C7.2 10.6 6 12.4 6 14.8A6 6 0 0 0 18 14.8c0-1.9-.8-3.4-1.8-4.8-.4 1-1 1.8-2 2.4.3-2.7-.6-6.3-2.2-8.4C12.4 3.5 12.2 2.8 12 2z"/></svg>
+            </div>
+            <div>
+              <h3 data-i18n="hostsT">Your teachers: the Fire Babys</h3>
+              <p data-i18n="hostsS">The Fire Babys are your family's fire-safety team — brave little teachers who know exactly what to do when the alarm sounds. They'll walk with you through every lesson, cheer you on in Practice Mode, and celebrate when your family earns its certificate.</p>
+            </div>
+          </div>
+          <div class="sec-head">
+            <h2 data-i18n="planHead">The Escape Plan Builder</h2>
+            <p data-i18n="planSub">Map your real home on the grid. Color in the rooms, drop in doors and windows, pick the meeting spot outside — then run Practice Mode and walk the plan together, step by step.</p>
+          </div>
+          <div id="builderMountHome"></div>
+        </section>
+
+        <section class="block" id="home-lessons">
+          <div class="sec-head">
+            <h2 data-i18n="lessonsHead">Five lessons. Five badges.</h2>
+            <p data-i18n="lessonsSub">Short, hands-on lessons for the whole family — each one ends with a quick check. Answer every question right to earn the badge.</p>
+          </div>
+          <div class="progress-strip">
+            <strong data-i18n="progressLabel">Family progress</strong>
+            <div class="bar"><i id="progressBar"></i></div>
+            <span id="progressText">0 / 5</span>
+          </div>
+          <div class="lesson-grid" id="lessonGrid"></div>
+        </section>
+
+        <section class="block" id="home-cert" style="padding-bottom: 10px;">
+          <div class="sec-head">
+            <h2 data-i18n="certHead">The family certificate</h2>
+            <p data-i18n="certSub">Finish the lessons and the escape plan, then make a certificate with your family's name on it — download it, print it, and put it on the fridge where everyone can see it.</p>
+          </div>
+          <button class="btn btn-dark" data-goto="certificate" data-i18n="ctaCert">Make our certificate</button>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= BUILDER VIEW (dedicated) ================= -->
+    <main id="view-builder" class="view">
+      <div class="wrap">
+        <div class="back-row"><button class="back-btn" data-goto="home">← <span data-i18n="backHome">Back to academy home</span></button></div>
+        <section class="block" style="padding-top: 22px;">
+          <div class="sec-head">
+            <h2 data-i18n="planHead">The Escape Plan Builder</h2>
+            <p data-i18n="planSub">Map your real home on the grid. Color in the rooms, drop in doors and windows, pick the meeting spot outside — then run Practice Mode and walk the plan together, step by step.</p>
+          </div>
+          <div id="builderMountFull"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= LESSONS VIEW ================= -->
+    <main id="view-lessons" class="view">
+      <div class="wrap">
+        <div class="back-row"><button class="back-btn" data-goto="home">← <span data-i18n="backHome">Back to academy home</span></button></div>
+        <section class="block" style="padding-top: 22px;">
+          <div class="sec-head">
+            <h2 data-i18n="lessonsHead">Five lessons. Five badges.</h2>
+            <p data-i18n="lessonsSub">Short, hands-on lessons for the whole family — each one ends with a quick check. Answer every question right to earn the badge.</p>
+          </div>
+          <div class="lesson-grid" id="lessonGrid2"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= SINGLE LESSON VIEW ================= -->
+    <main id="view-lesson" class="view">
+      <div class="wrap">
+        <div class="back-row"><button class="back-btn" data-goto="lessons">← <span data-i18n="backLessons">All lessons</span></button></div>
+        <section class="block" style="padding-top: 18px; padding-bottom: 20px;">
+          <div class="lesson-hero">
+            <div class="ic" id="lessonIcon"></div>
+            <div>
+              <h2 id="lessonTitle"></h2>
+              <p id="lessonIntro"></p>
+            </div>
+          </div>
+          <div id="lessonExtra"></div>
+          <div class="teach-grid" id="teachGrid"></div>
+          <div class="quiz-box">
+            <h3 data-i18n="quizTitle">Quick check — earn the badge</h3>
+            <p style="color: var(--ink-soft); margin-top: 6px;" data-i18n="quizSub">Answer all three questions correctly. Got one wrong? You'll see why, and you can try again.</p>
+            <div id="quizMount"></div>
+            <div class="badge-result" id="badgeResult">
+              <div class="badge-medal" id="badgeMedal"></div>
+              <h4 id="badgeName"></h4>
+              <p data-i18n="badgeEarned">Badge earned! It's saved on your academy home page and will appear on your family certificate.</p>
+              <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
+                <button class="btn btn-red" data-goto="lessons" data-i18n="badgeNext">Back to lessons</button>
+                <button class="btn btn-ghost" data-goto="certificate" data-i18n="ctaCert">Make our certificate</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ================= CERTIFICATE VIEW ================= -->
+    <main id="view-certificate" class="view">
+      <div class="wrap">
+        <div class="back-row"><button class="back-btn" data-goto="home">← <span data-i18n="backHome">Back to academy home</span></button></div>
+        <section class="block" style="padding-top: 22px; padding-bottom: 20px;">
+          <div class="sec-head">
+            <h2 data-i18n="certHead">The family certificate</h2>
+            <p data-i18n="certSub">Finish the lessons and the escape plan, then make a certificate with your family's name on it — download it, print it, and put it on the fridge where everyone can see it.</p>
+          </div>
+          <div class="cert-form no-print">
+            <div>
+              <label for="certFamily" data-i18n="certFamilyLabel">Family name</label>
+              <input id="certFamily" type="text" data-i18n-ph="certFamilyPh" placeholder="The Pruden Family" autocomplete="off" />
+            </div>
+            <div>
+              <label for="certMembers" data-i18n="certMembersLabel">Family members (separate with commas)</label>
+              <input id="certMembers" type="text" data-i18n-ph="certMembersPh" placeholder="Jeff, Maria, Sofia…" autocomplete="off" />
+            </div>
+          </div>
+          <div class="certificate" id="certificateSheet">
+            <div class="c-top" data-i18n="certTop">Fire Babys Fire Safety Academy</div>
+            <h3 data-i18n="certTitle">Certificate of Readiness</h3>
+            <p class="c-sub" data-i18n="certAwarded">This certificate is proudly presented to</p>
+            <div class="c-names" id="certNames">—</div>
+            <p class="c-sub" id="certLine" data-i18n="certLine">for learning how to get out safely, building a home escape plan, and practicing it together as a family.</p>
+            <div class="c-badges" id="certBadges"></div>
+            <div class="c-meta">
+              <span id="certDate"></span>
+              <span data-i18n="certSign">Signed: The Fire Babys Safety Team</span>
+            </div>
+          </div>
+          <div class="builder-actions no-print" style="max-width: 520px;">
+            <button class="btn btn-red" id="downloadCertBtn" data-i18n="downloadCert">Download a copy</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap f-in">
+        <p><strong>Fire Babys</strong> · <span data-i18n="footerFree">The Fire Safety Academy is free for every family, forever. No account, no cost — just safety.</span></p>
+        <p data-i18n="footerCredit">A Fire Babys program · General Federal Industries</p>
+      </div>
+      <div class="wrap" style="margin-top: 10px;">
+        <p style="font-size: 0.82rem;" data-i18n="footerNote">In a real emergency, always call 911 (or your local emergency number) from outside the home. Practice drills are for learning — never use a real emergency call to practice.</p>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+      "use strict";
+
+      /* ================= Icons (inline SVG) ================= */
+      const P = {
+        flame: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 3.5-1.8 5.2-3.4 7C7.2 10.6 6 12.4 6 14.8A6 6 0 0 0 18 14.8c0-1.9-.8-3.4-1.8-4.8-.4 1-1 1.8-2 2.4.3-2.7-.6-6.3-2.2-8.4C12.4 3.5 12.2 2.8 12 2z"/></svg>',
+        alarm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="6"/><path d="M12 10v3l2 2M5 3 2.5 5.5M19 3l2.5 2.5M9 2.8A9 9 0 0 1 15 2.8"/></svg>',
+        exit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M3 12h12M11 8l4 4-4 4"/></svg>',
+        roll: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 15a8 8 0 0 1 13.6-5.7M20 9a8 8 0 0 1-13.6 5.7"/><path d="M17.5 3v4h-4M6.5 21v-4h4"/></svg>',
+        kitchen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 11h16M5 11a7 7 0 0 1 14 0M12 4V2.8M9 5 8 3.4M15 5l1-1.6M3 15h18v2a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-2z"/></svg>',
+        phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l1.5 4.5L8 10a12 12 0 0 0 6 6l1.5-2.5L20 15v4a2 2 0 0 1-2.2 2A19 19 0 0 1 3 6.2 2 2 0 0 1 5 4z"/></svg>',
+        door: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 2h9a1 1 0 0 1 1 1v18h-2V4H8v17H6V3a1 1 0 0 1 1-1z" transform="translate(1 0)"/><circle cx="13.5" cy="12" r="1.3"/></svg>',
+        window: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M12 4v16M4 12h16"/></svg>',
+        meet: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.2-7 13-7 13S5 14.2 5 9a7 7 0 0 1 7-7zm0 9.5A2.5 2.5 0 1 0 12 6.5a2.5 2.5 0 0 0 0 5z"/></svg>',
+        bell: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a5 5 0 0 1 5 5c0 3 .8 4.2 1.6 5.2.3.4 0 1-.6 1H6c-.6 0-.9-.6-.6-1C6.2 12.2 7 11 7 8a5 5 0 0 1 5-5zm-2.3 13h4.6a2.3 2.3 0 0 1-4.6 0z"/></svg>',
+        eraser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M15 4l5 5L11 18H5.5L3 15.5 12 6z"/><path d="M9 21h12"/></svg>',
+        check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>',
+        star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>'
+      };
+
+      /* ================= Language ================= */
+      let LANG = "en";
+      const T = {
+        en: {
+          brandSub: "Fire Safety Academy",
+          navHome: "Home", navPlan: "Escape Plan", navLessons: "Lessons", navCert: "Certificate",
+          heroFlag: "Free forever · No account · For every family",
+          heroTitleA: "Every family deserves", heroTitleB: "two ways out.",
+          heroLede: "Welcome to the Fire Babys Fire Safety Academy. Build your home escape plan, learn the skills that save lives, and practice together — in about fifteen minutes, right from your phone.",
+          ctaPlan: "Build our escape plan", ctaLessons: "Start the lessons",
+          rule1T: "Ways out of every room", rule1S: "A door and a window. If one is blocked, the other saves you.",
+          rule2T: "Test your smoke alarms", rule2per: "/mo", rule2S: "Press the test button every month. Alarms only help if they work.",
+          rule3T: "Practice the plan", rule3per: "/yr", rule3S: "Run a home fire drill twice a year — once at night.",
+          hostsT: "Your teachers: the Fire Babys",
+          hostsS: "The Fire Babys are your family's fire-safety team — brave little teachers who know exactly what to do when the alarm sounds. They'll walk with you through every lesson, cheer you on in Practice Mode, and celebrate when your family earns its certificate.",
+          planHead: "The Escape Plan Builder",
+          planSub: "Map your real home on the grid. Color in the rooms, drop in doors and windows, pick the meeting spot outside — then run Practice Mode and walk the plan together, step by step.",
+          lessonsHead: "Five lessons. Five badges.",
+          lessonsSub: "Short, hands-on lessons for the whole family — each one ends with a quick check. Answer every question right to earn the badge.",
+          progressLabel: "Family progress",
+          certHead: "The family certificate",
+          certSub: "Finish the lessons and the escape plan, then make a certificate with your family's name on it — download it, print it, and put it on the fridge where everyone can see it.",
+          ctaCert: "Make our certificate",
+          backHome: "Back to academy home", backLessons: "All lessons",
+          quizTitle: "Quick check — earn the badge",
+          quizSub: "Answer all three questions correctly. Got one wrong? You'll see why, and you can try again.",
+          badgeEarned: "Badge earned! It's saved on your academy home page and will appear on your family certificate.",
+          badgeNext: "Back to lessons",
+          certFamilyLabel: "Family name", certFamilyPh: "The Pruden Family",
+          certMembersLabel: "Family members (separate with commas)", certMembersPh: "Jeff, Maria, Sofia…",
+          certTop: "Fire Babys Fire Safety Academy", certTitle: "Certificate of Readiness",
+          certAwarded: "This certificate is proudly presented to",
+          certLine: "for learning how to get out safely, building a home escape plan, and practicing it together as a family.",
+          certSign: "Signed: The Fire Babys Safety Team",
+          printCert: "Print certificate", downloadCert: "Download a copy",
+          footerFree: "The Fire Safety Academy is free for every family, forever. No account, no cost — just safety.",
+          footerCredit: "A Fire Babys program · General Federal Industries",
+          footerNote: "In a real emergency, always call 911 (or your local emergency number) from outside the home. Practice drills are for learning — never use a real emergency call to practice.",
+          planBadge: "Escape Plan Builder — plan complete",
+          openLesson: "Open lesson", earned: "Badge earned",
+          minutes: "min",
+          /* Builder */
+          bRooms: "1 · Paint the rooms", bMarks: "2 · Add doors, windows, alarms & the meeting spot", bErase: "Erase",
+          room_bedroom: "Bedroom", room_kitchen: "Kitchen", room_bath: "Bathroom", room_living: "Living room", room_hall: "Hallway", room_outside: "Outside / yard",
+          mk_door: "Door", mk_window: "Window", mk_alarm: "Smoke alarm", mk_meet: "Meeting spot",
+          bMembers: "3 · Who lives here?", memberPh: "Add a name…", addBtn: "Add",
+          bExample: "Load an example home", bClear: "Clear the grid",
+          bPractice: "Start Practice Mode", bSummary: "See plan summary",
+          chkBedrooms: "At least one bedroom is on the map", chkBedroomsSub: "Paint bedroom squares where your family sleeps.",
+          chkWays: "Every bedroom has TWO ways out", chkWaysOk: "way(s) out counted from doors & windows touching the room.",
+          chkWaysNone: "Add bedrooms first.", chkWaysNeed: "still needs another way out — add a door or a window.",
+          chkMeet: "Meeting spot is placed outside", chkMeetSub: "Put the star on an Outside square — a tree, mailbox, or neighbor's porch everyone can reach.",
+          chkAlarm: "A smoke alarm is on the map", chkAlarmSub: "Real homes need one inside every bedroom, outside sleeping areas, and on every level.",
+          chkMembers: "Household members are added", chkMembersSub: "Everyone who sleeps here — plus a plan for pets and anyone who needs help getting out.",
+          pracKicker: "Practice Mode", pracNext: "Next step", pracBack: "Back", pracDone: "We did it!",
+          pracSteps: [
+            { t: "The alarm sounds!", s: "Beep… beep… beep… That's the smoke alarm. Everybody wakes up and gets up — no hiding, no grabbing toys or phones. Grown-ups, help anyone who needs help." },
+            { t: "Get low and go", s: "Smoke rises, so the cleanest air is down low. Crawl on hands and knees under the smoke toward your way out." },
+            { t: "Check the door first", s: "Before opening a closed door, feel it with the back of your hand. If it's hot, don't open it — use the room's second way out instead." },
+            { t: "Get out — fast and calm", s: "Follow your plan to the outside. Leave everything behind. Close doors behind you as you go — a closed door slows the fire down." },
+            { t: "Stay out means stay out", s: "Once you're outside, never go back in — not for pets, not for anything. Tell the firefighters who is missing and where they might be." },
+            { t: "Meet at the spot", s: "Everybody goes straight to the family meeting spot and stays together so grown-ups can count heads." },
+            { t: "Call 911 from outside", s: "From a phone outside — or a neighbor's home — call 911. Say your address clearly, then answer the dispatcher's questions. Never call from inside a burning home." },
+            { t: "Practice complete — great work, family!", s: "That was a drill, and you nailed it. Real pros practice twice a year — once during the day and once at night. The Fire Babys are proud of you." }
+          ],
+          meetNamed: "Your meeting spot is on the map",
+          sumTitle: "Our Family Escape Plan",
+          sumRooms: "Rooms mapped", sumMembers: "Who lives here", sumWays: "Bedroom check",
+          sumStepsTitle: "If the alarm sounds, we will:",
+          sumSteps: ["Wake up and get up right away — no hiding.", "Get low and crawl under smoke.", "Feel doors with the back of a hand; if hot, use the second way out.", "Get out, close doors behind us, and leave everything behind.", "Stay out. Never go back inside for anything.", "Meet at our meeting spot and count heads.", "Call 911 from outside and give our address."],
+          sumFooter: "Practice this plan twice a year. Test smoke alarms monthly. — Fire Babys Fire Safety Academy",
+          toastBadge: "Badge earned!", toastPlan: "Escape plan complete — nice work!",
+          toastNeedPlan: "Finish the checklist first: bedrooms, two ways out, meeting spot, alarm, and your household.",
+          downloadPlan: "Download plan (.txt)",
+          hearAlarm: "Hear the alarm sound", hearAlarmNote: "A smoke alarm beeps three times, pauses, and repeats: BEEP — BEEP — BEEP. If you ever hear this sound for real, get out and stay out.",
+          alarmPlaying: "Beep… beep… beep… — that's the sound. Get out, stay out!",
+          retake: "Try the check again",
+          certDatePrefix: "Completed on",
+          planDoneLine: "Home escape plan built & practiced"
+        },
+        es: {
+          brandSub: "Academia de Seguridad contra Incendios",
+          navHome: "Inicio", navPlan: "Plan de escape", navLessons: "Lecciones", navCert: "Certificado",
+          heroFlag: "Gratis para siempre · Sin cuenta · Para todas las familias",
+          heroTitleA: "Toda familia merece", heroTitleB: "dos salidas.",
+          heroLede: "Bienvenidos a la Academia de Seguridad contra Incendios de Fire Babys. Creen el plan de escape de su hogar, aprendan las habilidades que salvan vidas y practíquenlas juntos — en unos quince minutos, desde su teléfono.",
+          ctaPlan: "Crear nuestro plan de escape", ctaLessons: "Empezar las lecciones",
+          rule1T: "Salidas de cada cuarto", rule1S: "Una puerta y una ventana. Si una está bloqueada, la otra los salva.",
+          rule2T: "Prueben las alarmas de humo", rule2per: "/mes", rule2S: "Pulsen el botón de prueba cada mes. Las alarmas solo ayudan si funcionan.",
+          rule3T: "Practiquen el plan", rule3per: "/año", rule3S: "Hagan un simulacro en casa dos veces al año — una vez de noche.",
+          hostsT: "Sus maestros: los Fire Babys",
+          hostsS: "Los Fire Babys son el equipo de seguridad de su familia — pequeños maestros valientes que saben exactamente qué hacer cuando suena la alarma. Los acompañarán en cada lección, los animarán en el Modo de Práctica y celebrarán cuando su familia gane su certificado.",
+          planHead: "El Creador de Planes de Escape",
+          planSub: "Dibujen su hogar real en la cuadrícula. Pinten los cuartos, agreguen puertas y ventanas, elijan el punto de encuentro afuera — y luego activen el Modo de Práctica y recorran el plan juntos, paso a paso.",
+          lessonsHead: "Cinco lecciones. Cinco insignias.",
+          lessonsSub: "Lecciones cortas y prácticas para toda la familia — cada una termina con una breve evaluación. Respondan bien todas las preguntas para ganar la insignia.",
+          progressLabel: "Progreso de la familia",
+          certHead: "El certificado familiar",
+          certSub: "Terminen las lecciones y el plan de escape, y luego creen un certificado con el nombre de su familia — descárguenlo, imprímanlo y pónganlo en el refrigerador donde todos lo vean.",
+          ctaCert: "Crear nuestro certificado",
+          backHome: "Volver al inicio", backLessons: "Todas las lecciones",
+          quizTitle: "Evaluación rápida — ganen la insignia",
+          quizSub: "Respondan correctamente las tres preguntas. ¿Una mal? Verán la explicación y podrán intentarlo de nuevo.",
+          badgeEarned: "¡Insignia ganada! Se guardó en la página principal y aparecerá en su certificado familiar.",
+          badgeNext: "Volver a las lecciones",
+          certFamilyLabel: "Nombre de la familia", certFamilyPh: "La familia Pruden",
+          certMembersLabel: "Miembros de la familia (separados por comas)", certMembersPh: "Jeff, María, Sofía…",
+          certTop: "Academia de Seguridad contra Incendios Fire Babys", certTitle: "Certificado de Preparación",
+          certAwarded: "Este certificado se otorga con orgullo a",
+          certLine: "por aprender a salir de forma segura, crear un plan de escape para el hogar y practicarlo juntos en familia.",
+          certSign: "Firmado: El equipo de seguridad de Fire Babys",
+          printCert: "Imprimir certificado", downloadCert: "Descargar una copia",
+          footerFree: "La Academia de Seguridad contra Incendios es gratis para todas las familias, para siempre. Sin cuenta, sin costo — solo seguridad.",
+          footerCredit: "Un programa de Fire Babys · General Federal Industries",
+          footerNote: "En una emergencia real, llamen siempre al 911 (o a su número local de emergencias) desde fuera del hogar. Los simulacros son para aprender — nunca usen una llamada de emergencia real para practicar.",
+          planBadge: "Creador de Planes de Escape — plan completo",
+          openLesson: "Abrir lección", earned: "Insignia ganada",
+          minutes: "min",
+          bRooms: "1 · Pinten los cuartos", bMarks: "2 · Agreguen puertas, ventanas, alarmas y el punto de encuentro", bErase: "Borrar",
+          room_bedroom: "Dormitorio", room_kitchen: "Cocina", room_bath: "Baño", room_living: "Sala", room_hall: "Pasillo", room_outside: "Afuera / patio",
+          mk_door: "Puerta", mk_window: "Ventana", mk_alarm: "Alarma de humo", mk_meet: "Punto de encuentro",
+          bMembers: "3 · ¿Quiénes viven aquí?", memberPh: "Agregar un nombre…", addBtn: "Agregar",
+          bExample: "Cargar una casa de ejemplo", bClear: "Limpiar la cuadrícula",
+          bPractice: "Iniciar el Modo de Práctica", bSummary: "Ver el resumen del plan",
+          chkBedrooms: "Hay al menos un dormitorio en el mapa", chkBedroomsSub: "Pinten de dormitorio los cuadros donde duerme su familia.",
+          chkWays: "Cada dormitorio tiene DOS salidas", chkWaysOk: "salida(s) contadas desde puertas y ventanas que tocan el cuarto.",
+          chkWaysNone: "Primero agreguen dormitorios.", chkWaysNeed: "todavía necesita otra salida — agreguen una puerta o una ventana.",
+          chkMeet: "El punto de encuentro está afuera", chkMeetSub: "Pongan la estrella en un cuadro de «Afuera» — un árbol, un buzón o la entrada de un vecino al que todos puedan llegar.",
+          chkAlarm: "Hay una alarma de humo en el mapa", chkAlarmSub: "En un hogar real se necesita una dentro de cada dormitorio, fuera de las áreas de dormir y en cada piso.",
+          chkMembers: "Los miembros del hogar están agregados", chkMembersSub: "Todas las personas que duermen aquí — más un plan para las mascotas y para quien necesite ayuda para salir.",
+          pracKicker: "Modo de Práctica", pracNext: "Siguiente paso", pracBack: "Atrás", pracDone: "¡Lo logramos!",
+          pracSteps: [
+            { t: "¡Suena la alarma!", s: "Bip… bip… bip… Esa es la alarma de humo. Todos se despiertan y se levantan — sin esconderse, sin buscar juguetes ni teléfonos. Adultos: ayuden a quien lo necesite." },
+            { t: "Abajo y a salir", s: "El humo sube, así que el aire más limpio está abajo. Gateen a gatas por debajo del humo hacia su salida." },
+            { t: "Revisen la puerta primero", s: "Antes de abrir una puerta cerrada, tóquenla con el dorso de la mano. Si está caliente, no la abran — usen la segunda salida del cuarto." },
+            { t: "Salgan — rápido y con calma", s: "Sigan su plan hasta llegar afuera. Dejen todo atrás. Cierren las puertas al pasar — una puerta cerrada frena el fuego." },
+            { t: "Salir y quedarse afuera", s: "Una vez afuera, nunca vuelvan a entrar — ni por mascotas, ni por nada. Digan a los bomberos quién falta y dónde podría estar." },
+            { t: "Encuéntrense en el punto", s: "Todos van directo al punto de encuentro familiar y se quedan juntos para que los adultos puedan contar a todos." },
+            { t: "Llamen al 911 desde afuera", s: "Desde un teléfono afuera — o desde la casa de un vecino — llamen al 911. Digan su dirección con claridad y respondan las preguntas del operador. Nunca llamen desde dentro de una casa en llamas." },
+            { t: "¡Práctica completa — gran trabajo, familia!", s: "Eso fue un simulacro, y lo hicieron perfecto. Los verdaderos profesionales practican dos veces al año — una de día y una de noche. Los Fire Babys están orgullosos de ustedes." }
+          ],
+          meetNamed: "Su punto de encuentro está en el mapa",
+          sumTitle: "Nuestro Plan de Escape Familiar",
+          sumRooms: "Cuartos en el mapa", sumMembers: "Quiénes viven aquí", sumWays: "Revisión de dormitorios",
+          sumStepsTitle: "Si suena la alarma, nosotros:",
+          sumSteps: ["Nos despertamos y nos levantamos de inmediato — sin escondernos.", "Nos agachamos y gateamos por debajo del humo.", "Tocamos las puertas con el dorso de la mano; si está caliente, usamos la segunda salida.", "Salimos, cerramos las puertas al pasar y dejamos todo atrás.", "Nos quedamos afuera. Nunca volvemos a entrar por nada.", "Nos encontramos en el punto de encuentro y contamos a todos.", "Llamamos al 911 desde afuera y damos nuestra dirección."],
+          sumFooter: "Practiquen este plan dos veces al año. Prueben las alarmas de humo cada mes. — Academia de Seguridad contra Incendios Fire Babys",
+          toastBadge: "¡Insignia ganada!", toastPlan: "Plan de escape completo — ¡buen trabajo!",
+          toastNeedPlan: "Primero completen la lista: dormitorios, dos salidas, punto de encuentro, alarma y su familia.",
+          downloadPlan: "Descargar plan (.txt)",
+          hearAlarm: "Escuchar el sonido de la alarma", hearAlarmNote: "Una alarma de humo pita tres veces, hace una pausa y repite: BIP — BIP — BIP. Si alguna vez escuchan este sonido de verdad, salgan y quédense afuera.",
+          alarmPlaying: "Bip… bip… bip… — ese es el sonido. ¡Salgan y quédense afuera!",
+          retake: "Intentar la evaluación de nuevo",
+          certDatePrefix: "Completado el",
+          planDoneLine: "Plan de escape del hogar creado y practicado"
+        }
+      };
+      const t = (k) => (T[LANG] && T[LANG][k]) || T.en[k] || k;
+
+      /* ================= Lessons ================= */
+      const LESSONS = [
+        {
+          id: "alarms", icon: "alarm", color: "#c9241b", mins: 3, hasAlarmDemo: true,
+          en: {
+            title: "Smoke Alarms Save Lives",
+            intro: "The beep that wakes you up in time to get out.",
+            cards: [
+              { h: "Know the sound", p: "A smoke alarm makes three loud beeps, pauses, then repeats: <strong>BEEP — BEEP — BEEP</strong>. When you hear it, it's not a drill guessing game — get up and get out." },
+              { h: "Test every month", p: "Press and hold the <strong>test button</strong> once a month until it beeps. If it stays silent or sounds weak, put in a fresh battery right away." },
+              { h: "One on every level", p: "Working alarms belong <strong>inside every bedroom</strong>, just outside sleeping areas, and on <strong>every level</strong> of the home — including the basement." },
+              { h: "Sleep with doors closed", p: "A closed bedroom door slows smoke and fire and keeps the air cleaner while you sleep. <strong>Close before you doze.</strong> Replace the whole alarm every 10 years." }
+            ],
+            quiz: [
+              { q: "How often should you test your smoke alarms?", opts: ["Once a year", "Every month", "Only when they chirp"], a: 1, why: "Test monthly by pressing the test button. A chirp means the battery is low — change it the same day." },
+              { q: "You hear BEEP — BEEP — BEEP at night. What do you do?", opts: ["Roll over and go back to sleep", "Open the door and look for the fire", "Get up, get low, and get out by your plan"], a: 2, why: "The alarm means smoke is already in the home. Get out first — never go looking for the fire." },
+              { q: "Why sleep with bedroom doors closed?", opts: ["It keeps the room quieter", "A closed door slows smoke and fire and keeps air cleaner", "It makes the alarm louder"], a: 1, why: "A closed door can hold back heat and smoke for precious minutes while you use your second way out." }
+            ],
+            badge: "Smoke Alarm Star"
+          },
+          es: {
+            title: "Las alarmas de humo salvan vidas",
+            intro: "El pitido que los despierta a tiempo para salir.",
+            cards: [
+              { h: "Conozcan el sonido", p: "Una alarma de humo hace tres pitidos fuertes, pausa y repite: <strong>BIP — BIP — BIP</strong>. Cuando lo escuchen, no es un juego — levántense y salgan." },
+              { h: "Pruébenlas cada mes", p: "Mantengan presionado el <strong>botón de prueba</strong> una vez al mes hasta que pite. Si no suena o suena débil, cambien la batería de inmediato." },
+              { h: "Una en cada piso", p: "Las alarmas deben estar <strong>dentro de cada dormitorio</strong>, justo fuera de las áreas de dormir y en <strong>cada piso</strong> de la casa — incluyendo el sótano." },
+              { h: "Duerman con la puerta cerrada", p: "Una puerta cerrada frena el humo y el fuego y mantiene el aire más limpio mientras duermen. Reemplacen la alarma completa cada 10 años." }
+            ],
+            quiz: [
+              { q: "¿Cada cuánto deben probar las alarmas de humo?", opts: ["Una vez al año", "Cada mes", "Solo cuando pitan bajito"], a: 1, why: "Pruébenlas cada mes con el botón de prueba. Un pitido débil significa batería baja — cámbienla el mismo día." },
+              { q: "Escuchan BIP — BIP — BIP de noche. ¿Qué hacen?", opts: ["Se dan la vuelta y siguen durmiendo", "Abren la puerta a buscar el fuego", "Se levantan, se agachan y salen según el plan"], a: 2, why: "La alarma significa que ya hay humo en la casa. Salgan primero — nunca busquen el fuego." },
+              { q: "¿Por qué dormir con la puerta del dormitorio cerrada?", opts: ["Hace el cuarto más silencioso", "Una puerta cerrada frena el humo y el fuego y mantiene el aire más limpio", "Hace que la alarma suene más fuerte"], a: 1, why: "Una puerta cerrada puede contener el calor y el humo por minutos valiosos mientras usan su segunda salida." }
+            ],
+            badge: "Estrella de las Alarmas"
+          }
+        },
+        {
+          id: "getout", icon: "exit", color: "#e85d1f", mins: 3,
+          en: {
+            title: "Get Out, Stay Out",
+            intro: "Once you're out, you're out. Nothing inside is worth going back for.",
+            cards: [
+              { h: "Two ways out", p: "Every room needs <strong>two ways out</strong> — usually a door and a window. If smoke or flames block one, the other gets you out." },
+              { h: "Leave everything", p: "No toys, no phones, no pets in your arms on the way out. <strong>Things can be replaced. People can't.</strong> Get yourself out first." },
+              { h: "Meet at the spot", p: "Go straight to your family's <strong>meeting spot</strong> — a tree, mailbox, or neighbor's porch — and stay there so everyone can be counted." },
+              { h: "Never go back in", p: "Once out, <strong>stay out</strong>. If someone is missing, tell the firefighters exactly where they might be. Going back in is how rescuers get hurt." }
+            ],
+            quiz: [
+              { q: "How many ways out should every bedroom have?", opts: ["One is fine", "Two", "As many as the house has doors"], a: 1, why: "Two ways out — a door and a window. If fire blocks one, the other is your lifeline." },
+              { q: "You're outside and realize your favorite toy is still in your room. What do you do?", opts: ["Run back in quickly", "Ask a firefighter to get it later", "Stay out — toys can be replaced"], a: 2, why: "Never go back inside for anything. Firefighters can help once you're safe outside." },
+              { q: "Where does everyone go first when they get outside?", opts: ["The family meeting spot", "The car", "Different places to look for each other"], a: 0, why: "Everyone to the same meeting spot, every time — that's how grown-ups know the whole family made it out." }
+            ],
+            badge: "Get Out, Stay Out Hero"
+          },
+          es: {
+            title: "Sal y quédate afuera",
+            intro: "Una vez afuera, se quedan afuera. Nada de adentro vale la pena como para volver.",
+            cards: [
+              { h: "Dos salidas", p: "Cada cuarto necesita <strong>dos salidas</strong> — normalmente una puerta y una ventana. Si el humo o las llamas bloquean una, la otra los saca." },
+              { h: "Dejen todo atrás", p: "Nada de juguetes, teléfonos ni mascotas en brazos al salir. <strong>Las cosas se reemplazan. Las personas no.</strong> Salgan ustedes primero." },
+              { h: "Al punto de encuentro", p: "Vayan directo al <strong>punto de encuentro</strong> familiar — un árbol, un buzón o la entrada de un vecino — y quédense ahí para que puedan contarlos." },
+              { h: "Nunca vuelvan a entrar", p: "Una vez afuera, <strong>quédense afuera</strong>. Si falta alguien, digan a los bomberos exactamente dónde podría estar. Volver a entrar es como se lastiman los rescatistas." }
+            ],
+            quiz: [
+              { q: "¿Cuántas salidas debe tener cada dormitorio?", opts: ["Una basta", "Dos", "Todas las puertas de la casa"], a: 1, why: "Dos salidas — una puerta y una ventana. Si el fuego bloquea una, la otra es su salvación." },
+              { q: "Están afuera y recuerdan que su juguete favorito quedó en el cuarto. ¿Qué hacen?", opts: ["Entran corriendo rápido", "Piden a un bombero que lo busque después", "Se quedan afuera — los juguetes se reemplazan"], a: 2, why: "Nunca vuelvan a entrar por nada. Los bomberos pueden ayudar una vez que estén seguros afuera." },
+              { q: "¿A dónde va primero cada persona al salir?", opts: ["Al punto de encuentro familiar", "Al auto", "Cada quien a buscar a los demás"], a: 0, why: "Todos al mismo punto de encuentro, siempre — así los adultos saben que toda la familia salió." }
+            ],
+            badge: "Héroe de Salir y Quedarse Afuera"
+          }
+        },
+        {
+          id: "sdr", icon: "roll", color: "#b8860b", mins: 2,
+          en: {
+            title: "Stop, Drop & Roll",
+            intro: "Only if your clothes ever catch fire — this puts the flames out fast.",
+            cards: [
+              { h: "STOP", p: "Stop right where you are. <strong>Never run</strong> — running fans the flames and makes them grow." },
+              { h: "DROP", p: "Drop to the ground and <strong>cover your face</strong> with your hands to protect your eyes and lungs." },
+              { h: "ROLL", p: "Roll <strong>back and forth</strong>, over and over, until the flames are completely out. Rolling smothers the fire." },
+              { h: "Then cool & get help", p: "Once the flames are out, cool the skin with <strong>cool (not cold) water</strong> and get a grown-up or call 911 for help right away." }
+            ],
+            quiz: [
+              { q: "Stop, Drop & Roll is for when…", opts: ["The smoke alarm sounds", "Your clothes catch fire", "You smell smoke in the kitchen"], a: 1, why: "It's only for clothes on fire. For a smoke alarm, the move is get low and get out." },
+              { q: "Why must you STOP first instead of running?", opts: ["Running makes flames grow bigger", "Running is against the rules", "You might trip"], a: 0, why: "Moving air feeds the fire. Stopping, dropping, and rolling smothers the flames." },
+              { q: "What do your hands do while you roll?", opts: ["Wave for help", "Cover your face", "Pat the flames out"], a: 1, why: "Cover your face with both hands while you roll back and forth until every flame is out." }
+            ],
+            badge: "Stop, Drop & Roll Pro"
+          },
+          es: {
+            title: "Para, tírate y rueda",
+            intro: "Solo si su ropa alguna vez se prende — esto apaga las llamas rápido.",
+            cards: [
+              { h: "PARA", p: "Párense justo donde están. <strong>Nunca corran</strong> — correr aviva las llamas y las hace crecer." },
+              { h: "TÍRATE", p: "Tírense al suelo y <strong>cúbranse la cara</strong> con las manos para proteger los ojos y los pulmones." },
+              { h: "RUEDA", p: "Rueden <strong>de un lado a otro</strong>, una y otra vez, hasta que las llamas se apaguen por completo. Rodar sofoca el fuego." },
+              { h: "Luego enfríen y pidan ayuda", p: "Cuando las llamas se apaguen, enfríen la piel con <strong>agua fresca (no fría)</strong> y busquen a un adulto o llamen al 911 de inmediato." }
+            ],
+            quiz: [
+              { q: "«Para, tírate y rueda» es para cuando…", opts: ["Suena la alarma de humo", "Su ropa se prende fuego", "Huele a humo en la cocina"], a: 1, why: "Es solo para ropa en llamas. Si suena la alarma, lo correcto es agacharse y salir." },
+              { q: "¿Por qué hay que PARAR primero en vez de correr?", opts: ["Correr hace crecer las llamas", "Correr está prohibido", "Podrían tropezar"], a: 0, why: "El aire en movimiento alimenta el fuego. Parar, tirarse y rodar sofoca las llamas." },
+              { q: "¿Qué hacen las manos mientras ruedan?", opts: ["Piden ayuda", "Cubren la cara", "Apagan las llamas a palmadas"], a: 1, why: "Cúbranse la cara con ambas manos mientras ruedan de un lado a otro hasta apagar cada llama." }
+            ],
+            badge: "Experto en Para, Tírate y Rueda"
+          }
+        },
+        {
+          id: "kitchen", icon: "kitchen", color: "#1e7d46", mins: 3,
+          en: {
+            title: "Kitchen Safety for Grown-Ups",
+            intro: "Most home fires start in the kitchen. These habits stop them before they start.",
+            cards: [
+              { h: "Stay with what's cooking", p: "Unattended cooking is the <strong>top cause</strong> of kitchen fires. If you leave the kitchen, take something with you as a reminder — or turn the heat off." },
+              { h: "Handles in, clutter out", p: "Turn pot handles <strong>toward the back</strong> of the stove so nothing gets knocked over, and keep towels, paper, and curtains away from burners." },
+              { h: "A 3-foot kid-free zone", p: "Keep children and pets at least <strong>3 feet (1 meter)</strong> from the stove while cooking. Hot oil and steam burn fast." },
+              { h: "Grease fire? Lid, never water", p: "If a pan catches fire, slide a <strong>lid</strong> over it and turn off the heat. <strong>Never pour water</strong> on a grease fire — it explodes the flames. If it grows, get out and call 911." }
+            ],
+            quiz: [
+              { q: "What's the #1 cause of kitchen fires?", opts: ["Broken ovens", "Cooking left unattended", "Using metal pans"], a: 1, why: "Stay in the kitchen while food cooks — especially anything frying on the stove." },
+              { q: "A pan of oil catches fire. What's the right move?", opts: ["Pour water on it", "Carry the pan outside", "Slide a lid on it and turn off the heat"], a: 2, why: "A lid starves the fire of oxygen. Water on grease makes it explode outward." },
+              { q: "How far should kids and pets stay from the stove while cooking?", opts: ["Right next to it, watching", "At least 3 feet away", "In another house"], a: 1, why: "A 3-foot kid-free zone around the stove prevents bumps, spills, and burns." }
+            ],
+            badge: "Kitchen Safety Captain"
+          },
+          es: {
+            title: "Seguridad en la cocina para adultos",
+            intro: "La mayoría de los incendios en el hogar empiezan en la cocina. Estos hábitos los detienen antes de que empiecen.",
+            cards: [
+              { h: "Quédense con lo que cocinan", p: "Cocinar sin supervisión es la <strong>causa número uno</strong> de incendios en la cocina. Si salen de la cocina, llévense algo como recordatorio — o apaguen el fuego." },
+              { h: "Mangos hacia adentro, nada suelto", p: "Giren los mangos de las ollas <strong>hacia la parte trasera</strong> de la estufa para que nada se derrame, y mantengan toallas, papel y cortinas lejos de los quemadores." },
+              { h: "Zona libre de niños de 3 pies", p: "Mantengan a los niños y mascotas a por lo menos <strong>3 pies (1 metro)</strong> de la estufa mientras cocinan. El aceite caliente y el vapor queman rápido." },
+              { h: "¿Fuego en la grasa? Tapa, nunca agua", p: "Si una sartén se prende, deslicen una <strong>tapa</strong> encima y apaguen el fuego. <strong>Nunca echen agua</strong> sobre grasa en llamas — hace explotar las llamas. Si crece, salgan y llamen al 911." }
+            ],
+            quiz: [
+              { q: "¿Cuál es la causa #1 de incendios en la cocina?", opts: ["Hornos dañados", "Dejar la comida cocinándose sin supervisión", "Usar ollas de metal"], a: 1, why: "Quédense en la cocina mientras se cocina — sobre todo si están friendo algo en la estufa." },
+              { q: "Una sartén con aceite se prende. ¿Qué es lo correcto?", opts: ["Echarle agua", "Llevar la sartén afuera", "Deslizar una tapa encima y apagar el fuego"], a: 2, why: "La tapa deja al fuego sin oxígeno. El agua sobre la grasa hace que explote hacia afuera." },
+              { q: "¿A qué distancia deben estar los niños y las mascotas de la estufa al cocinar?", opts: ["Justo al lado, mirando", "A por lo menos 3 pies", "En otra casa"], a: 1, why: "Una zona libre de niños de 3 pies alrededor de la estufa evita golpes, derrames y quemaduras." }
+            ],
+            badge: "Capitán de Seguridad en la Cocina"
+          }
+        },
+        {
+          id: "call911", icon: "phone", color: "#1d5fa8", mins: 3,
+          en: {
+            title: "What to Tell 911",
+            intro: "Calling for help is a skill — and your family can practice it together.",
+            cards: [
+              { h: "Call from outside", p: "Only call 911 <strong>after you're outside</strong> — from your phone at the meeting spot or from a neighbor's home. Never call from inside a burning building." },
+              { h: "Know your address", p: "The dispatcher needs <strong>where</strong> before anything else: your street address and city. Every family member should be able to say it out loud." },
+              { h: "Say what happened", p: "Speak slowly and clearly: <em>\"There's a fire at my house.\"</em> Then answer the dispatcher's questions — they are sending help while they talk to you." },
+              { h: "Stay on the line", p: "<strong>Don't hang up</strong> until the dispatcher says it's okay. And practice on a toy or unplugged phone — never make a practice call to real 911." }
+            ],
+            quiz: [
+              { q: "When should you call 911 during a house fire?", opts: ["Before leaving, from the kitchen", "From outside, once you're safe", "Only if you see flames"], a: 1, why: "Get out first, then call from outside or a neighbor's home. Smoke can overcome you in minutes." },
+              { q: "What's the most important thing to tell the dispatcher first?", opts: ["Your address — where the fire is", "Your favorite color", "How the fire started"], a: 0, why: "Help can't come if they don't know where. Address first, then answer their questions." },
+              { q: "How can your family practice calling 911?", opts: ["Call the real 911 once to test it", "Practice on a toy or unplugged phone", "Text 911 jokes"], a: 1, why: "Practice the words on a pretend phone. Real 911 lines are only for real emergencies." }
+            ],
+            badge: "911 Star Caller"
+          },
+          es: {
+            title: "Qué decir al 911",
+            intro: "Pedir ayuda es una habilidad — y su familia puede practicarla junta.",
+            cards: [
+              { h: "Llamen desde afuera", p: "Llamen al 911 solo <strong>después de estar afuera</strong> — desde su teléfono en el punto de encuentro o desde la casa de un vecino. Nunca llamen desde dentro de una casa en llamas." },
+              { h: "Sepan su dirección", p: "El operador necesita saber <strong>dónde</strong> antes que nada: su dirección y ciudad. Cada miembro de la familia debería poder decirla en voz alta." },
+              { h: "Digan qué pasó", p: "Hablen despacio y con claridad: <em>«Hay un incendio en mi casa»</em>. Luego respondan las preguntas del operador — él envía la ayuda mientras habla con ustedes." },
+              { h: "No cuelguen", p: "<strong>No cuelguen</strong> hasta que el operador diga que pueden hacerlo. Y practiquen con un teléfono de juguete o desconectado — nunca hagan llamadas de práctica al 911 real." }
+            ],
+            quiz: [
+              { q: "¿Cuándo deben llamar al 911 durante un incendio en casa?", opts: ["Antes de salir, desde la cocina", "Desde afuera, cuando estén seguros", "Solo si ven llamas"], a: 1, why: "Salgan primero y llamen desde afuera o desde la casa de un vecino. El humo puede vencerlos en minutos." },
+              { q: "¿Qué es lo más importante que decirle primero al operador?", opts: ["Su dirección — dónde está el incendio", "Su color favorito", "Cómo empezó el fuego"], a: 0, why: "La ayuda no puede llegar si no saben dónde. Primero la dirección, luego respondan sus preguntas." },
+              { q: "¿Cómo puede practicar su familia las llamadas al 911?", opts: ["Llamar al 911 real una vez para probar", "Practicar con un teléfono de juguete o desconectado", "Enviar mensajes de broma al 911"], a: 1, why: "Practiquen las palabras con un teléfono de mentira. Las líneas reales del 911 son solo para emergencias reales." }
+            ],
+            badge: "Estrella de Llamadas al 911"
+          }
+        }
+      ];
+
+      /* ================= State ================= */
+      const earned = {};            // lessonId -> true
+      let planPracticed = false;
+      const GW = 8, GH = 6;
+      let cells = [];               // {room, marker}
+      let members = [];
+      let tool = { kind: "room", value: "bedroom" };
+      let pracStep = 0;
+      let currentLesson = null;
+      let quizState = null;
+
+      function blankCells() {
+        cells = [];
+        for (let i = 0; i < GW * GH; i++) cells.push({ room: null, marker: null });
+      }
+      blankCells();
+
+      /* ================= Helpers ================= */
+      const $ = (sel, root) => (root || document).querySelector(sel);
+      const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+      let toastTimer = null;
+      function toast(msg) {
+        const el = $("#toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
+      }
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      }
+      function downloadText(filename, text) {
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+      }
+
+      /* ================= Navigation ================= */
+      function showView(name) {
+        $$(".view").forEach((v) => v.classList.remove("active"));
+        const target = $("#view-" + name);
+        if (target) target.classList.add("active");
+        $$(".nav [data-nav]").forEach((b) => b.classList.toggle("active", b.dataset.nav === name || (name === "lesson" && b.dataset.nav === "lessons")));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (name === "certificate") renderCertificate();
+      }
+      document.addEventListener("click", (e) => {
+        const go = e.target.closest("[data-goto]");
+        if (go) { showView(go.dataset.goto); return; }
+        const nav = e.target.closest("[data-nav]");
+        if (nav) showView(nav.dataset.nav);
+      });
+
+      /* ================= Builder ================= */
+      const ROOMS = ["bedroom", "kitchen", "bath", "living", "hall", "outside"];
+      const ROOM_COLORS = { bedroom: "#93b8e8", kitchen: "#f0b269", bath: "#7cc7c0", living: "#e3c04f", hall: "#cfc2ae", outside: "#8fce9b" };
+      const MARKERS = [
+        { id: "door", icon: "door" }, { id: "window", icon: "window" },
+        { id: "alarm", icon: "bell" }, { id: "meet", icon: "meet" }
+      ];
+
+      function builderHTML() {
+        const roomBtns = ROOMS.map((r) =>
+          '<button class="tool" data-tool-kind="room" data-tool-value="' + r + '">' +
+          '<span class="swatch" style="background:' + ROOM_COLORS[r] + '"></span>' + esc(t("room_" + r)) + "</button>"
+        ).join("");
+        const markBtns = MARKERS.map((m) =>
+          '<button class="tool" data-tool-kind="marker" data-tool-value="' + m.id + '">' +
+          '<span class="mk">' + P[m.icon] + "</span>" + esc(t("mk_" + m.id)) + "</button>"
+        ).join("");
+        return (
+          '<div class="builder-shell">' +
+            '<div class="tool-label">' + esc(t("bRooms")) + "</div>" +
+            '<div class="tools">' + roomBtns + "</div>" +
+            '<div class="tool-label">' + esc(t("bMarks")) + "</div>" +
+            '<div class="tools">' + markBtns +
+              '<button class="tool" data-tool-kind="erase" data-tool-value=""><span class="mk">' + P.eraser + "</span>" + esc(t("bErase")) + "</button>" +
+            "</div>" +
+            '<div class="grid-scroll"><div class="home-grid" data-grid></div></div>' +
+            '<div class="members">' +
+              '<div class="tool-label">' + esc(t("bMembers")) + "</div>" +
+              '<div class="member-row"><input type="text" data-member-input placeholder="' + esc(t("memberPh")) + '" />' +
+              '<button class="btn btn-dark" data-add-member style="min-height:48px; padding:10px 18px;">' + esc(t("addBtn")) + "</button></div>" +
+              '<div class="member-chips" data-member-chips></div>' +
+            "</div>" +
+            '<ul class="checklist" data-checklist></ul>' +
+            '<div class="builder-actions">' +
+              '<button class="btn btn-ghost" data-example>' + esc(t("bExample")) + "</button>" +
+              '<button class="btn btn-ghost" data-clear>' + esc(t("bClear")) + "</button>" +
+              '<button class="btn btn-red" data-practice>' + esc(t("bPractice")) + "</button>" +
+              '<button class="btn btn-dark" data-summary>' + esc(t("bSummary")) + "</button>" +
+            "</div>" +
+            '<div class="practice" data-practice-box></div>' +
+            '<div class="summary-sheet" data-summary-sheet></div>' +
+          "</div>"
+        );
+      }
+
+      function mountBuilder() {
+        ["builderMountHome", "builderMountFull"].forEach((id) => {
+          const m = document.getElementById(id);
+          if (m) m.innerHTML = builderHTML();
+        });
+        syncBuilder();
+      }
+
+      function eachBuilder(fn) {
+        $$(".builder-shell").forEach(fn);
+      }
+
+      function renderGrid() {
+        eachBuilder((shell) => {
+          const grid = $("[data-grid]", shell);
+          grid.innerHTML = cells.map((c, i) => {
+            const roomName = c.room ? '<span class="room-name">' + esc(t("room_" + c.room)) + "</span>" : "";
+            let marker = "";
+            if (c.marker) {
+              const ic = c.marker === "door" ? "door" : c.marker === "window" ? "window" : c.marker === "alarm" ? "bell" : "meet";
+              marker = '<span class="marker ' + (c.marker === "meet" ? "meet" : c.marker === "alarm" ? "alarm" : "") + '">' + P[ic] + "</span>";
+            }
+            return '<button class="cell" data-cell="' + i + '" data-room="' + (c.room || "") + '" aria-label="cell ' + (i + 1) + '">' + roomName + marker + "</button>";
+          }).join("");
+        });
+      }
+
+      function renderTools() {
+        eachBuilder((shell) => {
+          $$(".tool", shell).forEach((b) => {
+            const sel = b.dataset.toolKind === tool.kind && (tool.kind === "erase" || b.dataset.toolValue === tool.value);
+            b.classList.toggle("selected", !!sel);
+          });
+        });
+      }
+
+      function renderMembers() {
+        eachBuilder((shell) => {
+          const box = $("[data-member-chips]", shell);
+          box.innerHTML = members.map((m, i) =>
+            '<span class="member-chip">' + esc(m) + '<button data-remove-member="' + i + '" aria-label="remove">×</button></span>'
+          ).join("");
+        });
+      }
+
+      /* Flood-fill room regions; returns array of {roomType, idxs:Set} */
+      function regions() {
+        const seen = new Array(GW * GH).fill(false);
+        const out = [];
+        for (let i = 0; i < GW * GH; i++) {
+          if (seen[i] || !cells[i].room || cells[i].room === "outside") { seen[i] = true; continue; }
+          const type = cells[i].room;
+          const idxs = new Set();
+          const stack = [i];
+          seen[i] = true;
+          while (stack.length) {
+            const cur = stack.pop();
+            idxs.add(cur);
+            const cx = cur % GW, cy = Math.floor(cur / GW);
+            [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx, dy]) => {
+              const nx = cx + dx, ny = cy + dy;
+              if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) return;
+              const ni = ny * GW + nx;
+              if (!seen[ni] && cells[ni].room === type) { seen[ni] = true; stack.push(ni); }
+            });
+          }
+          out.push({ type, idxs });
+        }
+        return out;
+      }
+      function neighborsOf(idxs) {
+        const s = new Set();
+        idxs.forEach((i) => {
+          const cx = i % GW, cy = Math.floor(i / GW);
+          [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx, dy]) => {
+            const nx = cx + dx, ny = cy + dy;
+            if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) return;
+            const ni = ny * GW + nx;
+            if (!idxs.has(ni)) s.add(ni);
+          });
+        });
+        return s;
+      }
+      function waysOut(region) {
+        let n = 0;
+        region.idxs.forEach((i) => { if (cells[i].marker === "door" || cells[i].marker === "window") n++; });
+        neighborsOf(region.idxs).forEach((i) => { if (cells[i].marker === "door" || cells[i].marker === "window") n++; });
+        return n;
+      }
+
+      function planStatus() {
+        const regs = regions();
+        const bedrooms = regs.filter((r) => r.type === "bedroom");
+        const hasBedroom = bedrooms.length > 0;
+        const bedroomWays = bedrooms.map((b) => waysOut(b));
+        const waysOk = hasBedroom && bedroomWays.every((w) => w >= 2);
+        const meetOk = cells.some((c) => c.marker === "meet" && c.room === "outside");
+        const alarmOk = cells.some((c) => c.marker === "alarm");
+        const membersOk = members.length > 0;
+        return { hasBedroom, bedrooms, bedroomWays, waysOk, meetOk, alarmOk, membersOk,
+                 complete: hasBedroom && waysOk && meetOk && alarmOk && membersOk };
+      }
+
+      function renderChecklist() {
+        const st = planStatus();
+        const li = (ok, title, sub) =>
+          '<li class="' + (ok ? "ok" : "") + '"><span class="st">' + (ok ? "✓" : "!") + "</span><span>" + esc(title) + (sub ? "<small>" + esc(sub) + "</small>" : "") + "</span></li>";
+        let waysSub;
+        if (!st.hasBedroom) waysSub = t("chkWaysNone");
+        else {
+          const bad = st.bedroomWays.findIndex((w) => w < 2);
+          waysSub = st.bedroomWays.map((w, i) => t("room_bedroom") + " " + (i + 1) + ": " + w + " " + t("chkWaysOk")).join(" ");
+          if (bad >= 0) waysSub += " " + t("room_bedroom") + " " + (bad + 1) + " " + t("chkWaysNeed");
+        }
+        const html =
+          li(st.hasBedroom, t("chkBedrooms"), t("chkBedroomsSub")) +
+          li(st.waysOk, t("chkWays"), waysSub) +
+          li(st.meetOk, t("chkMeet"), t("chkMeetSub")) +
+          li(st.alarmOk, t("chkAlarm"), t("chkAlarmSub")) +
+          li(st.membersOk, t("chkMembers"), t("chkMembersSub"));
+        eachBuilder((shell) => { $("[data-checklist]", shell).innerHTML = html; });
+        return st;
+      }
+
+      function syncBuilder() {
+        renderGrid(); renderTools(); renderMembers(); renderChecklist();
+      }
+
+      function applyTool(i) {
+        const c = cells[i];
+        if (tool.kind === "room") { c.room = tool.value; if (tool.value !== "outside" && c.marker === "meet") c.marker = null; }
+        else if (tool.kind === "marker") { c.marker = (c.marker === tool.value) ? null : tool.value; }
+        else if (tool.kind === "erase") { c.room = null; c.marker = null; }
+        planPracticed = false;
+        hidePractice(); hideSummary();
+        syncBuilder();
+      }
+
+      function loadExample() {
+        blankCells();
+        const set = (x, y, room, marker) => { const c = cells[y * GW + x]; if (room) c.room = room; if (marker) c.marker = marker; };
+        // Row 0-1: bedrooms + bath (top), Row 2: hall, Row 3: living/kitchen, Rows 4-5: outside
+        for (let x = 0; x < 3; x++) { set(x, 0, "bedroom"); set(x, 1, "bedroom"); }
+        for (let x = 3; x < 5; x++) { set(x, 0, "bath"); set(x, 1, "bath"); }
+        for (let x = 5; x < 8; x++) { set(x, 0, "bedroom"); set(x, 1, "bedroom"); }
+        for (let x = 0; x < 8; x++) set(x, 2, "hall");
+        for (let x = 0; x < 4; x++) { set(x, 3, "living"); }
+        for (let x = 4; x < 8; x++) { set(x, 3, "kitchen"); }
+        for (let y = 4; y < 6; y++) for (let x = 0; x < 8; x++) set(x, y, "outside");
+        set(1, 1, null, "door"); set(0, 0, null, "window"); set(1, 0, null, "alarm");
+        set(6, 1, null, "door"); set(7, 0, null, "window"); set(6, 0, null, "alarm");
+        set(1, 2, null, "door"); set(6, 2, null, "door");
+        set(3, 3, null, "door"); set(5, 3, null, "alarm");
+        set(6, 5, null, "meet");
+        if (!members.length) members = [];
+        planPracticed = false;
+        hidePractice(); hideSummary();
+        syncBuilder();
+      }
+
+      /* ---------- Practice mode ---------- */
+      function hidePractice() { eachBuilder((s) => { const b = $("[data-practice-box]", s); b.classList.remove("show"); b.innerHTML = ""; }); }
+      function hideSummary() { eachBuilder((s) => { const b = $("[data-summary-sheet]", s); b.classList.remove("show"); b.innerHTML = ""; }); }
+
+      function renderPractice() {
+        const steps = T[LANG].pracSteps;
+        const step = steps[pracStep];
+        const isLast = pracStep === steps.length - 1;
+        const dots = steps.map((_, i) => '<i class="' + (i <= pracStep ? "on" : "") + '"></i>').join("");
+        const meetLine = planStatus().meetOk ? '<p style="margin-top:10px; font-weight:700; color: var(--amber);">★ ' + esc(t("meetNamed")) + "</p>" : "";
+        const html =
+          '<div class="practice-in">' +
+            '<div class="step-kicker">' + esc(t("pracKicker")) + " · " + (pracStep + 1) + " / " + steps.length + "</div>" +
+            "<h3>" + esc(step.t) + "</h3><p>" + esc(step.s) + "</p>" + (pracStep === 5 ? meetLine : "") +
+            '<div class="dots">' + dots + "</div>" +
+            '<div class="p-actions">' +
+              (pracStep > 0 ? '<button class="btn btn-ghost" data-prac-back>' + esc(t("pracBack")) + "</button>" : "") +
+              (isLast
+                ? '<button class="btn btn-red" data-prac-finish>' + esc(t("pracDone")) + "</button>"
+                : '<button class="btn btn-red" data-prac-next>' + esc(t("pracNext")) + "</button>") +
+            "</div>" +
+          "</div>";
+        eachBuilder((s) => { const b = $("[data-practice-box]", s); b.innerHTML = html; b.classList.add("show"); });
+        const box = $("[data-practice-box].show");
+        if (box) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      function startPractice() {
+        const st = renderChecklist();
+        if (!st.complete) { toast(t("toastNeedPlan")); return; }
+        pracStep = 0;
+        hideSummary();
+        renderPractice();
+      }
+
+      /* ---------- Plan summary ---------- */
+      function summaryData() {
+        const st = planStatus();
+        const roomCount = cells.filter((c) => c.room && c.room !== "outside").length;
+        return { st, roomCount };
+      }
+      function renderSummary() {
+        const { st, roomCount } = summaryData();
+        const waysLines = st.bedroomWays.map((w, i) => "<li>" + esc(t("room_bedroom")) + " " + (i + 1) + ": " + w + " / 2</li>").join("");
+        const stepsLis = T[LANG].sumSteps.map((s) => "<li>" + esc(s) + "</li>").join("");
+        const html =
+          "<h4>" + esc(t("sumTitle")) + "</h4>" +
+          "<p><strong>" + esc(t("sumRooms")) + ":</strong> " + roomCount + "</p>" +
+          "<p><strong>" + esc(t("sumMembers")) + ":</strong> " + esc(members.join(", ") || "—") + "</p>" +
+          "<p><strong>" + esc(t("sumWays")) + ":</strong></p><ul>" + waysLines + "</ul>" +
+          "<p><strong>" + esc(t("sumStepsTitle")) + "</strong></p><ol style='margin:8px 0; padding-left:20px;'>" + stepsLis + "</ol>" +
+          "<p style='color:var(--ink-soft); font-size:0.9rem;'>" + esc(t("sumFooter")) + "</p>" +
+          '<div class="builder-actions"><button class="btn btn-red" data-download-plan>' + esc(t("downloadPlan")) + "</button></div>";
+        eachBuilder((s) => { const b = $("[data-summary-sheet]", s); b.innerHTML = html; b.classList.add("show"); });
+      }
+      function planText() {
+        const { st, roomCount } = summaryData();
+        const lines = [
+          t("sumTitle"), "================================",
+          t("sumRooms") + ": " + roomCount,
+          t("sumMembers") + ": " + (members.join(", ") || "—"),
+          t("sumWays") + ":"
+        ];
+        st.bedroomWays.forEach((w, i) => lines.push("  - " + t("room_bedroom") + " " + (i + 1) + ": " + w + " / 2"));
+        lines.push("", t("sumStepsTitle"));
+        T[LANG].sumSteps.forEach((s, i) => lines.push("  " + (i + 1) + ". " + s));
+        lines.push("", t("sumFooter"));
+        return lines.join("\n");
+      }
+
+      /* Builder clicks (delegated, works for both mounts) */
+      document.addEventListener("click", (e) => {
+        const shell = e.target.closest(".builder-shell");
+        if (!shell) return;
+        const toolBtn = e.target.closest("[data-tool-kind]");
+        if (toolBtn) { tool = { kind: toolBtn.dataset.toolKind, value: toolBtn.dataset.toolValue }; renderTools(); return; }
+        const cell = e.target.closest("[data-cell]");
+        if (cell) { applyTool(parseInt(cell.dataset.cell, 10)); return; }
+        if (e.target.closest("[data-add-member]")) {
+          const input = $("[data-member-input]", shell);
+          const name = input.value.trim();
+          if (name) { members.push(name); input.value = ""; syncBuilder(); }
+          return;
+        }
+        const rm = e.target.closest("[data-remove-member]");
+        if (rm) { members.splice(parseInt(rm.dataset.removeMember, 10), 1); syncBuilder(); return; }
+        if (e.target.closest("[data-example]")) { loadExample(); return; }
+        if (e.target.closest("[data-clear]")) { blankCells(); planPracticed = false; hidePractice(); hideSummary(); syncBuilder(); return; }
+        if (e.target.closest("[data-practice]")) { startPractice(); return; }
+        if (e.target.closest("[data-summary]")) {
+          const st = renderChecklist();
+          if (!st.complete) { toast(t("toastNeedPlan")); return; }
+          hidePractice(); renderSummary(); return;
+        }
+        if (e.target.closest("[data-prac-next]")) { pracStep++; renderPractice(); return; }
+        if (e.target.closest("[data-prac-back]")) { pracStep--; renderPractice(); return; }
+        if (e.target.closest("[data-prac-finish]")) {
+          planPracticed = true;
+          hidePractice();
+          renderSummary();
+          updateProgress();
+          toast(t("toastPlan"));
+          return;
+        }
+        if (e.target.closest("[data-download-plan]")) { downloadText("family-escape-plan.txt", planText()); return; }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.target.matches("[data-member-input]")) {
+          e.preventDefault();
+          const shell = e.target.closest(".builder-shell");
+          const btn = $("[data-add-member]", shell);
+          if (btn) btn.click();
+        }
+      });
+
+      /* ================= Lessons ================= */
+      function lessonCardHTML(lesson) {
+        const L = lesson[LANG] || lesson.en;
+        const isEarned = !!earned[lesson.id];
+        return (
+          '<article class="lesson-card">' +
+            '<div class="ic" style="background:' + lesson.color + '">' + P[lesson.icon] + "</div>" +
+            "<h3>" + esc(L.title) + "</h3>" +
+            "<p>" + esc(L.intro) + "</p>" +
+            '<div class="foot"><span class="mins">' + lesson.mins + " " + esc(t("minutes")) + "</span>" +
+            '<span class="earned-chip' + (isEarned ? " show" : "") + '">' + P.check.replace('width="24" height="24"', "") + esc(t("earned")) + "</span>" +
+            '<button class="open-chip" style="border:0;background:none;padding:6px 2px;font-family:inherit;" data-open-lesson="' + lesson.id + '">' + esc(t("openLesson")) + " →</button></div>" +
+          "</article>"
+        );
+      }
+      function renderLessonGrids() {
+        const html = LESSONS.map(lessonCardHTML).join("");
+        $("#lessonGrid").innerHTML = html;
+        $("#lessonGrid2").innerHTML = html;
+      }
+      function updateProgress() {
+        const n = LESSONS.filter((l) => earned[l.id]).length;
+        $("#progressBar").style.width = (n / LESSONS.length) * 100 + "%";
+        $("#progressText").textContent = n + " / " + LESSONS.length;
+        renderLessonGrids();
+      }
+
+      document.addEventListener("click", (e) => {
+        const open = e.target.closest("[data-open-lesson]");
+        if (open) openLesson(open.dataset.openLesson);
+      });
+
+      function openLesson(id) {
+        currentLesson = LESSONS.find((l) => l.id === id);
+        if (!currentLesson) return;
+        const L = currentLesson[LANG] || currentLesson.en;
+        $("#lessonIcon").style.background = currentLesson.color;
+        $("#lessonIcon").innerHTML = P[currentLesson.icon];
+        $("#lessonTitle").textContent = L.title;
+        $("#lessonIntro").textContent = L.intro;
+        const extra = $("#lessonExtra");
+        if (currentLesson.hasAlarmDemo) {
+          extra.innerHTML =
+            '<div class="teach-card" style="margin-bottom:12px; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">' +
+              '<button class="btn btn-red" id="alarmDemoBtn">' + esc(t("hearAlarm")) + "</button>" +
+              "<p style='flex:1; min-width:220px; color:var(--ink-soft);'>" + esc(t("hearAlarmNote")) + "</p>" +
+            "</div>";
+          $("#alarmDemoBtn").addEventListener("click", playAlarm);
+        } else extra.innerHTML = "";
+        $("#teachGrid").innerHTML = L.cards.map((c) =>
+          '<div class="teach-card"><div class="big">' + esc(c.h) + "</div><p>" + c.p + "</p></div>"
+        ).join("");
+        $("#badgeResult").classList.remove("show");
+        startQuiz();
+        showView("lesson");
+      }
+
+      /* Smoke alarm demo sound (WebAudio: 3 beeps, pause, repeat x2) */
+      let audioCtx = null;
+      function playAlarm() {
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+          const now = audioCtx.currentTime + 0.05;
+          const beep = (start) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.type = "square"; o.frequency.value = 3100;
+            g.gain.setValueAtTime(0.0001, start);
+            g.gain.exponentialRampToValueAtTime(0.12, start + 0.02);
+            g.gain.setValueAtTime(0.12, start + 0.45);
+            g.gain.exponentialRampToValueAtTime(0.0001, start + 0.55);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(start); o.stop(start + 0.6);
+          };
+          for (let round = 0; round < 2; round++) {
+            const base = now + round * 3.4;
+            beep(base); beep(base + 0.8); beep(base + 1.6);
+          }
+          toast(t("alarmPlaying"));
+        } catch (err) { /* audio unavailable — text description still teaches the pattern */ }
+      }
+
+      /* ---------- Quiz ---------- */
+      function startQuiz() {
+        const L = currentLesson[LANG] || currentLesson.en;
+        quizState = { answers: new Array(L.quiz.length).fill(null) };
+        renderQuiz();
+      }
+      function renderQuiz() {
+        const L = currentLesson[LANG] || currentLesson.en;
+        $("#quizMount").innerHTML = L.quiz.map((q, qi) => {
+          const answered = quizState.answers[qi] !== null;
+          const opts = q.opts.map((o, oi) => {
+            let cls = "";
+            if (answered) {
+              if (oi === q.a) cls = "correct";
+              else if (quizState.answers[qi] === oi) cls = "wrong";
+            }
+            return '<button class="quiz-opt ' + cls + '" data-q="' + qi + '" data-o="' + oi + '"' + (answered ? " disabled" : "") + ">" + esc(o) + "</button>";
+          }).join("");
+          return (
+            '<div class="quiz-q"><div class="q-text">' + (qi + 1) + ". " + esc(q.q) + "</div>" +
+            '<div class="quiz-opts">' + opts + "</div>" +
+            '<div class="quiz-why' + (answered ? " show" : "") + '">' + esc(q.why) + "</div></div>"
+          );
+        }).join("") + (
+          quizState.answers.every((a) => a !== null) && !quizState.answers.every((a, i) => a === L.quiz[i].a)
+            ? '<div style="margin-top:18px;"><button class="btn btn-ghost" id="retakeBtn">' + esc(t("retake")) + "</button></div>"
+            : ""
+        );
+        const rt = $("#retakeBtn");
+        if (rt) rt.addEventListener("click", startQuiz);
+      }
+      document.addEventListener("click", (e) => {
+        const opt = e.target.closest(".quiz-opt");
+        if (!opt || opt.disabled || !currentLesson) return;
+        const qi = parseInt(opt.dataset.q, 10), oi = parseInt(opt.dataset.o, 10);
+        quizState.answers[qi] = oi;
+        renderQuiz();
+        const L = currentLesson[LANG] || currentLesson.en;
+        if (quizState.answers.every((a) => a !== null)) {
+          const allRight = quizState.answers.every((a, i) => a === L.quiz[i].a);
+          if (allRight && !earned[currentLesson.id]) {
+            earned[currentLesson.id] = true;
+            updateProgress();
+            toast(t("toastBadge") + " " + L.badge);
+          }
+          if (allRight) {
+            const br = $("#badgeResult");
+            $("#badgeMedal").style.background = currentLesson.color;
+            $("#badgeMedal").innerHTML = P.star;
+            $("#badgeName").textContent = L.badge;
+            br.classList.add("show");
+            br.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      });
+
+      /* ================= Certificate ================= */
+      function renderCertificate() {
+        const fam = $("#certFamily").value.trim();
+        const mem = $("#certMembers").value.trim();
+        const names = [];
+        if (fam) names.push(fam);
+        if (mem) names.push(mem);
+        $("#certNames").textContent = names.length ? names.join(" — ") : "—";
+        const badges = LESSONS.filter((l) => earned[l.id]).map((l) => (l[LANG] || l.en).badge);
+        if (planStatus().complete || planPracticed) badges.push(t("planDoneLine"));
+        $("#certBadges").innerHTML = badges.map((b) => "<span>" + esc(b) + "</span>").join("");
+        const d = new Date();
+        const dateStr = d.toLocaleDateString(LANG === "es" ? "es" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+        $("#certDate").textContent = t("certDatePrefix") + ": " + dateStr;
+      }
+      $("#certFamily").addEventListener("input", renderCertificate);
+      $("#certMembers").addEventListener("input", renderCertificate);
+      $("#downloadCertBtn").addEventListener("click", () => {
+        renderCertificate();
+        const badges = LESSONS.filter((l) => earned[l.id]).map((l) => (l[LANG] || l.en).badge);
+        if (planStatus().complete || planPracticed) badges.push(t("planDoneLine"));
+        const badgeHtml = badges.map((b) => '<span style="display:inline-block;border:1.5px solid #e8d3b8;background:#fdf6ec;border-radius:999px;padding:6px 13px;margin:3px;font-size:13px;font-weight:800;color:#9c1a12;">' + esc(b) + "</span>").join("");
+        const html =
+          '<!doctype html><html lang="' + LANG + '"><head><meta charset="utf-8"><title>' + esc(t("certTitle")) + "</title></head>" +
+          '<body style="margin:0;font-family:Georgia,serif;background:#fdf6ec;padding:30px;">' +
+          '<div style="max-width:720px;margin:0 auto;background:#fffdf7;color:#2a1608;border:3px solid #c9241b;padding:46px 30px;text-align:center;">' +
+          '<div style="font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#c9241b;">' + esc(t("certTop")) + "</div>" +
+          '<h1 style="font-size:42px;margin:12px 0 4px;">' + esc(t("certTitle")) + "</h1>" +
+          "<p style='color:#5c4433;'>" + esc(t("certAwarded")) + "</p>" +
+          '<div style="font-size:28px;font-weight:800;border-bottom:2px solid #e8d3b8;padding-bottom:12px;margin:20px 40px 6px;">' + esc($("#certNames").textContent) + "</div>" +
+          "<p style='color:#5c4433;'>" + esc(t("certLine")) + "</p>" +
+          '<div style="margin-top:16px;">' + badgeHtml + "</div>" +
+          '<div style="margin-top:24px;display:flex;justify-content:space-between;font-size:13px;color:#5c4433;font-weight:700;"><span>' + esc($("#certDate").textContent) + "</span><span>" + esc(t("certSign")) + "</span></div>" +
+          "</div></body></html>";
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "fire-babys-certificate.html";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+      });
+
+      /* ================= Language switching ================= */
+      function applyLang() {
+        document.documentElement.lang = LANG;
+        $$("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+        $$("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+        $("#langEn").classList.toggle("active", LANG === "en");
+        $("#langEs").classList.toggle("active", LANG === "es");
+        mountBuilder();
+        updateProgress();
+        if (currentLesson && $("#view-lesson").classList.contains("active")) {
+          const keepId = currentLesson.id;
+          openLesson(keepId);
+        }
+        renderCertificate();
+      }
+      $("#langEn").addEventListener("click", () => { LANG = "en"; applyLang(); });
+      $("#langEs").addEventListener("click", () => { LANG = "es"; applyLang(); });
+
+      /* ================= Init ================= */
+      mountBuilder();
+      updateProgress();
+      renderCertificate();
+    </script>
+  </body>
+</html>

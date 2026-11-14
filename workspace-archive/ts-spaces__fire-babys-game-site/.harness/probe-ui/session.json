@@ -1,0 +1,8 @@
+{
+  "schema_version": "hatch.probe_ui_session.v1",
+  "socket": "/home/hatch/workspace/ts-spaces/fire-babys-game-site/.harness/probe-ui/sock",
+  "slug": "fire-babys-game-site",
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-c1bb4d57-df55-49af-918a-d8bbbb164f98/",
+  "audit_session_id": "a9c39979-7431-4640-846d-0305a9df4c29",
+  "pid": 7312
+}

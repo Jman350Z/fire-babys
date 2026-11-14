@@ -1,0 +1,137 @@
+{
+  "ok": true,
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/",
+  "duration_ms": 9325.685226,
+  "output_dir": "/home/hatch/workspace/ts-spaces/fire-babys-game-site/audits/2026-09-30T22-36-19Z-050936888",
+  "nav_status": 200,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-game-site/audits/2026-09-30T22-36-19Z-050936888/screenshot.png",
+      "fullpage_screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-game-site/audits/2026-09-30T22-36-19Z-050936888/screenshot-full.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-game-site/audits/2026-09-30T22-36-19Z-050936888/screenshot-mobile.png"
+    }
+  },
+  "mobile_layout": {
+    "viewport_width": 390,
+    "scroll_width": 390,
+    "overflow_px": 0,
+    "widest_selector": null,
+    "verdict": "pass"
+  },
+  "horizontal_scrollers": [],
+  "unreachable_controls": {
+    "desktop": [],
+    "mobile": []
+  },
+  "clipped": {
+    "desktop": [
+      {
+        "tag": "h1",
+        "text": "Fire Babys",
+        "kind": "text_truncated",
+        "overflow_px": 162,
+        "bbox": [
+          395,
+          725,
+          1,
+          1
+        ]
+      }
+    ],
+    "mobile": [
+      {
+        "tag": "h1",
+        "text": "Fire Babys",
+        "kind": "text_truncated",
+        "overflow_px": 162,
+        "bbox": [
+          16,
+          625,
+          1,
+          1
+        ]
+      }
+    ]
+  },
+  "images": {
+    "total": 7,
+    "broken": [],
+    "duplicate": [],
+    "unstable": [],
+    "failed_requests": [],
+    "external_blocked": {
+      "count": 0,
+      "sample": []
+    },
+    "sample_urls": [
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/fire-babys-title-art.jpg",
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/ruko-portrait.png",
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/blaze-portrait.png",
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/boulder-portrait.png",
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/sizzle-portrait.png",
+      "https://artifact-capture.invalid/spaces/v2/hatch-audit-b3eda09f-c7e0-44fb-b5d8-9026fc4aea08/assets/cinder-portrait.png"
+    ],
+    "verdict": "pass"
+  },
+  "text_issues": [],
+  "console_errors": [],
+  "console_warnings": [],
+  "external_fetch_failures": 0,
+  "external_fetch_failure_samples": [],
+  "blocked_requests": [],
+  "external_requests": [
+    {
+      "url": "https://muse.ai/files/1320763264456757/2287622778691195/473l4jygtvquds5k6q94hwud/FireBabys-demo.html",
+      "method": "GET",
+      "resource_type": "document"
+    }
+  ],
+  "external_requests_dropped": 0,
+  "external_requests_dropped_data_bearing": 0,
+  "transport_ledger_active": true,
+  "egress_lockdown": true,
+  "transport_connections": [
+    {
+      "host": "artifact-capture.invalid",
+      "port": 443,
+      "connects": 2,
+      "bytes_up": 4068,
+      "bytes_down": 2485
+    },
+    {
+      "host": "muse.ai",
+      "port": 443,
+      "connects": 4,
+      "bytes_up": 0,
+      "bytes_down": 0,
+      "policy_denied": true
+    }
+  ],
+  "transport_udp_attempts": 0,
+  "transport_overflow": 0,
+  "unexplained_transport_hosts": [],
+  "broken_assets": [],
+  "blocked_affordances": [],
+  "interactive_nodes": 2,
+  "aria_snapshot": "- main:\n  - region \"Fire Babys\":\n    - img \"Fire Babys title blazing above a fierce round fire creature and a burning fantasy castle\"\n    - heading \"Fire Babys\" [level=1]\n    - paragraph: Tiny flames. Massive battles.\n    - link \"PLAY DEMO\":\n      - /url: \"#demo\"\n    - text: Deploy • Merge • Burn\n  - region \"Play the demo\":\n    - text: Ready when you are\n    - heading \"Play the demo\" [level=2]\n    - paragraph: Take command. Move your hero, trigger Fire Nova, and torch the enemy castle.\n    - iframe\n    - link \"Download the demo\":\n      - /url: https://muse.ai/files/1320763264456757/2287622778691195/473l4jygtvquds5k6q94hwud/FireBabys-demo.html\n    - paragraph: It plays offline in any mobile browser.\n    - paragraph: The demo file link refreshes periodically until the game is hosted on firebabys.io.\n  - region \"Meet the Babys\":\n    - text: The original six\n    - heading \"Meet the Babys\" [level=2]\n    - paragraph: Every flame has a role. Every flame has an attitude.\n    - article:\n      - img \"Ruko, an orange-red round flame brawler with a mohawk crest and confident smirk\"\n      - heading \"RUKO\" [level=3]\n      - paragraph: The Leader\n      - text: Brawler Fist Flurry\n      - paragraph: “Outta my way — I’m already on fire.”\n    - article:\n      - img \"Blaze, a golden round flame hero wearing a small star crown and heroic grin\"\n      - heading \"BLAZE\" [level=3]\n      - paragraph: The Star-Crowned\n      - text: Hero · Your avatar Fire Nova\n      - paragraph: “Follow me. Try to keep up.”\n    - article:\n      - img \"Boulder, a deep magma-red round flame guardian with soft eyes and rocky shoulder plates\"\n      - heading \"BOULDER\" [level=3]\n      - paragraph: The Gentle Wall\n      - text: Guardian Magma Taunt\n      - paragraph: “Nobody touches my friends. NOBODY.”\n    - article:\n      - img \"Sizzle, a bright yellow-pink round flame archer with a flowing ponytail, playful wink, and bow\"\n      - heading \"SIZZLE\" [level=3]\n      - paragraph: The Showoff\n      - text: Girl Archer Spark Volley\n      - paragraph: “Watch and learn, boys.”\n    - article:\n      - img \"Cinder, a violet-red round flame pyro with twin ember buns and a mischievous grin\"\n      - heading \"CINDER\" [level=3]\n      - paragraph: The Chaos Gremlin\n      - text: Girl Pyro Meteor Drop\n      - paragraph: “Hehehe... did that explode? GOOD.”\n    - article:\n      - img \"Lord Inferno, a dark crimson-black round flame villain with a jagged black-fire crown and menacing grin\"\n      - heading \"LORD INFERNO\" [level=3]\n      - paragraph: The Wildfire King\n      - text: Boss Cataclysm Slam\n      - paragraph: “Little flames. BOW.”\n  - region \"Build-a-Baby\":\n    - text: Make your flame\n    - heading \"Build-a-Baby\" [level=2]\n    - paragraph: Name it. Style it. Train it. Then put your creation in command.\n    - text: 9,676,800 possible combinations\n    - list:\n      - listitem:\n        - strong: 10 palettes\n        - text: Eyes, brows, mouths & color\n      - listitem:\n        - strong: Full loadout\n        - text: Headgear, torso gear & weapons\n      - listitem:\n        - strong: 6 classes\n        - text: Archer, Knight, Heavy, Wizard, Strongman, Ogre\n      - listitem:\n        - strong: 8 specials\n        - text: Pick the move that fits your fight\n      - listitem:\n        - strong: 12 points\n        - text: Split across Power, Swift & Tough\n      - listitem:\n        - strong: 6 save slots\n        - text: Build a whole custom roster\n    - paragraph: Equip your custom Baby as your hero in battle.\n  - region \"How it plays\":\n    - text: Fight smart. Burn bright.\n    - heading \"How it plays\" [level=2]\n    - list:\n      - listitem:\n        - heading \"Deploy & merge\" [level=3]\n        - paragraph: Build your squad into stronger tiers.\n      - listitem:\n        - heading \"Watch armies clash\" [level=3]\n        - paragraph: Your formation fights on its own.\n      - listitem:\n        - heading \"Drive the hero\" [level=3]\n        - paragraph: Use the joystick. Pop Fire Nova.\n      - listitem:\n        - heading \"Burn the castle\" [level=3]\n        - paragraph: Climb stages. Face a boss every 5.\n  - text: The fire is spreading\n  - heading \"Join the community\" [level=2]\n  - paragraph: Meet the crew, follow the build, and help shape what burns next.\n  - link \"JOIN ON FACEBOOK\":\n    - /url: https://www.facebook.com/groups/2333915794032995\n- contentinfo:\n  - region \"Privacy\":\n    - heading \"Privacy\" [level=2]\n    - paragraph: Privacy policy coming soon — the demo collects nothing.\n  - region \"Contact\":\n    - heading \"Contact\" [level=2]\n    - paragraph:\n      - link \"contact@firebabys.io\":\n        - /url: mailto:contact@firebabys.io\n  - paragraph: © 2026 Fire Babys",
+  "audit_session_id": "b1ba1cf1-2332-4830-a074-bca7a6f5e82b",
+  "mobile_ms": 5085.843446000001,
+  "cold_launch_ms": 2458.332991,
+  "desktop_ms": 5995.009367999999,
+  "browser_launches": 1,
+  "audit_path": "shared-concurrent",
+  "diagnostics": {
+    "audit_path": "shared-concurrent",
+    "concurrent_ran": true,
+    "concurrent_desktop_retry": false,
+    "concurrent_mobile_retry": false,
+    "shared_launch_failed": false,
+    "nav_retries": 0
+  }
+}
