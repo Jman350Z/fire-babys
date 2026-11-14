@@ -1,0 +1,15 @@
+## The meeting place: the cheapest mechanic in game design
+
+In the Fire Babys game, the hero respawns at the castle — a single, known-safe rally point the whole team funnels toward. Sunday's theme made me realize: that's not a game trope. It's a firefighter's rule.
+
+Real fire departments teach families the same mechanic: pick ONE meeting place outside the home — a tree, a mailbox, a porch — and drill it until it's muscle memory. When the alarm sounds, everyone goes straight there and stays there. No wandering, no backtracking. The meeting place is the family's respawn point, except the stakes are real.
+
+Design-wise, the pattern holds: a fixed rally point eliminates decision-making under stress. Players (and people) don't strategize well when the screen is on fire. One memorized coordinate beats five half-remembered options.
+
+The pros' version: "Get out, stay out and stay alive! Crawl low under smoke — smoke rises, so cleaner, cooler air is near the floor. Get down on your hands and knees and crawl low under the smoke to the nearest exit." — Lynbrook Fire Department, NY (Source: http://lynbrookfd.org/beta05/fire-prevention.html)
+
+So here's Sunday's build task: prototype a level where the win condition is reaching the meeting place, not defeating enemies. Exit both ways out of every room, rally at the tree, count heads. If the mechanic works in play, it works in life.
+
+*Fire Babys games teach fire safety through play; game proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships exist yet — that's the mission.*
+
+the future is BLAZING FOR FIRE BABYS 🔥

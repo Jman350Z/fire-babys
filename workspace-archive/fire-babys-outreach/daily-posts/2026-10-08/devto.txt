@@ -1,0 +1,11 @@
+Why I'm Teaching Fire Safety With a Game Instead of a Pamphlet
+
+Pamphlets don't get replayed. Games do. That's the whole thesis behind Fire Babys: a kid who has escaped a burning building 50 times in a game — checking doors, staying low, picking the second exit when the first is blocked — has rehearsed the right moves with their hands, not just their eyes.
+
+We're building it the indie way: single-file HTML5, Canvas 2D, zero network calls, zero trackers, local-only scores. The fire-safety rules are baked into the mechanics — close doors behind you to slow the spread, crawl low under smoke, never go back inside. Play is practice.
+
+The curriculum comes from the real pros. The U.S. Fire Administration's rule: "Get out fast and stay out. Never go back inside for people, pets or things. Smoke is poisonous. If you must escape through smoke, get low and go under the smoke to your exit." (Source: https://www.safeoutcome.com/documents/00120/USFA%20Escape%20Planning.pdf)
+
+Fire Babys games are built to teach kids fire safety through play, and proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships exist yet — that's the mission we're building toward. If you're a dev who wants to help make kids safer, the door is open.
+
+the future is BLAZING FOR FIRE BABYS 🔥

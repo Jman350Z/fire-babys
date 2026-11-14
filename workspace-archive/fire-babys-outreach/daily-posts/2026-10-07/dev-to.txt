@@ -1,0 +1,9 @@
+Teaching fire safety through game mechanics: the "get low and go" rule
+
+I'm building Fire Babys, a kid-safe battle game with one mission: teach children to prevent house fires and what to do when one is near. Here's a design choice I want to share with fellow devs — we encode real firefighter guidance directly into the game loop.
+
+In SPLASH, our flagship mode, the house levels teach crawl-low-under-smoke movement: the safe path is always the low one, and rushing back into a burning zone costs you the level. It mirrors the real rule: "Get out, stay out and stay alive! Crawl low under smoke — smoke rises, so cleaner, cooler air is near the floor. Get down on your hands and knees and crawl low under the smoke to the nearest exit." — Lynbrook Fire Department, NY (http://www.lynbrookfd.org/)
+
+Games teach through repetition. If a kid practices "get low and go" a hundred times in a game, the muscle memory is there when it counts. Game proceeds are intended to fund real US fire-department school programs — play that teaches, funding that reaches classrooms.
+
+the future is BLAZING FOR FIRE BABYS 🔥
