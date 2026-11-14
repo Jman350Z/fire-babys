@@ -1,0 +1,11 @@
+Get Low and Go: designing a fire-safety move players can feel
+
+Today's Fire Babys concept art is a level-design lesson disguised as a poster. The core mechanic of escape is vertical: smoke occupies the top of a space, breathable air stays at the bottom. So the heroes don't run upright through today's hallway — they crawl, low, under a pretend-smoke band that hugs the ceiling, toward an open door and a meeting-place tree.
+
+That one design choice teaches three real systems at once: stay under the smoke, check doors before committing to a route (a hot door means reroute to the second exit), and never re-enter once you're out. Good safety design, like good game design, makes the correct action the natural one.
+
+The real-world spec comes straight from the pros: "Get out fast and stay out. Never go back inside for people, pets or things. Smoke is poisonous. If you must escape through smoke, get low and go under the smoke to your exit." — U.S. Fire Administration (USFA) (Source: https://www.safeoutcome.com/documents/00120/USFA%20Escape%20Planning.pdf)
+
+Fire Babys is a game project teaching fire safety through play for everyone. Game proceeds are intended to fund real U.S. fire-department school programs one day — no partnerships exist yet.
+
+the future is BLAZING FOR FIRE BABYS 🔥

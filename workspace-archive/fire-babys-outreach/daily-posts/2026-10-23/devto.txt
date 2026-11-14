@@ -1,0 +1,11 @@
+🌳 MEETING PLACE FRIDAY — Level Design: The Rally Point 🌳
+
+Every good co-op game has a rally point — the place the whole party regroups so the team can check who's present before the next move. A home escape plan works exactly the same way, and that's how we teach it in Fire Babys.
+
+Design notes from today's build: one fixed rally point (never a moving target), placed in front of the home with clear sightlines, reached by two independent routes from every room, and paired with a hard rule — no re-entering the level for items or pets. Simple systems, practiced often, beat complex plans nobody remembers.
+
+The pros: "Get out fast and stay out. Never go back inside for people, pets or things. Smoke is poisonous. If you must escape through smoke, get low and go under the smoke to your exit." — U.S. Fire Administration (USFA) (Source: https://www.safeoutcome.com/documents/00120/USFA%20Escape%20Planning.pdf)
+
+Fire Babys games teach fire safety through play for everyone; proceeds are intended to fund real U.S. fire-department school programs one day. No partnerships yet — that's the mission we're building toward.
+
+the future is BLAZING FOR FIRE BABYS 🔥
