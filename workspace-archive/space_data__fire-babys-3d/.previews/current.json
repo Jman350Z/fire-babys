@@ -1,0 +1,18 @@
+{
+  "version": "1790934715449-00f8ac6c6d364fa7b279c23cfbfa13e5",
+  "captured_at_ms": 1790934715449,
+  "capture_source": "build_audit_frame",
+  "source_image": ".previews/1790934715449-00f8ac6c6d364fa7b279c23cfbfa13e5/space-source.png",
+  "thumbnail": {
+    "path": ".previews/1790934715449-00f8ac6c6d364fa7b279c23cfbfa13e5/space-thumbnail_360x360.webp",
+    "width_px": 360,
+    "height_px": 360,
+    "content_type": "image/webp"
+  },
+  "preview_card": {
+    "path": ".previews/1790934715449-00f8ac6c6d364fa7b279c23cfbfa13e5/space-preview-card_640x400.webp",
+    "width_px": 640,
+    "height_px": 400,
+    "content_type": "image/webp"
+  }
+}
