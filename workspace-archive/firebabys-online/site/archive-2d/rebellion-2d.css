@@ -1,0 +1,558 @@
+/* ============================================================
+   Fire Babys Rebellion — rebellion.html page-specific styles.
+   Loaded after assets/site.css. No inline styles anywhere.
+   ============================================================ */
+
+/* ---------- Play zone / game mount ---------- */
+
+.play-zone { padding-top: 8px; }
+
+.game-frame {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    radial-gradient(640px 300px at 50% -60px, rgba(255, 106, 26, 0.14), transparent 65%),
+    linear-gradient(180deg, var(--navy-2), #05081a);
+  padding: 14px;
+}
+
+.game-root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  border: 2px dashed rgba(255, 165, 58, 0.5);
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(0deg, rgba(38, 53, 106, 0.16) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(90deg, rgba(38, 53, 106, 0.16) 0 1px, transparent 1px 44px),
+    rgba(10, 18, 41, 0.85);
+  overflow: hidden;
+  text-align: center;
+  padding: 28px 18px;
+}
+
+.game-root .deploy-card { max-width: 460px; }
+
+.game-root .deploy-title {
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 12px 0 10px;
+}
+
+.game-root .deploy-title .accent { color: var(--flame-2); }
+
+.game-root p { color: var(--muted); margin-bottom: 0; }
+
+.game-root .deploy-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.game-root .deploy-list li {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--aqua-2);
+  border: 1px solid rgba(47, 216, 224, 0.4);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+/* ---------- Briefing prose ---------- */
+
+.briefing-prose { max-width: 720px; }
+.briefing-prose p { color: var(--muted); font-size: 1.04rem; }
+.briefing-prose p strong { color: var(--ink); }
+
+/* ---------- How-it-plays steps ---------- */
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--flame-2), var(--flame));
+  color: #fff;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.step-num.aqua { background: linear-gradient(180deg, var(--aqua-2), #0e7fbf); }
+
+/* ---------- Roadmap ---------- */
+
+.roadmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.roadmap li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.roadmap .phase {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 106, 26, 0.16);
+  color: var(--flame-2);
+  border: 1px solid rgba(255, 106, 26, 0.5);
+  margin-top: 2px;
+}
+
+.roadmap .phase.p2 {
+  background: rgba(47, 216, 224, 0.12);
+  color: var(--aqua-2);
+  border-color: rgba(47, 216, 224, 0.45);
+}
+
+.roadmap .phase.p3 {
+  background: rgba(255, 210, 58, 0.1);
+  color: var(--gold);
+  border-color: rgba(255, 210, 58, 0.4);
+}
+
+.roadmap h3 { margin-bottom: 4px; font-size: 1.05rem; }
+.roadmap p { color: var(--muted); margin: 0; font-size: 0.95rem; }
+
+/* ============================================================
+   Mission 1 game shell (assets/rebellion-game.js).
+   HUD law: one slim tab bar + status strip; everything else
+   lives in overlays (select / codec / pause / complete).
+   ============================================================ */
+
+.hidden { display: none !important; }
+
+.game-root.fbr-live {
+  display: block;
+  padding: 0;
+  min-height: 0;
+  text-align: left;
+  border: 2px solid rgba(255, 165, 58, 0.4);
+  background: #05081a;
+}
+
+.fbr { color: var(--ink); }
+
+/* ---------- HUD tab bar ---------- */
+
+.fbr-hud {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 10px;
+  background: linear-gradient(180deg, #131c3d, #0b1128);
+  border-bottom: 1px solid var(--line);
+}
+
+.fbr-obj {
+  flex: 1 1 170px;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fbr-alarm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 130px;
+  min-width: 86px;
+}
+
+.fbr-alarm-label {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.fbr-alarm-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.fbr-alarm-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffd23a, #ffa53a);
+  transition: width 0.18s linear;
+}
+
+.fbr-alarm-fill.warm { background: linear-gradient(90deg, #ffa53a, #ff6a1a); }
+.fbr-alarm-fill.hot { background: linear-gradient(90deg, #ff6a1a, #ff3524); }
+
+.fbr-meta { display: flex; align-items: center; gap: 7px; margin-left: auto; }
+
+.fbr-chip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(47, 216, 224, 0.4);
+  color: var(--aqua-2);
+  background: rgba(47, 216, 224, 0.08);
+  white-space: nowrap;
+}
+
+.fbr-timer {
+  border-color: rgba(255, 83, 64, 0.65);
+  color: #ff9a8a;
+  background: rgba(255, 53, 36, 0.13);
+  font-variant-numeric: tabular-nums;
+}
+
+.fbr-shields { display: inline-flex; gap: 4px; align-items: center; }
+
+.fbr-shield {
+  width: 11px;
+  height: 11px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(45deg);
+  border: 1.5px solid rgba(255, 165, 58, 0.75);
+  background: transparent;
+}
+
+.fbr-shield.on { background: linear-gradient(135deg, #ffc23a, #ff6a1a); }
+
+.fbr-pause-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 34px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  padding: 0;
+}
+
+.fbr-pause-btn .pb { width: 4px; height: 12px; border-radius: 2px; background: var(--ink); }
+.fbr-pause-btn:hover { border-color: rgba(255, 165, 58, 0.6); }
+
+/* ---------- Status strip ---------- */
+
+.fbr-status {
+  margin: 0;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: #080d21;
+  border-bottom: 1px solid rgba(38, 53, 106, 0.5);
+  min-height: 1.15em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Stage ---------- */
+
+.fbr-stage {
+  position: relative;
+  height: min(74vh, 640px);
+  min-height: 470px;
+  overflow: hidden;
+  background: #060b1d;
+  touch-action: none;
+}
+
+#fbr-canvas { display: block; width: 100%; height: 100%; }
+
+/* ---------- Overlays ---------- */
+
+.fbr-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 16px 14px;
+  background: rgba(5, 8, 24, 0.82);
+  overflow-y: auto;
+  text-align: center;
+}
+
+/* auto margins center short overlays, and collapse to 0 when the
+   content overflows — so tall overlays scroll from the true top */
+.fbr-overlay:not(.fbr-codec) > :first-child { margin-top: auto; }
+.fbr-overlay:not(.fbr-codec) > :last-child { margin-bottom: auto; }
+
+.fbr-ov-title {
+  margin: 0;
+  font-size: clamp(1.35rem, 6vw, 1.9rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fbr-ov-sub { margin: 0; color: var(--muted); font-size: 0.9rem; max-width: 420px; }
+
+/* hero select */
+
+.fbr-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.fbr-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 3px 7px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.fbr-hero-card:hover { border-color: rgba(255, 165, 58, 0.55); }
+
+.fbr-hero-card.sel {
+  border-color: var(--flame-2);
+  background: rgba(255, 106, 26, 0.14);
+  box-shadow: 0 0 0 1.5px var(--flame-2), 0 0 18px rgba(255, 106, 26, 0.25);
+}
+
+.fbr-hero-art { width: 52px; height: 52px; }
+
+.fbr-hero-cardname { font-size: 0.78rem; font-weight: 900; line-height: 1.1; }
+
+.fbr-hero-role { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.03em; color: var(--muted); line-height: 1.15; }
+
+.fbr-deploy-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.fbr-hero-name { font-weight: 800; font-size: 0.95rem; color: var(--flame-2); }
+
+/* buttons */
+
+.fbr-btn {
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 20px;
+  cursor: pointer;
+}
+
+.fbr-btn:hover { border-color: rgba(255, 165, 58, 0.6); }
+
+.fbr-btn-primary {
+  background: linear-gradient(180deg, var(--flame-2), var(--flame));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(255, 106, 26, 0.35);
+}
+
+/* codec */
+
+.fbr-codec {
+  inset: auto 10px 10px 10px;
+  z-index: 7;
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  justify-content: flex-start;
+  background: rgba(7, 14, 22, 0.94);
+  border: 1.5px solid rgba(47, 216, 224, 0.55);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fbr-codec-orb {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: #0b1128;
+  background: radial-gradient(circle at 35% 32%, #ffb23a, #ff4a1e);
+  border: 2px solid rgba(47, 216, 224, 0.6);
+}
+
+.fbr-codec-body { flex: 1; min-width: 0; }
+
+.fbr-codec-name {
+  margin: 0 0 3px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--aqua-2);
+}
+
+.fbr-codec-text { margin: 0; font-size: 0.94rem; line-height: 1.45; color: var(--ink); min-height: 2.9em; }
+
+.fbr-codec-hint { margin: 4px 0 0; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* pause + complete */
+
+.fbr-menu { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; }
+.fbr-menu .fbr-btn { width: 100%; }
+
+.fbr-help {
+  max-width: 440px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.fbr-help p { margin: 0 0 7px; font-size: 0.86rem; color: var(--muted); }
+.fbr-help p:last-child { margin-bottom: 0; }
+.fbr-help strong { color: var(--ink); }
+
+.fbr-stats { width: 100%; max-width: 330px; }
+
+.fbr-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+  padding: 7px 2px;
+  border-bottom: 1px solid rgba(38, 53, 106, 0.55);
+  font-size: 0.95rem;
+}
+
+.fbr-stat span { color: var(--muted); }
+.fbr-stat strong { color: var(--ink); }
+
+.fbr-stat.fbr-rank { border-bottom: none; }
+.fbr-stat.fbr-rank strong { color: var(--gold, #ffd23a); font-size: 1.12rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.fbr-best { margin: 0; color: var(--muted); font-size: 0.82rem; }
+
+/* ---------- Touch controls ---------- */
+
+.fbr-touch {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 14px 16px;
+  pointer-events: none;
+}
+
+.fbr-stick {
+  position: relative;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(160, 190, 255, 0.35);
+  background: rgba(10, 16, 36, 0.5);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.fbr-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, rgba(255, 190, 90, 0.95), rgba(255, 106, 26, 0.9));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.fbr-touch-btns { display: flex; gap: 9px; align-items: flex-end; pointer-events: auto; }
+
+.fbr-tbtn {
+  width: 57px;
+  height: 57px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(160, 190, 255, 0.4);
+  background: rgba(10, 16, 36, 0.62);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.fbr-tbtn.on { border-color: var(--aqua-2); color: var(--aqua-2); background: rgba(47, 216, 224, 0.16); }
+
+.fbr-tbtn-act {
+  width: 66px;
+  height: 66px;
+  border-color: rgba(255, 165, 58, 0.7);
+  background: rgba(255, 106, 26, 0.3);
+}
+
+.fbr-noscript { padding: 22px; text-align: center; color: var(--muted); margin: 0; }
+
+@media (max-width: 560px) {
+  .fbr-stage { min-height: 430px; }
+  .fbr-hero-grid { grid-template-columns: repeat(3, 1fr); }
+  .fbr-obj { flex-basis: 100%; }
+}
