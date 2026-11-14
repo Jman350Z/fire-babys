@@ -1,0 +1,181 @@
+Fire Babys
+Fire Safety Academy
+[button: Home] [button: Escape Plan] [button: Lessons] [button: Certificate]
+[button: EN] [button: ES]
+Free forever · No account · For every family
+# Every family deserves two ways out.
+Welcome to the Fire Babys Fire Safety Academy. Build your home escape plan, learn the skills that save lives, and practice together — in about fifteen minutes, right from your phone.
+[button:
+Build our escape plan
+→] [button: Start the lessons]
+2
+Ways out of every room
+A door and a window. If one is blocked, the other saves you.
+1×
+/mo
+Test your smoke alarms
+Press the test button every month. Alarms only help if they work.
+2×
+/yr
+Practice the plan
+Run a home fire drill twice a year — once at night.
+### Your teachers: the Fire Babys
+The Fire Babys are your family's fire-safety team — brave little teachers who know exactly what to do when the alarm sounds. They'll walk with you through every lesson, cheer you on in Practice Mode, and celebrate when your family earns its certificate.
+## The Escape Plan Builder
+Map your real home on the grid. Color in the rooms, drop in doors and windows, pick the meeting spot outside — then run Practice Mode and walk the plan together, step by step.
+1 · Paint the rooms
+[button:
+Bedroom] [button:
+Kitchen] [button:
+Bathroom] [button:
+Living room] [button:
+Hallway] [button:
+Outside / yard]
+2 · Add doors, windows, alarms & the meeting spot
+[button:
+Door] [button:
+Window] [button:
+Smoke alarm] [button:
+Meeting spot] [button:
+Erase]
+[button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ]
+3 · Who lives here?
+[input text: Add a name…]
+[button: Add]
+!
+At least one bedroom is on the map
+Paint bedroom squares where your family sleeps.
+!
+Every bedroom has TWO ways out
+Add bedrooms first.
+!
+Meeting spot is placed outside
+Put the star on an Outside square — a tree, mailbox, or neighbor's porch everyone can reach.
+!
+A smoke alarm is on the map
+Real homes need one inside every bedroom, outside sleeping areas, and on every level.
+!
+Household members are added
+Everyone who sleeps here — plus a plan for pets and anyone who needs help getting out.
+[button: Load an example home] [button: Clear the grid] [button: Start Practice Mode] [button: See plan summary]
+## Five lessons. Five badges.
+Short, hands-on lessons for the whole family — each one ends with a quick check. Answer every question right to earn the badge.
+Family progress
+0 / 5
+### Smoke Alarms Save Lives
+The beep that wakes you up in time to get out.
+3 min
+[hidden] Badge earned
+[button: Open lesson →]
+### Get Out, Stay Out
+Once you're out, you're out. Nothing inside is worth going back for.
+3 min
+[hidden] Badge earned
+[button: Open lesson →]
+### Stop, Drop & Roll
+Only if your clothes ever catch fire — this puts the flames out fast.
+2 min
+[hidden] Badge earned
+[button: Open lesson →]
+### Kitchen Safety for Grown-Ups
+Most home fires start in the kitchen. These habits stop them before they start.
+3 min
+[hidden] Badge earned
+[button: Open lesson →]
+### What to Tell 911
+Calling for help is a skill — and your family can practice it together.
+3 min
+[hidden] Badge earned
+[button: Open lesson →]
+## The family certificate
+Finish the lessons and the escape plan, then print a certificate with your family's name on it — and put it on the fridge where everyone can see it.
+[button: Make our certificate]
+[hidden] [button: ← Back to academy home]
+[hidden] ## The Escape Plan Builder
+[hidden] Map your real home on the grid. Color in the rooms, drop in doors and windows, pick the meeting spot outside — then run Practice Mode and walk the plan together, step by step.
+[hidden] 1 · Paint the rooms
+[hidden] [button:
+[hidden] Bedroom] [button:
+[hidden] Kitchen] [button:
+[hidden] Bathroom] [button:
+[hidden] Living room] [button:
+[hidden] Hallway] [button:
+[hidden] Outside / yard]
+[hidden] 2 · Add doors, windows, alarms & the meeting spot
+[hidden] [button:
+[hidden] Door] [button:
+[hidden] Window] [button:
+[hidden] Smoke alarm] [button:
+[hidden] Meeting spot] [button:
+[hidden] Erase]
+[hidden] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ] [button: ]
+[hidden] 3 · Who lives here?
+[hidden] [input text: Add a name…]
+[hidden] [button: Add]
+[hidden] !
+[hidden] At least one bedroom is on the map
+[hidden] Paint bedroom squares where your family sleeps.
+[hidden] !
+[hidden] Every bedroom has TWO ways out
+[hidden] Add bedrooms first.
+[hidden] !
+[hidden] Meeting spot is placed outside
+[hidden] Put the star on an Outside square — a tree, mailbox, or neighbor's porch everyone can reach.
+[hidden] !
+[hidden] A smoke alarm is on the map
+[hidden] Real homes need one inside every bedroom, outside sleeping areas, and on every level.
+[hidden] !
+[hidden] Household members are added
+[hidden] Everyone who sleeps here — plus a plan for pets and anyone who needs help getting out.
+[hidden] [button: Load an example home] [button: Clear the grid] [button: Start Practice Mode] [button: See plan summary]
+[hidden] [button: ← Back to academy home]
+[hidden] ## Five lessons. Five badges.
+[hidden] Short, hands-on lessons for the whole family — each one ends with a quick check. Answer every question right to earn the badge.
+[hidden] ### Smoke Alarms Save Lives
+[hidden] The beep that wakes you up in time to get out.
+[hidden] 3 min
+[hidden] Badge earned
+[hidden] [button: Open lesson →]
+[hidden] ### Get Out, Stay Out
+[hidden] Once you're out, you're out. Nothing inside is worth going back for.
+[hidden] 3 min
+[hidden] Badge earned
+[hidden] [button: Open lesson →]
+[hidden] ### Stop, Drop & Roll
+[hidden] Only if your clothes ever catch fire — this puts the flames out fast.
+[hidden] 2 min
+[hidden] Badge earned
+[hidden] [button: Open lesson →]
+[hidden] ### Kitchen Safety for Grown-Ups
+[hidden] Most home fires start in the kitchen. These habits stop them before they start.
+[hidden] 3 min
+[hidden] Badge earned
+[hidden] [button: Open lesson →]
+[hidden] ### What to Tell 911
+[hidden] Calling for help is a skill — and your family can practice it together.
+[hidden] 3 min
+[hidden] Badge earned
+[hidden] [button: Open lesson →]
+[hidden] [button: ← All lessons]
+[hidden] ### Quick check — earn the badge
+[hidden] Answer all three questions correctly. Got one wrong? You'll see why, and you can try again.
+[hidden] Badge earned! It's saved on your academy home page and will appear on your family certificate.
+[hidden] [button: Back to lessons] [button: Make our certificate]
+[hidden] [button: ← Back to academy home]
+[hidden] ## The family certificate
+[hidden] Finish the lessons and the escape plan, then print a certificate with your family's name on it — and put it on the fridge where everyone can see it.
+[hidden] Family name
+[hidden] [input text: The Pruden Family]
+[hidden] Family members (separate with commas)
+[hidden] [input text: Jeff, Maria, Sofia…]
+[hidden] Fire Babys Fire Safety Academy
+[hidden] ### Certificate of Readiness
+[hidden] This certificate is proudly presented to
+[hidden] —
+[hidden] for learning how to get out safely, building a home escape plan, and practicing it together as a family.
+[hidden] Completed on: November 4, 2026
+[hidden] Signed: The Fire Babys Safety Team
+[hidden] [button: Print certificate] [button: Download a copy]
+Fire Babys · The Fire Safety Academy is free for every family, forever. No account, no cost — just safety.
+A Fire Babys program · General Federal Industries
+In a real emergency, always call 911 (or your local emergency number) from outside the home. Practice drills are for learning — never use a real emergency call to practice.

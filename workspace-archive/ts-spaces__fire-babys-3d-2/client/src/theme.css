@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import "tailwindcss-safe-area";
+
+:root {
+  color-scheme: dark;
+  --bg: #140806;
+  --surface: #140806;
+  --text: #fff7c0;
+  --dim: #c98a5a;
+  --border: rgba(255, 140, 46, 0.55);
+  --accent: #ff7a2e;
+  --radius: 0px;
+}
+
+html,
+body,
+[data-generated-space-root],
+.hatch-space-root[data-hatch-space-root] {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.game-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--bg);
+}

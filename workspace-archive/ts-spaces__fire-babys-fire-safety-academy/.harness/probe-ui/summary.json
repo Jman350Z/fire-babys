@@ -1,0 +1,13 @@
+{
+  "schema_version": "hatch.probe_ui_summary.v1",
+  "slug": "fire-babys-fire-safety-academy",
+  "session_id": "208c7e4b-2830-4ee0-863c-a7829b4e8cc0",
+  "observes": 16,
+  "acts": 25,
+  "acts_ok": 25,
+  "interactive_nodes": 72,
+  "viewports_seen": [
+    "mobile"
+  ],
+  "findings": []
+}

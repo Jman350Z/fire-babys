@@ -1,0 +1,8 @@
+{
+  "schema_version": "hatch.probe_ui_session.v1",
+  "socket": "/home/hatch/workspace/ts-spaces/fire-babys-3d/.harness/probe-ui/sock",
+  "slug": "fire-babys-3d",
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-5d2e4ef8-1de5-497c-bd70-78f50d1819e2/",
+  "audit_session_id": "7dfcfa6f-2657-4087-b2fd-e72180b91b89",
+  "pid": 9469
+}

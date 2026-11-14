@@ -1,0 +1,18 @@
+{
+  "probe_transport_ledger_active": true,
+  "external_requests": [],
+  "external_requests_dropped": 0,
+  "external_requests_dropped_data_bearing": 0,
+  "transport_connections": [
+    {
+      "host": "artifact-capture.invalid",
+      "port": 443,
+      "connects": 1,
+      "bytes_up": 2034,
+      "bytes_down": 1243
+    }
+  ],
+  "transport_udp_attempts": 0,
+  "transport_overflow": 0,
+  "unexplained_transport_hosts": []
+}

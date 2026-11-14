@@ -1,0 +1,9 @@
+{
+  "schema_version": "hatch.probe_ui_session.v1",
+  "socket": "/home/hatch/workspace/ts-spaces/fire-babys-fire-safety-academy/.harness/probe-ui/sock",
+  "slug": "fire-babys-fire-safety-academy",
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-f1d34c4a-0a32-49af-b9b6-e555d143121f/",
+  "audit_session_id": "208c7e4b-2830-4ee0-863c-a7829b4e8cc0",
+  "pid": 19955,
+  "phone_first": true
+}

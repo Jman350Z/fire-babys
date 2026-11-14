@@ -1,0 +1,8 @@
+{
+  "runtime": "typescript",
+  "platformVersion": 24,
+  "entry": "client/dist/index.html",
+  "name": "Fire Babys 3D",
+  "slug": "fire-babys-3d-2",
+  "managedCronJobs": []
+}

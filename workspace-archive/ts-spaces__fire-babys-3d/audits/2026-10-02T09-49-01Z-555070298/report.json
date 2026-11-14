@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "url": "https://artifact-capture.invalid/spaces/v2/hatch-audit-b4f27c58-7260-4e40-add5-a84286ab8264/",
+  "duration_ms": 6420.562052,
+  "output_dir": "/home/hatch/workspace/ts-spaces/fire-babys-3d/audits/2026-10-02T09-49-01Z-555070298",
+  "nav_status": 200,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d/audits/2026-10-02T09-49-01Z-555070298/screenshot.png",
+      "fullpage_screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d/audits/2026-10-02T09-49-01Z-555070298/screenshot-full.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "screenshot_path": "/home/hatch/workspace/ts-spaces/fire-babys-3d/audits/2026-10-02T09-49-01Z-555070298/screenshot-mobile.png"
+    }
+  },
+  "mobile_layout": {
+    "viewport_width": 390,
+    "scroll_width": 390,
+    "overflow_px": 0,
+    "widest_selector": null,
+    "verdict": "pass"
+  },
+  "horizontal_scrollers": [],
+  "unreachable_controls": {
+    "desktop": [],
+    "mobile": []
+  },
+  "clipped": {
+    "desktop": [],
+    "mobile": []
+  },
+  "images": {
+    "total": 0,
+    "broken": [],
+    "duplicate": [],
+    "unstable": [],
+    "failed_requests": [],
+    "external_blocked": {
+      "count": 0,
+      "sample": []
+    },
+    "sample_urls": [],
+    "verdict": "pass"
+  },
+  "text_issues": [],
+  "console_errors": [
+    "console.error: Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. (https://artifact-capture.invalid/spaces/v2/hatch-audit-b4f27c58-7260-4e40-add5-a84286ab8264/)",
+    "console.error: Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-iXvpmIQ7TI+mo+Mm7zF5zIBK/NlAIE/upSlQi75jA8I='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. (https://artifact-capture.invalid/spaces/v2/hatch-audit-b4f27c58-7260-4e40-add5-a84286ab8264/)",
+    "console.error: Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-+vKsYcHwAwpW64O/rztW6ocWydgYZAmOGcE6u9koXWw='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. (https://artifact-capture.invalid/spaces/v2/hatch-audit-b4f27c58-7260-4e40-add5-a84286ab8264/)",
+    "console.error: Executing inline script violates the following Content Security Policy directive 'script-src 'self''. Either the 'unsafe-inline' keyword, a hash ('sha256-iXvpmIQ7TI+mo+Mm7zF5zIBK/NlAIE/upSlQi75jA8I='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked. (https://artifact-capture.invalid/spaces/v2/hatch-audit-b4f27c58-7260-4e40-add5-a84286ab8264/)"
+  ],
+  "console_warnings": [],
+  "external_fetch_failures": 0,
+  "external_fetch_failure_samples": [],
+  "blocked_requests": [],
+  "external_requests": [],
+  "external_requests_dropped": 0,
+  "external_requests_dropped_data_bearing": 0,
+  "transport_ledger_active": true,
+  "egress_lockdown": true,
+  "transport_connections": [
+    {
+      "host": "artifact-capture.invalid",
+      "port": 443,
+      "connects": 2,
+      "bytes_up": 3940,
+      "bytes_down": 2488
+    }
+  ],
+  "transport_udp_attempts": 0,
+  "transport_overflow": 0,
+  "unexplained_transport_hosts": [],
+  "broken_assets": [],
+  "blocked_affordances": [],
+  "interactive_nodes": 1,
+  "aria_snapshot": "- heading \"FIRE BABYS\" [level=1]\n- text: 3 D V E R T I C A L S L I C E Ember Village training ground · West Ember High crew Kid-safe · 100% offline · no data collected 🟧 A trash 🟨 B grease 🟦 C electrical ⬜ D metal\n- button \"TAP TO START 🔥\"",
+  "audit_session_id": "81cd0152-6d5b-4ddc-9cf8-25b6373e6419",
+  "mobile_ms": 2498.3371180000004,
+  "cold_launch_ms": 2741.89062,
+  "desktop_ms": 2806.52689,
+  "browser_launches": 1,
+  "audit_path": "shared-concurrent",
+  "diagnostics": {
+    "audit_path": "shared-concurrent",
+    "concurrent_ran": true,
+    "concurrent_desktop_retry": false,
+    "concurrent_mobile_retry": false,
+    "shared_launch_failed": false,
+    "nav_retries": 0
+  }
+}
